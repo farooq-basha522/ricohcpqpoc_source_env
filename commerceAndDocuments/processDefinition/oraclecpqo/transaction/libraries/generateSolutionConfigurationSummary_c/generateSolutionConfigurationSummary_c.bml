@@ -11,10 +11,9 @@
 //Ext. Standard Cost = Sum of each item’s qty*Unit Standard Cost
 //If there is no LIG data, the report will still be able to be generated but all the dollar amounts will be $0.00.
 //Any items associated to an Intelligent Delivery Services Model shall be excluded from the PS Summary Report
-//Any items associated to an Intelligent Delivery Services Model shall be excluded from the PS Summary Report
 
 /*get All solution summary data from table Solution_Config_Type*/
-/*TESTING Git final update1 update2*/
+/*TESTING D-T-IT FROM CLI COMMAND*/
 rs = bmql("select Category,Item_Type from Solution_Config_Type");
 category_Array  = string[];
 itemType_Array = string[];

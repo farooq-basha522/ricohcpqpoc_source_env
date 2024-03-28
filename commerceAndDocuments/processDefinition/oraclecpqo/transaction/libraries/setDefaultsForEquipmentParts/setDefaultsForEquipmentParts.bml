@@ -5,7 +5,7 @@ equipModelsDict = dict("string");
 onlyEquipModels = true;
 partNumberArray=string[];
 //create dictionary of all parent_doc_numbers that are associated with a thirdPartyProduct model
-
+//test
 for line in transactionLine {
 	if(line._price_calculation_info == ""){ //START 02_11_2023 Added if condition so below logic should not run for MPS Pricing #CHG0085215 by Vasundhara
         partNumber = line._part_number;
@@ -40,8 +40,16 @@ else {
 	//sbappend(retSB, "1~onlyEquipModels_t~false|");
 	retStr=retStr+"1~onlyEquipModels_t~false|";
 }
-
+overridePricing_thirdParty = "";
+pointsOverrideFloatEquipPart_thirdParty = "";
 for line in transactionLine {
+//as part of this RITM RITM1373972 just below line of codes to assign config values to commerce transactionLines
+if(line._config_attr_info <> "" AND line._model_variable_name == "thirdPartyProducts"){
+overridePricing_thirdParty =  getconfigattrvalue(line._document_number,"overridePricing_thirdParty");
+pointsOverrideFloatEquipPart_thirdParty =  getconfigattrvalue(line._document_number,"pointsOverrideFloatEquipPart_thirdParty");
+}
+
+
 	if(line._price_calculation_info == ""){ //START 02_11_2023 Added if condition so below logic should not run for MPS Pricing #CHG0085215 by Vasundhara
 		if (containskey(equipModelsDict, line._parent_doc_number)) {
 			partCost = "0.0";
@@ -59,8 +67,10 @@ for line in transactionLine {
 			//vendorPartNumber_t
 			SupportTerm = configData[10];
 			//supportTerm_l 
-			
 			vendorPartNum = configData[1];
+			
+			
+			equipmenPointsOverride = configData[13];
 			//cost
 			if (isnumber(configData[5])) {
 				//need to handle exchange rate for Graycon
@@ -148,6 +158,14 @@ for line in transactionLine {
 			
 			//sbappend(retSB, line._document_number + "~preparedByLIG_l~" + preparedBy+ "|");
 			retStr=retStr+line._document_number + "~preparedByLIG_l~" + preparedBy+ "|";
+			
+			//added as part of this change request 
+			retStr=retStr+line._document_number + "~equipmentStagingPoints_c~" +equipmenPointsOverride+ "|";
+			
+			retStr=retStr+line._document_number + "~overridePricing_c~" +overridePricing_thirdParty+ "|";
+            retStr=retStr+line._document_number + "~pointsOverride_c~" +pointsOverrideFloatEquipPart_thirdParty+ "|";
+
+			
 			/* for STRY0082897 - reconfig issues
 			sbappend(retSB, line._document_number + "~customDiscountValue_l~" + discValue + "|");
 			sbappend(retSB, line._document_number + "~customDiscountType_l~" + discType + "|");

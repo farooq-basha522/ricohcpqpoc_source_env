@@ -153,7 +153,7 @@ MPSLaborYear1Val = 0.0;
 		
 	}
 	
-	if(sectionName == "Implementation Cost"){
+	if(sectionName == "Third Party Implementation"){
 		
 		
 		
@@ -167,6 +167,38 @@ MPSLaborYear1Val = 0.0;
 		jsonput(MPSLaborPIMAJson1,"implementationCostMPSPIMAYear7_c",string(round(MPSLaborYear7Val,2)));
 		jsonput(MPSLaborPIMAJson1,"MPStotalContractPIMAArray_t",string(round(MPSLaborTotalContract,2)));
 		jsonput(MPSLaborPIMAJson1,"implementationCostMPSPIMATotalContract_c",string(round(MPSLaborTotalContract,2))); 
+		
+	}
+		if(sectionName == "Zebra Implementation"){
+		
+		
+		
+		jsonput(MPSLaborPIMAJson1,"implementationZebraMPSPIMADescription_c",Item);
+		jsonput(MPSLaborPIMAJson1,"implementationZebraMPSPIMAYear1_c",string(round(MPSLaborYear1Val,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationZebraMPSPIMAYear2_c",string(round(MPSLaborYear2Val,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationZebraMPSPIMAYear3_c",string(round(MPSLaborYear3Val,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationZebraMPSPIMAYear4_c",string(round(MPSLaborYear4Val,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationZebraMPSPIMAYear5_c",string(round(MPSLaborYear5Val,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationZebraMPSPIMAYear6_c",string(round(MPSLaborYear6Val,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationZebraMPSPIMAYear7_c",string(round(MPSLaborYear7Val,2)));
+		//jsonput(MPSLaborPIMAJson1,"MPStotalContractPIMAArray_t",string(round(MPSLaborTotalContract,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationZebraMPSPIMATotalContract_c",string(round(MPSLaborTotalContract,2))); 
+		
+	}
+		if(sectionName == "Conditional Audit"){
+		
+		
+		
+		jsonput(MPSLaborPIMAJson1,"conditionalAuditMPSPIMADescription_c",Item);
+		jsonput(MPSLaborPIMAJson1,"conditionalAuditMPSPIMAYear1_c",string(round(MPSLaborYear1Val,2)));
+		jsonput(MPSLaborPIMAJson1,"conditionalAuditMPSPIMAYear2_c",string(round(MPSLaborYear2Val,2)));
+		jsonput(MPSLaborPIMAJson1,"conditionalAuditMPSPIMAYear3_c",string(round(MPSLaborYear3Val,2)));
+		jsonput(MPSLaborPIMAJson1,"conditionalAuditMPSPIMAYear4_c",string(round(MPSLaborYear4Val,2)));
+		jsonput(MPSLaborPIMAJson1,"conditionalAuditMPSPIMAYear5_c",string(round(MPSLaborYear5Val,2)));
+		jsonput(MPSLaborPIMAJson1,"conditionalAuditMPSPIMAYear6_c",string(round(MPSLaborYear6Val,2)));
+		jsonput(MPSLaborPIMAJson1,"conditionalAuditMPSPIMAYear7_c",string(round(MPSLaborYear7Val,2)));
+		//jsonput(MPSLaborPIMAJson1,"MPStotalContractPIMAArray_t",string(round(MPSLaborTotalContract,2)));
+		jsonput(MPSLaborPIMAJson1,"conditionalAuditMPSPIMATotalContract_c",string(round(MPSLaborTotalContract,2))); 
 		
 	}
 	//Rebate Json Array
