@@ -1,0 +1,12 @@
+{
+  "name" : "Get Address Details From Rise - Old Approach - Not in Use as of now",
+  "variableName" : "addressDetails",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "AccountNumber",
+    "type" : "String"
+  } ],
+  "attributes" : [ "_company_name" ]
+}

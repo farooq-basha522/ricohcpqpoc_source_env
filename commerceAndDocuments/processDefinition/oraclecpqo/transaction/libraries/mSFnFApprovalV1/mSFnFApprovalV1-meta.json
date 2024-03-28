@@ -1,0 +1,20 @@
+{
+  "name" : "MS FnF Approval_V1.0",
+  "variableName" : "mSFnFApprovalV1",
+  "description" : "",
+  "libraryFunctions" : [ "util.getUserDetails", "util.getUserDetailsV1" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "param1",
+    "type" : "String"
+  }, {
+    "name" : "approvalType",
+    "type" : "String"
+  }, {
+    "name" : "param2",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ "_line_bom_attributes", "_document_number", "_model_name", "_config_attr_info", "projectNumber_l", "mSLaborType_l", "_part_number", "zIPCode_l", "_model_variable_name", "cPQLineID_l", "parentModel_l", "_group_sequence_number" ],
+  "mainDocAttributes" : [ "rebateType_t", "eDOEnterpriseDirOperations_t", "nOMNationalOperationsManager_t", "_transaction_customer_t_zip", "isThisAnEnterpriseAccount_t", "mSTransactionType_t", "termMonths_t", "contractOtherTerm_t", "rebateApplied_t", "isThisAnEnterpriseAccountEdit_t", "rebateGPOThirdparty_t", "priceList_t", "rAC_Pricelist_RISE", "rebateValueDollar_t", "rebateValue_CustomerSpecific_t", "rebateValue_t", "fFParticipantsAutoPopulateArraySet_t", "operationsAnalysts_t", "fnFApproverEmails_t", "fnFManagerApprover_t", "areaIndicator_t", "quoteProduct_t", "pricingApproverEmailfromRISE_t", "managinDirectorNameFromRISE_t" ],
+  "systemAttributes" : [ ]
+}

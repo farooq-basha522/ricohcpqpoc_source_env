@@ -1,0 +1,11 @@
+{
+  "name" : "Hide Reject for Reason from Non Approvers",
+  "variableName" : "hideRejectForReasonFromNonApprovers",
+  "description" : "Created by ROhit Ranjan to hide reason for rejection field when there is no pending one-off approvals",
+  "libraryFunctions" : [ ],
+  "returnType" : "Boolean",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "approval_status_submitQuoteToRicoh_t" ],
+  "systemAttributes" : [ "_system_user_login" ]
+}

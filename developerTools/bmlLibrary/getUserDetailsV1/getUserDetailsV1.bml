@@ -1,0 +1,53 @@
+siteName = lower(_company_name);
+result = "" ;
+resultSet = bmql("select Username,Password,InstancesName from INT_SYSTEM_DETAILS where InstancesName = $siteName");
+endpoint = "";
+authString = "";
+
+
+//loop through the records
+for record in resultSet {
+	authString = "Basic " + encodebase64(get(record,"Username") + ":" + get(record,"Password"));
+	endpoint = get(record,"InstancesName");
+}
+	headers = dict("string");
+	put(headers, "Content-Type", "application/json");
+	put(headers, "Authorization", authString );
+	
+	
+	testurl = "https://" + siteName + ".bigmachines.com/rest/v11/companies/" + siteName + "/users?q={status:1}&fields=email,login";
+	resp = urldata(testurl,"GET",headers);
+	if((get(resp, "Message-Body")) <> "" AND not(isnull((get(resp, "Message-Body"))))){
+
+	responseMsgBodyJson = json(get(resp, "Message-Body"));
+	loginid=jsonpathgetmultiple((responseMsgBodyJson),"$..login");
+	jsonemail=jsonpathgetmultiple((responseMsgBodyJson),"$..email");
+	arraysize =range(jsonarraysize(jsonemail));
+		
+	for arrsize in arraysize {
+		for eachEmail in emailId{
+		//START_POST MVP CR369 description by Namrata		
+			if(find(eachEmail, ";") <> -1){
+			 eachEmailArray1 = split(eachEmail , ";");
+				 for eachval in eachEmailArray1 {
+				 eachEmail = eachval ;
+					 if(lower(eachEmail) == lower(jsonarrayget(jsonemail, arrsize))) {
+						result = result + "1@*@" +jsonarrayget(loginid, arrsize )+"@*@"+ _company_name+"#$#";
+						break;	 
+				 	}
+				}
+			}
+			//END_POST MVP CR369 description by Namrata		
+
+			else{
+				if(lower(eachEmail) == lower(jsonarrayget(jsonemail, arrsize))) {
+					result = result + "1@*@" +jsonarrayget(loginid, arrsize )+"@*@"+ _company_name+"#$#";
+					break;	
+				}
+			}
+			
+		}
+	}
+}
+ result = substring(result ,0, len(result)-3);
+return result;

@@ -1,0 +1,65 @@
+result = "";
+fAndfRoleArray = string[];
+fandFApproverEmailIdArray = string[];
+approverEmail = "";
+leadDesignArray = string[];
+primaryleadArray = string[];
+emailSearchArray = string[];
+emailSearch ="";
+vPartarray = selectedDRTeamMemberArraySet_t;
+
+if(NOT ISNULL(fFParticipantArraySet_t)){
+if(jsonarraysize(fFParticipantArraySet_t) > 0) {
+	arraysize1 = range(jsonarraysize(fFParticipantArraySet_t));
+	
+	for eachRow in arraysize1 {
+		updatedRows = jsonarrayget(fFParticipantArraySet_t,eachRow);
+		updatedRowsJson = json(updatedRows);
+		fAndfRole = jsonget(updatedRowsJson,"approverType_Participantarray");
+		approverEmailID = jsonget(updatedRowsJson,"email_Participantarray");
+		
+		if(fAndfRole == "fFApprover") {
+			append(fAndfRoleArray,fAndfRole);
+			append(fandFApproverEmailIdArray,approverEmailID);
+			}
+	}
+}
+}
+if(NOT ISNULL(vPartarray)){
+arraysize = range(jsonarraysize(vPartarray));
+for arr in arraysize {
+	
+	
+	if(bypassReason_t == ""){
+		
+	emailSearch = jsonget(json(jsonarrayget(vPartarray , arr)),"manager_DRTeamMemberAarray_t");
+	
+	}else{
+	emailSearch = jsonget(json(jsonarrayget(vPartarray , arr)),"selectedEmail_DRTeamMemberArray_t");	
+	}
+	name = jsonget(json(jsonarrayget(vPartarray , arr)),"selectedName_DRTeamMemberArray_t");
+	leaddesign = jsonget(json(jsonarrayget(vPartarray , arr)),"leadDesignEngineer_DRTeamMemberAarray_t");
+	primarylead = jsonget(json(jsonarrayget(vPartarray , arr)),"primaryDesignLead_DRTeamMemberAarray_t");
+	
+	append(leadDesignArray,leaddesign);
+	append(primaryleadArray,primarylead);
+	append(emailSearchArray,emailSearch);
+	}
+	}
+
+if(findinarray(leadDesignArray,"true") <> -1) {
+	approverEmail = emailSearchArray[findinarray(leadDesignArray,"true")];
+	}
+elif(findinarray(primaryleadArray,"true") <> -1) {
+	approverEmail = emailSearchArray[findinarray(primaryleadArray,"true")];
+	}
+	if(isnull(approverEmail) OR approverEmail == "null"){
+	approverEmail = "";
+	}
+	
+	
+result = result + "1~fnFRoles_t~"+join(fAndfRoleArray,"##")+"|";
+result = result + "1~fnFApproverEmails_t~"+join(fandFApproverEmailIdArray,"##")+"|";
+result = result + "1~fnFManagerApprover_t~"+approverEmail+"|";
+
+return result;

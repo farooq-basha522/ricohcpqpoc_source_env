@@ -1,0 +1,15 @@
+{
+  "name" : "Availability of Vendor Items",
+  "variableName" : "availabilityOfVendorItems",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Boolean",
+  "parameters" : [ {
+    "name" : "quoteWorkbenchItemsJson",
+    "type" : "JsonArray"
+  }, {
+    "name" : "param",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

@@ -1,0 +1,110 @@
+result = "";
+groupSequenceNumberStr = " ";
+docNumArray = string[];
+subscriptionTermStr ="";
+groupSequenceDict = dict("string");
+linkedItemsDict = dict("string");
+parentIDArray = string[];
+childArray = string[];
+recordSet = bmql("select Bundle_Name,Parent_ID,Child_ID from RAC_LinkedItems");
+for eachRow in recordSet{
+	parentId = get(eachRow,"Parent_ID");
+	bundleName = get(eachRow,"Bundle_Name");
+	childId = get(eachRow,"Child_ID");
+	
+	childIdStr = childId;
+	if(containskey(linkedItemsDict,parentId + "##" + bundleName)){
+		childIdStr = get(linkedItemsDict,parentId + "##" + bundleName) + "@@" + childId;
+	}else{
+		append(parentIDArray,parentId);
+	}
+	put(linkedItemsDict,parentId + "##" + bundleName,childIdStr);
+	put(linkedItemsDict,childId + " getParent", parentId);
+	append(childArray,childId);
+}
+
+for each in transactionLine{
+	if(each._price_calculation_info == ""){//START 06_11_2023 Added if condition so below logic should not run for MPS Pricing #CHG0085215 by Vasundhara
+		documentNumber = each._document_number;
+		subscriptionTerm = "";
+		if(containskey(groupSequenceDict,each._parent_doc_number +"##DocNum")){
+			documentNumber = get(groupSequenceDict,each._parent_doc_number +"##DocNum") + "@@" + each._document_number;
+		}
+		if(containskey(groupSequenceDict,each._parent_doc_number +"##subscriptionTerm_l")){
+			subscriptionTerm = get(groupSequenceDict,each._parent_doc_number +"##subscriptionTerm_l");
+		}
+		put(groupSequenceDict,each._parent_doc_number + "##" + each._part_number + "##DocNum",documentNumber);
+		//put(groupSequenceDict,each._parent_doc_number +"##subscriptionTerm",each.subscriptionTerm_l);
+		put(groupSequenceDict,each._document_number+"##GroupSequenceNumber",each._group_sequence_number);
+		put(groupSequenceDict,each._document_number+"##ParentDocNum",each._parent_doc_number);
+		put(groupSequenceDict,each._document_number+"##PartNumber",each._part_number);
+		append(docNumArray, each._document_number);
+		//append vendor name from parts database
+		partN_c = each._part_number;
+		vendor_c="";
+		vendorPartNumber = "";
+		//ricohPSAdmins+equipmentQuoters+_allAccess
+		rs = bmql("select custom_field10 from _parts where part_number = $partN_c");
+		for v_c in rs{
+			vendor_c = get(v_c,"custom_field10");
+			vendorPartNumber = get(v_c,"custom_field13");
+		}
+		if(find(_system_user_groups,"equipmentQuoters") == -1 AND each._part_number <> "MAP-GENERIC"){
+			result = result + each._document_number + "~vendorPartNumber_t~" + vendorPartNumber + "|";
+			result = result + each._document_number + "~vendorNameLIG_l~" + vendor_c + "|";
+			result = result + each._document_number + "~vendorPartNumberLIG_l~" + vendorPartNumber + "|";
+			result = result + each._document_number + "~vendorName_l~" + vendor_c + "|";
+		}
+		if(each.qty_Vendor_l <= 0){
+			result = result + each._document_number + "~qty_Vendor_l~" + string(each._price_quantity) + "|";
+		}
+	}
+}
+
+for eachDoc in docNumArray{
+	partNumber = "";
+	groupSequenceNumber = "";
+	parentPartNumber = "";
+	parentDocummentNumber = "";
+	groupSequenceNumberOfParent = "";
+	
+	if(containskey(groupSequenceDict,eachDoc+"##PartNumber")){
+		partNumber = get(groupSequenceDict,eachDoc+"##PartNumber");
+	}
+	if(findinarray(parentIDArray,partNumber) <> -1){
+		if(containskey(groupSequenceDict,eachDoc+"##ParentDocNum")){
+			groupSequenceNumber = get(groupSequenceDict,eachDoc+"##GroupSequenceNumber");
+			parentDocummentNumber = get(groupSequenceDict,eachDoc+"##ParentDocNum");
+			if(findinarray(childArray,partNumber) <> -1){
+				parentPartNumberStr = get(linkedItemsDict,partNumber + " getParent");
+				docNumForParentPart = get(groupSequenceDict, parentDocummentNumber + "##" + parentPartNumberStr + "##DocNum");
+				groupSequenceNumberOfParent = get(groupSequenceDict,docNumForParentPart+"##GroupSequenceNumber");
+			}
+			if(containskey(groupSequenceDict,parentDocummentNumber+"##PartNumber")){
+				parentPartNumber = get(groupSequenceDict,parentDocummentNumber+"##PartNumber");
+            }
+		}			
+		if(partNumber <> "" AND parentPartNumber <> "" AND groupSequenceNumber <> ""){
+			if(containskey(linkedItemsDict,partNumber + "##" + parentPartNumber)){
+				childItemsArray = split(get(linkedItemsDict,partNumber + "##" + parentPartNumber),"@@");
+				for eachChildPart in childItemsArray{
+					if(containskey(groupSequenceDict,parentDocummentNumber + "##" + eachChildPart +"##DocNum")){
+						docNumStr = get(groupSequenceDict,parentDocummentNumber + "##" + eachChildPart +"##DocNum");
+						groupSequenceNumberOfChildPart = get(groupSequenceDict,eachDoc+"##GroupSequenceNumber");
+						parent_bundle = "Y";
+						result =  result + docNumStr + "~parent_bundle~"+parent_bundle  + "|";
+						groupSequenceNumberStr = groupSequenceNumber;
+						if(findinarray(childArray,partNumber) <> -1){
+							groupSequenceNumberStr = groupSequenceNumberOfParent + "," + groupSequenceNumber;
+						}
+						result = result + docNumStr + "~linkedItem_l~" + groupSequenceNumberStr +  "|";
+					}
+				}
+				if(findinarray(childArray,partNumber) == -1){
+					result = result + eachDoc + "~linkedItem_l~" + groupSequenceNumber + "|";
+				}
+			}
+		}
+	}
+}
+return result;

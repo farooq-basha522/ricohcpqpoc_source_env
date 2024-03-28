@@ -1,0 +1,265 @@
+MSLaborYear1Val = 0.0;
+		MSLaborYear2Val = 0.0;
+		MSLaborYear3Val = 0.0;
+		MSLaborYear4Val = 0.0;
+		MSLaborYear5Val = 0.0;
+			MSLaborYear6Val = 0.0;
+		MSLaborYear7Val = 0.0;
+		MSLaborTotalContract= 0.0;
+		tassStringValue = "";
+		MSLaborPIMAJson1 = json();
+		if(not(isnull(get(PricingDict,Item+"_Year1")))){
+		MSLaborYear1Val = get(PricingDict,Item+"_Year1");
+		
+		// print "12---";
+		// print MSLaborYear1Val ;
+		}
+		if(not(isnull(get(PricingDict,Item+"_Year2")))){
+		MSLaborYear2Val = get(PricingDict,Item+"_Year2");
+		}
+		if(not(isnull(get(PricingDict,Item+"_Year3")))){
+		MSLaborYear3Val = get(PricingDict,Item+"_Year3");
+		}
+		if(not(isnull(get(PricingDict,Item+"_Year4")))){
+		MSLaborYear4Val = get(PricingDict,Item+"_Year4");
+		}
+		if(not(isnull(get(PricingDict,Item+"_Year5")))){
+		MSLaborYear5Val = get(PricingDict,Item+"_Year5");
+		}
+		if(not(isnull(get(PricingDict,Item+"_Year6")))){
+		MSLaborYear6Val = get(PricingDict,Item+"_Year6");
+		}
+		if(not(isnull(get(PricingDict,Item+"_Year7")))){
+		MSLaborYear7Val = get(PricingDict,Item+"_Year7");
+		}
+		
+		if(not(isnull(get(PricingDict,Item+"_Total Contract")))){
+		MSLaborTotalContract = get(PricingDict,Item+"_Total Contract");
+		}
+		
+		if(sectionName == "MS Labor"){
+		jsonput(MSLaborPIMAJson1,"mSlaborPIMADescription_t",Item);
+		jsonput(MSLaborPIMAJson1,"mSLaborYear1PIMAArray_t",string(round(MSLaborYear1Val,2)));
+		jsonput(MSLaborPIMAJson1,"mSLaborYear2PIMAArray_t",string(round(MSLaborYear2Val,2)));
+		jsonput(MSLaborPIMAJson1,"mSLaborYear3PIMAArray_t",string(round(MSLaborYear3Val,2)));
+		jsonput(MSLaborPIMAJson1,"mSLaborYear4PIMAArray_t",string(round(MSLaborYear4Val,2)));
+		jsonput(MSLaborPIMAJson1,"mSLaborYear5PIMAArray_t",string(round(MSLaborYear5Val,2)));
+		jsonput(MSLaborPIMAJson1,"mSLaborYear6PIMAArray_t",string(round(MSLaborYear6Val,2)));
+		jsonput(MSLaborPIMAJson1,"mSLaborYear7PIMAArray_t",string(round(MSLaborYear7Val,2)));
+		jsonput(MSLaborPIMAJson1,"mSLabortotalContractPIMAArray_t",string(round(MSLaborTotalContract,2)));
+		jsonput(MSLaborPIMAJson1,"mSLaborYear1FloatPIMAArray_t",string(round(MSLaborYear1Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		jsonput(MSLaborPIMAJson1,"mSLaborYear2FloatPIMAArray_t",string(round(MSLaborYear2Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		jsonput(MSLaborPIMAJson1,"mSLaborYear3FloatPIMAArray_t",string(round(MSLaborYear3Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		jsonput(MSLaborPIMAJson1,"mSLaborYear4FloatPIMAArray_t",string(round(MSLaborYear4Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		jsonput(MSLaborPIMAJson1,"mSLaborYear5FloatPIMAArray_t",string(round(MSLaborYear5Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		jsonput(MSLaborPIMAJson1,"mSLaborYear6FloatPIMAArray_t",string(round(MSLaborYear6Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		jsonput(MSLaborPIMAJson1,"mSLaborYear7FloatPIMAArray_t",string(round(MSLaborYear7Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		jsonput(MSLaborPIMAJson1,"mSLabortotalContractFloatPIMAArray_t",string(round(MSLaborTotalContract,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		}
+		if(sectionName == "MPS Labor"){
+			jsonput(MSLaborPIMAJson1,"mPSlaborPIMADescription_t",Item);
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear1PIMAArray_t",string(round(MSLaborYear1Val,2)));
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear2PIMAArray_t",string(round(MSLaborYear2Val,2)));
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear3PIMAArray_t",string(round(MSLaborYear3Val,2)));
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear4PIMAArray_t",string(round(MSLaborYear4Val,2)));
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear5PIMAArray_t",string(round(MSLaborYear5Val,2)));
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear6PIMAArray_t",string(round(MSLaborYear6Val,2)));
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear7PIMAArray_t",string(round(MSLaborYear7Val,2)));
+			jsonput(MSLaborPIMAJson1,"mPSLabortotalContractPIMAArray_t",string(round(MSLaborTotalContract,2)));
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear1FloatPIMAArray_t",string(round(MSLaborYear1Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear2FloatPIMAArray_t",string(round(MSLaborYear2Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear3FloatPIMAArray_t",string(round(MSLaborYear3Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear4FloatPIMAArray_t",string(round(MSLaborYear4Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear5FloatPIMAArray_t",string(round(MSLaborYear5Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear6FloatPIMAArray_t",string(round(MSLaborYear6Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"mPSLaborYear7FloatPIMAArray_t",string(round(MSLaborYear7Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"mPSLabortotalContractFloatPIMAArray_t",string(round(MSLaborTotalContract,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		
+		}
+		if(sectionName == "ITS Labor"){
+			
+			jsonput(MSLaborPIMAJson1,"iTSPIMADescription_t",Item);
+			jsonput(MSLaborPIMAJson1,"iTSYear1PIMAArray_t",string(round(MSLaborYear1Val,2)));
+			jsonput(MSLaborPIMAJson1,"iTSYear2PIMAArray_t",string(round(MSLaborYear2Val,2)));
+			jsonput(MSLaborPIMAJson1,"iTSYear3PIMAArray_t",string(round(MSLaborYear3Val,2)));
+			jsonput(MSLaborPIMAJson1,"iTSYear4PIMAArray_t",string(round(MSLaborYear4Val,2)));
+			jsonput(MSLaborPIMAJson1,"iTSYear5PIMAArray_t",string(round(MSLaborYear5Val,2)));
+			jsonput(MSLaborPIMAJson1,"iTSYear6PIMAArray_t",string(round(MSLaborYear6Val,2)));
+			jsonput(MSLaborPIMAJson1,"iTSYear7PIMAArray_t",string(round(MSLaborYear7Val,2)));
+			jsonput(MSLaborPIMAJson1,"iTStotalContractPIMAArray_t",string(round(MSLaborTotalContract,2)));
+			jsonput(MSLaborPIMAJson1,"iTSYear1FloatPIMAArray_t",string(round(MSLaborYear1Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"iTSYear2FloatPIMAArray_t",string(round(MSLaborYear2Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"iTSYear3FloatPIMAArray_t",string(round(MSLaborYear3Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"iTSYear4FloatPIMAArray_t",string(round(MSLaborYear4Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"iTSYear5FloatPIMAArray_t",string(round(MSLaborYear5Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"iTSYear6FloatPIMAArray_t",string(round(MSLaborYear6Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"iTSYear7FloatPIMAArray_t",string(round(MSLaborYear7Val,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+			jsonput(MSLaborPIMAJson1,"iTStotalContractFloatPIMAArray_t",string(round(MSLaborTotalContract,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		}
+		if(sectionName == "TASS Labor"){
+		
+		 
+		jsonput(MSLaborPIMAJson1,"tASSPIMADescription_t",Item);
+		//tassStringValue = formatascurrency(round(MSLaborYear1Val,2), "USD");
+		// added string attribute to manage format issues
+		year1MSTotalStr  = formatascurrency(round(MSLaborYear1Val,2), "USD");
+		year2MSTotalStr =  formatascurrency(round(MSLaborYear2Val,2), "USD");
+		year3MSTotalStr =  formatascurrency(round(MSLaborYear3Val,2), "USD");
+		year4MSTotalStr =  formatascurrency(round(MSLaborYear4Val,2), "USD");
+		year5MSTotalStr = formatascurrency(round(MSLaborYear5Val,2), "USD");
+		year6MSTotalStr =  formatascurrency(round(MSLaborYear6Val,2), "USD");
+		year7MSTotalStr = formatascurrency(round(MSLaborYear7Val,2), "USD");
+		totalContractTass = formatascurrency(round(MSLaborTotalContract,2), "USD");
+		jsonput(MSLaborPIMAJson1,"tASSYear1PIMAArray_t",substring(year1MSTotalStr,1,len(year1MSTotalStr)));
+		jsonput(MSLaborPIMAJson1,"tASSYear2PIMAArray_t",substring(year2MSTotalStr,1,len(year2MSTotalStr)));
+		jsonput(MSLaborPIMAJson1,"tASSYear3PIMAArray_t",substring(year3MSTotalStr,1,len(year3MSTotalStr)));
+		jsonput(MSLaborPIMAJson1,"tASSYear4PIMAArray_t",substring(year4MSTotalStr,1,len(year4MSTotalStr)));
+		jsonput(MSLaborPIMAJson1,"tASSYear5PIMAArray_t",substring(year5MSTotalStr,1,len(year5MSTotalStr)));
+		jsonput(MSLaborPIMAJson1,"tASSYear6PIMAArray_t",substring(year6MSTotalStr,1,len(year6MSTotalStr)));
+		jsonput(MSLaborPIMAJson1,"tASSYear7PIMAArray_t",substring(year7MSTotalStr,1,len(year7MSTotalStr)));
+		
+		jsonput(MSLaborPIMAJson1,"tASStotalContractPIMAArray_t",substring(totalContractTass,1,len(totalContractTass)));
+		jsonput(MSLaborPIMAJson1,"tASStotalContractFloatPIMAArray_t",string(round(MSLaborTotalContract,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		
+	
+	}
+	// Populate VEHiCLE Component Table
+	if(sectionName == "Vehicle"){
+		
+		
+		jsonput(MSLaborPIMAJson1,"vehiclePIMADescription_t",Item);
+		jsonput(MSLaborPIMAJson1,"vehicleYear1PIMAArray_t",string(round(MSLaborYear1Val,2)));
+		jsonput(MSLaborPIMAJson1,"vehicleYear2PIMAArray_t",string(round(MSLaborYear2Val,2)));
+		jsonput(MSLaborPIMAJson1,"vehicleYear3PIMAArray_t",string(round(MSLaborYear3Val,2)));
+		jsonput(MSLaborPIMAJson1,"vehicleYear4PIMAArray_t",string(round(MSLaborYear4Val,2)));
+		jsonput(MSLaborPIMAJson1,"vehicleYear5PIMAArray_t",string(round(MSLaborYear5Val,2)));
+		jsonput(MSLaborPIMAJson1,"vehicleYear6PIMAArray_t",string(round(MSLaborYear6Val,2)));
+		jsonput(MSLaborPIMAJson1,"vehicleYear7PIMAArray_t",string(round(MSLaborYear7Val,2)));
+		jsonput(MSLaborPIMAJson1,"vehicletotalContractPIMAArray_t",string(round(MSLaborTotalContract,2)));
+		jsonput(MSLaborPIMAJson1,"vehicletotalContractFloatPIMAArray_t",string(round(MSLaborTotalContract,2)));  //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		
+	}
+	
+	// Populate TRAC Item Table
+	if(sectionName == "TRAC"){
+	
+		
+		
+		jsonput(MSLaborPIMAJson1,"tRACPIMADescription_t",Item);
+		jsonput(MSLaborPIMAJson1,"tRACYear1PIMAArray_t",string(round(MSLaborYear1Val,2)));
+		jsonput(MSLaborPIMAJson1,"tRACYear2PIMAArray_t",string(round(MSLaborYear2Val,2)));
+		jsonput(MSLaborPIMAJson1,"tRACYear3PIMAArray_t",string(round(MSLaborYear3Val,2)));
+		jsonput(MSLaborPIMAJson1,"tRACYear4PIMAArray_t",string(round(MSLaborYear4Val,2)));
+		jsonput(MSLaborPIMAJson1,"tRACYear5PIMAArray_t",string(round(MSLaborYear5Val,2)));
+		jsonput(MSLaborPIMAJson1,"tRACYear6PIMAArray_t",string(round(MSLaborYear6Val,2)));
+		jsonput(MSLaborPIMAJson1,"tRACYear7PIMAArray_t",string(round(MSLaborYear7Val,2)));
+		jsonput(MSLaborPIMAJson1,"tRACtotalContractPIMAArray_t",string(round(MSLaborTotalContract,2)));
+		jsonput(MSLaborPIMAJson1,"tRACtotalContractFloatPIMAArray_t",string(round(MSLaborTotalContract,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		
+	}
+	
+	// Populate Other services  third party  table 
+	if(sectionName == "3rd Party"){
+		
+		
+		
+		jsonput(MSLaborPIMAJson1,"otherSerPIMADescription_t",Item);
+		jsonput(MSLaborPIMAJson1,"otherSerYear1PIMAArray_t",string(round(MSLaborYear1Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSerYear2PIMAArray_t",string(round(MSLaborYear2Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSerYear3PIMAArray_t",string(round(MSLaborYear3Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSerYear4PIMAArray_t",string(round(MSLaborYear4Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSerYear5PIMAArray_t",string(round(MSLaborYear5Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSerYear6PIMAArray_t",string(round(MSLaborYear6Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSerYear7PIMAArray_t",string(round(MSLaborYear7Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSertotalContractPIMAArray_t",string(round(MSLaborTotalContract,2)));
+		jsonput(MSLaborPIMAJson1,"otherSertotalContractFloatPIMAArray_t",string(round(MSLaborTotalContract,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+
+		
+	}
+	
+	
+	// Populate Other services Non third party  table 
+	if(sectionName == "Non 3rd Party"){
+		
+	
+		jsonput(MSLaborPIMAJson1,"otherSerNTPIMADescriptionArray_t",Item);
+		jsonput(MSLaborPIMAJson1,"otherSerYear1NTPIMAArray_t",string(round(MSLaborYear1Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSerYear2NTPIMAArray_t",string(round(MSLaborYear2Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSerYear3NTPIMAArray_t",string(round(MSLaborYear3Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSerYear4NTPIMAArray_t",string(round(MSLaborYear4Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSerYear5NTPIMAArray_t",string(round(MSLaborYear5Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSerYear6NTPIMAArray_t",string(round(MSLaborYear6Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSerYear7NTPIMAArray_t",string(round(MSLaborYear7Val,2)));
+		jsonput(MSLaborPIMAJson1,"otherSertotalContractNTPIMAArray_t",string(round(MSLaborTotalContract,2)));
+		jsonput(MSLaborPIMAJson1,"otherSertotalContractNTFloatPIMAArray_t",string(round(MSLaborTotalContract,2)));  //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+
+		
+	}
+	
+	// Populate PS in MS  table 
+	if(sectionName == "PS in MS"){
+		
+		
+		
+		jsonput(MSLaborPIMAJson1,"pSPIMADescription_t",Item);
+		jsonput(MSLaborPIMAJson1,"pSYear1PIMAArray_t",string(round(MSLaborYear1Val,2)));
+		jsonput(MSLaborPIMAJson1,"pSYear2PIMAArray_t",string(round(MSLaborYear2Val,2)));
+		jsonput(MSLaborPIMAJson1,"pSYear3PIMAArray_t",string(round(MSLaborYear3Val,2)));
+		jsonput(MSLaborPIMAJson1,"pSYear4PIMAArray_t",string(round(MSLaborYear4Val,2)));
+		jsonput(MSLaborPIMAJson1,"pSYear5PIMAArray_t",string(round(MSLaborYear5Val,2)));
+		jsonput(MSLaborPIMAJson1,"pSYear6PIMAArray_t",string(round(MSLaborYear6Val,2)));
+		jsonput(MSLaborPIMAJson1,"pSYear7PIMAArray_t",string(round(MSLaborYear7Val,2)));
+		jsonput(MSLaborPIMAJson1,"pStotalContractPIMAArray_t",string(round(MSLaborTotalContract,2)));
+		jsonput(MSLaborPIMAJson1,"pStotalContractFloatPIMAArray_t",string(round(MSLaborTotalContract,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		
+	}
+// Populate Mailroom solution table 
+	if(sectionName == "Mailroom Solutions"){
+		
+		MSLaborPIMAJson1= json();
+		jsonput(MSLaborPIMAJson1,"mailRoomPIMADescription_t",Item);
+		jsonput(MSLaborPIMAJson1,"mailRoomYear1PIMAArray_t",string(round(MSLaborYear1Val,2)));
+		jsonput(MSLaborPIMAJson1,"mailRoomYear2PIMAArray_t",string(round(MSLaborYear2Val,2)));
+		jsonput(MSLaborPIMAJson1,"mailRoomYear3PIMAArray_t",string(round(MSLaborYear3Val,2)));
+		jsonput(MSLaborPIMAJson1,"mailRoomYear4PIMAArray_t",string(round(MSLaborYear4Val,2)));
+		jsonput(MSLaborPIMAJson1,"mailRoomYear5PIMAArray_t",string(round(MSLaborYear5Val,2)));
+		jsonput(MSLaborPIMAJson1,"mailRoomYear6PIMAArray_t",string(round(MSLaborYear6Val,2)));
+		jsonput(MSLaborPIMAJson1,"mailRoomYear7PIMAArray_t",string(round(MSLaborYear7Val,2)));
+		jsonput(MSLaborPIMAJson1,"mailRoomtotalContractPIMAArray_t",string(round(MSLaborTotalContract,2)));
+		jsonput(MSLaborPIMAJson1,"mailRoomtotalContractFloatPIMAArray_t",string(round(MSLaborTotalContract,2))); //Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+		
+	}
+	
+
+//Rebate Json Array
+		if(sectionName == "Rebate(s)"){
+			
+			MSLaborPIMAJson1= json();
+			
+			jsonput(MSLaborPIMAJson1,"rebateRows_ArraySet",Item);
+			jsonput(MSLaborPIMAJson1,"year1_rebateArraySet",string(round(MSLaborYear1Val,2)));
+			jsonput(MSLaborPIMAJson1,"year2_rebateArraySet",string(round(MSLaborYear2Val,2)));
+			jsonput(MSLaborPIMAJson1,"year3_rebateArraySet",string(round(MSLaborYear3Val,2)));
+			jsonput(MSLaborPIMAJson1,"year4_rebateArraySet",string(round(MSLaborYear4Val,2)));
+			jsonput(MSLaborPIMAJson1,"year5_rebateArraySet",string(round(MSLaborYear5Val,2)));
+			jsonput(MSLaborPIMAJson1,"year6_rebateArraySet",string(round(MSLaborYear6Val,2)));
+			jsonput(MSLaborPIMAJson1,"year7_rebateArraySet",string(round(MSLaborYear7Val,2)));
+			jsonput(MSLaborPIMAJson1,"totalContract_rebateArraySet",string(round(MSLaborTotalContract,2)));
+			
+		}
+//Area cost Json array 
+		if(sectionName == "Area Costs (Phone/PC)"){
+			MSLaborPIMAJson1= json();
+		
+			jsonput(MSLaborPIMAJson1,"areaCostRows_ArraySet",Item);
+			jsonput(MSLaborPIMAJson1,"year1_AreaCostArraySet",string(round(MSLaborYear1Val,2)));
+			jsonput(MSLaborPIMAJson1,"year2_AreaCostArraySet",string(round(MSLaborYear2Val,2)));
+			jsonput(MSLaborPIMAJson1,"year3_AreaCostArraySet",string(round(MSLaborYear3Val,2)));
+			jsonput(MSLaborPIMAJson1,"year4_AreaCostArraySet",string(round(MSLaborYear4Val,2)));
+			jsonput(MSLaborPIMAJson1,"year5_AreaCostArraySet",string(round(MSLaborYear5Val,2)));
+			jsonput(MSLaborPIMAJson1,"year6_AreaCostArraySet",string(round(MSLaborYear6Val,2)));
+			jsonput(MSLaborPIMAJson1,"year7_AreaCostArraySet",string(round(MSLaborYear7Val,2)));
+			jsonput(MSLaborPIMAJson1,"totalContract_AreaCostArraySet",string(round(MSLaborTotalContract,2)));
+			
+		}
+		return MSLaborPIMAJson1;

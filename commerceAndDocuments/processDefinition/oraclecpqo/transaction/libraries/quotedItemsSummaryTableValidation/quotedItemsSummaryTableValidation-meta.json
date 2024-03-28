@@ -1,0 +1,14 @@
+{
+  "name" : "Quoted Items Summary Table Validation",
+  "variableName" : "quotedItemsSummaryTableValidation",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "inputDict",
+    "type" : "String Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "quoteWorkbench_VQt", "quotedItemsSummaryEditValidation_t" ],
+  "systemAttributes" : [ ]
+}

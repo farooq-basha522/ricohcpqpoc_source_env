@@ -1,0 +1,11 @@
+{
+  "name" : "Get SO Status From FOM",
+  "variableName" : "getSOStatusFromFOM",
+  "description" : "Gets Order Header and Order Lines status from external system.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "orderKey_t" ],
+  "systemAttributes" : [ ]
+}

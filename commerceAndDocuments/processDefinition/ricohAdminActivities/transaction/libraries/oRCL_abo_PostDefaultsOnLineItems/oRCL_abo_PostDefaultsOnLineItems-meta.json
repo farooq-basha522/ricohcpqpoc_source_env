@@ -1,0 +1,14 @@
+{
+  "name" : "ABO Post Defaults On Line Items",
+  "variableName" : "oRCL_abo_PostDefaultsOnLineItems",
+  "description" : "Performs initialization of subscription order  related fields for newly created line items",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "lineHierInfo",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

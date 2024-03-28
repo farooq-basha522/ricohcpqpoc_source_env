@@ -1,0 +1,98 @@
+//Utility Function: abo_initializeContext
+//input : commerceProcessVarName(String)
+//output: context(json)
+//Description: This utility function initializes ABO Context. 
+//    This is invoked in the entry points of all ABO flows.
+
+////////////////////////////////////////////////////////
+/// ABO Package Version #: 2016.R1.drop 7.5
+/////////////////////////////////////////////////////////
+
+//constant used across different functions but set in this function
+COMMERCE_PROCESS = "commerceProcessName";
+REMOTE_COMMERCE_PROCESS ="remoteCommerceProcessName";
+REMOTE_DEBUG_PREFIX="debug_";
+
+//Check whether the incoming process name starts with "debug_" 
+// when the call is initated from assetUI(remote session), we prefix the processName with debug_  to indicate diagnostic mode is on
+// we will need to strip out that prefix and get the real commerce processName
+localCommerceProcessVarName = commerceProcessVarName;
+if(startswith(commerceProcessVarName,REMOTE_DEBUG_PREFIX))
+{
+    localCommerceProcessVarName = substring(commerceProcessVarName, len(REMOTE_DEBUG_PREFIX));
+    usersessionset("AboDiagnosticMode","Y");
+}
+//Check whether ABO has been tentatively disabled. 
+//'aboDisabled' usually can be set via some temporary test util-bml or action-script.
+//'aboDisabled' is used for comparison between abo/non-abo flow for current session to identify issues.
+//Modify/terimate executed in different session as well gets disabled with 'aboDisabled' setting because
+//main UI session passes empty processname to customer asset UI(lauched clicking on customerAsset button).
+disabled = usersessionget("aboDisabled");
+if( disabled == "Y" AND localCommerceProcessVarName <>"oraclecpqo")
+{
+    usersessionremove("abocontext");
+    usersessionremove("abo_current_process");
+    return json();
+}  
+
+//check whether current ssession is already initialized for abo for current process
+currentProcessVarName=usersessionget("abo_current_process"); 
+if(currentProcessVarName==localCommerceProcessVarName )
+{ //direct return if already initialized
+   return util.abo_getContext();
+}
+
+//default siteurl for most customer case. 
+siteUrl =  "https://" + _company_name +".bigmachines.com";
+
+mainDocNameinProcess = "";
+lineDocinProcess = "";
+//extra fields are stored in json because array/dictionary cannot be put in abocontext json.
+extraLineFieldsforAsset = json();
+
+//mainDocNameinprocess is commerceProcessName + mainDoc. 
+//lineDocinProcess is commerceProcessName+mainDoc+lineDoc
+//Note process,mainDoc & lineDoc first letter is made capital
+if(localCommerceProcessVarName == "oraclecpqo")//reference implementation image.
+{
+   mainDocNameinProcess=  "OraclecpqoTransaction";
+   lineDocinProcess = "OraclecpqoTransactionTransactionLine";
+   fieldList ="{ \"netAmount_l\":\"c\",\"priceType_l\":\"s\", \"requestedUnitOfMeasure_l\":\"s\" "
+           +", \"discountAmount_l\":\"c\", \"contractStartDate_l\":\"d\", \"contractEndDate_l\":\"d\""
+           +", \"listPrice_l\":\"c\", \"pricePeriod_l\":\"s\"} ";
+ 
+   extraLineFieldsforAsset =  json(fieldList);     
+}
+
+localAssetSvc = siteUrl + "/rest/v2/assets";
+mainDocSvc =  siteUrl + "/rest/v2/commerceDocuments" + mainDocNameinProcess;
+lineDocSvc =  siteUrl + "/rest/v2/commerceDocuments" + lineDocinProcess;
+
+siteInfo =  json();
+jsonput(siteInfo, "localAssetSvc", localAssetSvc);
+jsonput(siteInfo, "mainDocSvc", mainDocSvc);
+jsonput(siteInfo, "lineDocSvc", lineDocSvc);
+jsonput(siteInfo, "siteUrl", siteUrl);
+
+abocontext=json();
+jsonput(abocontext, "siteInfo", siteInfo);
+jsonput(abocontext, "extraLineFieldForAsset", extraLineFieldsforAsset);
+jsonput(abocontext, COMMERCE_PROCESS, localCommerceProcessVarName );
+
+
+//if current session is set to enable abo diagnostic by some test util-bml or action-script
+bDiagnosticOff=true;
+DiagnoisticMode=usersessionget("AboDiagnosticMode");
+remoteCommerceProcessVarName =localCommerceProcessVarName ;
+if(DiagnoisticMode<>"" AND(NOT isnull(DiagnoisticMode)))//diagnostic enabled 
+{
+   bDiagnosticOff=false;
+   jsonput(abocontext, "AboDiagnosticDisabled", bDiagnosticOff);   
+   remoteCommerceProcessVarName =REMOTE_DEBUG_PREFIX+commerceProcessVarName;
+}
+jsonput(abocontext, REMOTE_COMMERCE_PROCESS, remoteCommerceProcessVarName);
+
+usersessionset("abocontext", abocontext);
+usersessionset("abo_current_process", localCommerceProcessVarName ); 
+
+return abocontext;

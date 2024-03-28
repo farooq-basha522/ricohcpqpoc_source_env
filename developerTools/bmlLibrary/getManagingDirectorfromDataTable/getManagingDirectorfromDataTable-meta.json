@@ -1,0 +1,12 @@
+{
+  "name" : "getManagingDirectorfromDataTable",
+  "variableName" : "getManagingDirectorfromDataTable",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "inputParam",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

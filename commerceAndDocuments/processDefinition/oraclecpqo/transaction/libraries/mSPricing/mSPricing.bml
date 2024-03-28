@@ -1,0 +1,369 @@
+result = "";
+msParentDocArray = string[];
+msPricingItemDict = dict("string");
+partdocNumberArray=string[];
+parentDocNumArray = string[];
+partNumberArray=string[];
+ARRAY_DELIM = "$,$";
+Target_Margin_TRAC = 0.0;
+SalesCost_Uplift_TRAC = 0.0;
+Target_Price_config = 0.0;
+Target_Margin_Vehicle = 0.0;
+SalesCost_Uplift_Vehicle = 0.0;
+
+
+upliftCategoryArray = string[]{"Target_Margin_TRAC","Target_Margin_Vehicle","SalesCost_Uplift_TRAC","SalesCost_Uplift_Vehicle","Target_Price_config"};
+
+//ContractTerm - Added for Managed Services
+termMonthInNumber = 0.0;
+if(isnumber(termMonths_t)){
+	termMonthInNumber = integer(atof(termMonths_t));
+}elif(termMonths_t == "Other"){
+	termMonthInNumber = contractOtherTerm_t;
+}
+
+
+for eachLine in transactionLine{
+	partNumber = eachLine._part_number;
+	
+	//Start - Added by Nupur for Managed Services -Vehicle.
+	if(eachLine._model_name == "Managed Services" AND eachLine._parent_doc_number <> "" AND eachLine._document_number <> ""){
+		if(getconfigattrvalue(eachLine._document_number,"itemCode_Vehicle_MS") <> ""){
+			itemCode_Vehicle_MS = getconfigattrvalue(eachLine._document_number,"itemCode_Vehicle_MS");
+			vehicleType_Vehicle_MS = getconfigattrvalue(eachLine._document_number,"vehicleType_Vehicle_MS");
+			quantity_Vehicle_MS = getconfigattrvalue(eachLine._document_number,"quantity_Vehicle_MS");
+			fuelCost_Vehicle_MS = getconfigattrvalue(eachLine._document_number,"fuelCost_Vehicle_MS");
+			maintProg_Vehicle_MS = getconfigattrvalue(eachLine._document_number,"maintProg_Vehicle_MS");
+			insuranceCost_Vehicle_MS = getconfigattrvalue(eachLine._document_number,"insuranceCost_Vehicle_MS");
+			leaseCost_Vehicle_MS = getconfigattrvalue(eachLine._document_number,"leaseCost_Vehicle_MS");
+			ctrlAttr_Vehicle_MS = getconfigattrvalue(eachLine._document_number,"ctrlAttr_Vehicle_MS");
+			
+			if(eachLine.partName_l == "Managed Services"){
+				append(msParentDocArray,eachLine._document_number);	
+			}
+			put(msPricingItemDict,eachLine._document_number + "-itemCode_Vehicle_MS",itemCode_Vehicle_MS);
+			put(msPricingItemDict,eachLine._document_number + "-vehicleType_Vehicle_MS",vehicleType_Vehicle_MS);
+			put(msPricingItemDict,eachLine._document_number + "-quantity_Vehicle_MS",quantity_Vehicle_MS);
+			put(msPricingItemDict,eachLine._document_number + "-fuelCost_Vehicle_MS",fuelCost_Vehicle_MS);
+			put(msPricingItemDict,eachLine._document_number + "-maintProg_Vehicle_MS",maintProg_Vehicle_MS);
+			put(msPricingItemDict,eachLine._document_number + "-insuranceCost_Vehicle_MS",insuranceCost_Vehicle_MS);
+			put(msPricingItemDict,eachLine._document_number + "-leaseCost_Vehicle_MS",leaseCost_Vehicle_MS);
+			put(msPricingItemDict,eachLine._document_number + "-ctrlAttr_Vehicle_MS",ctrlAttr_Vehicle_MS);
+			
+		}
+	}
+	
+	//Start - Added by Nupur for Managed Services -TRAC.
+	if(eachLine._model_name == "Managed Services" AND eachLine._parent_doc_number <> "" AND eachLine._document_number <> ""){
+		if(getconfigattrvalue(eachLine._document_number,"eDPCode_TRAC_MS") <> ""){
+			eDPCode_TRAC_MS = getconfigattrvalue(eachLine._document_number,"eDPCode_TRAC_MS");
+			tRACComponent_TRAC_MS = getconfigattrvalue(eachLine._document_number,"tRACComponent_TRAC_MS");
+			quantity_TRAC_MS = getconfigattrvalue(eachLine._document_number,"quantity_TRAC_MS");
+			oneTimeCost_TRAC_MS = getconfigattrvalue(eachLine._document_number,"oneTimeCost_TRAC_MS");
+			monthlyCost_TRAC_MS = getconfigattrvalue(eachLine._document_number,"monthlyCost_TRAC_MS");
+			ctrlAttr_TR_AC_MS = getconfigattrvalue(eachLine._document_number,"ctrlAttr_TR_AC_MS");
+			
+			if(eachLine.partName_l == "Managed Services"){
+				append(msParentDocArray,eachLine._document_number);	
+			}
+			put(msPricingItemDict,eachLine._document_number + "-eDPCode_TRAC_MS",eDPCode_TRAC_MS);
+			put(msPricingItemDict,eachLine._document_number + "-tRACComponent_TRAC_MS",tRACComponent_TRAC_MS);
+			put(msPricingItemDict,eachLine._document_number + "-quantity_TRAC_MS",quantity_TRAC_MS);
+			put(msPricingItemDict,eachLine._document_number + "-oneTimeCost_TRAC_MS",oneTimeCost_TRAC_MS);
+			put(msPricingItemDict,eachLine._document_number + "-monthlyCost_TRAC_MS",monthlyCost_TRAC_MS);
+			put(msPricingItemDict,eachLine._document_number + "-ctrlAttr_TR_AC_MS",ctrlAttr_TR_AC_MS);
+			
+		}
+	}
+	
+	//Start - Added by Nupur for Managed Services -Mail Room.
+	if(eachLine._model_name == "Managed Services" AND eachLine._parent_doc_number <> "" AND eachLine._document_number <> ""){
+		if(getconfigattrvalue(eachLine._document_number,"itemCode_MailEquip_MS") <> ""){
+			itemCode_MailEquip_MS = getconfigattrvalue(eachLine._document_number,"itemCode_MailEquip_MS");
+			itemDescrion_MailEquip_MS = getconfigattrvalue(eachLine._document_number,"itemDescrion_MailEquip_MS");
+			quantity_MailEquip_MS = getconfigattrvalue(eachLine._document_number,"quantity_MailEquip_MS");
+			expenseType_MailEquip_MS = getconfigattrvalue(eachLine._document_number,"expenseType_MailEquip_MS");
+			ctrlAttr_MailEquip_MS = getconfigattrvalue(eachLine._document_number,"ctrlAttr_MailEquip_MS");
+			
+			if(eachLine.partName_l == "Managed Services"){
+				append(msParentDocArray,eachLine._document_number);	
+			}
+			put(msPricingItemDict,eachLine._document_number + "-itemCode_MailEquip_MS",itemCode_MailEquip_MS);
+			put(msPricingItemDict,eachLine._document_number + "-itemDescrion_MailEquip_MS",itemDescrion_MailEquip_MS);
+			put(msPricingItemDict,eachLine._document_number + "-quantity_MailEquip_MS",quantity_MailEquip_MS);
+			put(msPricingItemDict,eachLine._document_number + "-expenseType_MailEquip_MS",expenseType_MailEquip_MS);
+			put(msPricingItemDict,eachLine._document_number + "-ctrlAttr_MailEquip_MS",ctrlAttr_MailEquip_MS);
+			
+		}
+	}
+    if(partNumber <> ""){
+	    if(eachLine._parent_doc_number <> ""){
+		vhIndex=0;
+		trIndex=0;
+		mrIndex=0;	
+        append(parentDocNumArray,eachLine._parent_doc_number);	
+		}
+		if(eachLine._parent_doc_number == ""){
+		vhIndex=0;
+		trIndex=0;
+		mrIndex=0;	
+		}
+		append(partNumberArray,partNumber); 
+		append(partdocNumberArray,eachLine._document_number);
+    }
+	    
+		partSalesCost = util.getPartPrice("custom_field7", partNumber);
+		partSRP = util.getPartPrice("price", partNumber);
+}
+//Get all the constant values required for calculation from table RAC_MS_UPLIFT
+msUpliftRecordSet = bmql("SELECT Category_Name, Category_Value, Category_ValueType FROM RAC_MS_UPLIFT WHERE Category_Name in $upliftCategoryArray");
+
+for each in msUpliftRecordSet{
+	categoryName = get(each,"Category_Name");
+	categoryValueType = get(each,"Category_ValueType");
+	categoryValue = getfloat(each,"Category_Value");
+	
+	if(categoryName == "Target_Margin_TRAC" AND categoryValueType == "Percentage"){
+		Target_Margin_TRAC = categoryValue/100;
+	}
+	if(categoryName == "SalesCost_Uplift_TRAC" AND categoryValueType == "Percentage"){
+		SalesCost_Uplift_TRAC = categoryValue/100;
+	}
+	if(categoryName == "Target_Price_config" AND categoryValueType == "Percentage"){
+		Target_Price_config = categoryValue/100;
+	}
+	if(categoryName == "Target_Margin_Vehicle" AND categoryValueType == "Percentage"){
+		Target_Margin_Vehicle = categoryValue/100;
+	}
+	if(categoryName == "SalesCost_Uplift_Vehicle" AND categoryValueType == "Percentage"){
+		SalesCost_Uplift_Vehicle = categoryValue/100;
+	}
+	
+}
+
+
+docNumberIndex =0;
+//Added by Nupur for MS -Vehicle
+for eachDocNum in msParentDocArray{
+	ctrlAttr_Vehicle_MS = 0;
+    
+	if(containskey(msPricingItemDict,eachDocNum + "-itemCode_Vehicle_MS")){
+			
+		itemCode_Vehicle_MS = split(get(msPricingItemDict,eachDocNum + "-itemCode_Vehicle_MS"),ARRAY_DELIM);
+		quantity_Vehicle_MS = split(get(msPricingItemDict,eachDocNum + "-quantity_Vehicle_MS"),ARRAY_DELIM);
+		vehicleType_Vehicle_MS  = split(get(msPricingItemDict,eachDocNum + "-vehicleType_Vehicle_MS"),ARRAY_DELIM);
+		leaseCost_Vehicle_MS = split(get(msPricingItemDict,eachDocNum + "-leaseCost_Vehicle_MS"),ARRAY_DELIM);
+		fuelCost_Vehicle_MS = split(get(msPricingItemDict,eachDocNum + "-fuelCost_Vehicle_MS"),ARRAY_DELIM);
+		maintProg_Vehicle_MS = split(get(msPricingItemDict,eachDocNum + "-maintProg_Vehicle_MS"),ARRAY_DELIM);
+		insuranceCost_Vehicle_MS = split(get(msPricingItemDict,eachDocNum + "-insuranceCost_Vehicle_MS"),ARRAY_DELIM);
+		
+		if(isnumber(get(msPricingItemDict,eachDocNum + "-ctrlAttr_Vehicle_MS"))){
+			ctrlAttr_Vehicle_MS = integer(atof(get(msPricingItemDict,eachDocNum + "-ctrlAttr_Vehicle_MS")));
+		}
+
+		vhIndex = 0;
+		
+		for eachVehicleCode in itemCode_Vehicle_MS{
+			
+            //START derivation for TotalMonthlyCost -Vehicle
+			
+            fuelCost = 0.0;
+            maintProg = 0.0;
+			insuranceCost = 0.0;
+			leaseCost = 0.0;
+            TotalMonthlyCost_Vehicle = 0.0;
+    
+	        if(isnumber(fuelCost_Vehicle_MS[vhIndex])){
+		    fuelCost = atof(fuelCost_Vehicle_MS[vhIndex]);
+            }
+	        if(isnumber(maintProg_Vehicle_MS[vhIndex])){
+	        maintProg = atof(maintProg_Vehicle_MS[vhIndex]);
+	        } 
+            if(isnumber(insuranceCost_Vehicle_MS[vhIndex])){
+	        insuranceCost = atof(insuranceCost_Vehicle_MS[vhIndex]);
+	        }	
+            if(isnumber(leaseCost_Vehicle_MS[vhIndex])){
+	        leaseCost = atof(leaseCost_Vehicle_MS[vhIndex]);
+	        }			
+
+            TotalMonthlyCost_Vehicle = fuelCost + maintProg + insuranceCost + leaseCost;
+
+            //END derivation for TotalMonthlyCost -Vehicle
+			
+            //START derivation for Target Price -Vehicle
+			
+            targetMargin_Vehicle = Target_Margin_Vehicle;
+            dividedBy = 1 - targetMargin_Vehicle;
+			targetPrice_Vehicle = 0.0;
+            if(dividedBy > 0){
+						targetPrice_Vehicle = round(TotalMonthlyCost_Vehicle/dividedBy,2);
+					}
+			else{
+					targetPrice_Vehicle = 0.0;
+				}
+				
+            //END derivation for Target Price -Vehicle
+			
+				
+            //Sales Cost, Target Price, Standard Cost, Unit SRP, Ext SRP for Vehicle
+			
+			if(eachVehicleCode <> ""){
+            unitStandardCost_Vehicle = TotalMonthlyCost_Vehicle;
+		    unitContractOrTargetPrice_Vehicle = targetPrice_Vehicle;
+		    unitSalesCost_Vehicle = TotalMonthlyCost_Vehicle * (1 + SalesCost_Uplift_Vehicle);
+			unitSRP_Vehicle = targetPrice_Vehicle * (Target_Price_config);
+			extSRP_Vehicle = 0.0;
+				if(isnumber(quantity_Vehicle_MS[vhIndex])){
+					extSRP_Vehicle = unitSRP_Vehicle * integer(atof(quantity_Vehicle_MS[vhIndex]));
+				}
+            
+            result = result + partdocNumberArray[docNumberIndex] + "~unitCost_l~" + string(unitStandardCost_Vehicle) + "|";
+			result = result + partdocNumberArray[docNumberIndex] + "~unitSalesCost_l~" + string(unitSalesCost_Vehicle) + "|";
+	        result = result + partdocNumberArray[docNumberIndex] + "~contractedUnitPrice_l~" + string(unitContractOrTargetPrice_Vehicle) + "|";
+			result = result + partdocNumberArray[docNumberIndex] + "~unitSRP_l~" + string(unitSRP_Vehicle) + "|";
+			result = result + partdocNumberArray[docNumberIndex] + "~extSRP_l~" + string(extSRP_Vehicle) + "|";
+	        }
+	        vhIndex = vhIndex + 1;
+            docNumberIndex = docNumberIndex + 1;
+		}
+		
+	}
+//Added by Nupur for MS -TRAC
+	ctrlAttr_TR_AC_MS = 0;
+	
+    if(containskey(msPricingItemDict,eachDocNum + "-eDPCode_TRAC_MS")){
+			
+		eDPCode_TRAC_MS = split(get(msPricingItemDict,eachDocNum + "-eDPCode_TRAC_MS"),ARRAY_DELIM);
+		tRACComponent_TRAC_MS  = split(get(msPricingItemDict,eachDocNum + "-tRACComponent_TRAC_MS"),ARRAY_DELIM);
+		quantity_TRAC_MS = split(get(msPricingItemDict,eachDocNum + "-quantity_TRAC_MS"),ARRAY_DELIM);
+		oneTimeCost_TRAC_MS = split(get(msPricingItemDict,eachDocNum + "-oneTimeCost_TRAC_MS"),ARRAY_DELIM);
+		monthlyCost_TRAC_MS = split(get(msPricingItemDict,eachDocNum + "-monthlyCost_TRAC_MS"),ARRAY_DELIM);
+		if(isnumber(get(msPricingItemDict,eachDocNum + "-ctrlAttr_TR_AC_MS"))){
+			ctrlAttr_TR_AC_MS = integer(atof(get(msPricingItemDict,eachDocNum + "-ctrlAttr_TR_AC_MS")));
+		}
+
+		trIndex = 0;
+		
+		for eachTRACCode in eDPCode_TRAC_MS{
+			
+            //START derivation for TotalMonthlyCost -TRAC
+			
+            monthlyCost = 0.0;
+            oneTimeCost = 0.0;
+            CostOfMoney=0.0;
+            TotalMonthlyCost_TRAC = 0.0;
+			      
+            CostFactorRecordSet = bmql("SELECT TermMonths, CostOfMoney FROM RAC_CostOfMoney WHERE TermMonths = $termMonthInNumber");
+                for each in CostFactorRecordSet{
+	                CostOfMoney = getfloat(each,"CostOfMoney");
+	            }	
+    
+	        if(isnumber(monthlyCost_TRAC_MS[trIndex])){
+		    monthlyCost = atof(monthlyCost_TRAC_MS[trIndex]);
+            }
+	        if(isnumber(oneTimeCost_TRAC_MS[trIndex])){
+	        oneTimeCost = atof(oneTimeCost_TRAC_MS[trIndex]);
+	        }  
+            TotalMonthlyCost_TRAC = monthlyCost + (oneTimeCost * CostOfMoney) ;
+
+            //END derivation for TotalMonthlyCost -TRAC
+			
+            //START derivation for Target Price -TRAC
+			
+            targetMargin_TRAC = Target_Margin_TRAC;
+            dividedBy = 1 - targetMargin_TRAC;
+			targetPrice_TRAC = 0.0;
+            if(dividedBy > 0){
+			targetPrice_TRAC = round(TotalMonthlyCost_TRAC/dividedBy,2);
+		    }
+			else{
+		    targetPrice_TRAC = 0.0;
+				}
+				
+            //END derivation for Target Price -TRAC
+			
+				
+            //Sales Cost, Target Price, Standard Cost, Unit SRP, Ext SRP for TRAC
+			if(eachTRACCode <> ""){
+            unitStandardCost_TRAC = TotalMonthlyCost_TRAC;
+		    unitContractOrTargetPrice_TRAC = targetPrice_TRAC;
+		    unitSalesCost_TRAC = TotalMonthlyCost_TRAC * (1 + SalesCost_Uplift_TRAC);
+			unitSRP_TRAC = targetPrice_TRAC * (Target_Price_config);
+			extSRP_TRAC = 0.0;
+				if(isnumber(quantity_TRAC_MS[trIndex])){
+					extSRP_TRAC = unitSRP_TRAC * integer(atof(quantity_TRAC_MS[trIndex]));
+				}
+            result = result + partdocNumberArray[docNumberIndex] + "~unitCost_l~" + string(unitStandardCost_TRAC) + "|";
+			result = result + partdocNumberArray[docNumberIndex] + "~unitSalesCost_l~" + string(unitSalesCost_TRAC) + "|";
+	        result = result + partdocNumberArray[docNumberIndex] + "~contractedUnitPrice_l~" + string(unitContractOrTargetPrice_TRAC) + "|";
+			result = result + partdocNumberArray[docNumberIndex] + "~unitSRP_l~" + string(unitSRP_TRAC) + "|";
+			result = result + partdocNumberArray[docNumberIndex] + "~extSRP_l~" + string(extSRP_TRAC) + "|";
+	        }
+	        trIndex = trIndex + 1;
+            docNumberIndex = docNumberIndex + 1;
+		}
+		
+	}
+
+//Added by Nupur for MS -Mail Room Equip
+	if(containskey(msPricingItemDict,eachDocNum + "-itemCode_MailEquip_MS")){
+		itemCode_MailEquip_MS = split(get(msPricingItemDict,eachDocNum + "-itemCode_MailEquip_MS"),ARRAY_DELIM);
+		itemDescrion_MailEquip_MS  = split(get(msPricingItemDict,eachDocNum + "-itemDescrion_MailEquip_MS"),ARRAY_DELIM);
+		quantity_MailEquip_MS = split(get(msPricingItemDict,eachDocNum + "-quantity_MailEquip_MS"),ARRAY_DELIM);
+		expenseType_MailEquip_MS = split(get(msPricingItemDict,eachDocNum + "-expenseType_MailEquip_MS"),ARRAY_DELIM);
+		if(isnumber(get(msPricingItemDict,eachDocNum + "-ctrlAttr_MailEquip_MS"))){
+			ctrlAttr_MailEquip_MS = integer(atof(get(msPricingItemDict,eachDocNum + "-ctrlAttr_MailEquip_MS")));
+		}
+
+		mrIndex = 0;
+		
+		for eachMailRoomCode in itemCode_MailEquip_MS{
+				
+            //START derivation for Standard Cost -Mail Room
+	
+            if (expenseType_MailEquip_MS[mrIndex] == "Monthly"){
+                partStdCost = partSalesCost ;
+            }
+            if (expenseType_MailEquip_MS[mrIndex] == "Annual"){
+                partStdCost = partSalesCost/12 ;
+            }
+				
+            //END derivation for Standard Cost -Mail Room
+			
+			//START derivation for Unit SRP -Mail Room
+			
+            if (expenseType_MailEquip_MS[mrIndex] == "Monthly"){
+                partSRPCost = partSRP ;
+            }
+            if (expenseType_MailEquip_MS[mrIndex] == "Annual"){
+                partSRPCost = partSRP/12 ;
+            }
+				
+            //END derivation for Unit SRP -Mail Room
+				
+            //Sales Cost, Target Price, Ext SRP for Mail Room
+			
+			if(eachMailRoomCode <> ""){
+            unitStandardCost_MailRoom = partStdCost;
+		    unitContractOrTargetPrice_MailRoom = 0.0;
+		    unitSalesCost_MailRoom = 0.0;
+			unitSRP_MailRoom = partSRPCost;
+			extSRP_MailRoom = 0.0;
+				if(isnumber(quantity_MailEquip_MS[mrIndex])){
+					extSRP_MailRoom = unitSRP_MailRoom * integer(atof(quantity_MailEquip_MS[mrIndex]));
+				}
+            
+            result = result + partdocNumberArray[docNumberIndex] + "~unitCost_l~" + string(round(unitStandardCost_MailRoom,2)) + "|";
+			result = result + partdocNumberArray[docNumberIndex] + "~unitSalesCost_l~" + string(unitSalesCost_MailRoom) + "|";
+	        result = result + partdocNumberArray[docNumberIndex] + "~contractedUnitPrice_l~" + string(unitContractOrTargetPrice_MailRoom) + "|";
+			result = result + partdocNumberArray[docNumberIndex] + "~unitSRP_l~" + string(unitSRP_MailRoom) + "|";
+			result = result + partdocNumberArray[docNumberIndex] + "~extSRP_l~" + string(extSRP_MailRoom) + "|";
+	        }
+	        mrIndex = mrIndex + 1;
+            docNumberIndex = docNumberIndex + 1;
+		}
+		
+	}	
+}
+
+return result;

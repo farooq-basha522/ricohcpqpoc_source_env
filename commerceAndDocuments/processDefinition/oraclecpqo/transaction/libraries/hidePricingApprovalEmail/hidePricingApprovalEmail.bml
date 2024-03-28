@@ -1,0 +1,17 @@
+retVal = true;
+projectNumberArray = String[];
+arraysize = range(jsonarraysize(customerAccountResult_t));
+for each in arraysize {
+	if(NOT isnull(jsonget(json(jsonarrayget(customerAccountResult_t, each)),"project_Result_t"))){
+		append(projectNumberArray, jsonget(json(jsonarrayget(customerAccountResult_t, each)),"project_Result_t"));
+	}
+}
+querryAppTable = BMQL("SELECT AccountType FROM RAC_MS_FNF_AUTHORITY where OracleProjectNumber IN $projectNumberArray");
+for eachRow in querryAppTable{
+	accountType = get(eachRow, "AccountType");
+	if(pricingApproverEmailfromRISE_t == "" AND (accountType == "ZBA" OR accountType == "Area" OR accountType == "Enterprise")){
+		retval = false;
+		break;
+	}
+}
+return retval ;

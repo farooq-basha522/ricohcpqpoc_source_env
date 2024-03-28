@@ -1,0 +1,14 @@
+// MainDoc CustomerAsset Action Script added to maindoc action oRCL_ABO_DisplayAssets > Destination > Destination Rule
+// Script code is available when ABO package is migrated
+// Maindoc Action name: Customer Asset. (Type: AddFromCatalog) Var name:oRCL_ABO_DisplayAssets
+//Select following attributes
+//  System attribute:_system_buyside_id, _system_process_name
+//  Main Doc variables: _transaction_customer_id(_transaction prefix is from maindoc varname)
+//  _transaction_customer_t_company_name
+//  _transaction_customer_t_first_name
+//  _transaction_customer_t_last_name
+// defaultRequestDate_t
+//  line attribute - None
+//Select following util libraries: abo_initializeContext, adf_BuildAdfURL, abo_addDiagnosticInfo, abo_dateTimeConverter
+
+return "";

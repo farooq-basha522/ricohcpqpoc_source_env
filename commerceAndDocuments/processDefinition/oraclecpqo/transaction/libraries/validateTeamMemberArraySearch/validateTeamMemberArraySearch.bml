@@ -1,0 +1,17 @@
+retValue = "";
+rowNum = 1;
+searchArray = searchDRTeamMemberArraySet_t;
+arraySize = range(jsonarraysize(searchArray));
+
+for arr in arraySize {
+	selectTeamMember = jsonget(json(jsonarrayget(searchArray , arr)),"selectDRTeamMember_t");
+	emailTeamMember = jsonget(json(jsonarrayget(searchArray , arr)),"searchedEmail_DRTeamMemberAarray_t");
+	roleTeamMember = jsonget(json(jsonarrayget(searchArray , arr)),"searchRole_DRTeamMemberAarray_t");
+		
+	if(selectTeamMember == "true" AND NOT isnull(emailTeamMember) AND isnull(roleTeamMember)) {
+		retValue = retValue + "rowNum" + " " + ": Selected Team Member cannot be added as there is no role mapped. Please select the Team Member with role populated." ;
+	}
+	rowNum = rowNum + 1;
+}
+
+return retValue;

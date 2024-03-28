@@ -1,0 +1,425 @@
+ret = "";
+count3rdParty= 0;
+unitSalesCost3rdParty = 0.0;
+extSalesCost3rdParty = 0.0;
+unitNetPrice3rdParty = 0.0;
+extNetPrice3rdParty = 0.0;
+quantity3rdParty = 0;
+countMICR= 0;
+unitSalesCostMICR = 0.0;
+extSalesCostMICR = 0.0;
+unitNetPriceMICR = 0.0;
+extNetPriceMICR = 0.0;
+quantityMICR = 0;
+countZebra= 0;
+unitSalesCostZebra = 0.0;
+extSalesCostZebra = 0.0;
+unitNetPriceZebra = 0.0;
+extNetPriceZebra = 0.0;
+quantityZebra = 0;
+count3rdPartyOther= 0;
+unitSalesCost3rdPartyOther = 0.0;
+extSalesCost3rdPartyOther = 0.0;
+unitNetPrice3rdPartyOther = 0.0;
+extNetPrice3rdPartyOther = 0.0;
+quantity3rdPartyOther = 0;
+countMICROther= 0;
+unitSalesCostMICROther = 0.0;
+extSalesCostMICROther = 0.0;
+unitNetPriceMICROther = 0.0;
+extNetPriceMICROther = 0.0;
+quantityMICROther = 0;
+MICR = false;
+lineNumberArray = string[];
+lineNumber3rdParty = "";
+lineNumberMICR = "";
+lineNumberZebra = "";
+lineNumber3rdPartyOther = "";
+lineNumberMICROther = "";
+extSellingPrice3rdParty = 0.0;
+unitTargetPrice3rdParty = 0.0;
+unitSRP3rdParty = 0.0;
+unitSellingPrice3rdParty = 0.0 ;
+extSRP3rdParty = 0.0;
+extSellingPriceMICR= 0.0;
+unitTargetPriceMICR = 0.0;
+unitSRPMICR = 0.0;
+unitSellingPriceMICR = 0.0 ;
+extSRPMICR = 0.0;
+extSellingPriceZebra= 0.0;
+unitTargetPriceZebra = 0.0;
+unitSRPZebra = 0.0;
+unitSellingPriceZebra = 0.0 ;
+extSRPZebra = 0.0;
+extSellingPrice3rdPartyOther = 0.0;
+unitTargetPrice3rdPartyOther = 0.0;
+unitSRP3rdPartyOther = 0.0;
+unitSellingPrice3rdPartyOther = 0.0 ;
+extSRP3rdPartyOther = 0.0;
+extSellingPriceMICROther = 0.0;
+unitTargetPriceMICROther = 0.0;
+unitSRPMICROther = 0.0;
+unitSellingPriceMICROther = 0.0 ;
+extSRPMICROther = 0.0;
+valuesBeforeRollup  = "";
+unitSalesCost3rdParty = 0.0;
+unitStandardCost3rdParty = 0.0;
+unitSalesCostMICR = 0.0;
+unitStandardCostMICR = 0.0;
+unitSalesCost3rdPartyOther = 0.0;
+unitStandardCost3rdPartyOther = 0.0;
+unitSalesCostZebra = 0.0;
+unitStandardCostZebra = 0.0;
+unitSalesCostMICROther = 0.0;
+unitStandardCostMICROther = 0.0;
+extSalesCost3rdParty =0.0;
+extStandardCost3rdParty = 0.0;
+extSalesCostMICR =0.0;
+extStandardCostMICR= 0.0;
+extSalesCostZebra =0.0;
+extStandardCostZebra= 0.0;
+extSalesCost3rdPartyOther =0.0;
+extStandardCost3rdPartyOther = 0.0;
+extSalesCostMICROther =0.0;
+extStandardCostMICROther = 0.0;
+
+partArrary =  string[]{"MS-MPS-FLEET-3RDPTY-SERVICE" ,"MS-MPS-FLEET-OTHER","MS-MPS-FLEET-ZEBRA-SERVICE","MS-MPS-FLEET-MICR-SERVICE"};
+
+		
+	for line in transactionLine
+	{	
+		manufacturer = "";
+		
+		partVar = line._part_number;
+		LineBOMJSON = json();
+		if(line._line_bom_attributes <> ""){
+			LineBOMJSON = json(line._line_bom_attributes);
+		}
+		mICRManufacturer_PathCheck = jsonpathcheck(LineBOMJSON, "$.MICRManufacturer.value");//MICR
+		if(mICRManufacturer_PathCheck){
+			manufacturer = jsonpathgetsingle(LineBOMJSON, "$.MICRManufacturer.value", "string");
+		}
+		if(manufacturer <> ""){
+			MICR = true;
+		}
+		if(findinarray(partArrary, partVar) <> -1){
+			if(line._part_number == "MS-MPS-FLEET-3RDPTY-SERVICE"){
+				count3rdParty = count3rdParty + 1;
+				extNetPrice3rdParty = extNetPrice3rdParty + line.extNetPrice_l;
+				extSRP3rdParty = extSRP3rdParty + line.extSRP_l;
+				extSellingPrice3rdParty = extSellingPrice3rdParty + line.extSellingPrice_l;
+				quantity3rdParty = quantity3rdParty + line._price_quantity;
+				unitTargetPrice3rdParty =  unitTargetPrice3rdParty + line.contractedUnitPrice_l;
+				//unitSRP = unitSRP + line.unitSRP_l;
+				extSalesCost3rdParty = extSalesCost3rdParty +  line.unitSalesCost_l * line._price_quantity;
+				extStandardCost3rdParty = extStandardCost3rdParty + line.unitCost_l * line._price_quantity;
+				//unitSellingPrice = unitSellingPrice + line.unitSellingPrice_l;
+				//unitNetPrice3rdParty = unitNetPrice3rdParty + line.unitNetPrice_l;
+
+			}
+			if(line._part_number == "MS-MPS-FLEET-MICR-SERVICE"){
+				countMICR = countMICR + 1;
+				extNetPriceMICR = extNetPriceMICR + line.extNetPrice_l;
+				extSRPMICR = extSRPMICR + line.extSRP_l;
+				extSellingPriceMICR = extSellingPriceMICR + line.extSellingPrice_l;
+				quantityMICR = quantityMICR+ line._price_quantity;
+				unitTargetPriceMICR =  unitTargetPriceMICR + line.contractedUnitPrice_l;
+				extSalesCostMICR = extSalesCostMICR +  line.unitSalesCost_l* line._price_quantity;
+				extStandardCostMICR = extStandardCostMICR + line.unitCost_l * line._price_quantity;
+			}
+			if(line._part_number == "MS-MPS-FLEET-OTHER" AND MICR == false){
+				count3rdPartyOther = count3rdPartyOther + 1;
+				extNetPrice3rdPartyOther = extNetPrice3rdPartyOther + line.extNetPrice_l;
+				extSRP3rdPartyOther = extSRP3rdPartyOther + line.extSRP_l;
+				extSellingPrice3rdPartyOther = extSellingPrice3rdPartyOther + line.extSellingPrice_l;
+				quantity3rdPartyOther = quantity3rdPartyOther + line._price_quantity;
+				unitTargetPrice3rdPartyOther =  unitTargetPrice3rdPartyOther + line.contractedUnitPrice_l;
+				extSalesCost3rdPartyOther = extSalesCost3rdPartyOther +  line.unitSalesCost_l * line._price_quantity;
+				extStandardCost3rdPartyOther = extStandardCost3rdPartyOther + line.unitCost_l * line._price_quantity;
+			}		
+			if(line._part_number == "MS-MPS-FLEET-ZEBRA-SERVICE"){
+				countZebra = countZebra + 1;
+				extNetPriceZebra = extNetPriceZebra + line.extNetPrice_l;
+				extSRPZebra = extSRPZebra + line.extSRP_l;
+				extSellingPriceZebra = extSellingPriceZebra + line.extSellingPrice_l;
+				quantityZebra = quantityZebra + line._price_quantity;
+				unitTargetPriceZebra =  unitTargetPriceZebra + line.contractedUnitPrice_l;
+				extSalesCostZebra = extSalesCostZebra +  line.unitSalesCost_l * line._price_quantity;
+				extStandardCostZebra = extStandardCostZebra + line.unitCost_l * line._price_quantity;
+			}
+			if(line._part_number == "MS-MPS-FLEET-OTHER" AND MICR){
+				countMICROther = countMICROther + 1;
+				extNetPriceMICROther = extNetPriceMICROther + line.extNetPrice_l;
+				extSRPMICROther = extSRPMICROther + line.extSRP_l;
+				extSellingPriceMICROther = extSellingPriceMICROther + line.extSellingPrice_l;
+				quantityMICROther = quantityMICROther + line._price_quantity;
+				unitTargetPriceMICROther =  unitTargetPriceMICROther + line.contractedUnitPrice_l;
+				extSalesCostMICROther = extSalesCostMICROther +  line.unitSalesCost_l * line._price_quantity;
+				extStandardCostMICROther = extStandardCostMICROther + line.unitCost_l * line._price_quantity;
+			}
+
+				
+		}
+	}
+
+	found3PartyFleet = false;
+	foundMICR = false;
+	foundZebra = false;
+	found3rdPartyOther = false;
+	foundMICROther = false;
+
+	for line1 in transactionLine{
+		partVar = line1 ._part_number;
+		manufacturer = "";
+		
+		partVar = line1._part_number;
+		LineBOMJSON = json();
+		if(line1._line_bom_attributes <> ""){
+			LineBOMJSON = json(line1._line_bom_attributes);
+		}
+		mICRManufacturer_PathCheck = jsonpathcheck(LineBOMJSON, "$.MICRManufacturer.value");//MICR
+		if(mICRManufacturer_PathCheck){
+			manufacturer = jsonpathgetsingle(LineBOMJSON, "$.MICRManufacturer.value", "string");
+		}
+		if(manufacturer <> ""){
+			MICR = true;
+		}
+		if(line1.type_l <> "MANAGED PRINT SVC-RECURRING CHARGE" )
+		{
+			
+		ret = ret + line1._document_number + "~restLineFlag_c~"+string(true)+"|";
+
+		}
+		if(findinarray(partArrary, partVar) <> -1){
+			if(partVar == "MS-MPS-FLEET-3RDPTY-SERVICE" AND found3PartyFleet == false){
+				found3PartyFleet = true;
+				lineNumber3rdParty = line1._group_sequence_number;
+				append(lineNumberArray, lineNumber3rdParty);
+			
+				unitSRP3rdParty = extSRP3rdParty /quantity3rdParty;
+				unitSellingPrice3rdParty = extSellingPrice3rdParty / quantity3rdParty;
+				unitNetPrice3rdParty = extNetPrice3rdParty / quantity3rdParty;
+				unitSalesCost3rdParty = extSalesCost3rdParty / quantity3rdParty;
+				unitStandardCost3rdParty = extStandardCost3rdParty / quantity3rdParty;
+
+			}
+			if(partVar == "MS-MPS-FLEET-MICR-SERVICE" AND foundMICR == false){
+				foundMICR = true;
+				lineNumberMICR = line1._group_sequence_number;
+				append(lineNumberArray, lineNumberMICR);
+				unitSRPMICR = extSRPMICR /quantityMICR;
+				unitSellingPriceMICR = extSellingPriceMICR / quantityMICR;
+				unitNetPriceMICR = extNetPriceMICR/ quantityMICR;
+				unitSalesCostMICR = extSalesCostMICR / quantityMICR;
+				unitStandardCostMICR = extStandardCostMICR / quantityMICR;
+
+			
+			}
+			if(partVar == "MS-MPS-FLEET-ZEBRA-SERVICE" AND foundZebra == false){
+				foundZebra = true;
+				lineNumberZebra = line1._group_sequence_number;
+				append(lineNumberArray, lineNumberZebra);
+				unitSRPZebra = extSRPZebra /quantityZebra;
+				unitSellingPriceZebra = extSellingPriceZebra / quantityZebra;
+				unitNetPriceZebra = extNetPriceZebra/ quantityZebra;
+				unitSalesCostZebra = extSalesCostZebra / quantityZebra;
+				unitStandardCostZebra = extStandardCostZebra / quantityZebra;
+							
+			}
+			if(partVar == "MS-MPS-FLEET-OTHER" AND found3rdPartyOther == false AND MICR==false){
+				found3rdPartyOther = true;
+				lineNumber3rdPartyOther = line1._group_sequence_number;
+				append(lineNumberArray, lineNumber3rdPartyOther);
+				unitSRP3rdPartyOther = extSRP3rdPartyOther /quantity3rdPartyOther;
+				unitSellingPrice3rdPartyOther = extSellingPrice3rdPartyOther / quantity3rdPartyOther;
+				unitNetPrice3rdPartyOther = extNetPrice3rdPartyOther/ quantity3rdPartyOther;
+				unitSalesCost3rdPartyOther = extSalesCost3rdPartyOther / quantity3rdPartyOther;
+				unitStandardCost3rdPartyOther = extStandardCost3rdPartyOther / quantity3rdPartyOther;
+			
+			}
+			if(partVar == "MS-MPS-FLEET-OTHER" AND foundMICROther == false AND MICR){
+				foundMICROther = true;
+				lineNumberMICROther = line1._group_sequence_number;
+				append(lineNumberArray, lineNumberMICROther);
+				
+				if(quantityMICROther<>0){
+					unitSRPMICROther = extSRPMICROther /quantityMICROther;
+					unitSellingPriceMICROther = extSellingPriceMICROther / quantityMICROther;
+					unitNetPriceMICROther = extNetPriceMICROther / quantityMICROther;
+					unitSalesCostMICROther = extSalesCostMICROther / quantityMICROther;
+					unitStandardCostMICROther = extStandardCostMICROther / quantityMICROther;
+				}
+				
+			}
+		
+		
+			if(count3rdParty > 1 AND line1._part_number == "MS-MPS-FLEET-3RDPTY-SERVICE" AND line1._group_sequence_number == lineNumber3rdParty)
+			{
+				valuesBeforeRollup = valuesBeforeRollup + "@@@"+"PartNumber="+line1._part_number ;
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "LineNumber="+lineNumber3rdParty;
+				valuesBeforeRollup = valuesBeforeRollup	+"$$$" +"unitNetPrice_l=" +string(line1.unitNetPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSRP_l=" +string(line1.unitSRP_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSellingPrice_l=" +string(line1.unitSellingPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSalesCost_l=" +string(line1.unitSalesCost_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitCost_l=" +string(line1.unitCost_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "contractedUnitPrice_l=" +string(line1.contractedUnitPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extNetPrice_l=" +string(line1.extNetPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extSellingPrice_l=" + string(line1.extSellingPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extSRP_l=" +string(line1.extSRP_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "_price_quantity="+ string(line1._price_quantity);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "requestedQuantity_l="+ string(line1.requestedQuantity_l);
+
+				ret = ret + line1._document_number + "~unitNetPrice_l~" +string(round(unitNetPrice3rdParty,4))+"|";
+				ret = ret + line1._document_number + "~unitSRP_l~" +string(round(unitSRP3rdParty,4))+"|";
+				ret = ret + line1._document_number + "~unitSellingPrice_l~" +string(round(unitSellingPrice3rdParty,4))+"|";
+				ret = ret + line1._document_number + "~unitSalesCost_l~" +string(round(unitSalesCost3rdParty,4))+"|";
+				ret = ret + line1._document_number + "~unitCost_l~" +string(round(unitStandardCost3rdParty,4))+"|";
+				ret = ret + line1._document_number + "~restLineFlag_c~"+string(true)+"|";
+				ret = ret + line1._document_number + "~_price_quantity~"+string(quantity3rdParty )+"|";
+				ret = ret + line1._document_number + "~requestedQuantity_l~"+string(quantity3rdParty)+"|";
+				ret = ret + line1._document_number + "~extNetPrice_l~" +string(round(extNetPrice3rdParty,4))+"|";
+				ret = ret + line1._document_number + "~extSRP_l~" +string(round(extSRP3rdParty,4))+"|";
+				ret = ret + line1._document_number + "~extSellingPrice_l~" +string(round(extSellingPrice3rdParty,4))+"|";
+				ret = ret + line1._document_number + "~contractedUnitPrice_l~" +string(round(unitTargetPrice3rdParty,4))+"|";
+				//print "string(extNetPrice3rdParty)";
+				print string(round(extNetPrice3rdParty,4));
+			}
+			if(countMICR > 1 AND line1._part_number == "MS-MPS-FLEET-MICR-SERVICE" AND line1._group_sequence_number == lineNumberMICR)
+			{
+				valuesBeforeRollup = valuesBeforeRollup + "@@@"+"PartNumber="+line1._part_number ;
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "LineNumber="+lineNumberMICR;
+				valuesBeforeRollup = valuesBeforeRollup	+"$$$" +"unitNetPrice_l=" +string(line1.unitNetPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSRP_l=" +string(line1.unitSRP_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSellingPrice_l=" +string(line1.unitSellingPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSalesCost_l=" +string(line1.unitSalesCost_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitCost_l=" +string(line1.unitCost_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "contractedUnitPrice_l=" +string(line1.contractedUnitPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extNetPrice_l=" +string(line1.extNetPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extSellingPrice_l=" + string(line1.extSellingPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extSRP_l=" +string(line1.extSRP_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "_price_quantity="+ string(line1._price_quantity);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "requestedQuantity_l="+ string(line1.requestedQuantity_l);
+			
+				ret = ret + line1._document_number + "~unitNetPrice_l~" +string(round(unitNetPriceMICR,4))+"|";
+				ret = ret + line1._document_number + "~contractedUnitPrice_l~" +string(round(unitTargetPriceMICR ,4))+"|";
+				ret = ret + line1._document_number + "~unitSRP_l~" +string(round(unitSRPMICR ,4))+"|";
+				ret = ret + line1._document_number + "~unitSellingPrice_l~" +string(round(unitSellingPriceMICR,4))+"|";
+				ret = ret + line1._document_number + "~unitSalesCost_l~" +string(round(unitSalesCostMICR,4))+"|";
+				ret = ret + line1._document_number + "~unitCost_l~" +string(round(unitStandardCostMICR,4))+"|";
+				ret = ret + line1._document_number + "~restLineFlag_c~"+string(true)+"|";
+				ret = ret + line1._document_number + "~_price_quantity~"+string(quantityMICR )+"|";
+				ret = ret + line1._document_number + "~requestedQuantity_l~"+string(quantityMICR)+"|";
+				ret = ret + line1._document_number + "~extNetPrice_l~" +string(round(extNetPriceMICR ,4))+"|";
+				ret = ret + line1._document_number + "~extSRP_l~" +string(round(extSRPMICR ,4))+"|";
+				ret = ret + line1._document_number + "~extSellingPrice_l~" +string(round(extSellingPriceMICR ,4))+"|";
+				//print "string(round(extNetPriceMICR ,4))";
+				//print string(round(extNetPriceMICR ,4));
+
+			}
+			if(countZebra > 1 AND line1._part_number == "MS-MPS-FLEET-ZEBRA-SERVICE" AND line1._group_sequence_number == lineNumberZebra)
+			{
+				
+				valuesBeforeRollup = valuesBeforeRollup + "@@@"+"PartNumber="+line1._part_number ;
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "LineNumber="+lineNumberZebra;
+				valuesBeforeRollup = valuesBeforeRollup	+"$$$" +"unitNetPrice_l=" +string(line1.unitNetPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSRP_l=" +string(line1.unitSRP_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSellingPrice_l=" +string(line1.unitSellingPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSalesCost_l=" +string(line1.unitSalesCost_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitCost_l=" +string(line1.unitCost_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "contractedUnitPrice_l=" +string(line1.contractedUnitPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extNetPrice_l=" +string(line1.extNetPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extSellingPrice_l=" + string(line1.extSellingPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extSRP_l=" +string(line1.extSRP_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "_price_quantity="+ string(line1._price_quantity);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "requestedQuantity_l="+ string(line1.requestedQuantity_l);
+				
+				ret = ret + line1._document_number + "~unitSRP_l~" +string(round(unitSRPZebra,4))+"|";
+				ret = ret + line1._document_number + "~unitSellingPrice_l~" +string(round(unitSellingPriceZebra,4))+"|";
+				ret = ret + line1._document_number + "~unitSalesCost_l~" +string(round(unitSalesCostZebra,4))+"|";
+				ret = ret + line1._document_number + "~unitCost_l~" +string(round(unitStandardCostZebra,4))+"|";
+				ret = ret + line1._document_number + "~unitNetPrice_l~"+ string(round(unitNetPriceZebra,4))+"|";
+				ret = ret + line1._document_number + "~restLineFlag_c~"+string(true)+"|";
+				ret = ret + line1._document_number + "~_price_quantity~"+string(quantityZebra)+"|";
+				ret = ret + line1._document_number + "~requestedQuantity_l~"+string(quantityZebra)+"|";
+				ret = ret + line1._document_number + "~extNetPrice_l~" +string(round(extNetPriceZebra,4))+"|";
+				ret = ret + line1._document_number + "~extSRP_l~" +string(round(extSRPZebra,4))+"|";
+				ret = ret + line1._document_number + "~extSellingPrice_l~" +string(round(extSellingPriceZebra,4))+"|";
+				ret = ret + line1._document_number + "~contractedUnitPrice_l~" +string(round(unitTargetPriceZebra,4))+"|";
+	
+			}
+			if(count3rdPartyOther > 1 AND line1._part_number == "MS-MPS-FLEET-OTHER" AND MICR == false AND line1._group_sequence_number == lineNumber3rdPartyOther)
+			{
+				
+				valuesBeforeRollup = valuesBeforeRollup + "@@@"+"PartNumber="+line1._part_number ;
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "LineNumber="+lineNumber3rdPartyOther;
+				valuesBeforeRollup = valuesBeforeRollup	+"$$$" +"unitNetPrice_l=" +string(line1.unitNetPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSRP_l=" +string(line1.unitSRP_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSellingPrice_l=" +string(line1.unitSellingPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSalesCost_l=" +string(line1.unitSalesCost_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitCost_l=" +string(line1.unitCost_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "contractedUnitPrice_l=" +string(line1.contractedUnitPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extNetPrice_l=" +string(line1.extNetPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extSellingPrice_l=" + string(line1.extSellingPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extSRP_l=" +string(line1.extSRP_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "_price_quantity="+ string(line1._price_quantity);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "requestedQuantity_l="+ string(line1.requestedQuantity_l);
+				
+				ret = ret + line1._document_number + "~unitNetPrice_l~" +string(round(unitNetPrice3rdPartyOther,4))+"|";
+				ret = ret + line1._document_number + "~unitSRP_l~" +string(round(unitSRP3rdPartyOther,4))+"|";
+				ret = ret + line1._document_number + "~unitSellingPrice_l~" +string(round(unitSellingPrice3rdPartyOther,4))+"|";
+				ret = ret + line1._document_number + "~unitSalesCost_l~" +string(round(unitSalesCost3rdPartyOther,4))+"|";
+				ret = ret + line1._document_number + "~unitCost_l~" +string(round(unitStandardCost3rdPartyOther,4))+"|";
+				ret = ret + line1._document_number + "~restLineFlag_c~"+string(true)+"|";
+				ret = ret + line1._document_number + "~_price_quantity~"+string(quantity3rdPartyOther)+"|";
+				ret = ret + line1._document_number + "~requestedQuantity_l~"+string(quantity3rdPartyOther)+"|";
+				ret = ret + line1._document_number + "~extNetPrice_l~" +string(round(extNetPrice3rdPartyOther,4))+"|";
+				ret = ret + line1._document_number + "~extSRP_l~" +string(round(extSRP3rdPartyOther,4))+"|";
+				ret = ret + line1._document_number + "~extSellingPrice_l~" +string(round(extSellingPrice3rdPartyOther,4))+"|";
+				ret = ret + line1._document_number + "~contractedUnitPrice_l~" +string(round(unitTargetPrice3rdPartyOther,4))+"|";
+
+			}
+					
+			if(countMICROther > 1 AND line1._part_number == "MS-MPS-FLEET-OTHER" AND MICR == true AND line1._group_sequence_number == lineNumberMICROther)
+			{
+				
+				valuesBeforeRollup = valuesBeforeRollup + "@@@"+"PartNumber="+line1._part_number ;
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "LineNumber="+lineNumberMICROther;
+				valuesBeforeRollup = valuesBeforeRollup	+"$$$" +"unitNetPrice_l=" +string(line1.unitNetPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSRP_l=" +string(line1.unitSRP_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSellingPrice_l=" +string(line1.unitSellingPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitSalesCost_l=" +string(line1.unitSalesCost_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "unitCost_l=" +string(line1.unitCost_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "contractedUnitPrice_l=" +string(line1.contractedUnitPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extNetPrice_l=" +string(line1.extNetPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extSellingPrice_l=" + string(line1.extSellingPrice_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "extSRP_l=" +string(line1.extSRP_l);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "_price_quantity="+ string(line1._price_quantity);
+				valuesBeforeRollup = valuesBeforeRollup +"$$$"+ "requestedQuantity_l="+ string(line1.requestedQuantity_l);
+				
+				ret = ret + line1._document_number + "~unitSRP_l~" +string(round(unitSRPMICROther,4))+"|";
+				ret = ret + line1._document_number + "~unitSellingPrice_l~" +string(round(unitSellingPriceMICROther,4))+"|";
+				ret = ret + line1._document_number + "~unitSalesCost_l~" +string(round(unitSalesCostMICROther,4))+"|";
+				ret = ret + line1._document_number + "~unitCost_l~" +string(round(unitStandardCostMICROther,4))+"|";
+				ret = ret + line1._document_number + "~unitNetPrice_l~" +string(round(unitNetPriceMICROther,4))+"|";
+				ret = ret + line1._document_number + "~restLineFlag_c~"+string(true)+"|";
+				ret = ret + line1._document_number + "~_price_quantity~"+string(quantityMICROther )+"|";
+				ret = ret + line1._document_number + "~requestedQuantity_l~"+string(quantityMICROther)+"|";
+				ret = ret + line1._document_number + "~extNetPrice_l~" +string(round(extNetPriceMICROther,4))+"|";
+				ret = ret + line1._document_number + "~extSRP_l~" +string(round(extSRPMICROther,4))+"|";
+				ret = ret + line1._document_number + "~extSellingPrice_l~" +string(round(extSellingPriceMICROther,4))+"|";
+				ret = ret + line1._document_number + "~contractedUnitPrice_l~" +string(round(unitTargetPriceMICROther,4))+"|";
+			}	
+	
+			if((findinarray(lineNumberArray,line1._group_sequence_number) == -1) AND line1.type_l =="MANAGED PRINT SVC-RECURRING CHARGE")
+			{
+				ret = ret + line1._document_number + "~restLineFlag_c~"+string(false)+"|";
+			}
+
+		}
+	}
+	
+ret = ret  + "1~mPSCostsBeforeRollup_t_c~"+valuesBeforeRollup+"|";
+
+print valuesBeforeRollup;
+
+return ret;

@@ -1,0 +1,11 @@
+{
+  "name" : "Fetch Quote Status",
+  "variableName" : "fetchQuoteStatus",
+  "description" : "Using these library to fetch the Quote Status",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "cancelledQuoteStepControl_t" ],
+  "systemAttributes" : [ "_system_current_step_var" ]
+}

@@ -1,0 +1,74 @@
+//START_Post MVP CR#81 description by Namrata
+retString = "";
+rowDelim = "@$@";
+colDelim = "#$#";
+ret = "";
+approverLevel = mSPricingApproverLevel_t;
+approverYearsBreached = mSPricingApproverYearsBreached_t;
+yearApproverDict = dict("string");
+yearApproverArr = String [];
+inputs = dict("anytype");
+put(inputs, "ApporvalType", "Deal");
+put(inputs, "Location", "Action");
+put(inputs, "Level", mSPricingApproverLevel_t);
+approverNames  = "";
+approverNames1  = "";
+approverName = "";
+if(mSPricingApproverYearsBreached_t <> ""){
+	approverYearsBreachedArr = split(mSPricingApproverYearsBreached_t, colDelim);
+	for yearsBreached in approverYearsBreachedArr {
+		yearBreached = split(yearsBreached, rowDelim);
+		put(inputs, "Year", lower(yearBreached[0]));
+		approverName = commerce.updateMSApprovers(inputs);	
+		if(find(approverNames ,approverName ) == -1 and approverName <> ""){
+			approverNames = approverNames +","+ approverName;
+		}
+		}
+	}
+	
+approverNames = substring(approverNames, 1, len(approverNames));
+
+ret = 	ret +"|"+"1~pricingApprover_t~"+approverName ;
+
+
+approverLevel = mSPricingApproverEscalationLevel_t;
+approverYearsBreached = mSEscalationApproverYearsBreached_t;
+
+yearApproverDict = dict("string");
+yearApproverArr = String [];
+inputs = dict("anytype");
+put(inputs, "ApporvalType", "Escalation");
+put(inputs, "Location", "Action");
+put(inputs, "Level", mSPricingApproverEscalationLevel_t);
+
+if(variableAnnualRevenueEscalation_t == true){
+	if(mSEscalationApproverYearsBreached_t<> ""){
+		approverYearsBreachedArr = split(mSEscalationApproverYearsBreached_t, colDelim);
+		for yearsBreached in approverYearsBreachedArr {
+			yearBreached = split(yearsBreached, rowDelim);
+			put(inputs, "Year", lower(yearBreached[0]));
+			approverName1 =  commerce.updateMSApprovers(inputs);
+			if(find(approverNames1 ,approverName1) == -1 and approverName1 <> ""){
+			approverNames1 = approverNames1 +","+ approverName1;
+			}
+
+
+		}
+	}
+	
+approverNames1 = substring(approverNames1, 1, len(approverNames1));
+ret = 	ret +"|"+"1~annualEscalationApprover_t~"+approverNames1;
+}
+else{
+
+val2 = commerce.updateMSApprovers(inputs);
+			approverName2 =  commerce.updateMSApprovers(inputs);
+			if(find(approverNames1 ,approverName2) == -1 and approverName2 <> ""){
+			approverNames1 = approverNames1 +","+ approverName2;
+			}
+			approverNames1 = substring(approverNames1, 1, len(approverNames1));
+			ret = 	ret +"|"+"1~annualEscalationApprover_t~"+approverNames1;
+}
+//END_Post MVP CR#81 description by Namrata
+
+return ret;

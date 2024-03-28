@@ -1,0 +1,11 @@
+{
+  "name" : "UTIL FOR XAAS",
+  "variableName" : "uTILFORXAAS",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "bundleName_l", "oracleSetName_l", "unitSRP_l", "description_l", "itemCategory_l", "extSRP_l", "unitSalesCost_l", "_document_number", "_parent_doc_number", "_part_number", "type_l", "bundleID_l", "unitSellingPrice_l", "subscriptionTerm_l", "partDescriptionOnProposal_l", "unitContractTargetPrice_l", "unitNetPrice_l", "_group_sequence_number", "linkedItem_l", "discountAmount_l", "discounttype_l", "promotionType_l", "unitCost_l", "contractedUnitPrice_l", "marginPercentagesalescost_l", "marginPercentagestdscost_l", "promotionCode_l", "promotionPeriod_l", "promoCodeXaas", "promotionComments_l", "promotionValue_l", "_config_attr_info", "serviceType", "ItemId_l", "productLine", "subscriptionBillingFrequency_l", "qty_l", "_part_units", "chargeType_l", "contractPrice_l", "_price_quantity", "bundleNameRWA", "bundleSubscription" ],
+  "mainDocAttributes" : [ "transactionID_t", "billingFrequency_t", "_transaction_document_number" ],
+  "systemAttributes" : [ ]
+}

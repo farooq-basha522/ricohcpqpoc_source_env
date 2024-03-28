@@ -1,0 +1,48 @@
+wageDiscrepanciesJSONArr = jsonarray();
+minWageDict = dict("float");
+minWageRS = bmql("SELECT * FROM RAC_MinWageState");
+geozoneRS = bmql("SELECT * FROM RAC_GeoZone");
+
+for minWage in minWageRS{
+	put(minWageDict, get(minWage, "State"),getfloat(minWage, "MinWageRate"));
+}
+
+for geo in geozoneRS {
+	geoState = get(geo,"State");
+	geoZone = get(geo,"GeoZone");
+	
+	if(NOT containskey(minWageDict, geoState) OR NOT containskey(minWageDict, geoZone)){
+		missingDataJSON = json();
+		jsonput(missingDataJSON, "City", get(geo,"City"));
+		jsonput(missingDataJSON, "State", geoState);
+		jsonput(missingDataJSON, "GeoZone", geoZone);
+		reasonStr = "Missing Data in RAC_MinWageState Table: ";
+		if(NOT containskey(minWageDict, geoState)){
+			reasonStr = reasonStr + geoState + " ";
+		}
+		if(NOT containskey(minWageDict, geoZone)){
+			reasonStr = reasonStr + geoZone + " ";
+		}
+		jsonput(missingDataJSON, "Reason", reasonStr);
+		jsonarrayappend(wageDiscrepanciesJSONArr, missingDataJSON);
+	}
+	elif(get(minWageDict, geoZone) < get(minWageDict, geoState)){
+		missingDataJSON = json();
+		/*geoJSON = json();
+		stateJSON = json();
+		jsonput(stateJSON, "State", geoState);
+		jsonput(stateJSON, "Wage", get(minWageDict, geoState));
+		jsonput(geoJSON, "GeoZone", geoZone);
+		jsonput(geoJSON, "Wage", get(minWageDict, geoZone));
+		jsonput(missingDataJSON, "State", stateJSON);
+		jsonput(missingDataJSON, "Geozone", geoJSON);
+		*/
+		jsonput(missingDataJSON, "City", get(geo,"City"));
+		jsonput(missingDataJSON, "State", geoState);
+		jsonput(missingDataJSON, "GeoZone", geoZone);
+		jsonput(missingDataJSON, "Reason", "Geozone value ("+string(get(minWageDict, geoZone))+") < ("+ string(get(minWageDict, geoState)) +") State Min Wage value");
+		jsonarrayappend(wageDiscrepanciesJSONArr, missingDataJSON);
+	}
+}
+
+return wageDiscrepanciesJSONArr;

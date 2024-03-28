@@ -1,0 +1,53 @@
+ret = "";
+
+extSRPTotalOT = 0.00;
+extNetPriceTotalOT = 0.00;	
+extSRPTotalRec = 0.00;
+extNetPriceTotalRec = 0.00;
+
+if (totalITSDiscountPercentageOneTime_t <> 0.00){
+	totalITSDiscountPercentageOneTime = totalITSDiscountPercentageOneTime_t;
+}else{
+	totalITSDiscountPercentageOneTime = 0.00;
+}
+
+if (totalITSDiscountPercentageRecurring_t <> 0.00){
+	totalITSDiscountPercentageRecurring = totalITSDiscountPercentageRecurring_t;
+}else{	
+	totalITSDiscountPercentageRecurring = 0.00;
+}	
+
+OTFlag = false;
+RecFlag = false;
+
+for line in transactionLine {
+	
+	if(line._model_name == "" AND (find(_system_user_groups, "equipmentQuoters") <> -1 OR find(_system_user_groups, "technicalAdminstrator") <> -1 OR find(_system_user_groups, "salesUser") <> -1 OR find(_system_user_groups, "rICOHCrossSellingDesign") <> -1 OR find(_system_user_groups, "rICOHCrossSellingSalesrep") <> -1) AND (commerce.checkForITSItemType(line.type_l)==true)){
+				
+		if(line.chargeType_l == "One Time"){
+			OTFlag = true;
+			extSRPTotalOT = extSRPTotalOT + line.extSRP_l;
+			extNetPriceTotalOT = extNetPriceTotalOT + line.extNetPrice_l;
+		}elif(line.chargeType_l == "Recurring"){
+			RecFlag = true;
+			extSRPTotalRec = extSRPTotalRec + line.extSRP_l;
+			extNetPriceTotalRec = extNetPriceTotalRec + line.extNetPrice_l;
+		}
+		
+	}
+	
+}
+
+
+if (OTFlag == true){
+	totalITSDiscountPercentageOneTime = (100 * (1 - extNetPriceTotalOT / extSRPTotalOT));
+}
+
+if (RecFlag == true){
+	totalITSDiscountPercentageRecurring = (100 * (1 - extNetPriceTotalRec / extSRPTotalRec));
+}
+
+ret = ret + "1~totalITSDiscountPercentageOneTime_t~"+String(totalITSDiscountPercentageOneTime)+"|1~totalITSDiscountPercentageRecurring_t~"+String(totalITSDiscountPercentageRecurring)+"|";
+
+
+return ret;

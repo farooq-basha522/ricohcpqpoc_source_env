@@ -1,0 +1,15 @@
+{
+  "name" : "abo_invokeOrderService",
+  "variableName" : "abo_invokeOrderService",
+  "description" : "This utility executes REST service call on transaction/line document.",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_getContext" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "line",
+    "type" : "Boolean"
+  }, {
+    "name" : "queryParam",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

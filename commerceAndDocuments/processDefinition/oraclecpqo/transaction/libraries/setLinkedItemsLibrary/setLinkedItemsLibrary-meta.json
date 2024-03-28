@@ -1,0 +1,11 @@
+{
+  "name" : "Set Linked Items Library",
+  "variableName" : "setLinkedItemsLibrary",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_document_number", "bundleName_l", "_parent_doc_number", "_part_number", "_group_sequence_number", "cPQLineID_l", "ItemId_l", "oracleSetName_l", "linkedItem_l" ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,23 @@
+{
+  "name" : "Calculate Contract Periods",
+  "variableName" : "calculateContractPeriods",
+  "description" : "Calculates number of periods for given contract start date and end date based on price type and price period.",
+  "libraryFunctions" : [ ],
+  "returnType" : "Integer",
+  "parameters" : [ {
+    "name" : "priceType",
+    "type" : "String"
+  }, {
+    "name" : "pricePeriod",
+    "type" : "String"
+  }, {
+    "name" : "contractStartDate",
+    "type" : "String"
+  }, {
+    "name" : "contractEndDate",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

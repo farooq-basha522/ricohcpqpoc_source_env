@@ -1,0 +1,12 @@
+{
+  "name" : "Deploy Data Tables",
+  "variableName" : "deployDataTables",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String Dictionary",
+  "parameters" : [ {
+    "name" : "tableNames",
+    "type" : "String"
+  } ],
+  "attributes" : [ "_company_name" ]
+}

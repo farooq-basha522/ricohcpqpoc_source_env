@@ -1,0 +1,15 @@
+{
+  "name" : "abo_convertDeltaBomtoAsset",
+  "variableName" : "abo_convertDeltaBomtoAsset",
+  "description" : "This utility BML is used by updateAsset action to convert delta BOM to Asset sync json as needed for  local Asset Respository synchronize",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_getContext", "util.abo_isjsonnull", "util.abo_sortDeltaBom" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "deltaBom",
+    "type" : "Json"
+  }, {
+    "name" : "txn_json",
+    "type" : "Json"
+  } ],
+  "attributes" : [ ]
+}

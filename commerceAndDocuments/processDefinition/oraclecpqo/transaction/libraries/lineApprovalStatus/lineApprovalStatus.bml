@@ -1,0 +1,30 @@
+//*****************************************************************************************************
+//** Function:    Line Approval Status
+//**
+//** Description: This function will be called on "Submit", Cancel Approvals (revise action).
+//** 
+//** Paramter: 	  action - Used to identify if its "Submit" or other type of actions
+//**                                                                                               
+//** History:	Date		Author     	Comment
+//**				HHo		Initial Implementation
+//*****************************************************************************************************
+x=getcurrenttimeinmillis();
+ret = "";
+
+if(action == "submit") {
+	
+	ret = ret + "";
+	
+} elif(action == "revise") {
+	ret = ret 
+			+ "1~lineApprovalsRequired_t~false|"
+			+ "1~totalOneTimeAmount_t~0.00|"
+			+ "1~totalRecurringAmount_t~0.00|"
+			+ "1~totalAmountITS_t~0.00|"
+			+ "1~totalITSDiscountPercentageOneTime_t~0.00|"
+			+ "1~totalITSDiscountPercentageRecurring_t~0.00|"			
+			;
+}
+y=getcurrenttimeinmillis();
+z=y-x;
+return ret;

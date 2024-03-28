@@ -1,0 +1,14 @@
+{
+  "name" : "Calculate Contracted Pricing",
+  "variableName" : "calculateContractedPricing",
+  "description" : "Function that calculates the contracted price for parts coming in to a quote.",
+  "libraryFunctions" : [ "commerce.contractedPricing", "util.getMutliplteCustomFieldValuesForselectedParts", "util.safeAtof" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "retDict1",
+    "type" : "String Dictionary"
+  } ],
+  "subDocAttributes" : [ "_part_custom_field9", "_part_number", "_document_number", "locationName_l", "_group_sequence_number", "_price_quantity", "_parent_doc_number", "_model_name", "_config_attr_info", "type_l", "linkedItem_l", "discounttype_l", "discountAmountt_l", "promotionType_l", "promotionValue_l", "partDescriptionOnProposal_l", "changeShortDescriptionFlag_l", "customDescription_l", "lineItemCustomComment_l", "hide0InProposal_l", "promoCode_l" ],
+  "mainDocAttributes" : [ "customerID_t", "partsDataText_t", "termMonths_t", "contractOtherTerm_t" ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,12 @@
+{
+  "name" : "Vendor Pricing API Call",
+  "variableName" : "vendorPricingAPICall",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "payloadString",
+    "type" : "String"
+  } ],
+  "attributes" : [ "_site_url" ]
+}

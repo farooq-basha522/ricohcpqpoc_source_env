@@ -1,0 +1,17 @@
+{
+  "name" : "isUserExistsinGroup",
+  "variableName" : "isUserExistsinGroup",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Boolean",
+  "parameters" : [ {
+    "name" : "userId",
+    "type" : "String"
+  }, {
+    "name" : "groupName",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ "_system_supplier_company_name" ]
+}

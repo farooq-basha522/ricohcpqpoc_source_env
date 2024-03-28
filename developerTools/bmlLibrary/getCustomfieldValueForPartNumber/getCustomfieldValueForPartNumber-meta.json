@@ -1,0 +1,15 @@
+{
+  "name" : "getCustomfieldValueForPartNumber",
+  "variableName" : "getCustomfieldValueForPartNumber",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String Dictionary",
+  "parameters" : [ {
+    "name" : "partNumberArray",
+    "type" : "String[]"
+  }, {
+    "name" : "customFieldVarName",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

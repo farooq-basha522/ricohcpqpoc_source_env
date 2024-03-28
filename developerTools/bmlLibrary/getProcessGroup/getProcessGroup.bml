@@ -1,0 +1,15 @@
+processGroupDict = dict("string");
+itemTypeRecordSet = recordset();
+if(NOT(isempty(itemTypeArray))){
+	itemTypeRecordSet = bmql("select ItemType, ProcessGroup from RAC_ITEM_TYPE where ItemType in $itemTypeArray");
+}else{
+	itemTypeRecordSet = bmql("select ItemType, ProcessGroup from RAC_ITEM_TYPE");
+}
+
+for eachItemType in itemTypeRecordSet{
+	itemType = get(eachItemType,"ItemType");
+	processGroup = get(eachItemType,"ProcessGroup");
+	put(processGroupDict,itemType,ProcessGroup);
+}
+
+return processGroupDict;

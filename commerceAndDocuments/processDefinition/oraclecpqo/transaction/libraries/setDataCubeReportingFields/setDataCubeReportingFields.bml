@@ -1,0 +1,177 @@
+//Below code added by Kumar Abhishek for INC2678201/CHG0086385 for termMonth
+result = "";
+
+quoteSummaryJsonContainer = jsonarray(); 
+quoteSummaryTextareaJson = json();
+jsonput(quoteSummaryTextareaJson,"id",bs_id);
+jsonput(quoteSummaryTextareaJson,"QuoteNumber",transactionID_t);
+jsonput(quoteSummaryTextareaJson,"Version",version_t);
+jsonput(quoteSummaryTextareaJson,"ArrayData",quoteSummaryArraySet_t);
+jsonarrayappend(quoteSummaryJsonContainer , quoteSummaryTextareaJson);
+
+teamMemberJsonContainer = jsonarray(); 
+teamMemberTextareaJson = json();
+jsonput(teamMemberTextareaJson,"id",bs_id);
+jsonput(teamMemberTextareaJson,"QuoteNumber",transactionID_t);
+jsonput(teamMemberTextareaJson,"Version",version_t);
+jsonput(teamMemberTextareaJson,"ArrayData",selectedDRTeamMemberArraySet_t);
+jsonarrayappend(teamMemberJsonContainer , teamMemberTextareaJson);
+
+//POST_MVP#Requirement 5 description by Namrata 
+
+firstMonthBillingJsonContainer = jsonarray(); 
+firstMonthBillingTextareaJson = json();
+jsonput(firstMonthBillingTextareaJson,"id",bs_id);
+jsonput(firstMonthBillingTextareaJson,"QuoteNumber",transactionID_t);
+jsonput(firstMonthBillingTextareaJson,"Version",version_t);
+jsonput(firstMonthBillingTextareaJson,"ArrayData",firstMonthBillingArraySet_t);
+jsonarrayappend(firstMonthBillingJsonContainer , firstMonthBillingTextareaJson);
+
+mSTotalDealSectionJsonContainer = jsonarray(); 
+mSTotalDealSectionTextareaJson = json();
+jsonput(mSTotalDealSectionTextareaJson,"id",bs_id);
+jsonput(mSTotalDealSectionTextareaJson,"QuoteNumber",transactionID_t);
+jsonput(mSTotalDealSectionTextareaJson,"Version",version_t);
+jsonput(mSTotalDealSectionTextareaJson,"ArrayData",mSTotalDealSectionArray_t);
+jsonarrayappend(mSTotalDealSectionJsonContainer , mSTotalDealSectionTextareaJson);
+
+mSLaborPIMAJsonContainer = jsonarray(); 
+mSLaborPIMATextareaJson = json();
+jsonput(mSLaborPIMATextareaJson,"id",bs_id);
+jsonput(mSLaborPIMATextareaJson,"QuoteNumber",transactionID_t);
+jsonput(mSLaborPIMATextareaJson,"Version",version_t);
+jsonput(mSLaborPIMATextareaJson,"ArrayData",mSlaborPIMADescriptionArray_t);
+jsonarrayappend(mSLaborPIMAJsonContainer , mSLaborPIMATextareaJson);
+
+mPSLaborPIMAJsonContainer = jsonarray(); 
+mPSLaborPIMATextareaJson = json();
+jsonput(mPSLaborPIMATextareaJson,"id",bs_id);
+jsonput(mPSLaborPIMATextareaJson,"QuoteNumber",transactionID_t);
+jsonput(mPSLaborPIMATextareaJson,"Version",version_t);
+jsonput(mPSLaborPIMATextareaJson,"ArrayData",mPSlaborPIMADescriptionArray_t);
+jsonarrayappend(mPSLaborPIMAJsonContainer , mPSLaborPIMATextareaJson);
+
+
+iTSPIMAJsonContainer = jsonarray(); 
+iTSPIMATextareaJson = json();
+jsonput(iTSPIMATextareaJson,"id",bs_id);
+jsonput(iTSPIMATextareaJson,"QuoteNumber",transactionID_t);
+jsonput(iTSPIMATextareaJson,"Version",version_t);
+jsonput(iTSPIMATextareaJson,"ArrayData",iTSPIMADescriptionArray_t);
+jsonarrayappend(iTSPIMAJsonContainer , iTSPIMATextareaJson);
+
+TASSPIMAJsonContainer = jsonarray(); 
+TASSPIMATextareaJson = json();
+jsonput(TASSPIMATextareaJson,"id",bs_id);
+jsonput(TASSPIMATextareaJson,"QuoteNumber",transactionID_t);
+jsonput(TASSPIMATextareaJson,"Version",version_t);
+jsonput(TASSPIMATextareaJson,"ArrayData",tASSPIMADescriptionArray_t);
+jsonarrayappend(TASSPIMAJsonContainer , TASSPIMATextareaJson);
+
+VehiclePIMAJsonContainer = jsonarray(); 
+VehiclePIMATextareaJson = json();
+jsonput(VehiclePIMATextareaJson,"id",bs_id);
+jsonput(VehiclePIMATextareaJson,"QuoteNumber",transactionID_t);
+jsonput(VehiclePIMATextareaJson,"Version",version_t);
+jsonput(VehiclePIMATextareaJson,"ArrayData",vehiclePIMADescriptionArray_t);
+jsonarrayappend(VehiclePIMAJsonContainer , VehiclePIMATextareaJson);
+
+TARCPIMAJsonContainer = jsonarray(); 
+TRACPIMATextareaJson = json();
+jsonput(TRACPIMATextareaJson,"id",bs_id);
+jsonput(TRACPIMATextareaJson,"QuoteNumber",transactionID_t);
+jsonput(TRACPIMATextareaJson,"Version",version_t);
+jsonput(TRACPIMATextareaJson,"ArrayData",tRACPIMADescriptionArray_t);
+jsonarrayappend(TARCPIMAJsonContainer , TRACPIMATextareaJson);
+
+OtherSerPIMAJsonContainer = jsonarray(); 
+OtherSerPIMATextareaJson = json();
+jsonput(OtherSerPIMATextareaJson,"id",bs_id);
+jsonput(OtherSerPIMATextareaJson,"QuoteNumber",transactionID_t);
+jsonput(OtherSerPIMATextareaJson,"Version",version_t);
+jsonput(OtherSerPIMATextareaJson,"ArrayData",otherSerPIMADescriptionArray_t);
+jsonarrayappend(OtherSerPIMAJsonContainer , OtherSerPIMATextareaJson);
+
+OtherSerNTPIMAJsonContainer = jsonarray(); 
+OtherSerNTPIMATextareaJson = json();
+jsonput(OtherSerNTPIMATextareaJson,"id",bs_id);
+jsonput(OtherSerNTPIMATextareaJson,"QuoteNumber",transactionID_t);
+jsonput(OtherSerNTPIMATextareaJson,"Version",version_t);
+jsonput(OtherSerNTPIMATextareaJson,"ArrayData",otherSerNTPIMA_Array);
+jsonarrayappend(OtherSerNTPIMAJsonContainer , OtherSerNTPIMATextareaJson);
+
+PSPIMAJsonContainer = jsonarray(); 
+PSPIMATextareaJson = json();
+jsonput(PSPIMATextareaJson,"id",bs_id);
+jsonput(PSPIMATextareaJson,"QuoteNumber",transactionID_t);
+jsonput(PSPIMATextareaJson,"Version",version_t);
+jsonput(PSPIMATextareaJson,"ArrayData",pSPIMADescriptionArray_t);
+jsonarrayappend(PSPIMAJsonContainer , PSPIMATextareaJson);
+
+MailRoomPIMAJsonContainer = jsonarray(); 
+MailRoomPIMATextareaJson = json();
+jsonput(MailRoomPIMATextareaJson,"id",bs_id);
+jsonput(MailRoomPIMATextareaJson,"QuoteNumber",transactionID_t);
+jsonput(MailRoomPIMATextareaJson,"Version",version_t);
+jsonput(MailRoomPIMATextareaJson,"ArrayData",mailRoomPIMADescriptionArray_t);
+jsonarrayappend(MailRoomPIMAJsonContainer , MailRoomPIMATextareaJson);
+
+RebatePIMAJsonContainer = jsonarray(); 
+RebatePIMATextareaJson = json();
+jsonput(RebatePIMATextareaJson,"id",bs_id);
+jsonput(RebatePIMATextareaJson,"QuoteNumber",transactionID_t);
+jsonput(RebatePIMATextareaJson,"Version",version_t);
+jsonput(RebatePIMATextareaJson,"ArrayData",rebateArray_t);
+jsonarrayappend(RebatePIMAJsonContainer , RebatePIMATextareaJson);
+
+AreaPIMAJsonContainer = jsonarray(); 
+AreaPIMATextareaJson = json();
+jsonput(AreaPIMATextareaJson,"id",bs_id);
+jsonput(AreaPIMATextareaJson,"QuoteNumber",transactionID_t);
+jsonput(AreaPIMATextareaJson,"Version",version_t);
+jsonput(AreaPIMATextareaJson,"ArrayData",areaCostArray_t);
+jsonarrayappend(AreaPIMAJsonContainer , AreaPIMATextareaJson);
+
+ termVal = 0;
+ 
+ //Below code added by Kumar Abhishek for INC2678201/CHG0086385 for termMonth
+if(termMonths_t <> "Other" AND termMonths_t <> "coterminous" and termMonths_t<>"nonRecurring" and termMonths_t<>"12MonthRenewal" and termMonths_t<>"24MonthRenewal" and termMonths_t<>"36MonthRenewal")
+{
+	if(termMonths_t <> "" AND not(isnull(termMonths_t)))
+	{
+		termVal = atoi(termMonths_t);
+	}
+}
+else{
+	termVal = contractOtherTerm_t;
+}
+
+
+
+//POST_MVP#Requirement 5 description by Namrata 
+
+
+result = result + "1~quoteSummaryArrayContainer_t~"+jsonarraytostr(quoteSummaryJsonContainer)+"|"+
+		  "1~teamMemberArrayContainer_t~"+jsonarraytostr(teamMemberJsonContainer)+"|";
+
+//POST_MVP#Requirement 5 description by Namrata 
+  
+result = result + "1~firstMonthBillingArrayContrainer_t~"+jsonarraytostr(firstMonthBillingJsonContainer)+"|";
+result = result + "1~mSTotalDealSectionArrayContainer_t~"+jsonarraytostr(mSTotalDealSectionJsonContainer)+"|";
+result = result + "1~mSlaborPIMADescriptionArrayContainer_t~"+jsonarraytostr(mSLaborPIMAJsonContainer)+"|";
+result = result + "1~mPSlaborPIMADescriptionArrayContainer_t~"+jsonarraytostr(mPSLaborPIMAJsonContainer)+"|";
+result = result + "1~iTSPIMADescriptionArrayContainer_t~"+jsonarraytostr(iTSPIMAJsonContainer)+"|";
+result = result + "1~tASSPIMADescriptionArrayContainer_t~"+jsonarraytostr(TASSPIMAJsonContainer)+"|";
+result = result + "1~vehiclePIMADescriptionArrayContainer_t~"+jsonarraytostr(VehiclePIMAJsonContainer)+"|";
+result = result + "1~tRACPIMADescriptionArrayContainer_t~"+jsonarraytostr(TARCPIMAJsonContainer)+"|";
+result = result + "1~otherSerPIMADescriptionArrayContainer_t~"+jsonarraytostr(OtherSerPIMAJsonContainer)+"|";
+result = result + "1~otherSerNTPIMAArrayContainer_t~"+jsonarraytostr(OtherSerNTPIMAJsonContainer)+"|";
+result = result + "1~pSPIMADescriptionArrayContainer_t~"+jsonarraytostr(PSPIMAJsonContainer)+"|";
+result = result + "1~mailRoomPIMADescriptionArrayContainer_t~"+jsonarraytostr(MailRoomPIMAJsonContainer)+"|";
+result = result + "1~rebateArrayContainer_t~"+jsonarraytostr(RebatePIMAJsonContainer)+"|";
+result = result + "1~areaCostArrayContainer_t~"+jsonarraytostr(AreaPIMAJsonContainer)+"|";
+result = result + "1~termDataCube_t~"+string(termVal)+"|";
+
+//POST_MVP#Requirement 5 description by Namrata 
+
+return result;

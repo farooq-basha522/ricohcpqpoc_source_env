@@ -1,0 +1,29 @@
+//************************************************************************************************************
+//** Function:    Determine Next Approval Step (determineNextApprovalStep)
+//** Type:        Utility Library Function   
+//**
+//** Description: Helper function to determine the next step to transition from pending for approval to approved.
+//**              This helper function was created in order to have one place to store this logic, as it is
+//**              refenced in both step transitions and on the Quote Step attribute's modify.
+//** 
+//** Param:       actionVarName 	- FUTURE USE: variable name of the action that was called.
+//**              approvalStatusSubmit 	- 2d array of the approvers pending approval, from standard commerce attribute.
+//**
+//** Return type: String - Next Step Variable Name
+//**
+//** History:     Date     Author       Comment 
+//**              INITIAL  RConaghan    Initial Creation 
+//************************************************************************************************************
+curApprovalStep = approvalStatusSubmit[0][0];
+isOnlyCurrentApproval = isnull(approvalStatusSubmit[1][0]);
+
+
+if((actionVarName == "approve_submit_t" OR actionVarName == "submit_t") AND isOnlyCurrentApproval AND (isnull(curApprovalStep) OR curApprovalStep == "discountApprovalVP" OR curApprovalStep == "finalEngineeringApproval")){
+	return "approved";
+}
+elif(curApprovalStep <> ""){
+	return "waitingForInternalApproval";
+}
+else{
+	return "approved";
+}

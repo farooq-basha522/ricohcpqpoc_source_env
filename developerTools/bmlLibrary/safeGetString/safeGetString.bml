@@ -1,0 +1,20 @@
+//************************************************************************************************************
+//** Function:    Safe Get - String (safeGetString)
+//** Type:        Utility Library Function   
+//**
+//** Description: Enhanced version of 'get' function. Automatically performs null check and returns an empty
+//**              string if key does not exist
+//** 
+//** Param:       inputDict - Input Dictionary.
+//**              key - key we are fetching a value for.
+//**
+//** Return type: String - Value of dict's key. Empty string if null
+//**
+//** History:     Date     Author       Comment 
+//**              INITIAL  RConaghan    Initial Build  
+//************************************************************************************************************
+result = get(inputDict, key);
+if(isnull(result)){
+	return "";
+}
+return result;

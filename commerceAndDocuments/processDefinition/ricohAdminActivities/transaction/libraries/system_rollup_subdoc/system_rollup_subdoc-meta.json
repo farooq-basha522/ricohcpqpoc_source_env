@@ -1,0 +1,20 @@
+{
+  "name" : "Calculate Rollup Revenue Subdoc",
+  "variableName" : "system_rollup_subdoc",
+  "description" : "Calculate Rollup Revenues for Root Lines and Revenue Category for the Transaction. The Rollup values are passed to CX Sales when root quote lines are integrated. This is for subdoc loop.",
+  "libraryFunctions" : [ "commerce.calculateContractPeriods" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "quoteData",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "lineDict",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "extraParams",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,11 @@
+{
+  "name" : "Set Auto Added Approvals section",
+  "variableName" : "setAutoAddedApprovalsSection",
+  "description" : "Add Fit and Feasibility (F&F) Participants And Approvals” section of the CPQ Quote",
+  "libraryFunctions" : [ "commerce.checkForITSItemType", "commerce.generateSAApproversString" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "type_l" ],
+  "mainDocAttributes" : [ "notificationEmailsIdsFnFApprovals_t", "dFOFnFApproverUser_t", "nOMFnFApprovalUser_t", "eDOFnFApprovalUer_t", "rDOFnFApproverUser_t", "aDOFnFApproverUser_t", "mPSLaborFnFApproverUser_t", "iTSLaborFnFApproverUser_t", "tASSLaborFnFApprover_t", "rebateValueFnFApprover_t", "managerOfDesignEmail", "bypassReason_t", "validateModel_t", "EDPCodeFnFApproverUser_t", "salesDirectorDPSE_t", "managerOfLDE_c", "mPSApproversJsonData_c" ],
+  "systemAttributes" : [ ]
+}

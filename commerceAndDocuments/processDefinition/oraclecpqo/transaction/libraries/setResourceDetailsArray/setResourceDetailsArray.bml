@@ -1,0 +1,57 @@
+retval = "";
+email = "";
+title = "";
+role = "";
+fName = "";
+mName = "";
+lName = "";
+job = "";
+fullName = "";
+
+nameArr=string[];
+
+designLeadNames = designLead_t;
+searchArray = selectedDRTeamMemberArraySet_t;
+MembersJson = json();
+
+TeamMember = BMQL("select FirstName, LastName, MiddleName, EmailAddress, JobName, JobCode from RAC_HRMS where EmailAddress = $designLeadNames");
+
+for each in TeamMember 
+	{
+		fName = get(each ,"FirstName");
+		mName = get(each ,"MiddleName");
+		lName = get(each ,"LastName");
+		
+		append(nameArr,fName );
+		append(nameArr,mName);
+		append(nameArr,lName);
+		fullName = join(nameArr," ");
+		
+		//Nname = get(each ,"UserName");
+		email = get(each,"EmailAddress");
+		title = get(each, "JobName");
+		job = get(each, "JobCode");
+
+		Response = bmql("SELECT Role FROM RAC_TeamMembers WHERE JobCode = $job");
+		for eachitem in Response 
+			{
+			role = get(eachitem, "Role");
+		}
+
+
+if(designLead_t <> "")
+
+{
+
+jsonput(MembersJson,"selectedName_DRTeamMemberArray_t",fullName);
+jsonput(MembersJson,"selectedEmail_DRTeamMemberArray_t",email);
+jsonput(MembersJson,"title_DRTeamMemberAarray_t",title);
+jsonput(MembersJson,"selectedRole_DRTeamMemberAarray_t",role);
+
+jsonarrayappend(searchArray , MembersJson);
+
+}
+}
+
+
+return "1~selectedDRTeamMemberArraySet_t~"+jsonarraytostr(searchArray) +"|";

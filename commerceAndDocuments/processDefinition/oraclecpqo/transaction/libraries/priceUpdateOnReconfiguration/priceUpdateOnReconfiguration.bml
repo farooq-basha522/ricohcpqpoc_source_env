@@ -1,0 +1,23 @@
+ret = "";
+usdPrice = "";
+
+for line in transactionLine{
+
+   if (line._part_number <> ""){
+   
+   	   usdPrice = "";
+	   part = line._part_number;
+	   newCost = bmql("SELECT price FROM _parts WHERE part_number = $part");
+	   newCostTwo = "";
+
+		 for cost in newCost{
+			usdPrice = get(cost,"price");
+		 }
+
+	   ret = ret + line._document_number + "~unitSRP_l~" + usdPrice + "|";
+   
+   }
+
+}
+
+return ret;

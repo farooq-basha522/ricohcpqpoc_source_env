@@ -1,0 +1,12 @@
+{
+  "name" : "Get Process Group",
+  "variableName" : "getProcessGroup",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String Dictionary",
+  "parameters" : [ {
+    "name" : "itemTypeArray",
+    "type" : "String[]"
+  } ],
+  "attributes" : [ ]
+}

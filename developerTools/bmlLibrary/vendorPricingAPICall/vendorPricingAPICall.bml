@@ -1,0 +1,85 @@
+//************************************************************************************************************
+//** Function:    Vendor Pricing & Availability API Call (vendorPricingAPICall)
+//** Type:        Utility Library Function   
+//**
+//** Description: This function takes a String of vendor names and part numbers in JSON format that will be sent
+//** 			to middleware to query for the pricing and availability
+//** Param:       payloadString - String
+//**
+//** Return type: JSON
+//**
+//** History:     Date     		Author       	Comment 
+//**              INITIAL  		HBasler			Initial Build  
+//**			  03/21/2019	HBasler			Error handling for HTML responses, to prevent Forbidden errors
+//************************************************************************************************************
+
+//Declare variables
+debug = true;
+retJSON = json();
+restResponseJSON = json();
+
+
+restResponse = dict("string");
+siteNameStr = substring(_site_url, find(_site_url, "//")+ 2, find(_site_url, ".bigmachines.com")); //concatenate _site_url to get only ricohusadev
+externalURL = "";
+encodedAuth = "";
+authstring = "";
+integrationType = "";
+
+
+
+//Set up the call to the external system
+//Store the URL and the Action for the call in a data table to avoid URL hardcoding.  
+//Also makes the different sites (dev, test, prod) interact with corresponding receiver URL's, 
+//and the URL's get passed around in site migrations & refreshes without manual updating.
+integrationType = "VendorPricing";
+
+//Grab the URL and action name from the table. There should only be one corresponding row; this logic just takes the first record.
+soapURLRecs = bmql("select EndpointURL, Username, Password from ThirdPartyAPIInfo where CPQEnv = $siteNameStr and APIType = $integrationType");
+
+
+
+for eachRec in soapURLRecs{
+	externalURL =  get(eachRec, "EndpointURL");
+	username = get(eachRec, "Username");
+	pwd = get(eachRec, "Password");
+	encodedAuth = encodebase64(username + ":" + pwd);
+	authstring = "Basic " + encodedAuth;
+	break;
+}
+
+
+//REST API 
+headerDict = dict("string");
+put(headerDict, "Content-Type", "application/json");
+put(headerDict, "Authorization", authstring); 
+
+//build payload in JSON
+
+
+//make API call
+if (payloadString <> "" AND externalURL <> "") {
+	restResponse = urldata(externalURL,"POST",headerdict, payloadString);
+
+	//Clean up JSON and remove unneeded objects
+	if(get(restResponse, "Message-Body") <> "" AND NOT isnull(get(restResponse, "Message-Body"))){
+			restResponseJSON = json(get(restResponse, "Message-Body"));
+	}
+	else {
+		statusCode = get(restResponse, "Status-Code");
+		jsonput(restResponseJSON, "statusMessage", "Vendor Pricing Integration Failed, no results returned. Status-Code=" + statusCode);
+		errMsg = get(restResponse, "Error-Message");
+		if (find(errMsg, "html") <> -1) {
+			errMsg = "HTML error returned and not saved, to prevent Forbidden errors.";
+		}
+		jsonput(restResponseJSON, "Error-Message", errMsg);		
+		
+	}
+	retJSON = restResponseJSON; 
+}
+else {
+		jsonput(restResponseJSON, "statusMessage", "Vendor Pricing Integration Failed, missing API details in CPQ");
+}
+
+
+return retJSON;

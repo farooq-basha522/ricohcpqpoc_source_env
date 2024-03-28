@@ -1,0 +1,12 @@
+{
+  "name" : "Credit Check Web Service Callout",
+  "variableName" : "creditCheckWebServiceCallout",
+  "description" : "Makes and Parses the Web Service Callout. Returns a string array, with index 0 being the final result, index 1 being the request, and index 2 being the unparsed result.",
+  "libraryFunctions" : [ "util.safeGetString" ],
+  "returnType" : "Anytype Dictionary",
+  "parameters" : [ {
+    "name" : "companyNumber",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

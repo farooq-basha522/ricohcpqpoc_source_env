@@ -1,0 +1,84 @@
+/******************************************************************************************************/
+//Author: 		Chakri 12/11/2021
+//Functionality: To show Constraint Messages
+/******************************************************************************************************/
+retval = "";
+Pricelist = "";
+innerDict = dict("string");
+outerDict = dict("dict<string>");
+partNumberArray=string[];
+
+if(rAC_Pricelist_RISE <> "" OR priceList_t <> "") {
+	if(rAC_Pricelist_RISE <>""){
+		Pricelist =rAC_Pricelist_RISE; 
+	}else{
+		Pricelist =priceList_t ;
+	}
+	for line in transactionLine {
+		processGroup = "";
+		itemType = line.type_l;
+		partnumber = line._part_number;	
+		cpqLineID = line._group_sequence_number;
+		append(partNumberArray,partNumber);
+		//Get all Parts Custom field Data
+		partCustomFieldDict=util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+		variableItem = "";
+		if(containskey(partCustomFieldDict,partNumber+"custom_field27")) {
+			variableItem = get(partCustomFieldDict,partNumber+"custom_field27");
+		}
+		itemTypeRecordSet = bmql("SELECT ItemType, ProcessGroup FROM RAC_ITEM_TYPE WHERE ItemType = $itemType");
+		for eachItemType in itemTypeRecordSet{
+			processGroup = get(eachItemType, "ProcessGroup");
+		}
+
+		if(processGroup <> "SA"){
+			priceDataTable = bmql("SELECT PriceListName, ContractPriceOption, EDPCode FROM RAC_PL_CASH WHERE EDPCode = $partnumber AND PriceListName = $Pricelist");
+
+			for each in priceDataTable {
+				contractPriceRecord = get(each,"ContractPriceOption");
+				priceListNameRecord = get(each,"PriceListName");
+
+				if(not isnull(line.unitSellingPrice_l) AND line.unitSellingPrice_l > 0){
+					if(variableItem  <> "VP" AND contractPriceRecord == "Firm" AND line.contractPrice_l > 0 AND line.unitSellingPrice_l > 0 AND line.contractPrice_l <> line.unitSellingPrice_l){
+						put(innerDict, BM_CM_RULES_MESSAGE, "Line#" + " " + cpqLineID  + " - " + "Override not allowed. Selling Price must be the same as Contract Price.");
+						put(innerDict, BM_CM_RULES_LOCATION, "attribute");
+						put(outerDict, "unitSellingPrice_l", innerDict);
+					}
+					if(variableItem  <> "VP" AND line.targetPrice_l > 0 AND line.unitSellingPrice_l > 0 AND line.unitSRP_l > 0 AND line.unitSellingPrice_l > line.unitSRP_l AND (contractPriceRecord == "Firm" OR contractPriceRecord == "Fixed" OR contractPriceRecord == "Variable Down")){
+						put(innerDict, BM_CM_RULES_MESSAGE, "Line#" + " " + cpqLineID  + " - " + "Selling Price cannot be greater than SRP.");
+						put(innerDict, BM_CM_RULES_LOCATION, "attribute");
+						put(outerDict, "unitSellingPrice_l", innerDict);
+					}
+					
+					if(variableItem <> "VP" AND line.unitSellingPrice_l > 0 AND line.contractPrice_l > 0 AND line.unitSellingPrice_l > line.contractPrice_l AND (contractPriceRecord == "Variable Down")){//Updated condition VariableItem == YES to <> VP PS_Pricing changes by Vasundhara
+						//put(innerDict, BM_CM_RULES_MESSAGE, "Line#" + " " + cpqLineID  + " - " + "You should not override Sell Price above Contract Price for PS Items.");
+						
+					put(innerDict, BM_CM_RULES_MESSAGE, "Line#" + " " + cpqLineID  + " - " + "This is Variable Down Pricing and you cannot sell above the Contract Price. Correct your price to sell at or below the contracted price.");
+					put(innerDict, BM_CM_RULES_LOCATION, "attribute");
+					put(outerDict, "unitSellingPrice_l", innerDict);
+					}
+					if(variableItem <> "VP" AND line.unitSellingPrice_l > 0 AND line.contractPrice_l > 0 AND line.unitSellingPrice_l > line.contractPrice_l AND (contractPriceRecord == "Fixed")){//Updated condition VariableItem == YES to <> VP PS_Pricing changes by Vasundhara
+						//put(innerDict, BM_CM_RULES_MESSAGE, "Line#" + " " + cpqLineID  + " - " + "You should not override Sell Price above Contract Price for PS Items.");
+						
+					put(innerDict, BM_CM_RULES_MESSAGE, "Line#" + " " + cpqLineID  + " - " + "This is Fixed Pricing and you cannot sell above the Contract Price. Correct your price to sell at or below the contracted price.");
+					put(innerDict, BM_CM_RULES_LOCATION, "attribute");
+					put(outerDict, "unitSellingPrice_l", innerDict);
+					}
+					if(variableItem  <> "VP" AND line.unitSellingPrice_l > 0 AND line.unitSRP_l > 0 AND line.unitSellingPrice_l > line.unitSRP_l AND contractPriceRecord == "Variable Up and Down"){
+						put(innerDict, BM_CM_RULES_MESSAGE, "Line#" + " " + cpqLineID  + " - " + "Please adjust Selling Price to an amount lower than SRP.");
+						put(innerDict, BM_CM_RULES_LOCATION, "attribute");
+						put(outerDict, "unitSellingPrice_l", innerDict);
+					}
+					//START_02_08_2023_Added below condition for PS_Pricing by Vasundhara.
+					if((ProcessGroup == "SC" AND variableItem == "Yes") AND line.unitSellingPrice_l > 0 AND line.unitSalesCost_l > 0 AND line.unitSellingPrice_l < line.unitSalesCost_l AND (contractPriceRecord == "Fixed" OR contractPriceRecord == "Variable Down" OR contractPriceRecord == "Variable Up and Down" OR contractPriceRecord == "Firm")){
+						put(innerDict, BM_CM_RULES_MESSAGE, "Line#" + " " + cpqLineID  + " - " + "Please adjust Selling Price to an amount lower than Sales Cost.");
+						put(innerDict, BM_CM_RULES_LOCATION, "attribute");
+						put(outerDict, "unitSellingPrice_l", innerDict);
+					}
+					//END_02_08_2023_Added below condition for PS_Pricing by Vasundhara.
+				}
+			}
+		}
+	}
+}
+return outerDict;

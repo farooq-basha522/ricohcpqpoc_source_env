@@ -1,0 +1,12 @@
+{
+  "name" : "abo_initializeContext",
+  "variableName" : "abo_initializeContext",
+  "description" : "This utility function initializes ABO Context. This is invoked in the entry points of all ABO flows.",
+  "libraryFunctions" : [ "util.abo_getContext" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "commerceProcessVarName",
+    "type" : "String"
+  } ],
+  "attributes" : [ "_company_name" ]
+}

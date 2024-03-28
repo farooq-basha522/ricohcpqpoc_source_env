@@ -1,0 +1,9 @@
+{
+  "name" : "SOAP Test Call",
+  "variableName" : "sOAPTestCall",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "attributes" : [ ]
+}

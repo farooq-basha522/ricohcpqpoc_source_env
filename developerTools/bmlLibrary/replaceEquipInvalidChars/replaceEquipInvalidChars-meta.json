@@ -1,0 +1,15 @@
+{
+  "name" : "Replace Equip Invalid Chars",
+  "variableName" : "replaceEquipInvalidChars",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "inputString",
+    "type" : "String"
+  }, {
+    "name" : "attrName",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

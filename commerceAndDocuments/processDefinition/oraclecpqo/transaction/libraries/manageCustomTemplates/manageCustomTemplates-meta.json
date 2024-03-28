@@ -1,0 +1,14 @@
+{
+  "name" : "Manage Custom Templates",
+  "variableName" : "manageCustomTemplates",
+  "description" : "",
+  "libraryFunctions" : [ "util.getAPIUserSessionID", "util.getMutliplteCustomFieldValuesForselectedParts" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "action",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ "_document_number", "_part_number", "_parent_doc_number", "qwQuoteNum_l", "vendorName_l", "vendorPartNumber_t", "manufacturer_l", "manufacturerPartNum_l", "partName_l", "unitCost_l", "listPriceNRR_l", "_price_quantity", "partDescriptionOnProposal_l", "_model_variable_name", "selectTemplate_l", "_part_custom_field23", "unitSRP_l" ],
+  "mainDocAttributes" : [ "billingAuthority_t", "customTemplateName_t", "selectedCustomTemplate_t", "preUpdateValFlag_t", "customTemplateOwner_t", "customTemplateNew_t" ],
+  "systemAttributes" : [ "_system_user_login", "_system_selected_document_number", "_system_user_session_id", "_system_supplier_company_name" ]
+}

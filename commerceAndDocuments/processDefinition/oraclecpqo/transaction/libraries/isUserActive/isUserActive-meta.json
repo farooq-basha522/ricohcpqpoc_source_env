@@ -1,0 +1,14 @@
+{
+  "name" : "isUserActive",
+  "variableName" : "isUserActive",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Boolean",
+  "parameters" : [ {
+    "name" : "userid",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ "_system_supplier_company_name" ]
+}

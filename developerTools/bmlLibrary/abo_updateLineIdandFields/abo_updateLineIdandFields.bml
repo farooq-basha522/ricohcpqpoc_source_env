@@ -1,0 +1,173 @@
+//Function Name: abo_updateLineIdandFields
+//Input: configBom(json), inputBom(json)
+//output: configBom(json)
+// Description: 
+//    This utility is invoked from abo_delta for populating additional fields 
+//    after delta caculation before saving to Commerce Transaction Line
+//Purpose: 
+//     Populate following line fields: actionCode,  lineId, parentLineId
+//           , itemInstanceId, attributeSummary, status_l
+ADD =  "ADD";
+NO_OP  = "NO_UPDATE";
+DELETE =  "DELETE";
+ACTION = "oRCL_ABO_ActionCode_l";
+XAACTION =  "actionCode";
+CHILDREN =  "children";
+TRX_DATE = "requestDate_l";
+ABO_PREFIX = "abo_";  //prefix of assetkey(aka product instance id)
+ATTRIBUTES = "attributes";
+VALUE = "value";
+ATTRIBUTESUMMARY = "oRCL_ABO_ComponentAttributes_l";
+DISPLAY_VALUE =  "displayValue";
+LABEL =  "label";
+CREATED =  "CREATED";
+STATUS = "fulfillmentStatus_l";
+
+//Step 1: Prepare a map of inputBomId to field json 
+mapInputBomId2fieldsJson =  json();
+if(isnull(inputBom)<>true){
+   childrenArr =  jsonget(inputBom, "children", "jsonarray", jsonarray());
+   childrenArraySize =  jsonarraysize(childrenArr);
+   index =  -1;
+   dummyTraverseArr =  string[childrenArraySize+1];//Add one for root
+   for oneItem in dummyTraverseArr{
+     oneBom = json();
+     if(index == -1){
+          oneBom =  inputBom;
+     } else{
+          oneBom =  jsonarrayget(childrenArr, index, "json");
+      }
+      index =  index +1;
+   
+      if(util.abo_isjsonnull(oneBom, "fields") <> true){
+         id = jsonget(oneBom, "id", "string"); 
+         fields = jsonget(oneBom, "fields", "json");
+         jsonput(mapInputBomId2fieldsJson, id, fields); //this will create a copy, we will also only read this later.
+      }
+   }
+}      
+
+
+//Step 2: Loop and set action for all nodes 
+mapId2AboId = dict("string");
+ 
+childArray =  jsonget(configBom, "children", "jsonarray", jsonarray());
+
+index = -1;
+dummyArr = string[jsonarraysize(childArray) +1];
+
+for item in dummyArr{ //for each BOM item
+
+   //Step 2.1: Retrieve basic information of current BOM item
+   oneNode = json();     
+   if(index ==  -1){
+      oneNode =  configBom;
+   }else{
+       oneNode = jsonarrayget(childArray, index, "json");
+   }    
+   index =  index+1;
+    
+   fields = json();
+   if(util.abo_isjsonnull(oneNode, "fields")<>true){
+      fields =  jsonget(oneNode, "fields", "json");
+   }else{
+      fields = jsonput(oneNode,"fields", fields);
+   }
+   id = jsonget(oneNode, "id",  "string");
+   
+   //Step 2.2:  Basic field handling
+   if(index == 0){//give root item a default fulfillment status, it can be overridden later
+       jsonput(fields, STATUS, CREATED);  
+   }   
+   //this will disable the deletion of abo lines in commerce UI
+   jsonput(fields, "_is_line_item_mandatory", true); 
+   
+   //Step 2.3: Default action to add if not populated yet(for example if there is no PAC, delta won't be run on this)
+   actionCode =  jsonget(fields, ACTION, "string", "");  
+   if(isnull(actionCode) OR actionCode ==""){
+      actionCode = ADD;
+      jsonput(fields, ACTION, actionCode);        
+   }
+   
+    //Step 2.4: The item already exists in inputBom. We will preserve those non-BOM commerce attribute from orignal inputBom.
+    //  This is important for non-reconfig flow(modify and etc) as there are no commerce lines yet.
+    //  This copy is needed to preserve some fields passed from asset to new commerce line.
+    fieldfromInputBom =  jsonget(mapInputBomId2fieldsJson, id, "json", json());
+    keysinfieldfromInputBom =  jsonkeys(fieldfromInputBom);
+    for oneKey in keysinfieldfromInputBom{
+        if (util.abo_isjsonnull(fields, oneKey)){ 
+            //if the field already exists in config BOM item we will not copy
+            //  for example user might define BOM mappig rule to set value to commerce lines.               
+            oneKeyVal =  jsonget(fieldfromInputBom, oneKey, "string");
+            jsonput(fields, oneKey, oneKeyVal);           
+        }
+    }//end of loop for fields in input bomitem for copy to config bomitem
+    
+   //Step 2.5: Extract each XA(BOM attribute) and populate in ATTRIBUTESUMMARY field.
+   //    notice if the attribute has action of delete/no change, it will not be included in summary.
+   //    also summary is populated in the language where the txn is created in. 
+   XAJson= jsonget(oneNode, ATTRIBUTES, "json", json());
+   XAkeys= jsonKeys(XAJson);
+  
+   attSum =  "";
+   for oneKey in XAkeys{ 
+      
+      oneXa =  jsonget(XAJson, oneKey, "json");     
+      XAactionCode =  jsonget(oneXa, XAACTION, "string", ADD);
+      if(XAactionCode == NO_OP OR XAactionCode == DELETE){
+         continue;
+       }
+      val =  jsonget(oneXa, VALUE, "string", "");   
+      dispVal = jsonget(oneXa, DISPLAY_VALUE, "string", val);
+      //If label of XA does not exist, use XA name
+      labelXa  = jsonget(oneXa, LABEL, "string", oneKey);
+      if(val == ""){
+         continue;
+      }
+      if(attSum<>""){
+          attSum = attSum +", ";
+      }
+      attSum  = attSum  + labelXa + " = "+ dispVal;      
+   }//end of step 2.5 loop through XA in bomitem
+   
+   if (attSum <> ""){
+      jsonput(fields, ATTRIBUTESUMMARY, attSum);
+   }      
+   
+   //Step 2.6: Generate BOM id/assetKey in uuid format & populate 
+   //PLACEHOLDER to define assetkey format. Here we provide a sample implementation to use a simple prefix.
+   //  You can either change the prefix as defined in constant section above or change the logic completely to use your own key format.
+   //  Note: You will need to change both id and instance_id field. They need to be kept in sync.
+   //  If you change this logic, changes required here, and a few lines below where similar logic to generate key for parentid.
+   //  You will need to ensure the generated key is unique for each line across system. Otherwise it will cause unexpected behavior.
+   //  You can not commment out this key generation logic as by default the same model will generate same BOM id for different lines,
+   //  to use ABO functionality, you will have to generate a unique key.
+   if(startswith(id, ABO_PREFIX)<>true){
+      aboId = get(mapId2AboId, id);
+      if(isnull(aboId)){
+          uuidArr = getuuid(1);
+          aboId = ABO_PREFIX +  uuidArr[0];
+          put(mapId2AboId, id, aboId); 
+      }
+      jsonput(oneNode, "id", aboId);  
+      id =  aboId;    
+   }
+   //The assetKey(universal product instance id) will always be the same value as bom.id.
+   jsonput(fields, "itemInstanceId_l", id);   
+   
+   //Step 2.7: We will populate ABO id format for parent id as well
+   parId = jsonget(oneNode, "parentId", "string");
+   if(parId <> "" AND startswith(parId, ABO_PREFIX)<>true){
+      //here we assume the BOM structure is in right hierarhcy. We are not checking the dangling parent FK.
+      aboParId = get(mapId2AboId, parId);
+      if(isnull(aboParId)){    
+          uuidArr = getuuid(1);
+          aboParId = ABO_PREFIX + uuidArr[0];
+          put(mapId2AboId, parId, aboParId);    
+      }
+      jsonput(oneNode, "parentId", aboParId); 
+   }   
+  
+}//end of Step 2 for each BOM item
+ 
+return configBom;

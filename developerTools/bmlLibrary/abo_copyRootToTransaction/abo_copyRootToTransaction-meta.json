@@ -1,0 +1,24 @@
+{
+  "name" : "abo_copyRootToTransaction",
+  "variableName" : "abo_copyRootToTransaction",
+  "description" : "This is entry BML for all ABO flow which does not launch configurator like terminate, suspend, resume. It will be invoked as copyRootToTransaction operation on asset resource.",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_generatePAC", "util.abo_getProductModelInfo", "util.abo_initializeContext", "util.abo_isjsonnull", "util.abo_terminate" ],
+  "returnType" : "String Dictionary",
+  "parameters" : [ {
+    "name" : "actionCode",
+    "type" : "String"
+  }, {
+    "name" : "assetKey",
+    "type" : "String"
+  }, {
+    "name" : "transactionDate",
+    "type" : "Date"
+  }, {
+    "name" : "transactionId",
+    "type" : "Integer"
+  }, {
+    "name" : "commerceProcess",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

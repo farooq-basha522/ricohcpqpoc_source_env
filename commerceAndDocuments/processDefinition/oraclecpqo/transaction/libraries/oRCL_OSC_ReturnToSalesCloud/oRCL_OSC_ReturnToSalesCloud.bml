@@ -1,0 +1,41 @@
+oscURL = "";
+if(_system_supplier_company_name == "ricohcpqdev"){
+	oscURL = "https://cbha-dev2.fa.us2.oraclecloud.com";
+}
+elif(_system_supplier_company_name == "ricohcpqpoc"){
+	oscURL = "https://cbha-dev3.fa.us2.oraclecloud.com:443";
+}
+elif(_system_supplier_company_name == "ricohusamsintstaging"){
+	oscURL = "https://cbha-dev5.fa.us2.oraclecloud.com";
+}
+elif(_system_supplier_company_name == "ricohcpqqa"){
+	oscURL = "https://cbha-dev4.fa.us2.oraclecloud.com";
+}
+elif(_system_supplier_company_name == "ricohcpquat"){
+	oscURL = "https://cbha-dev2.fa.us2.oraclecloud.com";
+}
+elif(_system_supplier_company_name == "ricohusastaging"){
+	oscURL = "https://cbha-test.fa.us2.oraclecloud.com";
+}
+elif(_system_supplier_company_name == "ricohusa"){
+	oscURL = "https://cbha.fa.us2.oraclecloud.com";
+}
+if(opportunityID_t<> "") {
+               // return "https://slcak339.us.oracle.com:10616/sales/faces/CrmFusionHome?isFuseTF=Y&tabToOpen=MOO_OPPTYMGMTOPPORTUNITIES_CRM&cardToOpen=MOO_OPPTYMGMTOPPORTUNITIES_CRM_CARD&TF_subTabName=Quotes&TF_skipToEditOptyId=" + opportunityID_t;
+ 
+  //URLString= oscURL + "/crmUI/faces/FuseOverview?fndGlobalItemNodeId=itemNode_workspace_workspace&fndTaskItemNodeId=ZCA_CC_INTERACTIVE_UI_CRM&fnd=%3BentityName%253DOpportunity%253BsubTabName%253DQuotes%253BrecordId%253D" + opportunityID_t +"%253B%3B%3B%3Bfalse%3B256%3B%3B%3B";
+ 
+//return oscURL + "/crmUI/faces/FuseOverview?fndGlobalItemNodeId=itemNode_workspace_workspace&fndTaskItemNodeId=ZCA_CC_INTERACTIVE_UI_CRM&fnd=%3BentityName%253DOpportunity%253BsubTabName%253DQuotes%253BrecordId%253D" + opportunityID_t +"%253B%3B%3B%3Bfalse%3B256%3B%3B%3B&action=EDIT_IN_TAB";
+
+               return oscURL + "/sales/faces/CrmFusionHome?isFuseTF=Y&tabToOpen=MOO_OPPTYMGMTOPPORTUNITIES_CRM&cardToOpen=MOO_OPPTYMGMTOPPORTUNITIES_CRM_CARD&TF_subTabName=Quotes&TF_skipToEditOptyId=" + opportunityID_t;
+         
+   }
+
+elif(opportunityID_t== "" AND _transaction_customer_id<> "") {
+                //return "https://slcak339.us.oracle.com:10616/customer/faces/CrmFusionHome?isFuseTF=Y&cardToOpen=ZCM_CUSTOMERCTRINFRA360_CUSTOMERS_CRM_CARD&tabToOpen=ZCM_CUSTOMERCTRINFRA360_CUSTOMERS_CRM&TF_subTabName=Quotes&TF_AccountPartyId=" + _transaction_customer_id;
+                return oscURL + "/customer/faces/CrmFusionHome?isFuseTF=Y&cardToOpen=ZCM_CUSTOMERCTRINFRA360_CUSTOMERS_CRM_CARD&tabToOpen=ZCM_CUSTOMERCTRINFRA360_CUSTOMERS_CRM&TF_subTabName=Quotes&TF_AccountPartyId=" + _transaction_customer_id;
+}
+else {
+                //return "https://slcak339.us.oracle.com:10616/customer/faces/CrmFusionHome";
+                return oscURL + "/customer/faces/CrmFusionHome";
+}

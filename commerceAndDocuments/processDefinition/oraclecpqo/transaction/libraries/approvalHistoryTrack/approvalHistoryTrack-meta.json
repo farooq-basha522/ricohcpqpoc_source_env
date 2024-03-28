@@ -1,0 +1,11 @@
+{
+  "name" : "Approval History Track",
+  "variableName" : "approvalHistoryTrack",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "approval_history_submit_t", "approval_status_submit_t", "approvalAuditHistoryArraySet_t" ],
+  "systemAttributes" : [ ]
+}

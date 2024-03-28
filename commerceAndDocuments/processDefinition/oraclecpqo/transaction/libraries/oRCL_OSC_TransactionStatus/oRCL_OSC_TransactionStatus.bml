@@ -1,0 +1,20 @@
+//default to starting status
+statusID = 1;
+status = status_t;
+statusOSC = "";
+
+//convert Status_t to ID via data table
+results = bmql("SELECT StatusID FROM Status WHERE StatusLabel=$status");
+for record in results {
+	statusID = atoi(get(record, "StatusID"));
+	break;
+}
+
+//Convert StatusID back to OSC Status
+results = bmql("SELECT StatusOSC_t FROM Status WHERE StatusID=$statusID");
+for record in results {
+	statusOSC = get(record, "StatusOSC_t");
+	break;
+}
+
+return statusOSC;

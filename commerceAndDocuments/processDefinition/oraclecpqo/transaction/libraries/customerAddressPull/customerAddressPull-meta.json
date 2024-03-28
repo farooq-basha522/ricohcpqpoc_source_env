@@ -1,0 +1,11 @@
+{
+  "name" : "customerAddressPull",
+  "variableName" : "customerAddressPull",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "account" ],
+  "systemAttributes" : [ ]
+}

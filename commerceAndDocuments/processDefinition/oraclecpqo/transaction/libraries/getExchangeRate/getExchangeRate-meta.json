@@ -1,0 +1,11 @@
+{
+  "name" : "Get Exchange Rate",
+  "variableName" : "getExchangeRate",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Float",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "currency_t" ],
+  "systemAttributes" : [ "_system_company_name" ]
+}

@@ -1,0 +1,18 @@
+{
+  "name" : "Add Parts to a Table",
+  "variableName" : "addPartsToATable",
+  "description" : "",
+  "libraryFunctions" : [ "util.getAPIUserSessionID" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "tableName",
+    "type" : "String"
+  }, {
+    "name" : "columnNames",
+    "type" : "String[]"
+  }, {
+    "name" : "tableData",
+    "type" : "Dictionary of String Dictionaries"
+  } ],
+  "attributes" : [ "_user_session_id", "_company_name" ]
+}

@@ -1,0 +1,11 @@
+{
+  "name" : "Set Transaction Status Bar",
+  "variableName" : "setTransactionStatusBar",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "quoteStep_t" ],
+  "systemAttributes" : [ "_system_company_name", "_system_current_step_var" ]
+}

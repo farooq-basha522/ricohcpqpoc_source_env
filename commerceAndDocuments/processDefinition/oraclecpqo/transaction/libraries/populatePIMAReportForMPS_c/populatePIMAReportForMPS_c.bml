@@ -1,0 +1,2615 @@
+// PIMA REPORT LIBRARY FUCTION- MPS Products
+// the purpose to generate Arraysets required to be populated in PIMA report document Template.
+// CHG number CHG0078656
+// Date of creation: January 05th 2023
+// Attribute declaration.....
+//129985935 - pricing escalation test
+res = "";
+L3ReviewEmailIds  = "" ;
+productAvailabilityFlag = false;
+L3ReviewLevelArray= string[];
+FederalFlag = false;
+GPMessageforFnF = "";
+Months_ImplementationCost = 0.0;
+contractTerm = 1;
+termFactor = 1;
+costOnlyTotal = 0.0;
+totalRebateCost = 0.0;
+year1MarginPercent = 0.0;
+year2MarginPercent= 0.0;
+year3MarginPercent= 0.0;
+year4MarginPercent= 0.0;
+year5MarginPercent= 0.0;
+year6MarginPercent= 0.0;
+year7MarginPercent= 0.0;
+MPSLaborTotalContract = 0.0;
+totalContractRevenueY1= 0.0;
+totalContractRevenueY2= 0.0;
+totalContractRevenueY3= 0.0;
+totalContractRevenueY4= 0.0;
+totalContractRevenueY5= 0.0;
+totalContractRevenueY6= 0.0;
+totalContractRevenueY7= 0.0;
+totalContractCostY1= 0.0;
+totalContractCostY2= 0.0;
+totalContractCostY3= 0.0;
+totalContractCostY4= 0.0;
+totalContractCostY5= 0.0;
+totalContractCostY6= 0.0;
+totalContractCostY7= 0.0;
+MPSTotalContractValue = "0.0";
+totalRebateCostYear1 =0.0;
+totalRebateCostYear2 = 0.0;
+totalRebateCostYear3 = 0.0;
+totalRebateCostYear4 =0.0;
+totalRebateCostYear5 = 0.0;
+totalRebateCostYear6 = 0.0;
+totalRebateCostYear7 = 0.0;
+SCItemValue = "";
+itemtypeCategoryDict = dict("string");
+firstMonthBillingArray= jsonarray();
+MPSTotalDealArray = jsonarray();
+MPSPIMAArray= jsonarray();
+ThirdPartyPIMAArray= jsonarray();
+ZebraPIMAArray= jsonarray();
+ThirdPartyFleetPIMAArray= jsonarray();
+MICRFleetPIMAArray= jsonarray();
+ZebraFleetPIMAArray= jsonarray();PIMAArray= jsonarray();
+ImplememtationCostPIMAArray= jsonarray();
+firstMonthBillingJson = json();
+MPSTotalDealJson= json();
+MPSLaborPIMAJson = json();
+ThirdPartyPIMAJson= json();
+ZebraPIMAJson= json();
+ThirdPartyFleetPIMAJson = json();
+MICRFleetPIMAJson = json();
+ZebraFleetPIMAJson = json();	
+ImplementationCostPIMAJson = json();
+PSPIMAJson =json();
+OtherSerNTPIMAArray=jsonarray();
+otherServicesNTPIMAJson= json();
+rebateTotalArray=jsonarray();
+rebateTotalJson=json();
+areaCostArray=jsonarray();
+areaCostJson =json();
+totalcostOnlyValueDonation = 0.0;
+totalcostOnlyValueSignUp=0.0;
+totalcostOnlyValueConsulting=0.0;
+MPSTotalDealRowListArray=string[];
+firstMonthBillingRowListArray = string[];
+MPSTotalDealDict = dict("string");
+totalMonthlyRevenue = 0.0;
+totalMonthlyCost = 0.0;
+totalMonthlyStandardCost = 0.0 ;
+totalImplementationCostValue = 0.0;
+totalMonthlyRevenueYear1 = 0.0;
+totalMonthlyRevenueYear2 = 0.0;
+totalMonthlyRevenueYear3 = 0.0;
+totalMonthlyRevenueYear4 = 0.0;
+totalMonthlyRevenueYear5 = 0.0;
+totalMonthlyRevenueYear6 = 0.0;
+totalMonthlyRevenueYear7 = 0.0;
+totalImplementationCostYear1 = 0.0;
+totalImplementationCostYear2 = 0.0;
+totalImplementationCostYear3 = 0.0;
+totalImplementationCostYear4 = 0.0;
+totalImplementationCostYear5 = 0.0;
+totalImplementationCostYear6 = 0.0;
+totalImplementationCostYear7 = 0.0;
+totalMonthlyCostYear1 = 0.0;
+totalMonthlyCostYear2 = 0.0;
+totalMonthlyCostYear3 = 0.0;
+totalMonthlyCostYear4 = 0.0;
+totalMonthlyCostYear5 = 0.0;
+totalMonthlyCostYear6 = 0.0;
+totalMonthlyCostYear7 = 0.0;
+
+totalStandardCostGMYear1 = 0.0;
+totalStandardCostGMYear2 = 0.0;
+totalStandardCostGMYear3 = 0.0;
+totalStandardCostGMYear4 = 0.0;
+totalStandardCostGMYear5 = 0.0;
+totalStandardCostGMYear6 = 0.0;
+totalStandardCostGMYear7 = 0.0;
+totalStandardCosGMContract = 0.0;
+
+totalStandardCostMerginPerYear1 = 0.0;
+totalStandardCostMerginPerYear2 = 0.0;
+totalStandardCostMerginPerYear3 = 0.0;
+totalStandardCostMerginPerYear4 = 0.0;
+totalStandardCostMerginPerYear5 = 0.0;
+totalStandardCostMerginPerYear6 = 0.0;
+totalStandardCostMerginPerYear7 = 0.0;
+StandardCostMarginPerTotalContract = 0.0;
+
+totalMonthlyStandardCostYear1 = 0.0;
+totalMonthlyStandardCostYear2 = 0.0;
+totalMonthlyStandardCostYear3 = 0.0;
+totalMonthlyStandardCostYear4 = 0.0;
+totalMonthlyStandardCostYear5 = 0.0;
+totalMonthlyStandardCostYear6 = 0.0;
+totalMonthlyStandardCostYear7 = 0.0;
+
+
+pricingThresholdBreachY1 = "";
+pricingThresholdBreachY2 = "";
+pricingThresholdBreachY3 = "";
+pricingThresholdBreachY4 = "";
+pricingThresholdBreachY5 = "";
+pricingThresholdBreachY6 = "";
+pricingThresholdBreachY7 = "";
+
+totalDealcost1 =0.0;
+totalDealcost2 =0.0;
+totalDealcost3 =0.0;
+totalDealcost4 =0.0;
+totalDealcost5 =0.0;
+totalDealcost6 =0.0;
+totalDealcost7 =0.0;
+totalMarginTotalContract = 0.0;
+totalGMTotalContract= 0.0;
+totaldealCostTotalContract= 0.0;
+totaldealRecCostTotalContract= 0.0;
+totaldealRevenueTotalContract= 0.0;
+RebateCostTotalContract = 0.0;
+totalContractRevenue = 0.0;
+totalContractCost = 0.0;
+totalContractGrossMargin = 0.0;
+totalContractGrossMarginPercent = 0.0;	
+totalDealUpfrontCost1 = 0.0;
+totalGM1 =0.0;
+totalGM2 =0.0;
+totalGM3 =0.0;
+totalGM4 =0.0;
+totalGM5 =0.0;
+totalMarginPercent1 = 0.0;
+totalMarginPercent2 = 0.0;
+totalMarginPercent3 = 0.0;
+totalMarginPercent4 = 0.0;
+totalMarginPercent5 = 0.0;
+totalMarginPercent6 = 0.0;
+totalMarginPercent7 = 0.0;
+year1MPSTotal = "0.0";
+year2MPSTotal = "0.0";
+year3MPSTotal = "0.0";
+year4MPSTotal = "0.0";
+year5MPSTotal = "0.0";
+year6MPSTotal = "0.0";
+year7MPSTotal = "0.0";
+MPSLaborYear6Val= 0.0;
+MPSLaborYear7Val= 0.0;
+totalMPSCost = 0.0;
+totalMPSCost=0.0;
+totalITScost=0.0;
+totalTASSCost=0.0;
+totalVehicleCost=0.0;
+totalTRACCost=0.0;
+totalOtherServicesCost=0.0;
+totalPSCost=0.0;
+totalMailroomCost=0.0;
+totalMPSRevenue=0.0;
+totalMPSRevenue=0.0;
+totalITSRevenue=0.0;
+totalTASSRevenue=0.0;
+totalVehicleRevenue=0.0;
+totalTRACRevenue=0.0;
+totalOtherServicesRevenue=0.0;
+totalPSRevenue=0.0;
+totalMailroomRevenue=0.0;
+partArray = string[];
+ItemTypeDict = dict("string");
+itemtypeArray = string[];
+PricingDict = dict("float");
+year1Flag=false;
+year2Flag = false;
+year3Flag= false;
+year4Flag=false;
+year5Flag=false;
+year6Flag=false;
+year7Flag=false;
+termFactorYear1 =1;
+termFactorYear2 =1;
+termFactorYear3 =1;
+termFactorYear4 =1;
+termFactorYear5 =1;
+termFactorYear6 =1;
+termFactorYear7 =1;
+totalcostOnlyValueDonation = 0.0;
+totalcostOnlyValueSignUp=0.0;
+totalcostOnlyValueConsulting=0.0;
+itemtype = "";
+FirstMonthPaymentPIMA= 0;
+FirstYearPIMAGP=0;
+
+// REBATE Code block to calculate rebate Percentage or Monethly for customer specific rebate----------
+rebatePrecentage= rebateValue_CustomerSpecific_t;		
+if(rebateGPOThirdparty_t == ""){
+	rebatePrecentage= 0.0;
+}
+rebateDollarMonthly = 0.0;
+if(rebateType_t == "directPayment" AND rebateValueOption_t == "rebateValue"){
+		
+	if(rebateApplied_t == "monthly"){
+	rebateDollarMonthly = rebateValueDollar_t;
+	}elif(rebateApplied_t == "quarterly"){
+	rebateDollarMonthly = rebateValueDollar_t/3;
+	}elif(rebateApplied_t == "semiAnnual"){
+	 rebateDollarMonthly = rebateValueDollar_t/6;	
+	}elif(rebateApplied_t == "annual"){
+	 rebateDollarMonthly = rebateValueDollar_t/12;
+	}else{
+	 rebateDollarMonthly = rebateValueDollar_t;	
+	}
+	
+}elif(rebateValueOption_t == "rebatePercent" AND rebateGPOThirdparty_t == ""){	
+	rebatePrecentage=rebateValue_t;
+}
+// End of customer specific rebate code block----------------------
+		
+containsPSInMPSIteMPS = false;
+// transaction line Process loop to get all configured parts , those are used to query BOM Defination for item type
+for line in transactionLine{	
+	if(line._part_number <> ""){
+		append(partArray,line._part_number);
+		append(itemtypeArray,line.type_l);
+		productAvailabilityFlag = true;
+
+	}
+}
+				
+// get item type for getting solution item catagories
+itemTypeSet = bmql("select * from RAC_ITEM_TYPE where ItemType in $itemtypeArray");
+for eachValue in itemTypeSet{
+	put(itemtypeCategoryDict,get(eachValue,"ItemType"),get(eachValue,"ProcessGroup"));
+	
+}
+
+
+bomRecordSet=bmql("select VariableName,PartNumber,ItemType from Oracle_BomItemDef2 where PartNumber in $partArray");
+		
+for eachData in bomRecordSet{
+	
+	put(ItemTypeDict,get(eachData,"VariableName"),get(eachData,"ItemType"));
+}
+if(termMonths_t == "Other"){
+	
+contractTerm = contractOtherTerm_t;
+}elif(isnumber(termMonths_t))
+{
+	
+contractTerm = 	atoi(termMonths_t);
+}
+
+
+// Calculate Yearwise Term Factor to handle odd Month scenarios e.g. 28 month.
+
+
+year1Flag = true;
+
+termFactorYear1 = contractTerm;
+
+if(termFactorYear1 == 0.0 OR contractTerm >= 12){
+	termFactorYear1 =12;
+}
+if(contractTerm > 12){
+	year2Flag = true;
+	 if(contractTerm <= 24){
+		termFactorYear2 = fmod(contractTerm, 12);
+
+		if(termFactorYear2 == 0.0){
+			termFactorYear2 =12;
+		}
+	 }elif(contractTerm > 24){
+		termFactorYear2 =12; 
+	 }
+}
+if(contractTerm > 24){
+	year3Flag = true;
+	if(contractTerm <= 36){
+		termFactorYear3 = fmod(contractTerm, 12);
+
+		if(termFactorYear3 == 0.0){
+			termFactorYear3 =12;
+		}
+	}elif(contractTerm > 36){
+	termFactorYear3 =12;	
+	}
+}
+if(contractTerm > 36){
+	year4Flag = true;
+	if(contractTerm <= 48){
+		termFactorYear4 = fmod(contractTerm, 12);
+
+		if(termFactorYear4 == 0.0){
+			termFactorYear4 =12;
+		}
+	}elif(contractTerm > 48){
+	termFactorYear4 =12;	
+	}
+}
+if(contractTerm > 48){
+		year5Flag = true;
+	if(contractTerm <= 60){
+		termFactorYear5 = fmod(contractTerm, 12);
+
+		if(termFactorYear5 == 0.0){
+			termFactorYear5 =12;
+		}
+	}elif(contractTerm > 60){
+	termFactorYear5 =12;	
+	}
+	
+}
+if(contractTerm > 60){
+		year6Flag = true;
+	if(contractTerm <= 72){
+		termFactorYear6 = fmod(contractTerm, 12);
+
+		if(termFactorYear6 == 0.0){
+			termFactorYear6 =12;
+		}
+	}elif(contractTerm > 72){
+	termFactorYear6 =12;	
+	}
+	
+}
+if(contractTerm > 72){
+		year7Flag = true;
+	if(contractTerm <= 84){
+		termFactorYear6 = fmod(contractTerm, 12);
+
+		if(termFactorYear6 == 0.0){
+			termFactorYear6 =12;
+		}
+	}elif(contractTerm > 84){
+	termFactorYear6 =12;	
+	}
+	
+}
+
+
+// query to PIMA data table to generate rows in the each section of the table/Array.
+resultSet = bmql("select * from RAC_MPS_PIMA");
+
+// the below loop to get the sections for MPS Deals and first month billing in array.
+for eachData in resultSet{
+	
+	if(get(eachData,"SectionName") == "MPS Total Deal Section"){
+		
+	append(MPSTotalDealRowListArray,get(eachData,"Item"));
+		
+	} 
+	
+	if(get(eachData,"SectionName") == "First Month Billing"){
+		
+	append(firstMonthBillingRowListArray,get(eachData,"Item"));	
+		
+	}
+	
+}
+// get cost esclation percentage from data table for MPS
+
+costEscalation = 0;
+
+MPSCostEscRecord = bmql("select CategoryValue from RAC_MPS_Uplift where CategoryName= 'Cost_Uplift_PIMA' AND  CategoryDescription = 'Percentage'");
+
+For Record in MPSCostEscRecord{
+	
+	if(get(Record, "CategoryValue") <> "")
+	{
+	costEscalation =  atof(get(Record, "CategoryValue"));
+	}
+}
+
+// Line process loop to read the line item details (Pricing of each line - Sales cost/ Ext price.).
+getModelName  = "";
+for line in transactionLine{
+tempRevenuevalue = 0.0;
+totalMarginValue = 0.0;
+totalMarginPercent = 0.0;
+totalContractCost = 0.0;
+
+itemtype = "";
+	if(line._model_name == "Managed Print Services"){
+		MPSFlag = true;
+		costOnlyDecription = getconfigattrvalue(line._document_number,"description_array_costonly");
+		costOnlyValues = getconfigattrvalue(line._document_number,"cost_array_costonly");
+		
+		
+		if(find(costOnlyValues,"$,$") <> -1){
+			tempCostOnlyVal = split(costOnlyValues,"$,$");
+			tempCostOnlyDesc = split(costOnlyDecription,"$,$");
+			count = 0;
+			for eachVal in tempCostOnlyVal{
+				if(isnumber(eachVal)){
+				
+					 costOnlyTotal = costOnlyTotal + atof(eachVal);
+					
+					if(tempCostOnlyDesc[count]=="Consulting Fees"){
+					
+						totalcostOnlyValueConsulting = totalcostOnlyValueConsulting + atof(eachVal);
+						
+					}elif(tempCostOnlyDesc[count]=="Donations"){
+						totalcostOnlyValueDonation = totalcostOnlyValueDonation + atof(eachVal);
+						
+						
+					}elif(tempCostOnlyDesc[count]=="Sign-on Bonuses"){
+						
+						totalcostOnlyValueSignUp = totalcostOnlyValueSignUp + atof(eachVal);
+						
+					}
+					
+						
+				}
+				count =  count + 1;
+			}
+		}elif(isnumber(costOnlyValues)){
+			
+			 costOnlyTotal = costOnlyTotal + atof(costOnlyValues);
+			if(costOnlyDecription =="Consulting Fees"){
+					
+			totalcostOnlyValueConsulting = totalcostOnlyValueConsulting + atof(costOnlyValues);
+						
+			}elif(costOnlyDecription =="Donations"){
+				totalcostOnlyValueDonation = totalcostOnlyValueDonation + atof(costOnlyValues);
+				
+			}elif(costOnlyDecription =="Sign-on Bonuses"){
+				
+				totalcostOnlyValueSignUp = totalcostOnlyValueSignUp + atof(costOnlyValues);
+			}
+		}
+			
+			
+		put(MPSTotalDealDict,"Total Consulting Fees Cost"+"_Year1",string(totalcostOnlyValueConsulting));
+		put(MPSTotalDealDict,"Total Donations Cost"+"_Year1",string(totalcostOnlyValueDonation));
+		put(MPSTotalDealDict,"Total Sign On Cost"+"_Year1",string(totalcostOnlyValueSignUp));
+		
+		put(MPSTotalDealDict,"Total Consulting Fees Cost"+"_Total Contract",string(totalcostOnlyValueConsulting));
+		
+		put(MPSTotalDealDict,"Total Donations Cost"+"_Total Contract",string(totalcostOnlyValueDonation));
+		 
+		put(MPSTotalDealDict,"Total Sign On Cost"+"_Total Contract",string(totalcostOnlyValueSignUp));
+
+		put(PricingDict,"Cost Only Details_Month1_COST",costOnlyTotal);
+		put(PricingDict,"Cost Only Details_Month1_REV",0.0);
+		put(PricingDict,"Cost Only Details_Month1_MG",0.0);
+		
+		put(MPSTotalDealDict,"Total Deal Upfront Sales Cost"+"_Year1",string(costOnlyTotal));
+		
+		put(MPSTotalDealDict,"Total Deal Upfront Sales Cost"+"_Total Contract",string(costOnlyTotal));
+		totalDealUpfrontCost1 = costOnlyTotal;
+	}
+	elif(line._model_name == "Zebra"){
+		getModelName = line._model_name;
+	}
+	elif(line._part_number <> ""){
+		
+		// form variable names for BOM Item table in case of duplicate part numbers 
+		partNumberVar = line._part_number;
+		if(lower(line.configCommentsNew_l) == "zebra" AND (line._part_number == "MS-MPS-TRAC-SERV-REQ" OR line._part_number==  "MS-MPS-TRAC-INV" OR line._part_number == "MS-MPS-TRAC-ASSET" ))
+		{
+			partNumberVar = line._part_number+" "+"Zebra";
+		}
+		
+		if(line._part_number == "MS-MPS-FLEET-OTHER"){
+			LineBOMJSON = json();
+			if(line._line_bom_attributes<> ""){
+				LineBOMJSON = json(line._line_bom_attributes);
+			}
+			mICRManufacturer_PathCheck = jsonpathcheck(LineBOMJSON, "$.MICRManufacturer.value");//MICR
+			if(mICRManufacturer_PathCheck){
+				partNumberVar = line._part_number+" "+"MICR";
+			}else{
+				partNumberVar = line._part_number;
+			}
+		}
+		//print partNumberVar ;
+		//query bom table based on variable names and get item type
+		itemtype = get(ItemTypeDict,partNumberVar);
+		
+		// set item type for Extended hours based on user selection of 3rd Party or Zebra
+		if(itemtype == "Other Services" AND line.configCommentsNew_l == "3rd Party/MICR" )
+		{
+			itemtype = "3rd Party / MICR Service";
+		}
+		if(itemtype == "Other Services" AND lower(line.configCommentsNew_l) == "zebra" )
+		{
+			itemtype = "Zebra Service";
+		}
+		//print itemtype;
+		if(not(isnull(get(itemtypeCategoryDict,line.type_l)))){
+		SCItemValue = get(itemtypeCategoryDict,line.type_l);
+		}
+		
+		/* 	if(SCItemValue == "SC" AND line.includeInMPS_l){
+			
+			itemtype = "PS in MPS";
+		} */
+		if((itemtype<>"" AND NOT ISNULL(itemtype)) AND (line.type_l == "MANAGED PRINT SVC-RECURRING CHARGE" OR (line.type_l <> "MANAGED PRINT SVC-RECURRING CHARGE" AND itemtype == "MPS Labor"))){
+			print "REV_-----";
+			print line._part_number;
+			print line.extNetPrice_l;
+			print itemtype;
+			print line.type_l;
+			print "-----";
+			totalMonthlyRevenue = totalMonthlyRevenue + line.extNetPrice_l;
+			totalMonthlyCost = totalMonthlyCost + (line._price_quantity *line.unitSalesCost_l);
+			totalMonthlyStandardCost = totalMonthlyStandardCost + (line._price_quantity *line.unitCost_l);
+			//Print "******";print itemtype; print totalMonthlyStandardCost;
+
+			if(itemtype == "MPS Labor" ){
+				impCostF  = 0; impCostVariable  = "";
+				
+					 implementRecords = BMQL("select Category_Value from RAC_MS_UPLIFT where Category_Name = 'IMPLEMENT_COST_Variable'");
+					 for eachImp in implementRecords {
+					 impCostVariable = get(eachImp ,"Category_Value");
+					 }
+					 if(impCostVariable  <> ""){
+					 impCostF  = atof(impCostVariable);
+
+					 totalImplementationCostValue  =  totalImplementationCostValue +( line.unitSalesCost_l* impCostF * 12 *line._price_quantity);
+
+					 }
+				}
+
+		}
+
+		year2MarginPercent = 0.0;
+		year3MarginPercent = 0.0;
+		year4MarginPercent= 0.0;
+		year5MarginPercent= 0.0;
+		year6MarginPercent= 0.0;
+		year7MarginPercent= 0.0;
+		year1MarginPercent= 0.0;
+		IncreamentalCostTotal =0.0;
+		tempImplementationCostVal =  0.0;
+		IncreamentalCostTotal = 0.0;
+		for eachData in resultSet{
+			totalContractCost = 0.0;
+			totalContractRevenue = 0.0;
+			totalContractGrossMargin = 0.0;
+			totalMarginValue = 0.0;
+			totalContractGrossMarginPercent = 0.0;
+
+		if(itemtype <>"" AND NOT ISNULL(itemtype)){	
+			if((get(eachData,"SectionName") == itemtype AND (find(get(eachData,"Item"),itemtype) <> -1)) OR (find(get(eachData,"SectionName"),"Rebate(s)") <> -1))
+			{ 
+				tempDescriptionCost = "";
+				tempDescriptionRev = "";
+				ItemDescriptionTempGM = "";
+				ItemDescriptionTempRev = "";
+				totalDeltaIncreamentalRevenueYear1 = 0.0;
+				totalIncreamentalRevenueForNextYear = 0.0;
+				totalIncreamentalCostForNextYear = 0.0;
+				totalDeltaIncreamentalCostYear1=0.0;
+				totalREV_Y1=0.0;
+				totalCOST_Y1=0.0;
+				itemDescription = get(eachData,"Item");
+				//print "itemDescription--561--";
+				//print itemDescription;
+				
+				if((param1 == "" AND find(itemDescription,"Standard Cost") == -1) OR (param1 == "Price Analyst")){
+					
+				// condition to filter Revenue IteMPS of the each component from the data table.......
+				if(find(itemDescription,"Revenue") <> -1){
+					
+				//Start_HYPERCARE-CR_CHG#0082000_CR#41_Description_by Namrata
+				// changes done to retrieve Annual Escalation % per year if variable annual escalation flag is true
+					annualEscalationVar = "";
+					annualEscalationFloat = 0;
+					if(containskey(PricingDict,itemDescription+"_Year1")){
+					
+						tempRevenuevalue = get(PricingDict,itemDescription+"_Year1");
+						tempRevenuevalueWithoutTerm = tempRevenuevalue/termFactorYear1;
+						tempRevenuevalue = tempRevenuevalue + line.extNetPrice_l*termFactorYear1;
+						tempRevenuevalueWithoutTerm = tempRevenuevalueWithoutTerm + line.extNetPrice_l;
+						put(PricingDict,itemDescription+"_Year1",tempRevenuevalue);
+						totalContractRevenueY1 = tempRevenuevalue;
+
+						if(variableAnnualRevenueEscalation_t == true){
+							annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year1"));
+							if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+								annualEscalationFloat = atof(annualEscalationVar );
+							}
+						}else{
+							annualEscalationFloat = annualRevenueEscalation_t;
+							}
+
+						totalDeltaIncreamentalRevenueYear1 = (tempRevenuevalueWithoutTerm*annualEscalationFloat/100) ;
+						totalIncreamentalRevenueForNextYear =  tempRevenuevalueWithoutTerm;
+					
+						}else{
+					
+						put(PricingDict,itemDescription+"_Year1",line.extNetPrice_l*termFactorYear1);
+						totalContractRevenueY1=line.extNetPrice_l*termFactorYear1;
+						
+						if(variableAnnualRevenueEscalation_t == true){
+							annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year1"));
+							if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+								annualEscalationFloat = atof(annualEscalationVar );
+							}
+						}else{
+							annualEscalationFloat = annualRevenueEscalation_t;
+							}
+						totalDeltaIncreamentalRevenueYear1 = (line.extNetPrice_l*annualEscalationFloat/100) ;
+						totalIncreamentalRevenueForNextYear =  line.extNetPrice_l;
+				
+					}
+				
+					if(year2Flag){
+						
+						if(containskey(PricingDict,itemDescription+"_Year2")){
+							tempRevenuevalue = get(PricingDict,ItemDescription+"_Year2");
+							tempRevenuevalue = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear2;
+							put(PricingDict,itemDescription+"_Year2",tempRevenuevalue);
+							totalContractRevenueY2 = tempRevenuevalue;
+							totalIncreamentalRevenueForNextYear = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1);
+							if(variableAnnualRevenueEscalation_t == true){
+								annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year2"));
+								if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+									annualEscalationFloat = atof(annualEscalationVar );
+								}
+							}else{
+								annualEscalationFloat = annualRevenueEscalation_t;
+								}
+							
+							totalDeltaIncreamentalRevenueYear1 = totalIncreamentalRevenueForNextYear*annualEscalationFloat/100 ;
+							
+						}else{
+						
+							put(PricingDict,ItemDescription+"_Year2",(totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear2);
+							
+							totalContractRevenueY2 = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear2;
+							 totalIncreamentalRevenueForNextYear = totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1;
+							if(variableAnnualRevenueEscalation_t == true){
+								annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year2"));
+								if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+								annualEscalationFloat = atof(annualEscalationVar );
+								}
+							}else{
+								annualEscalationFloat = annualRevenueEscalation_t;
+							}
+						
+							totalDeltaIncreamentalRevenueYear1 = totalIncreamentalRevenueForNextYear*annualEscalationFloat /100 ;
+							
+						}
+					}
+				
+					if(year3Flag){
+						if(containskey(PricingDict,ItemDescription+"_Year3")){
+							
+							tempRevenuevalue = get(PricingDict,ItemDescription+"_Year3");
+							tempRevenuevalue = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear3;
+							put(PricingDict,itemDescription+"_Year3",tempRevenuevalue);
+							totalContractRevenueY3 = tempRevenuevalue;
+							totalIncreamentalRevenueForNextYear = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1);
+							//totalDeltaIncreamentalRevenueYear1 = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*annualRevenueEscalation_t/100 ;	
+							if(variableAnnualRevenueEscalation_t == true){
+								annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year3"));
+								if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+								annualEscalationFloat = atof(annualEscalationVar );
+								}
+							}else{
+								annualEscalationFloat = annualRevenueEscalation_t;
+							}
+							totalDeltaIncreamentalRevenueYear1 = totalIncreamentalRevenueForNextYear*annualEscalationFloat/100 ;	
+						}else{
+							
+							
+							put(PricingDict,ItemDescription+"_Year3",(totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear3);
+							totalContractRevenueY3 = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear3;
+							totalIncreamentalRevenueForNextYear = totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1;
+							if(variableAnnualRevenueEscalation_t == true){
+								annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year3"));
+								if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+								annualEscalationFloat = atof(annualEscalationVar );
+								}
+							}else{
+								annualEscalationFloat = annualRevenueEscalation_t;
+							}
+							totalDeltaIncreamentalRevenueYear1 = (totalIncreamentalRevenueForNextYear)*annualEscalationFloat/100 ;
+						}
+					}
+					
+					if(year4Flag){
+						if(containskey(PricingDict,ItemDescription+"_Year4")){
+							
+							tempRevenuevalue = get(PricingDict,ItemDescription+"_Year4");
+							//tempRevenuevalue = tempRevenuevalue + line.extNetPrice_l*termFactorYear4;
+							tempRevenuevalue = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear4;
+							put(PricingDict,itemDescription+"_Year4",tempRevenuevalue);
+							totalContractRevenueY4 = tempRevenuevalue;
+							totalIncreamentalRevenueForNextYear = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1);
+							if(variableAnnualRevenueEscalation_t == true){
+								annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year4"));
+								if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+								annualEscalationFloat = atof(annualEscalationVar );
+								}
+							}else{
+								annualEscalationFloat = annualRevenueEscalation_t;
+							}
+							totalDeltaIncreamentalRevenueYear1 = (totalIncreamentalRevenueForNextYear)*annualEscalationFloat/100 ;	
+						}else{
+						 put(PricingDict,ItemDescription+"_Year4",(totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear4);
+						 totalContractRevenueY4 = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear4;
+						//put(PricingDict,ItemDescription+"_Year4",line.extNetPrice_l*termFactorYear2+totalDeltaIncreamentalRevenueYear1);
+						totalIncreamentalRevenueForNextYear = totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1;
+							if(variableAnnualRevenueEscalation_t == true){
+								annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year4"));
+								if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+								annualEscalationFloat = atof(annualEscalationVar );
+								}
+							}else{
+								annualEscalationFloat = annualRevenueEscalation_t;
+							}
+						totalDeltaIncreamentalRevenueYear1 = (totalIncreamentalRevenueForNextYear)*annualEscalationFloat/100 ;
+						}
+					}
+					if(year5Flag){
+						if(containskey(PricingDict,ItemDescription+"_Year5")){
+							
+							tempRevenuevalue = get(PricingDict,ItemDescription+"_Year5");
+							//tempRevenuevalue = tempRevenuevalue + line.extNetPrice_l*termFactorYear5;
+							tempRevenuevalue = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear5;
+							put(PricingDict,itemDescription+"_Year5",tempRevenuevalue);
+							totalContractRevenueY5 = tempRevenuevalue;
+							totalIncreamentalRevenueForNextYear = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1);
+							totalIncreamentalRevenueForNextYear = totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1;
+							if(variableAnnualRevenueEscalation_t == true){
+								annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year5"));
+								if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+								annualEscalationFloat = atof(annualEscalationVar );
+								}
+							}else{
+								annualEscalationFloat = annualRevenueEscalation_t;
+							}
+							totalDeltaIncreamentalRevenueYear1 = (totalIncreamentalRevenueForNextYear)*annualEscalationFloat /100 ;	
+						}else{
+						 put(PricingDict,ItemDescription+"_Year5",(totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear5);
+							totalContractRevenueY5 = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear5;//put(PricingDict,ItemDescription+"_Year5",line.extNetPrice_l*termFactorYear2+totalDeltaIncreamentalRevenueYear1);
+							totalIncreamentalRevenueForNextYear = totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1;
+							if(variableAnnualRevenueEscalation_t == true){
+								annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year5"));
+								if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+									annualEscalationFloat = atof(annualEscalationVar );
+								}
+							}else{
+								annualEscalationFloat = annualRevenueEscalation_t;
+							}
+						totalDeltaIncreamentalRevenueYear1 = (totalIncreamentalRevenueForNextYear)*annualEscalationFloat/100 ;
+						}
+					}
+					
+					if(year6Flag){
+						
+						
+						if(containskey(PricingDict,ItemDescription+"_Year6")){
+							
+							tempRevenuevalue = get(PricingDict,ItemDescription+"_Year6");
+							//tempRevenuevalue = tempRevenuevalue + line.extNetPrice_l*termFactorYear5;
+							tempRevenuevalue = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear6;
+							put(PricingDict,itemDescription+"_Year6",tempRevenuevalue);
+							totalContractRevenueY6 = tempRevenuevalue;
+							totalIncreamentalRevenueForNextYear = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1);
+							if(variableAnnualRevenueEscalation_t == true){
+								annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year6"));
+								if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+								annualEscalationFloat = atof(annualEscalationVar );
+								}
+							}else{
+								annualEscalationFloat = annualRevenueEscalation_t;
+							}
+							totalDeltaIncreamentalRevenueYear1 = (totalIncreamentalRevenueForNextYear)*annualEscalationFloat/100 ;	
+							}else{
+							
+						 put(PricingDict,ItemDescription+"_Year6",(totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear6);
+						totalContractRevenueY6 = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear6;//put(PricingDict,ItemDescription+"_Year5",line.extNetPrice_l*termFactorYear2+totalDeltaIncreamentalRevenueYear1);
+						totalIncreamentalRevenueForNextYear = totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1;
+							if(variableAnnualRevenueEscalation_t == true){
+								annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year6"));
+								if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+								annualEscalationFloat = atof(annualEscalationVar );
+								}
+							}else{
+								annualEscalationFloat = annualRevenueEscalation_t;
+							}
+						totalDeltaIncreamentalRevenueYear1 = (totalIncreamentalRevenueForNextYear)*annualEscalationFloat/100 ;
+						}
+					}
+					
+					if(year7Flag){
+						if(containskey(PricingDict,ItemDescription+"_Year7")){
+							
+							tempRevenuevalue = get(PricingDict,ItemDescription+"_Year7");
+							//tempRevenuevalue = tempRevenuevalue + line.extNetPrice_l*termFactorYear5;
+							tempRevenuevalue = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear7;
+							put(PricingDict,itemDescription+"_Year7",tempRevenuevalue);
+							totalContractRevenueY7 = tempRevenuevalue;
+							totalIncreamentalRevenueForNextYear = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1);
+							if(variableAnnualRevenueEscalation_t == true){
+								annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year7"));
+								if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+								annualEscalationFloat = atof(annualEscalationVar );
+								}
+							}else{
+								annualEscalationFloat = annualRevenueEscalation_t;
+							}
+							totalDeltaIncreamentalRevenueYear1 = (totalIncreamentalRevenueForNextYear)*annualEscalationFloat/100 ;	
+						}else{
+						 put(PricingDict,ItemDescription+"_Year7",(totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear7);
+						totalContractRevenueY7 = (totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1)*termFactorYear7;//put(PricingDict,ItemDescription+"_Year5",line.extNetPrice_l*termFactorYear2+totalDeltaIncreamentalRevenueYear1);
+						totalIncreamentalRevenueForNextYear = totalIncreamentalRevenueForNextYear+totalDeltaIncreamentalRevenueYear1;
+							if(variableAnnualRevenueEscalation_t == true){
+								annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year7"));
+								if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+								annualEscalationFloat = atof(annualEscalationVar );
+								}
+							}else{
+								annualEscalationFloat = annualRevenueEscalation_t;
+							}
+						totalDeltaIncreamentalRevenueYear1 = (totalIncreamentalRevenueForNextYear)*annualEscalationFloat/100 ;
+						}
+					}
+					totalContractRevenue = totalContractRevenueY1 +totalContractRevenueY2+totalContractRevenueY3+totalContractRevenueY4+totalContractRevenueY5+totalContractRevenueY6+totalContractRevenueY7;
+					put(PricingDict,ItemDescription+"_Total Contract",totalContractRevenue);
+					//print PricingDict;
+					//End_HYPERCARE-CR_CHG#0082000_CR#41_Description_by Namrata
+				}elif(find(itemDescription,"Recurring Sales Cost") <> -1 OR find(itemDescription,"Total Sales Cost") <> -1 OR find(itemDescription,"Total Standard Cost") <> -1 OR find(itemDescription,"Recurring Standard Cost") <> -1){
+					IncreamentalCostTotal =0.0;
+					//print "SC inside---";
+					unitCostValue = 0.0;
+					//Total Standard Cost
+					if(find(itemDescription,"Standard Cost") <> -1){
+					unitCostValue = line.unitCost_l;
+					
+					
+					}else{
+					unitCostValue = line.unitSalesCost_l;	
+					
+					}
+
+					
+					if(containskey(PricingDict,itemDescription+"_Year1")){
+						
+						tempCostvalue = get(PricingDict,itemDescription+"_Year1");
+						tempCostvalueWithoutTerm = tempCostvalue/termFactorYear1;
+						tempCostvalue = tempCostvalue + (line._price_quantity *unitCostValue*termFactorYear1)+IncreamentalCostTotal;
+						tempCostvalueWithoutTerm = tempCostvalueWithoutTerm + line._price_quantity *unitCostValue;
+						//print "tempCostvalue- if--";
+						//print tempCostvalue;
+						put(PricingDict,itemDescription+"_Year1",tempCostvalue);
+						totalContractCostY1 =  tempCostvalue;
+						totalDeltaIncreamentalCostYear1 = (tempCostvalueWithoutTerm*costEscalation/100) ;	
+						totalIncreamentalCostForNextYear =  tempCostvalueWithoutTerm;
+						
+						
+					}else{
+
+					
+					put(PricingDict,itemDescription+"_Year1",(line._price_quantity *unitCostValue*termFactorYear1)+IncreamentalCostTotal);
+					
+					totalDeltaIncreamentalCostYear1 = ((line._price_quantity *unitCostValue)*costEscalation/100) ;
+					totalIncreamentalCostForNextYear = (line._price_quantity *unitCostValue);
+					totalContractCostY1 =  (line._price_quantity *unitCostValue*termFactorYear1)+IncreamentalCostTotal;
+					}
+					
+					if(year2Flag){
+						if(containskey(PricingDict,itemDescription+"_Year2")){
+							
+							tempCostvalue = get(PricingDict,ItemDescription+"_Year2");
+						
+							tempCostvalue = (totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear2;
+							
+							put(PricingDict,itemDescription+"_Year2",tempCostvalue);
+							//print "printing item and value 111";
+							//print ItemDescription+"_Year2";print tempCostvalue;
+							totalContractCostY2 =  tempCostvalue;
+							totalIncreamentalCostForNextYear = totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1;
+							totalDeltaIncreamentalCostYear1 = (totalIncreamentalCostForNextYear)*costEscalation/100 ;
+						}else{
+							
+							put(PricingDict,ItemDescription+"_Year2",(totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear2);
+							totalContractCostY2 =  (totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear2;
+							totalIncreamentalCostForNextYear = totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1;
+							totalDeltaIncreamentalCostYear1 = (totalIncreamentalCostForNextYear)*costEscalation/100 ;
+						}
+						
+						
+					}
+					if(year3Flag){
+						if(containskey(PricingDict,ItemDescription+"_Year3")){
+							
+							tempCostvalue = get(PricingDict,ItemDescription+"_Year3");
+							
+							tempCostvalue = (totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear3;
+							put(PricingDict,itemDescription+"_Year3",tempCostvalue);
+							totalContractCostY3 =  tempCostvalue;
+							totalIncreamentalCostForNextYear = totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1;
+							totalDeltaIncreamentalCostYear1 = (totalIncreamentalCostForNextYear)*costEscalation/100 ;
+						}else{
+							put(PricingDict,ItemDescription+"_Year3",(totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear3);
+							totalContractCostY3 =  (totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear3;
+							totalIncreamentalCostForNextYear = totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1;
+							totalDeltaIncreamentalCostYear1 = (totalIncreamentalCostForNextYear)*costEscalation/100 ;
+						}
+						
+					
+					
+					}
+					
+					if(year4Flag){
+						if(containskey(PricingDict,ItemDescription+"_Year4")){
+							
+							tempCostvalue = get(PricingDict,ItemDescription+"_Year4");
+							//tempCostvalue = tempCostvalue + line._price_quantity *unitCostValue*termFactorYear4;
+							tempCostvalue = (totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear4;
+							put(PricingDict,itemDescription+"_Year4",tempCostvalue);
+							totalContractCostY4 =  tempCostvalue;
+							totalIncreamentalCostForNextYear = totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1;
+						totalDeltaIncreamentalCostYear1 = (totalIncreamentalCostForNextYear)*costEscalation/100 ;
+						}else{
+						put(PricingDict,ItemDescription+"_Year4",(totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear4);
+						totalContractCostY4 =  (totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear4;
+						totalIncreamentalCostForNextYear = totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1;
+						totalDeltaIncreamentalCostYear1 = (totalIncreamentalCostForNextYear)*costEscalation/100 ;
+						}
+					}
+					if(year5Flag){
+						if(containskey(PricingDict,ItemDescription+"_Year5")){
+							
+							tempCostvalue = get(PricingDict,ItemDescription+"_Year5");
+							//tempCostvalue = tempCostvalue + line._price_quantity *unitCostValue*termFactorYear5;
+							tempCostvalue = (totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear5;
+							put(PricingDict,itemDescription+"_Year5",tempCostvalue);
+							totalContractCostY5 =  tempCostvalue;
+							totalIncreamentalCostForNextYear = totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1;
+						totalDeltaIncreamentalCostYear1 = (totalIncreamentalCostForNextYear)*costEscalation/100 ;
+						}else{
+						put(PricingDict,ItemDescription+"_Year5",(totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear3);
+						totalContractCostY5 =  (totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear5;
+						totalIncreamentalCostForNextYear = totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1;
+						totalDeltaIncreamentalCostYear1 = (totalIncreamentalCostForNextYear)*costEscalation/100 ;
+						}
+					}
+					
+					if(year6Flag){
+						if(containskey(PricingDict,ItemDescription+"_Year6")){
+							
+							tempCostvalue = get(PricingDict,ItemDescription+"_Year6");
+							tempCostvalue = (totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear6;
+							put(PricingDict,itemDescription+"_Year6",tempCostvalue);
+							totalContractCostY6 =  tempCostvalue;
+							totalIncreamentalCostForNextYear = totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1;
+						totalDeltaIncreamentalCostYear1 = (totalIncreamentalCostForNextYear)*costEscalation/100 ;
+						}else{
+						put(PricingDict,ItemDescription+"_Year6",(totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear6);
+						totalContractCostY6 =  (totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear6;
+						totalIncreamentalCostForNextYear = totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1;
+						totalDeltaIncreamentalCostYear1 = (totalIncreamentalCostForNextYear)*costEscalation/100 ;
+						}
+					}
+					
+					if(year7Flag){
+						if(containskey(PricingDict,ItemDescription+"_Year7")){
+							
+							tempCostvalue = get(PricingDict,ItemDescription+"_Year7");
+							tempCostvalue = (totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear7;
+							put(PricingDict,itemDescription+"_Year7",tempCostvalue);
+							totalContractCostY7 =  tempCostvalue;
+							totalIncreamentalCostForNextYear = totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1;
+						totalDeltaIncreamentalCostYear1 = (totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*costEscalation/100 ;
+						}else{
+						put(PricingDict,ItemDescription+"_Year7",(totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear7);
+						totalContractCostY7 =  (totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1)*termFactorYear7;
+						
+						totalIncreamentalCostForNextYear = totalIncreamentalCostForNextYear+totalDeltaIncreamentalCostYear1;
+						totalDeltaIncreamentalCostYear1 = (totalIncreamentalCostForNextYear)*costEscalation/100 ;
+						}
+					}
+					totalContractCost = totalContractCostY1+totalContractCostY2+totalContractCostY3+totalContractCostY4+totalContractCostY5+totalContractCostY6+totalContractCostY7;
+					put(PricingDict,ItemDescription+"_Total Contract",totalContractCost);
+					//print "PricingDictlkkkkkkkkkkkkk"; print PricingDict;
+				}elif(find(itemDescription,"Sales Cost GM") <> -1 OR find(itemDescription,"Standard Cost GM") <> -1){
+						// print " GM--- isndie---";
+						// print "itemDescription--";
+						// print itemDescription;
+					  if(find(itemDescription,"Sales Cost GM") <> -1){
+						 tempDescriptionRev = replace(itemDescription,"Sales Cost GM","Revenue");
+						 tempDescriptionCost = replace(itemDescription,"Sales Cost GM","Total Sales Cost");
+					  }elif(find(itemDescription,"Standard Cost GM") <> -1){
+						  tempDescriptionRev = replace(itemDescription,"Standard Cost GM","Revenue");
+						  tempDescriptionCost = replace(itemDescription,"Standard Cost GM","Total Standard Cost");
+					  }
+					
+					  // print tempDescriptionRev;
+					  // print tempDescriptionCost;
+					  if(not(isnull(get(PricingDict,tempDescriptionRev+"_Year1")))){
+						totalREV_Y1= get(PricingDict,tempDescriptionRev+"_Year1");
+					  }
+					 
+					  if(not(isnull(get(PricingDict,tempDescriptionCost+"_Year1")))){
+						totalCOST_Y1= get(PricingDict,tempDescriptionCost+"_Year1");
+					  }
+						
+					totalMarginValue = totalREV_Y1 - totalCOST_Y1;
+						// print totalMarginValue;
+						// print "----";
+					totalContractGrossMargin = totalContractGrossMargin + totalMarginValue;
+					put(PricingDict,itemDescription+"_Year1",totalMarginValue);
+					
+					
+					if(totalREV_Y1 <> 0.0){
+					year1MarginPercent = (totalMarginValue/totalREV_Y1)*100;
+					}
+				
+					if(year2Flag){
+						
+						//tempDescriptionRev = replace(itemDescription,"Sales Cost GM","Revenue");
+						  if(find(itemDescription,"Sales Cost GM") <> -1){
+						 tempDescriptionRev = replace(itemDescription,"Sales Cost GM","Revenue");
+						 tempDescriptionCost = replace(itemDescription,"Sales Cost GM","Total Sales Cost");
+						  }elif(find(itemDescription,"Standard Cost GM") <> -1){
+							  tempDescriptionRev = replace(itemDescription,"Standard Cost GM","Revenue");
+							  tempDescriptionCost = replace(itemDescription,"Standard Cost GM","Total Standard Cost");
+						  }
+					  
+					  
+						 if(not(isnull(get(PricingDict,tempDescriptionRev+"_Year2")))){
+						totalREV_Y1= get(PricingDict,tempDescriptionRev+"_Year2");
+						 }
+						// tempDescriptionCost = replace(itemDescription,"Sales Cost GM","Total Sales Cost");
+						  if(not(isnull(get(PricingDict,tempDescriptionCost+"_Year2")))){
+						totalCOST_Y1= get(PricingDict,tempDescriptionCost+"_Year2");
+						  }
+					
+						totalMarginValue = totalREV_Y1 - totalCOST_Y1;
+						totalContractGrossMargin = totalContractGrossMargin + totalMarginValue;
+						put(PricingDict,itemDescription+"_Year2",totalMarginValue);
+						if(totalREV_Y1 <> 0.0){
+						year2MarginPercent = (totalMarginValue/totalREV_Y1)*100;
+						}
+					}
+					if(year3Flag){
+
+
+						
+						 if(find(itemDescription,"Sales Cost GM") <> -1){
+						 tempDescriptionRev = replace(itemDescription,"Sales Cost GM","Revenue");
+						 tempDescriptionCost = replace(itemDescription,"Sales Cost GM","Total Sales Cost");
+						  }elif(find(itemDescription,"Standard Cost GM") <> -1){
+							  tempDescriptionRev = replace(itemDescription,"Standard Cost GM","Revenue");
+							  tempDescriptionCost = replace(itemDescription,"Standard Cost GM","Total Standard Cost");
+						  }
+					  
+					  
+					  
+						if(not(isnull(get(PricingDict,tempDescriptionRev+"_Year3")))){
+						totalREV_Y1= get(PricingDict,tempDescriptionRev+"_Year3");
+						}
+						// tempDescriptionCost = replace(itemDescription,"Sales Cost GM","Total Sales Cost");
+						 if(not(isnull(get(PricingDict,tempDescriptionCost+"_Year3")))){
+						totalCOST_Y1= get(PricingDict,tempDescriptionCost+"_Year3");
+						 }
+					
+					totalMarginValue = totalREV_Y1 - totalCOST_Y1;
+					totalContractGrossMargin = totalContractGrossMargin + totalMarginValue;
+					put(PricingDict,itemDescription+"_Year3",totalMarginValue);
+					if(totalREV_Y1 <> 0.0){
+					year3MarginPercent = (totalMarginValue/totalREV_Y1)*100;
+					}
+					
+					}
+					
+					if(year4Flag){
+						
+						 if(find(itemDescription,"Sales Cost GM") <> -1){
+							 tempDescriptionRev = replace(itemDescription,"Sales Cost GM","Revenue");
+							 tempDescriptionCost = replace(itemDescription,"Sales Cost GM","Total Sales Cost");
+						  }elif(find(itemDescription,"Standard Cost GM") <> -1){
+							  tempDescriptionRev = replace(itemDescription,"Standard Cost GM","Revenue");
+							  tempDescriptionCost = replace(itemDescription,"Standard Cost GM","Total Standard Cost");
+						  }
+					  
+						
+						//tempDescriptionRev = replace(itemDescription,"Sales Cost GM","Revenue");
+						if(not(isnull(get(PricingDict,tempDescriptionRev+"_Year4")))){
+						totalREV_Y1= get(PricingDict,tempDescriptionRev+"_Year4");
+						}
+						// tempDescriptionCost = replace(itemDescription,"Sales Cost GM","Total Sales Cost");
+						 if(not(isnull(get(PricingDict,tempDescriptionCost+"_Year4")))){
+						totalCOST_Y1= get(PricingDict,tempDescriptionCost+"_Year4");
+						 }
+						
+					
+					totalMarginValue = totalREV_Y1 - totalCOST_Y1;
+					totalContractGrossMargin = totalContractGrossMargin + totalMarginValue;
+					put(PricingDict,itemDescription+"_Year4",totalMarginValue);
+						if(totalREV_Y1 <> 0.0){
+						year4MarginPercent = (totalMarginValue/totalREV_Y1)*100;
+						}
+					}
+					if(year5Flag){
+						
+							 if(find(itemDescription,"Sales Cost GM") <> -1){
+								 tempDescriptionRev = replace(itemDescription,"Sales Cost GM","Revenue");
+								 tempDescriptionCost = replace(itemDescription,"Sales Cost GM","Total Sales Cost");
+							  }elif(find(itemDescription,"Standard Cost GM") <> -1){
+								  tempDescriptionRev = replace(itemDescription,"Standard Cost GM","Revenue");
+								  tempDescriptionCost = replace(itemDescription,"Standard Cost GM","Total Standard Cost");
+							  }
+							//tempDescriptionRev = replace(itemDescription,"Sales Cost GM","Revenue");
+							if(not(isnull(get(PricingDict,tempDescriptionRev+"_Year5")))){
+							totalREV_Y1= get(PricingDict,tempDescriptionRev+"_Year5");
+							}
+							 //tempDescriptionCost = replace(itemDescription,"Sales Cost GM","Total Sales Cost");
+							 if(not(isnull(get(PricingDict,tempDescriptionCost+"_Year5")))){
+							totalCOST_Y1= get(PricingDict,tempDescriptionCost+"_Year5");
+							 }
+					
+						totalMarginValue = totalREV_Y1 - totalCOST_Y1;
+						totalContractGrossMargin = totalContractGrossMargin + totalMarginValue;
+						put(PricingDict,itemDescription+"_Year5",totalMarginValue);
+						if(totalREV_Y1 <> 0.0){
+						year5MarginPercent = (totalMarginValue/totalREV_Y1)*100;
+						}
+					}
+					
+					if(year6Flag){
+						
+							 if(find(itemDescription,"Sales Cost GM") <> -1){
+								 tempDescriptionRev = replace(itemDescription,"Sales Cost GM","Revenue");
+								 tempDescriptionCost = replace(itemDescription,"Sales Cost GM","Total Sales Cost");
+							  }elif(find(itemDescription,"Standard Cost GM") <> -1){
+								  tempDescriptionRev = replace(itemDescription,"Standard Cost GM","Revenue");
+								  tempDescriptionCost = replace(itemDescription,"Standard Cost GM","Total Standard Cost");
+							  }
+							//tempDescriptionRev = replace(itemDescription,"Sales Cost GM","Revenue");
+							if(not(isnull(get(PricingDict,tempDescriptionRev+"_Year6")))){
+							totalREV_Y1= get(PricingDict,tempDescriptionRev+"_Year6");
+							}
+							 //tempDescriptionCost = replace(itemDescription,"Sales Cost GM","Total Sales Cost");
+							 if(not(isnull(get(PricingDict,tempDescriptionCost+"_Year6")))){
+							totalCOST_Y1= get(PricingDict,tempDescriptionCost+"_Year6");
+							 }
+					
+						totalMarginValue = totalREV_Y1 - totalCOST_Y1;
+						totalContractGrossMargin = totalContractGrossMargin + totalMarginValue;
+						put(PricingDict,itemDescription+"_Year6",totalMarginValue);
+						if(totalREV_Y1 <> 0.0){
+							
+						year6MarginPercent = (totalMarginValue/totalREV_Y1)*100;
+						}
+						
+					}
+					
+					if(year7Flag){
+						
+							 if(find(itemDescription,"Sales Cost GM") <> -1){
+								 tempDescriptionRev = replace(itemDescription,"Sales Cost GM","Revenue");
+								 tempDescriptionCost = replace(itemDescription,"Sales Cost GM","Total Sales Cost");
+							  }elif(find(itemDescription,"Standard Cost GM") <> -1){
+								  tempDescriptionRev = replace(itemDescription,"Standard Cost GM","Revenue");
+								  tempDescriptionCost = replace(itemDescription,"Standard Cost GM","Total Standard Cost");
+							  }
+							//tempDescriptionRev = replace(itemDescription,"Sales Cost GM","Revenue");
+							if(not(isnull(get(PricingDict,tempDescriptionRev+"_Year7")))){
+							totalREV_Y1= get(PricingDict,tempDescriptionRev+"_Year7");
+							}
+							// tempDescriptionCost = replace(itemDescription,"Sales Cost GM","Total Sales Cost");
+							 if(not(isnull(get(PricingDict,tempDescriptionCost+"_Year7")))){
+							totalCOST_Y1= get(PricingDict,tempDescriptionCost+"_Year7");
+							 }
+					
+						totalMarginValue = totalREV_Y1 - totalCOST_Y1;
+						totalContractGrossMargin = totalContractGrossMargin + totalMarginValue;
+						put(PricingDict,itemDescription+"_Year7",totalMarginValue);
+						if(totalREV_Y1 <> 0.0){
+						year7MarginPercent = (totalMarginValue/totalREV_Y1)*100;
+						}
+					}
+						put(PricingDict,ItemDescription+"_Total Contract",totalContractGrossMargin);
+				}elif(find(itemDescription,"Sales Cost Margin%") <> -1 OR find(itemDescription,"Standard Cost Margin%") <> -1){
+					
+						put(PricingDict,itemDescription+"_Year1",round(year1MarginPercent,2));
+						
+					
+					if(year2Flag){
+					
+						put(PricingDict,itemDescription+"_Year2",round(year2MarginPercent,2));
+					}
+					if(year3Flag){
+							
+							
+						put(PricingDict,itemDescription+"_Year3",round(year3MarginPercent,2));
+						
+					}
+					
+					if(year4Flag){
+							
+							put(PricingDict,itemDescription+"_Year4",round(year4MarginPercent,2));
+					}
+					if(year5Flag){
+						
+						put(PricingDict,itemDescription+"_Year5",round(year5MarginPercent,2));
+					}
+					
+					if(year6Flag){
+							
+							put(PricingDict,itemDescription+"_Year6",round(year6MarginPercent,2));
+					}
+					if(year7Flag){
+						
+						put(PricingDict,itemDescription+"_Year7",round(year7MarginPercent,2));
+					}
+					
+					
+					
+					if(find(itemDescription,"Sales Cost Margin%") <> -1){
+					ItemDescriptionTempGM = replace(ItemDescription,"Sales Cost Margin%","Sales Cost GM");
+					ItemDescriptionTempRev = replace(ItemDescription,"Sales Cost Margin%","Revenue");
+					}else{
+					ItemDescriptionTempGM = replace(ItemDescription,"Standard Cost Margin%","Standard Cost GM");	
+					ItemDescriptionTempRev = replace(ItemDescription,"Standard Cost Margin%","Revenue");
+					}
+					//print ItemDescriptionTempRev;
+					if(not(isnull(get(PricingDict,ItemDescriptionTempRev+"_Total Contract")))){
+					totalContractRevenue = get(PricingDict,ItemDescriptionTempRev+"_Total Contract");
+					}
+					if(not(isnull(get(PricingDict,ItemDescriptionTempGM+"_Total Contract")))){
+					totalContractGrossMargin = get(PricingDict,ItemDescriptionTempGM+"_Total Contract");
+					}
+					//print "------------1243000";
+					
+					//print totalContractGrossMargin;
+					//print totalContractRevenue;
+					if(totalContractRevenue <> 0.0){
+					totalContractGrossMarginPercent = (totalContractGrossMargin/totalContractRevenue)*100;
+					}
+					//print "totalContractGrossMarginPercent--";
+					//print totalContractGrossMarginPercent;
+					put(PricingDict,ItemDescription+"_Total Contract",totalContractGrossMarginPercent);
+
+				}
+		}
+		}
+	}	
+			// code to populate first month billing Array ---------
+			
+			if((get(eachData,"SectionName") =="First Month Billing")){
+				tempCostvalueFMB = 0.0;
+				tempRevenuevalueFMB = 0.0;
+				
+/* 				if(itemtype == "Ancillary Cost"){
+					itemtype = "Area Costs (Phone,PC)";
+				} */
+				if(itemtype <>"" AND NOT ISNULL(itemtype)){
+					// the below condition require to split Other service line item in 3rd party and non third party category
+				if((find(get(eachData,"Item"),itemtype) <> -1) AND itemtype <> "3rd Party"){ // Exclude MS Items that not applicable
+						firstMonthItemDesc = get(eachData,"Item");
+
+						if(containskey(PricingDict,firstMonthItemDesc+"_Month1_REV")){
+							tempRevenuevalueFMB = get(PricingDict,firstMonthItemDesc+"_Month1_REV");
+							tempRevenuevalueFMB = tempRevenuevalueFMB + line.extNetPrice_l;
+							put(PricingDict,firstMonthItemDesc+"_Month1_REV",tempRevenuevalueFMB);
+						}else{
+							
+						put(PricingDict,firstMonthItemDesc+"_Month1_REV",line.extNetPrice_l);
+						}
+						// total first Month cost per component------
+						if(containskey(PricingDict,firstMonthItemDesc+"_Month1_COST")){
+							
+							tempCostvalueFMB = get(PricingDict,firstMonthItemDesc+"_Month1_COST");
+							tempCostvalueFMB = tempCostvalueFMB + line._price_quantity *line.unitSalesCost_l;
+								put(PricingDict,firstMonthItemDesc+"_Month1_COST",tempCostvalueFMB);
+						}else{
+							
+							
+						put(PricingDict,firstMonthItemDesc+"_Month1_COST",line._price_quantity *line.unitSalesCost_l);
+						}
+						
+					}
+				}
+				
+			
+			}
+		}
+	
+	}
+	
+}
+
+
+
+// use single Query for pricing approval
+// Move the query line here to use to populate Total deal Margin Threshold in deal Margin table.
+
+approverTable = BMQL("SELECT * FROM MS_ApprovalMrg");	
+
+termFactor =1;
+
+
+// the below Lines include Calculation for revenue escalation in MPS deal section against each year. The reference is taken from total revenue calculated by looping over transaction Line.
+			
+
+if(contractTerm <=12){
+	termFactor = contractTerm;
+    totalMonthlyRevenueYear1 = totalMonthlyRevenue * contractTerm;
+	totalMonthlyCostYear1 = totalMonthlyCost * contractTerm;
+	totalMonthlyStandardCostYear1  =totalMonthlyStandardCost * contractTerm;
+	totalImplementationCostYear1 = totalImplementationCostValue ; 
+}else{
+   totalMonthlyRevenueYear1 = totalMonthlyRevenue * 12;	
+   totalMonthlyCostYear1 = totalMonthlyCost * 12;
+   totalMonthlyStandardCostYear1  =totalMonthlyStandardCost * 12;
+   totalImplementationCostYear1 = round(totalImplementationCostValue,2);
+   totalImplementationCostVar = totalImplementationCostValue/12;
+  
+   
+}
+
+if(contractTerm > 12 AND contractTerm <= 24){
+	termFactor = fmod(contractTerm, 12);
+
+	if(termFactor == 0.0){
+		termFactor =12;
+	}
+}elif(contractTerm > 24){
+	termFactor =12;
+}	
+if(contractTerm > 12){
+//changes done to apply annaul escalation % on the basis of each year
+
+if(variableAnnualRevenueEscalation_t == true){
+	annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year1"));
+	if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+		annualEscalationFloat = atof(annualEscalationVar );
+	}
+}else{
+	annualEscalationFloat = annualRevenueEscalation_t;
+}
+totalMonthlyRevenueYear2 = (totalMonthlyRevenue *termFactor)+((totalMonthlyRevenue*termFactor) * annualEscalationFloat/100);
+totalMonthlyCostYear2 = (totalMonthlyCost * termFactor)+((totalMonthlyCost*termFactor) * costEscalation/100);
+totalMonthlyStandardCostYear2  = (totalMonthlyStandardCost * termFactor)+((totalMonthlyStandardCost*termFactor) * costEscalation/100);
+totalMonthlyRevenue = totalMonthlyRevenue +(totalMonthlyRevenue*annualEscalationFloat/100) ;
+totalMonthlyCost = totalMonthlyCost +(totalMonthlyCost*costEscalation/100) ;
+totalMonthlyStandardCost = totalMonthlyStandardCost +(totalMonthlyStandardCost*costEscalation/100) ;
+totalImplementationCostYear2 = round((totalImplementationCostVar*termFactor) + ((totalImplementationCostVar *termFactor) * costEscalation/100),2);
+totalImplementationCostVar = totalImplementationCostVar +(totalImplementationCostVar*costEscalation/100) ;
+
+}
+if(contractTerm > 24 AND contractTerm <= 36){
+	termFactor = fmod(contractTerm, 12);
+	if(termFactor == 0.0){
+		termFactor =12;
+	}
+}elif(contractTerm > 36){
+	termFactor =12;
+}
+if(contractTerm > 24){
+
+	if(variableAnnualRevenueEscalation_t == true){
+	annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year2"));
+		if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+		annualEscalationFloat = atof(annualEscalationVar );
+		}
+	}else{
+	annualEscalationFloat = annualRevenueEscalation_t;
+	}
+totalMonthlyRevenueYear3 = (totalMonthlyRevenue*termFactor)+((totalMonthlyRevenue*termFactor) * annualEscalationFloat /100);
+totalMonthlyCostYear3 = (totalMonthlyCost * termFactor)+((totalMonthlyCost*termFactor) * costEscalation/100);
+totalMonthlyStandardCostYear3 = (totalMonthlyStandardCost * termFactor)+((totalMonthlyStandardCost*termFactor) * costEscalation/100);
+
+totalMonthlyRevenue = totalMonthlyRevenue +(totalMonthlyRevenue*annualEscalationFloat /100) ;
+totalMonthlyCost = totalMonthlyCost +(totalMonthlyCost*costEscalation/100) ;
+totalMonthlyStandardCost = totalMonthlyStandardCost +(totalMonthlyStandardCost*costEscalation/100) ;
+//print totalImplementationCostVar ;
+totalImplementationCostYear3 = round((totalImplementationCostVar *termFactor) + ((totalImplementationCostVar *termFactor) * costEscalation/100),2);
+//print ((totalImplementationCostVar *termFactor) * costEscalation/100);
+totalImplementationCostVar = totalImplementationCostVar +(totalImplementationCostVar*costEscalation/100) ;
+
+}
+if(contractTerm > 36 AND contractTerm <=48){
+	termFactor = fmod(contractTerm, 12);
+	if(termFactor == 0.0){
+		termFactor =12;
+	}
+}elif(contractTerm > 48){
+	termFactor =12;
+}
+
+if(contractTerm > 36){
+	if(variableAnnualRevenueEscalation_t == true){
+		annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year3"));
+	if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+		annualEscalationFloat = atof(annualEscalationVar );
+	}
+}else{
+	annualEscalationFloat = annualRevenueEscalation_t;
+}
+totalMonthlyCostYear4 = (totalMonthlyCost * termFactor)+((totalMonthlyCost*termFactor) * costEscalation/100);
+totalMonthlyStandardCostYear4 = (totalMonthlyStandardCost * termFactor)+((totalMonthlyStandardCost*termFactor) * costEscalation/100);
+totalMonthlyRevenueYear4 = (totalMonthlyRevenue*termFactor)+((totalMonthlyRevenue*termFactor) * annualEscalationFloat/100);
+print annualEscalationFloat;
+ totalMonthlyRevenue = totalMonthlyRevenue +(totalMonthlyRevenue*annualEscalationFloat/100) ;
+ totalMonthlyCost = totalMonthlyCost +(totalMonthlyCost*costEscalation/100) ;
+ totalMonthlyStandardCost = totalMonthlyStandardCost +(totalMonthlyStandardCost*costEscalation/100) ;
+ totalImplementationCostYear4 = round((totalImplementationCostVar *termFactor) + ((totalImplementationCostVar *termFactor) * costEscalation/100),2);
+totalImplementationCostVar = totalImplementationCostVar +(totalImplementationCostVar*costEscalation/100) ;
+
+}
+if(contractTerm > 48 AND contractTerm <=60){
+	termFactor = fmod(contractTerm, 12);
+	if(termFactor == 0.0){
+		termFactor =12;
+	}
+}elif(contractTerm > 60){
+	termFactor =12;
+}
+if(contractTerm > 48){
+	if(variableAnnualRevenueEscalation_t == true){
+		annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year4"));
+	if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+		annualEscalationFloat = atof(annualEscalationVar );
+	}
+}else{
+	annualEscalationFloat = annualRevenueEscalation_t;
+}
+totalMonthlyRevenueYear5 = (totalMonthlyRevenue*termFactor)+((totalMonthlyRevenue*termFactor) * annualEscalationFloat/100);
+totalMonthlyCostYear5 = (totalMonthlyCost * termFactor)+((totalMonthlyCost*termFactor) * costEscalation/100);
+print annualEscalationFloat;
+totalMonthlyStandardCostYear5 = (totalMonthlyStandardCost * termFactor)+((totalMonthlyStandardCost*termFactor) * costEscalation/100);
+totalMonthlyRevenue = totalMonthlyRevenue +(totalMonthlyRevenue*annualEscalationFloat/100) ;
+totalMonthlyCost = totalMonthlyCost +(totalMonthlyCost*costEscalation/100) ;
+ totalMonthlyStandardCost = totalMonthlyStandardCost +(totalMonthlyStandardCost*costEscalation/100) ;
+totalImplementationCostYear5 = round((totalImplementationCostVar *termFactor) + ((totalImplementationCostVar *termFactor) * costEscalation/100),2);
+totalImplementationCostVar = totalImplementationCostVar +(totalImplementationCostVar*costEscalation/100) ;
+
+}
+if(contractTerm > 60 AND contractTerm <=72){
+	termFactor = fmod(contractTerm, 12);
+	if(termFactor == 0.0){
+		termFactor =12;
+	}
+}elif(contractTerm > 72){
+	termFactor =12;
+}
+if(contractTerm > 60){
+	if(variableAnnualRevenueEscalation_t == true){
+	annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year5"));
+		if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+		annualEscalationFloat = atof(annualEscalationVar );
+		}
+	}else{
+	annualEscalationFloat = annualRevenueEscalation_t;
+	}	
+totalMonthlyRevenueYear6 = (totalMonthlyRevenue*termFactor)+((totalMonthlyRevenue*termFactor) * annualEscalationFloat/100);
+totalMonthlyCostYear6 = (totalMonthlyCost * termFactor)+((totalMonthlyCost*termFactor) * costEscalation/100);
+totalMonthlyStandardCostYear6 = (totalMonthlyStandardCost * termFactor)+((totalMonthlyStandardCost*termFactor) * costEscalation/100);
+totalMonthlyRevenue = totalMonthlyRevenue +(totalMonthlyRevenue*annualEscalationFloat/100) ;
+totalMonthlyCost = totalMonthlyCost +(totalMonthlyCost*costEscalation/100) ;
+ totalMonthlyStandardCost = totalMonthlyStandardCost +(totalMonthlyStandardCost*costEscalation/100) ;
+totalImplementationCostYear6 = round((totalImplementationCostVar *termFactor) + ((totalImplementationCostVar *termFactor) * costEscalation/100),2);
+totalImplementationCostVar = totalImplementationCostVar +(totalImplementationCostVar*costEscalation/100) ;
+}
+
+if(contractTerm > 72 AND contractTerm <=84){
+
+	termFactor = fmod(contractTerm, 12);
+	if(termFactor == 0.0){
+		termFactor =12;
+	}
+	if(variableAnnualRevenueEscalation_t == true){
+	annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year6"));
+		if(annualEscalationVar <> "" AND not(isnull(annualEscalationVar))){
+		annualEscalationFloat = atof(annualEscalationVar );
+		}
+	}else{
+	annualEscalationFloat = annualRevenueEscalation_t;
+	}	
+totalMonthlyRevenueYear7 = (totalMonthlyRevenue*termFactor)+((totalMonthlyRevenue*termFactor) * annualEscalationFloat/100);
+totalMonthlyCostYear7 = (totalMonthlyCost * termFactor)+((totalMonthlyCost*termFactor) * costEscalation/100);
+totalMonthlyStandardCostYear7 = (totalMonthlyStandardCost * termFactor)+((totalMonthlyStandardCost*termFactor) * costEscalation/100);
+totalImplementationCostYear7 = round((totalImplementationCostVar *termFactor) + ((totalImplementationCostVar *termFactor) * costEscalation/100),2);
+
+
+}
+
+// rebate calculation in Total deal Margin table----
+if(rebateValueOption_t == "rebateValue"){
+	
+	if(rebateApplied_t == "oneTime"){
+	totalRebateCostYear1 = rebateDollarMonthly;
+	}else{
+	totalRebateCostYear1 = rebateDollarMonthly*termFactorYear1;	
+	}
+	if(year2Flag AND rebateApplied_t <> "oneTime"){
+	totalRebateCostYear2 = rebateDollarMonthly*termFactorYear2;
+	}
+	if(year3Flag AND rebateApplied_t <> "oneTime"){
+	totalRebateCostYear3 = rebateDollarMonthly*termFactorYear3;
+	}
+	if(year4Flag AND rebateApplied_t <> "oneTime"){
+	totalRebateCostYear4 = rebateDollarMonthly*termFactorYear4;
+	}
+	if(year5Flag AND rebateApplied_t <> "oneTime"){
+	totalRebateCostYear5 = rebateDollarMonthly*termFactorYear5;
+	}
+	if(year6Flag AND rebateApplied_t <> "oneTime"){
+	totalRebateCostYear6 = rebateDollarMonthly*termFactorYear6;
+	}
+	if(year7Flag AND rebateApplied_t <> "oneTime"){
+	totalRebateCostYear7 = rebateDollarMonthly*termFactorYear7;
+	}
+	
+	
+}else{
+	totalRebateCostYear1 = (totalMonthlyRevenueYear1*rebatePrecentage/100);
+	totalRebateCostYear2 = (totalMonthlyRevenueYear2*rebatePrecentage/100);
+	totalRebateCostYear3 = (totalMonthlyRevenueYear3*rebatePrecentage/100);
+	totalRebateCostYear4 = (totalMonthlyRevenueYear4*rebatePrecentage/100);
+	totalRebateCostYear5 = (totalMonthlyRevenueYear5*rebatePrecentage/100);
+	totalRebateCostYear6 = (totalMonthlyRevenueYear6*rebatePrecentage/100);
+	totalRebateCostYear7 = (totalMonthlyRevenueYear7*rebatePrecentage/100);
+}
+		
+RebateCostTotalContract = totalRebateCostYear1+totalRebateCostYear2+totalRebateCostYear3+totalRebateCostYear4+totalRebateCostYear5+totalRebateCostYear6+totalRebateCostYear7;
+
+//total cost calculations for all the years.........
+totalDealcost1 =  totalDealUpfrontCost1 +totalImplementationCostYear1+ totalMonthlyCostYear1 +totalRebateCostYear1;
+
+//START_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+
+totalDealcost2 =   totalMonthlyCostYear2+totalRebateCostYear2 + totalImplementationCostYear2;
+totalDealcost3 =   totalMonthlyCostYear3+totalRebateCostYear3 + totalImplementationCostYear3;
+totalDealcost4 =   totalMonthlyCostYear4+totalRebateCostYear4 + totalImplementationCostYear4;
+totalDealcost5 =   totalMonthlyCostYear5+totalRebateCostYear5 + totalImplementationCostYear5;
+totalDealcost6 =   totalMonthlyCostYear6+totalRebateCostYear6 + totalImplementationCostYear6;
+totalDealcost7 =   totalMonthlyCostYear7+totalRebateCostYear7 + totalImplementationCostYear7;
+
+
+// total standard deal cost part of CR086--
+totalDealStandardcost1 =  totalDealUpfrontCost1 +totalImplementationCostYear1+ totalMonthlyStandardCostYear1 +totalRebateCostYear1;
+//print totalDealStandardcost1;
+totalDealStandardcost2 =   totalMonthlyStandardCostYear2+totalRebateCostYear2 + totalImplementationCostYear2;
+totalDealStandardcost3 =   totalMonthlyStandardCostYear3+totalRebateCostYear3 + totalImplementationCostYear3;
+totalDealStandardcost4 =   totalMonthlyStandardCostYear4+totalRebateCostYear4 + totalImplementationCostYear4;
+totalDealStandardcost5 =   totalMonthlyStandardCostYear5+totalRebateCostYear5 + totalImplementationCostYear5;
+totalDealStandardcost6 =   totalMonthlyStandardCostYear6+totalRebateCostYear6 + totalImplementationCostYear6;
+totalDealStandardcost7 =   totalMonthlyStandardCostYear7+totalRebateCostYear7 + totalImplementationCostYear7;
+
+// Gross Margin calculations for all years.
+totalGM1 = totalMonthlyRevenueYear1-totalDealcost1;
+//print totalDealcost1;
+
+totalGM2 = totalMonthlyRevenueYear2-totalDealcost2;
+totalGM3 = totalMonthlyRevenueYear3-totalDealcost3;
+totalGM4 = totalMonthlyRevenueYear4-totalDealcost4;
+totalGM5 = totalMonthlyRevenueYear5-totalDealcost5;
+totalGM6 = totalMonthlyRevenueYear6-totalDealcost6;
+totalGM7 = totalMonthlyRevenueYear7-totalDealcost7;
+
+// Gross Margin calculations for all years.
+totalStandardCostGMYear1 = totalMonthlyRevenueYear1-totalDealStandardcost1;
+
+totalStandardCostGMYear2 = totalMonthlyRevenueYear2-totalDealStandardcost2;
+totalStandardCostGMYear3 = totalMonthlyRevenueYear3-totalDealStandardcost3;
+totalStandardCostGMYear4 = totalMonthlyRevenueYear4-totalDealStandardcost4;
+totalStandardCostGMYear5 = totalMonthlyRevenueYear5-totalDealStandardcost5;
+totalStandardCostGMYear6 = totalMonthlyRevenueYear6-totalDealStandardcost6;
+totalStandardCostGMYear7 = totalMonthlyRevenueYear7-totalDealStandardcost7;
+
+if(totalMonthlyRevenueYear1 <> 0.0){
+totalMarginPercent1 = (totalGM1/totalMonthlyRevenueYear1)*100;
+totalStandardCostMerginPerYear1 = (totalStandardCostGMYear1/totalMonthlyRevenueYear1)*100;
+}
+
+if(totalMonthlyRevenueYear2 <> 0.0){
+totalMarginPercent2 = (totalGM2/totalMonthlyRevenueYear2)*100;
+totalStandardCostMerginPerYear2 = (totalStandardCostGMYear2/totalMonthlyRevenueYear2)*100;
+}
+
+if(totalMonthlyRevenueYear3 <> 0.0){
+totalMarginPercent3 = (totalGM3/totalMonthlyRevenueYear3)*100;
+totalStandardCostMerginPerYear3 = (totalStandardCostGMYear3/totalMonthlyRevenueYear3)*100;
+}
+if(totalMonthlyRevenueYear4 <> 0.0){
+totalMarginPercent4 = (totalGM4/totalMonthlyRevenueYear4)*100;
+totalStandardCostMerginPerYear4 = (totalStandardCostGMYear4/totalMonthlyRevenueYear4)*100;
+}if(totalMonthlyRevenueYear5 <> 0.0){
+totalMarginPercent5 = (totalGM5/totalMonthlyRevenueYear5)*100;
+totalStandardCostMerginPerYear5 = (totalStandardCostGMYear5/totalMonthlyRevenueYear5)*100;
+}
+if(totalMonthlyRevenueYear6 <> 0.0){
+totalMarginPercent6 = (totalGM6/totalMonthlyRevenueYear6)*100;
+totalStandardCostMerginPerYear6 = (totalStandardCostGMYear6/totalMonthlyRevenueYear6)*100;
+}if(totalMonthlyRevenueYear7 <> 0.0){
+totalMarginPercent7 = (totalGM7/totalMonthlyRevenueYear7)*100;
+totalStandardCostMerginPerYear7 = (totalStandardCostGMYear7/totalMonthlyRevenueYear7)*100;
+}
+
+//All total Contract Calculations-----------------
+totaldealRevenueTotalContract = totalMonthlyRevenueYear1+totalMonthlyRevenueYear2+totalMonthlyRevenueYear3+totalMonthlyRevenueYear4+totalMonthlyRevenueYear5+totalMonthlyRevenueYear6+totalMonthlyRevenueYear7;
+
+
+totaldealRecCostTotalContract = totalMonthlyCostYear1+totalMonthlyCostYear2+totalMonthlyCostYear3+totalMonthlyCostYear4+totalMonthlyCostYear5+totalMonthlyCostYear6+totalMonthlyCostYear7;
+
+totalDealRecurringSTandardCostTotalContract = totalMonthlyStandardCostYear1+totalMonthlyStandardCostYear2+totalMonthlyStandardCostYear3+totalMonthlyStandardCostYear4+totalMonthlyStandardCostYear5+totalMonthlyStandardCostYear6+totalMonthlyStandardCostYear7;
+//_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+
+totaldealImplementationCostTotalContract = totalImplementationCostYear1+totalImplementationCostYear2+totalImplementationCostYear3+totalImplementationCostYear4+totalImplementationCostYear5+totalImplementationCostYear6+totalImplementationCostYear7;
+
+totaldealCostTotalContract=totalDealcost1+totalDealcost2+totalDealcost3+totalDealcost4+totalDealcost5+totalDealcost6+totalDealcost7;
+
+totalDealSTandardCostTotalContract = totalDealStandardcost1 + totalDealStandardcost2 +totalDealStandardcost3+totalDealStandardcost4+totalDealStandardcost5+totalDealStandardcost6+totalDealStandardcost7;
+
+totalGMTotalContract=totalGM1+totalGM2+totalGM3+totalGM4+totalGM5+totalGM6+totalGM7;
+
+totalStandardGMTotalContract = totalStandardCostGMYear1+totalStandardCostGMYear2+totalStandardCostGMYear3+totalStandardCostGMYear4+totalStandardCostGMYear5+totalStandardCostGMYear6+totalStandardCostGMYear7;
+if(totaldealRevenueTotalContract <> 0.0){
+totalMarginTotalContract= (totalGMTotalContract/totaldealRevenueTotalContract)*100;
+StandardCostMarginPerTotalContract = (totalStandardGMTotalContract/totaldealRevenueTotalContract)*100;
+}
+
+// below dictionary is to store all the different Parameters captured in  MPS Total Deal Margin table
+put(MPSTotalDealDict,"Total Deal Revenue"+"_Year1",string(totalMonthlyRevenueYear1));
+put(MPSTotalDealDict,"Total Deal Revenue"+"_Year2",string(totalMonthlyRevenueYear2));
+put(MPSTotalDealDict,"Total Deal Revenue"+"_Year3",string(totalMonthlyRevenueYear3));
+put(MPSTotalDealDict,"Total Deal Revenue"+"_Year4",string(totalMonthlyRevenueYear4));
+put(MPSTotalDealDict,"Total Deal Revenue"+"_Year5",string(totalMonthlyRevenueYear5));
+put(MPSTotalDealDict,"Total Deal Revenue"+"_Year6",string(totalMonthlyRevenueYear6));
+put(MPSTotalDealDict,"Total Deal Revenue"+"_Year7",string(totalMonthlyRevenueYear7));
+put(MPSTotalDealDict,"Total Deal Revenue"+"_Total Contract",string(round(totaldealRevenueTotalContract,2)));
+
+put(MPSTotalDealDict,"Rebate Cost"+"_Year1",string(totalRebateCostYear1));
+put(MPSTotalDealDict,"Rebate Cost"+"_Year2",string(totalRebateCostYear2));
+put(MPSTotalDealDict,"Rebate Cost"+"_Year3",string(totalRebateCostYear3));
+put(MPSTotalDealDict,"Rebate Cost"+"_Year4",string(totalRebateCostYear4));
+put(MPSTotalDealDict,"Rebate Cost"+"_Year5",string(totalRebateCostYear5));
+put(MPSTotalDealDict,"Rebate Cost"+"_Year6",string(totalRebateCostYear6));
+put(MPSTotalDealDict,"Rebate Cost"+"_Year7",string(totalRebateCostYear7));
+put(MPSTotalDealDict,"Rebate Cost"+"_Total Contract",string(round(RebateCostTotalContract,2)));
+
+put(MPSTotalDealDict,"Total Deal Recurring Sales Cost"+"_Year1",string(totalMonthlyCostYear1));
+put(MPSTotalDealDict,"Total Deal Recurring Sales Cost"+"_Year2",string(totalMonthlyCostYear2));
+put(MPSTotalDealDict,"Total Deal Recurring Sales Cost"+"_Year3",string(totalMonthlyCostYear3));
+put(MPSTotalDealDict,"Total Deal Recurring Sales Cost"+"_Year4",string(totalMonthlyCostYear4));
+put(MPSTotalDealDict,"Total Deal Recurring Sales Cost"+"_Year5",string(totalMonthlyCostYear5));
+put(MPSTotalDealDict,"Total Deal Recurring Sales Cost"+"_Year6",string(totalMonthlyCostYear6));
+put(MPSTotalDealDict,"Total Deal Recurring Sales Cost"+"_Year7",string(totalMonthlyCostYear7));
+put(MPSTotalDealDict,"Total Deal Recurring Sales Cost"+"_Total Contract",string(round(totaldealRecCostTotalContract,2)));
+//START_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+//print totalImplementationCostYear1 ;
+put(MPSTotalDealDict,"Cost Only - Implementation Cost"+"_Year1",string(totalImplementationCostYear1));
+put(MPSTotalDealDict,"Cost Only - Implementation Cost"+"_Year2",string(totalImplementationCostYear2));
+put(MPSTotalDealDict,"Cost Only - Implementation Cost"+"_Year3",string(totalImplementationCostYear3));
+put(MPSTotalDealDict,"Cost Only - Implementation Cost"+"_Year4",string(totalImplementationCostYear4));
+put(MPSTotalDealDict,"Cost Only - Implementation Cost"+"_Year5",string(totalImplementationCostYear5));
+put(MPSTotalDealDict,"Cost Only - Implementation Cost"+"_Year6",string(totalImplementationCostYear6));
+put(MPSTotalDealDict,"Cost Only - Implementation Cost"+"_Year7",string(totalImplementationCostYear7));
+//END_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+
+put(MPSTotalDealDict,"Cost Only - Implementation Cost"+"_Total Contract",string(round(totaldealImplementationCostTotalContract,2)));
+
+
+put(MPSTotalDealDict,"Total Deal Sales Cost"+"_Year1",string(totalDealcost1));
+put(MPSTotalDealDict,"Total Deal Sales Cost"+"_Year2",string(totalDealcost2));
+put(MPSTotalDealDict,"Total Deal Sales Cost"+"_Year3",string(totalDealcost3));
+put(MPSTotalDealDict,"Total Deal Sales Cost"+"_Year4",string(totalDealcost4));
+put(MPSTotalDealDict,"Total Deal Sales Cost"+"_Year5",string(totalDealcost5));
+put(MPSTotalDealDict,"Total Deal Sales Cost"+"_Year6",string(totalDealcost6));
+put(MPSTotalDealDict,"Total Deal Sales Cost"+"_Year7",string(totalDealcost7));
+put(MPSTotalDealDict,"Total Deal Sales Cost"+"_Total Contract",string(round(totaldealCostTotalContract,2)));
+
+put(MPSTotalDealDict,"Sales Cost GM"+"_Year1",string(totalGM1));
+put(MPSTotalDealDict,"Sales Cost GM"+"_Year2",string(totalGM2));
+put(MPSTotalDealDict,"Sales Cost GM"+"_Year3",string(totalGM3));
+put(MPSTotalDealDict,"Sales Cost GM"+"_Year4",string(totalGM4));
+put(MPSTotalDealDict,"Sales Cost GM"+"_Year5",string(totalGM5));
+put(MPSTotalDealDict,"Sales Cost GM"+"_Year6",string(totalGM6));
+put(MPSTotalDealDict,"Sales Cost GM"+"_Year7",string(totalGM7));
+put(MPSTotalDealDict,"Sales Cost GM"+"_Total Contract",string(round(totalGMTotalContract,2)));
+
+
+put(MPSTotalDealDict,"Sales Cost Margin%"+"_Year1",string(round(totalMarginPercent1,2)));
+put(MPSTotalDealDict,"Sales Cost Margin%"+"_Year2",string(round(totalMarginPercent2,2)));
+put(MPSTotalDealDict,"Sales Cost Margin%"+"_Year3",string(round(totalMarginPercent3,2)));
+put(MPSTotalDealDict,"Sales Cost Margin%"+"_Year4",string(round(totalMarginPercent4,2)));
+put(MPSTotalDealDict,"Sales Cost Margin%"+"_Year5",string(round(totalMarginPercent5,2)));
+put(MPSTotalDealDict,"Sales Cost Margin%"+"_Year6",string(round(totalMarginPercent6,2)));
+put(MPSTotalDealDict,"Sales Cost Margin%"+"_Year7",string(round(totalMarginPercent7,2)));
+put(MPSTotalDealDict,"Sales Cost Margin%"+"_Total Contract",string(round(totalMarginTotalContract,2)));
+
+if(param1 == "Price Analyst"){
+
+put(MPSTotalDealDict,"Total Deal Recurring Standard Cost"+"_Year1",string(totalMonthlyStandardCostYear1));
+put(MPSTotalDealDict,"Total Deal Recurring Standard Cost"+"_Year2",string(totalMonthlyStandardCostYear2));
+put(MPSTotalDealDict,"Total Deal Recurring Standard Cost"+"_Year3",string(totalMonthlyStandardCostYear3));
+put(MPSTotalDealDict,"Total Deal Recurring Standard Cost"+"_Year4",string(totalMonthlyStandardCostYear4));
+put(MPSTotalDealDict,"Total Deal Recurring Standard Cost"+"_Year5",string(totalMonthlyStandardCostYear5));
+put(MPSTotalDealDict,"Total Deal Recurring Standard Cost"+"_Year6",string(totalMonthlyStandardCostYear6));
+put(MPSTotalDealDict,"Total Deal Recurring Standard Cost"+"_Year7",string(totalMonthlyStandardCostYear7));
+put(MPSTotalDealDict,"Total Deal Recurring Standard Cost"+"_Total Contract",string(round(totalDealRecurringSTandardCostTotalContract,2)));
+
+put(MPSTotalDealDict,"Total Deal Standard Cost"+"_Year1",string(totalDealStandardcost1));
+put(MPSTotalDealDict,"Total Deal Standard Cost"+"_Year2",string(totalDealStandardcost2));
+put(MPSTotalDealDict,"Total Deal Standard Cost"+"_Year3",string(totalDealStandardcost3));
+put(MPSTotalDealDict,"Total Deal Standard Cost"+"_Year4",string(totalDealStandardcost4));
+put(MPSTotalDealDict,"Total Deal Standard Cost"+"_Year5",string(totalDealStandardcost5));
+put(MPSTotalDealDict,"Total Deal Standard Cost"+"_Year6",string(totalDealStandardcost6));
+put(MPSTotalDealDict,"Total Deal Standard Cost"+"_Year7",string(totalDealStandardcost7));
+put(MPSTotalDealDict,"Total Deal Standard Cost"+"_Total Contract",string(round(totalDealSTandardCostTotalContract,2)));
+
+
+put(MPSTotalDealDict,"Standard Cost GM"+"_Year1",string(totalStandardCostGMYear1));
+put(MPSTotalDealDict,"Standard Cost GM"+"_Year2",string(totalStandardCostGMYear2));
+put(MPSTotalDealDict,"Standard Cost GM"+"_Year3",string(totalStandardCostGMYear3));
+put(MPSTotalDealDict,"Standard Cost GM"+"_Year4",string(totalStandardCostGMYear4));
+put(MPSTotalDealDict,"Standard Cost GM"+"_Year5",string(totalStandardCostGMYear5));
+put(MPSTotalDealDict,"Standard Cost GM"+"_Year6",string(totalStandardCostGMYear6));
+put(MPSTotalDealDict,"Standard Cost GM"+"_Year7",string(totalStandardCostGMYear7));
+put(MPSTotalDealDict,"Standard Cost GM"+"_Total Contract",string(round(totalStandardGMTotalContract,2)));
+
+put(MPSTotalDealDict,"Standard Cost Margin%"+"_Year1",string(round(totalStandardCostMerginPerYear1,2)));
+put(MPSTotalDealDict,"Standard Cost Margin%"+"_Year2",string(round(totalStandardCostMerginPerYear2,2)));
+put(MPSTotalDealDict,"Standard Cost Margin%"+"_Year3",string(round(totalStandardCostMerginPerYear3,2)));
+put(MPSTotalDealDict,"Standard Cost Margin%"+"_Year4",string(round(totalStandardCostMerginPerYear4,2)));
+put(MPSTotalDealDict,"Standard Cost Margin%"+"_Year5",string(round(totalStandardCostMerginPerYear5,2)));
+put(MPSTotalDealDict,"Standard Cost Margin%"+"_Year6",string(round(totalStandardCostMerginPerYear6,2)));
+put(MPSTotalDealDict,"Standard Cost Margin%"+"_Year7",string(round(totalStandardCostMerginPerYear7,2)));
+put(MPSTotalDealDict,"Standard Cost Margin%"+"_Total Contract",string(round(StandardCostMarginPerTotalContract,2)));
+
+}
+// put(MPSTotalDealDict,"Pricing Threshold Breach"+"_Total Contract",pricingThresholdBreachTotalContract);
+
+
+	// REBATE  COMPONENTS============================
+for eachData in resultSet{
+	if(find(get(eachData,"SectionName"),"Rebate(s)") <> -1){
+	itemDescription =get(eachData,"Item");	
+		if(find(itemDescription,"Rebate($)") <> -1){
+		rebateCostValueOneTime = 0.0;
+		rebateCostValue = 0.0;
+		rebateCostValue7= 0.0;
+		rebateCostValue1=0.0;
+		rebateCostValue2=0.0;
+		rebateCostValue3=0.0;
+		rebateCostValue4=0.0;
+		rebateCostValue5=0.0;
+		rebateCostValue6=0.0;
+		
+		if(rebateType_t == "directPayment" AND rebateValueOption_t == "rebateValue" AND rebateGPOThirdparty_t == ""){
+			
+			if(rebateApplied_t == "oneTime"){
+			rebateCostValueOneTime = rebateDollarMonthly;
+			}else{
+			rebateCostValue = rebateDollarMonthly;
+			}
+			
+		}else{
+			
+		   rebateCostValue1 = (totalMonthlyRevenueYear1*rebatePrecentage/100);
+			if(year2Flag){
+			rebateCostValue2 = (totalMonthlyRevenueYear2*rebatePrecentage/100);	
+			}
+			if(year3Flag){
+			rebateCostValue3 = (totalMonthlyRevenueYear3*rebatePrecentage/100);	
+			
+			}
+			if(year4Flag){
+			rebateCostValue4 = (totalMonthlyRevenueYear4*rebatePrecentage/100);	
+			}
+			if(year5Flag){
+			rebateCostValue5 = (totalMonthlyRevenueYear5*rebatePrecentage/100);	
+			}
+			if(year6Flag){
+				
+			rebateCostValue6 = (totalMonthlyRevenueYear6*rebatePrecentage/100);	
+			}
+			if(year7Flag){
+			rebateCostValue7 = (totalMonthlyRevenueYear7*rebatePrecentage/100);	
+			}
+		
+		}
+		
+		put(PricingDict,itemDescription+"_Year1",(rebateCostValue*termFactorYear1)+rebateCostValueOneTime+rebateCostValue1);
+		totalRebateCost = (rebateCostValue*termFactorYear1)+rebateCostValueOneTime+rebateCostValue1;
+		
+		if(year2Flag){
+			
+			put(PricingDict,itemDescription+"_Year2",(rebateCostValue*termFactorYear2)+rebateCostValue2);
+			totalRebateCost =totalRebateCost+ (rebateCostValue*termFactorYear2)+rebateCostValue2;
+			
+		}
+		if(year3Flag){
+			
+			put(PricingDict,itemDescription+"_Year3",(rebateCostValue*termFactorYear3)+rebateCostValue3);
+			totalRebateCost =totalRebateCost+ (rebateCostValue*termFactorYear3)+rebateCostValue3;
+
+			
+		}
+			
+		if(year4Flag){
+			//rebateCostValue = totalContractRevenueY4*rebatePrecentage/100;
+				// rebateCostValue = rebateDollarMonthly;
+			put(PricingDict,itemDescription+"_Year4",(rebateCostValue*termFactorYear4)+rebateCostValue4);
+			totalRebateCost =totalRebateCost+ (rebateCostValue*termFactorYear4)+rebateCostValue4;
+			
+		}
+		if(year5Flag){
+			//rebateCostValue = totalContractRevenueY5*rebatePrecentage/100;
+				//rebateCostValue = rebateDollarMonthly;
+			put(PricingDict,itemDescription+"_Year5",(rebateCostValue*termFactorYear5)+rebateCostValue5);
+			totalRebateCost =totalRebateCost+ (rebateCostValue*termFactorYear5)+rebateCostValue5;
+		}
+		
+		if(year6Flag){
+			//rebateCostValue = totalContractRevenueY6*rebatePrecentage/100;
+				//rebateCostValue = rebateDollarMonthly;
+			put(PricingDict,itemDescription+"_Year6",(rebateCostValue*termFactorYear6)+rebateCostValue6);
+			totalRebateCost =totalRebateCost+ (rebateCostValue*termFactorYear6)+rebateCostValue6;
+		}
+		
+		if(year7Flag){
+			//rebateCostValue = totalContractRevenueY7*rebatePrecentage/100;
+				//rebateCostValue = rebateDollarMonthly;
+			put(PricingDict,itemDescription+"_Year7",(rebateCostValue*termFactorYear7)+rebateCostValue7);
+			totalRebateCost =totalRebateCost+ (rebateCostValue*termFactorYear7)+rebateCostValue7;
+		}
+
+		
+			put(PricingDict,ItemDescription+"_Total Contract",totalRebateCost);
+		}elif(find(itemDescription,"Rebate%") <> -1){
+				
+			put(PricingDict,itemDescription+"_Year1",rebatePrecentage);
+			
+			
+			if(year2Flag){
+				
+				
+				put(PricingDict,itemDescription+"_Year2",rebatePrecentage);
+			}
+			if(year3Flag){
+			
+				put(PricingDict,itemDescription+"_Year3",rebatePrecentage);
+
+				
+			}
+			
+			if(year4Flag){
+				
+				put(PricingDict,itemDescription+"_Year4",rebatePrecentage);
+
+			}
+			if(year5Flag){
+				
+				put(PricingDict,itemDescription+"_Year5",rebatePrecentage);
+			}
+			
+			if(year6Flag){
+				
+				put(PricingDict,itemDescription+"_Year6",rebatePrecentage);
+			}
+			
+			if(year7Flag){
+			
+				put(PricingDict,itemDescription+"_Year7",rebatePrecentage);
+			}
+			
+			put(PricingDict,ItemDescription+"_Total Contract",rebatePrecentage);
+		}
+	
+	}
+}		
+			
+//---------------REBATE END-------------------------------------------------------------------		
+
+// print "MPSTotalDealDict---";
+// print MPSTotalDealDict;
+rowCounter =0;
+// code to populate total MPS deal----------------
+MPSTotalDealJsonSalesMarginJson = json();
+for eachVal in MPSTotalDealRowListArray{
+	
+	// print "eachVal---";
+	// print eachVal;
+	year1MPSTotal = "0.0";
+	year2MPSTotal = "0.0";
+	year3MPSTotal = "0.0";
+	year4MPSTotal = "0.0";
+	year5MPSTotal = "0.0";
+	year6MPSTotal = "0.0";
+	year7MPSTotal = "0.0";
+	MPSTotalContractValue = "0.0";
+	if((param1 == "" AND find(eachVal,"Standard Cost") == -1) OR (param1 == "Price Analyst")){
+	jsonput(MPSTotalDealJson, "mPSTotalDealRows_Aray_c",eachVal);
+	// Print "eachVal--";
+	// print eachVal;
+	if(not(isnull(get(MPSTotalDealDict,eachVal+"_Year1")))){
+	year1MPSTotal= get(MPSTotalDealDict,eachVal+"_Year1");
+	
+	//HYPERCARE changes CR#11 description by Namrata
+	if(year1MPSTotal<> "" AND not(isnull(year1MPSTotal))){
+		FirstYearPIMAGP=atof(year1MPSTotal);
+		}
+	}
+	
+	if(not(isnull(get(MPSTotalDealDict,eachVal+"_Year2")))){
+	year2MPSTotal= get(MPSTotalDealDict,eachVal+"_Year2");
+	}
+	if(not(isnull(get(MPSTotalDealDict,eachVal+"_Year3")))){
+	year3MPSTotal= get(MPSTotalDealDict,eachVal+"_Year3");
+	}
+	if(not(isnull(get(MPSTotalDealDict,eachVal+"_Year4")))){
+	year4MPSTotal= get(MPSTotalDealDict,eachVal+"_Year4");
+	}
+	if(not(isnull(get(MPSTotalDealDict,eachVal+"_Year5")))){
+	year5MPSTotal= get(MPSTotalDealDict,eachVal+"_Year5");
+	}
+	
+	if(not(isnull(get(MPSTotalDealDict,eachVal+"_Year6")))){
+	year6MPSTotal= get(MPSTotalDealDict,eachVal+"_Year6");
+	}
+	if(not(isnull(get(MPSTotalDealDict,eachVal+"_Year7")))){
+	year7MPSTotal= get(MPSTotalDealDict,eachVal+"_Year7");
+	}
+	
+	if(not(isnull(get(MPSTotalDealDict,eachVal+"_Total Contract")))){
+		MPSTotalContractValue =  get(MPSTotalDealDict,eachVal+"_Total Contract");
+	}
+	// added string attribute to manage format issues
+	totalContractMPSTotal  = formatascurrency(round(atof(MPSTotalContractValue),2), "USD");
+	
+	if(eachVal == "Sales Cost Margin%"){
+		
+		
+	/*jsonput(MPSTotalDealJsonSalesMarginJson, "year1_MPSTotalArraySet_c",year1MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "year2_MPSTotalArraySet_c",year2MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "year3_MPSTotalArraySet_c", year3MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "year4_MPSTotalArraySet_c", year4MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "year5_MPSTotalArraySet_c",year5MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "year6_MPSTotalArraySet_c", year6MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "year7_MPSTotalArraySet_c",year7MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "totalContract_MPSTotalArrayset_c",MPSTotalContractValue);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "totalContractFloat_MPSTotalArrayset_c",MPSTotalContractValue); */
+	
+	jsonput(MPSTotalDealJsonSalesMarginJson, "year1_MPSTotalArraySet_c",year1MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "year2_MPSTotalArraySet_c",year2MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "year3_MPSTotalArraySet_c", year3MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "year4_MPSTotalArraySet_c", year4MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "year5_MPSTotalArraySet_c",year5MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "year6_MPSTotalArraySet_c", year6MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "year7_MPSTotalArraySet_c",year7MPSTotal);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "totalContract_MPSTotalArrayset_c",MPSTotalContractValue);
+	jsonput(MPSTotalDealJsonSalesMarginJson, "totalContractFloat_MPSTotalArrayset_c",MPSTotalContractValue); 
+	print "------------------nupur-------------------";
+	print year1MPSTotal;
+	print year2MPSTotal;
+	res = res + "1~year1MPSTotalArray_c~" + year1MPSTotal+ "|";
+	res = res + "1~year2MPSTotalArray_c~" + year2MPSTotal+ "|";
+	res = res + "1~year3MPSTotalArray_c~" + year3MPSTotal+ "|";
+	res = res + "1~year4MPSTotalArray_c~" + year4MPSTotal+ "|";
+	res = res + "1~year5MPSTotalArray_c~" + year5MPSTotal+ "|";
+	res = res + "1~year6MPSTotalArray_c~" + year6MPSTotal+ "|";
+	res = res + "1~year7MPSTotalArray_c~" + year7MPSTotal+ "|";
+	res = res + "1~totalContractMPSTotalArray_c~" + MPSTotalContractValue+ "|";
+	
+	}
+	jsonput(MPSTotalDealJson, "year1_MPSTotalArraySet_c",year1MPSTotal);
+	jsonput(MPSTotalDealJson, "year2_MPSTotalArraySet_c",year2MPSTotal);
+	jsonput(MPSTotalDealJson, "year3_MPSTotalArraySet_c", year3MPSTotal);
+	jsonput(MPSTotalDealJson, "year4_MPSTotalArraySet_c", year4MPSTotal);
+	jsonput(MPSTotalDealJson, "year5_MPSTotalArraySet_c",year5MPSTotal);
+	jsonput(MPSTotalDealJson, "year6_MPSTotalArraySet_c", year6MPSTotal);
+	jsonput(MPSTotalDealJson, "year7_MPSTotalArraySet_c",year7MPSTotal);
+	jsonput(MPSTotalDealJson, "totalContractFloat_MPSTotalArrayset_c",MPSTotalContractValue); 	//Added - HYPERCARE_CR046# “PIMA Header Details - Chakri
+	
+	// added string attribute to manage format issues
+	if(eachVal <> "Sales Cost Margin%"){
+	
+	year1MPSTotalStr  = formatascurrency(round(atof(year1MPSTotal),2), "USD");
+	year2MPSTotalStr =  formatascurrency(round(atof(year2MPSTotal),2), "USD");
+	year3MPSTotalStr =  formatascurrency(round(atof(year3MPSTotal),2), "USD");
+	year4MPSTotalStr =  formatascurrency(round(atof(year4MPSTotal),2), "USD");
+	year5MPSTotalStr = formatascurrency(round(atof(year5MPSTotal),2), "USD");
+	year6MPSTotalStr =  formatascurrency(round(atof(year6MPSTotal),2), "USD");
+	year7MPSTotalStr = formatascurrency(round(atof(year7MPSTotal),2), "USD");
+	
+	jsonput(MPSTotalDealJson, "year1_MPSTotalArraySetStr_c",substring(year1MPSTotalStr,1,len(year1MPSTotalStr)));
+	jsonput(MPSTotalDealJson, "year2_MPSTotalArraySetStr_c",substring(year2MPSTotalStr,1,len(year2MPSTotalStr)));
+	jsonput(MPSTotalDealJson, "year3_MPSTotalArraySetStr_c", substring(year3MPSTotalStr,1,len(year3MPSTotalStr)));
+	jsonput(MPSTotalDealJson, "year4_MPSTotalArraySetStr_c", substring(year4MPSTotalStr,1,len(year4MPSTotalStr)));
+	jsonput(MPSTotalDealJson, "year5_MPSTotalArraySetStr_c",substring(year5MPSTotalStr,1,len(year5MPSTotalStr)));
+	jsonput(MPSTotalDealJson, "year6_MPSTotalArraySetStr_c", substring(year6MPSTotalStr,1,len(year6MPSTotalStr)));
+	jsonput(MPSTotalDealJson, "year7_MPSTotalArraySetStr_c",substring(year7MPSTotalStr,1,len(year7MPSTotalStr)));
+	jsonput(MPSTotalDealJson, "totalContract_MPSTotalArrayset_c",substring(totalContractMPSTotal,1,len(totalContractMPSTotal)));
+	
+	}
+	else{
+		
+			jsonput(MPSTotalDealJson, "year1_MPSTotalArraySetStr_c",(year1MPSTotal));
+			jsonput(MPSTotalDealJson, "year2_MPSTotalArraySetStr_c",(year2MPSTotal));
+			jsonput(MPSTotalDealJson, "year3_MPSTotalArraySetStr_c", (year3MPSTotal));
+			jsonput(MPSTotalDealJson, "year4_MPSTotalArraySetStr_c", (year4MPSTotal));
+			jsonput(MPSTotalDealJson, "year5_MPSTotalArraySetStr_c",(year5MPSTotal));
+			jsonput(MPSTotalDealJson, "year6_MPSTotalArraySetStr_c", (year6MPSTotal));
+			jsonput(MPSTotalDealJson, "year7_MPSTotalArraySetStr_c",(year7MPSTotal));
+			jsonput(MPSTotalDealJson, "totalContract_MPSTotalArrayset_c",(MPSTotalContractValue));
+		
+	}
+	jsonarrayappend(MPSTotalDealArray, MPSTotalDealJson);
+	}
+}	
+
+
+salesCostMarginDict = dict("string");
+levelArr = string[];
+levelEscArr = string[];
+retValLevel = "";
+retValEscLevel = "";
+yearsBreachedVal = "";
+yearsBreachedforEmail = "";
+yearsEscBreachedVal = "";
+yearsEscBreachedforEmail = "";
+yearDict = dict("float");
+yearEscDict = dict("float");
+index = 1;
+rowDelim = "@$@";
+colDelim = "#$#";
+pimaArrayString = "";
+arraysize = range(contractTerm/12);
+marginFactor = 0.0;
+// print "MPSTotalDealJsonSalesMarginJson---";
+// print MPSTotalDealJsonSalesMarginJson;
+
+// print "----------------------";
+for each in arraysize {
+	if(NOT isnull(jsonget(MPSTotalDealJsonSalesMarginJson,"year"+string(each+1)+"_MPSTotalArraySet_c"))){
+		put(salesCostMarginDict, "year"+string(each+1), jsonget(MPSTotalDealJsonSalesMarginJson,"year"+string(each+1)+"_MPSTotalArraySet_c"));
+	}
+}
+
+
+salesCostMarginArr = keys(salesCostMarginDict);
+
+
+tempArray = sort(salesCostMarginArr); // There is issues in production related to sequence 
+if(productAvailabilityFlag){ // the flag is to check Lines exist in LIG or not
+	for each in tempArray {
+		
+
+		marginQuoteSummary = get(salesCostMarginDict,each);
+		if(isnumber(marginQuoteSummary) AND marginQuoteSummary <> ""){
+			marginFactor = atof(marginQuoteSummary);
+			marginFactor = round(marginFactor , 2); // code uncommented Defect # 18455
+		}
+		//approverTable = BMQL("SELECT PricingApprovalLevel, LowerMargin, UpperMargin FROM MS_ApprovalMrg where ApprovalType = 'Deal'");
+		
+		for eachRow in approverTable {
+			if(get(eachRow, "ApprovalType") == "Deal"){
+				level = get(eachRow, "PricingApprovalLevel");
+				lowerMargin = get(eachRow, "LowerMargin");
+				upperMargin = get(eachRow, "UpperMargin");
+				if(lowerMargin <> "" AND lowerMargin <>""){
+
+					if(marginFactor > atof(lowerMargin) AND marginFactor <= atof(upperMargin)){
+					Print " iam here0002072"; 
+						print marginFactor;
+						print lowerMargin;
+						print upperMargin;
+						print level;
+						print "----";
+						append(levelArr, level);//put(yearDict, "Year"+string(index),marginFactor);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+
+// ---------Total margin threshold breach Last row of deal margin table-----------------
+	if(not(isnull(levelArr[0]))){
+		pricingThresholdBreachY1 = levelArr[0];
+	}
+	if(not(isnull(levelArr[1]))){
+		pricingThresholdBreachY2 = levelArr[1];
+	}
+	if(not(isnull(levelArr[2]))){
+		pricingThresholdBreachY3 = levelArr[2];
+	}
+	if(not(isnull(levelArr[3]))){
+		pricingThresholdBreachY4 = levelArr[3];
+	}
+	if(not(isnull(levelArr[4]))){
+		pricingThresholdBreachY5 = levelArr[4];
+	}
+	if(not(isnull(levelArr[5]))){
+		pricingThresholdBreachY6 = levelArr[5];
+	}
+	if(not(isnull(levelArr[6]))){
+		pricingThresholdBreachY7 = levelArr[6];
+	}
+	
+	// MPSTotalDealJson1 = json();
+		
+	// jsonput(MPSTotalDealJson1, "MPSTotalDealRows_ArraySet","Pricing Threshold Breach");
+	// jsonput(MPSTotalDealJson1, "year1_MPSTotalArraySet",pricingThresholdBreachY1);
+	// jsonput(MPSTotalDealJson1, "year2_MPSTotalArraySet",pricingThresholdBreachY2);
+	// jsonput(MPSTotalDealJson1, "year3_MPSTotalArraySet", pricingThresholdBreachY3);
+	// jsonput(MPSTotalDealJson1, "year4_MPSTotalArraySet", pricingThresholdBreachY4);
+	// jsonput(MPSTotalDealJson1, "year5_MPSTotalArraySet",pricingThresholdBreachY5);
+	// jsonput(MPSTotalDealJson1, "year6_MPSTotalArraySet", pricingThresholdBreachY6);
+	// jsonput(MPSTotalDealJson1, "year7_MPSTotalArraySet",pricingThresholdBreachY7);
+	// jsonarrayappend(MPSTotalDealArray, MPSTotalDealJson1);
+//---------
+// setup Pricing Approval Level 
+print "---212-5---";
+print levelArr;
+
+if(findinarray(levelArr, "Level 3") > -1){
+	retValLevel = "Level 3";
+	append(L3ReviewLevelArray,"Level 3 Pricing");
+}elif(findinarray(levelArr, "Level 2") > -1){
+	retValLevel = "Level 2";
+}elif(findinarray(levelArr, "Level 1") > -1){
+	retValLevel = "Level 1";
+}
+
+
+res = res + "1~mPSPricingApproverLevel_c~" + retValLevel + "|";
+
+	
+
+//HYPERCARE-CR_CHG#0082000_CR#55_DescriptionOfChange_by Namrata
+//if(productAvailabilityFlag){ // the flag is to check Lines exist in LIG or not
+
+if(lower(MSTransactionType_t) <> "expansion" AND MSTransactionType_t <> "Expansion (New Location)" AND productAvailabilityFlag){
+
+//Start_HYPERCARE-CR_CHG#0082000_CR#41_Description_by Namrata
+//if(containsMPSIteMPS){ // code to run only for MPS Lines.
+id = 1;
+annualescalationArr = string[];
+
+	if(variableAnnualRevenueEscalation_t == true){
+		sizeArray = integer[7];
+		j = 1;
+		for i in sizeArray{
+			annualEscalationVar = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),"year"+string(j)));
+			append(annualescalationArr, annualEscalationVar);
+			j= j+1;
+
+			}
+			print "annualescalationArr--";
+			print annualescalationArr;
+		
+		for eachEsc in annualescalationArr{
+			for eachRow in approverTable{
+				if(get(eachRow, "ApprovalType") == "Escalation"){
+					level = get(eachRow, "PricingApprovalLevel");
+					lowerMargin = get(eachRow, "LowerMargin");
+					upperMargin = get(eachRow, "UpperMargin");
+					if(lowerMargin <> "" AND lowerMargin <>""){
+						if(eachEsc <> "" AND not(isnull(eachEsc ))){
+						eachEscFloat = atof(eachEsc);
+						
+						if(eachEscFloat > atof(lowerMargin) AND eachEscFloat <= atof(upperMargin) AND eachEscFloat <>0){
+							retValEscLevel = level;
+							put(yearEscDict, "Year"+string(id),eachEscFloat);
+							append(levelEscArr, retValEscLevel);
+							break;
+							}
+						}  
+					}
+				}
+		}
+		id = id+1;
+	}
+}
+	//approverTable = BMQL("SELECT PricingApprovalLevel, LowerMargin, UpperMargin FROM MS_ApprovalMrg where ApprovalType = 'Escalation'");
+	else{
+		for eachRow in approverTable {
+		if(get(eachRow, "ApprovalType") == "Escalation"){
+			level = get(eachRow, "PricingApprovalLevel");
+			lowerMargin = get(eachRow, "LowerMargin");
+			upperMargin = get(eachRow, "UpperMargin");
+			if(lowerMargin <> "" AND lowerMargin <>""){
+				if(annualRevenueEscalation_t > atof(lowerMargin) AND annualRevenueEscalation_t <= atof(upperMargin)){
+					retValEscLevel = level;
+					break;
+					}
+				}
+			}
+		}
+	}
+
+	if(variableAnnualRevenueEscalation_t == true){
+		if(findinarray(levelEscArr, "Level 3") > -1){
+			retValEscLevel = "Level 3";
+			append(L3ReviewLevelArray,"Level 3 Escalation");
+		}elif(findinarray(levelEscArr, "Level 2") > -1){
+			retValEscLevel = "Level 2";
+		}elif(findinarray(levelEscArr, "Level 1") > -1){
+			retValEscLevel = "Level 1";
+		}
+	}
+	else {
+		if(retValEscLevel == "Level 3"){
+		append(L3ReviewLevelArray,"Level 3 Escalation");
+		}
+	}
+	
+	res = res + "1~mSPricingApproverEscalationLevel_t~" + retValEscLevel + "|";
+	
+}
+else {	
+	res = res + "1~mSPricingApproverEscalationLevel_t~" + "|"; 
+	}
+//}
+
+//END_HYPERCARE-CR_CHG#0082000_CR#41_DescriptionOfChange_by Namrata
+
+//-------------------- Find Level Factor based on year deal---------------
+//approverTable = BMQL("SELECT PricingApprovalLevel,ApprovalType, LowerMargin, UpperMargin FROM MS_ApprovalMrg where PricingApprovalLevel = $retValLevel AND ApprovalType = 'Deal'");
+
+//-------------------- Find Level Factor based on year deal---------------
+
+salesCostMarginArr = keys(salesCostMarginDict);
+salesCostMarginArr = sort(salesCostMarginArr );
+for each in salesCostMarginArr {
+	pimaArrayString = pimaArrayString + each + rowDelim + get(salesCostMarginDict, each) + colDelim; 
+	marginQuoteSummary = get(salesCostMarginDict,each);
+	if(isnumber(marginQuoteSummary) AND  marginQuoteSummary <> ""){
+		marginFactor = atof(marginQuoteSummary);
+		marginFactor = round(marginFactor , 2); // code uncommemted Defect # 18455
+	}
+	for eachRow in approverTable {
+		
+		if(get(eachRow, "PricingApprovalLevel") == retValLevel AND get(eachRow, "ApprovalType") == "Deal"){
+			lowerMargin = get(eachRow, "LowerMargin");
+			upperMargin = get(eachRow, "UpperMargin");
+			if(lowerMargin <> "" AND lowerMargin <>""){
+				if(marginFactor > atof(lowerMargin) AND marginFactor <= atof(upperMargin)){
+					put(yearDict, "Year"+string(index),marginFactor);
+					break;
+				}
+			}
+		}
+		
+	}
+	index = index + 1;
+}
+
+// set the Review Emails from the Pricing Approval table.
+
+for eachRow in approverTable {
+		
+	if(findinarray(L3ReviewLevelArray,get(eachRow, "PricingApprovalLevel")) <> -1 AND get(eachRow, "ApproverTriggerLevel") == "Level 3 Notification"){
+		
+		L3ReviewEmailIds = L3ReviewEmailIds + get(eachRow, "EmailID") + ";" ;
+	
+	}
+}
+	
+	res = res + "1~pricingL3ReviewerEmail_t~" + L3ReviewEmailIds + "|";
+// ------------------------------------------------------
+
+yearArray = keys(yearDict);
+yearArray = sort(yearArray);
+for each in yearArray {
+	if(each <> ""){
+		yearsBreachedVal = yearsBreachedVal + each + rowDelim + string(get(yearDict, each)) + colDelim ;
+		yearsBreachedforEmail = yearsBreachedforEmail + each + "," ;
+	}
+}
+if(len(yearsBreachedVal) > len(colDelim)){
+	yearsBreachedVal = substring(yearsBreachedVal, 0, len(yearsBreachedVal) - len(colDelim));
+}
+if(len(yearsBreachedforEmail) > len(",")){
+	yearsBreachedforEmail = substring(yearsBreachedforEmail, 0, len(yearsBreachedforEmail) - len(","));
+}
+
+if(len(pimaArrayString) > len(colDelim)){
+	pimaArrayString = substring(pimaArrayString, 0, len(pimaArrayString) - len(colDelim));
+}
+yearEscArray = keys(yearEscDict);
+yearEscArray = sort(yearEscArray);
+for each1 in yearEscArray {
+	if(each1 <> ""){
+		yearsEscBreachedVal = yearsEscBreachedVal + each1 + rowDelim + string(get(yearEscDict, each1)) + colDelim ;
+		
+		yearsEscBreachedforEmail = yearsEscBreachedforEmail + each1 + "," ;
+		
+	}
+}
+if(len(yearsEscBreachedVal) > len(colDelim)){
+	yearsEscBreachedVal = substring(yearsEscBreachedVal, 0, len(yearsEscBreachedVal) - len(colDelim));
+}
+if(len(yearsEscBreachedforEmail) > len(",")){
+	yearsEscBreachedforEmail = substring(yearsEscBreachedforEmail, 0, len(yearsEscBreachedforEmail) - len(","));
+}
+
+// print "yearsEscBreachedVal---";
+// print yearsEscBreachedVal;
+// print "-2--2-2-";
+// print yearsBreachedVal;
+res = res + "1~mPSPricingApproverYearsBreached_c~" + yearsBreachedVal + "|";
+res = res + "1~mSYearsBreachedForEmail_t~" + yearsBreachedforEmail + "|";
+res = res + "1~mpSTotalDealSectionArrayString_c~" + pimaArrayString + "|";
+//if(containsMPSIteMPS){
+
+res = res + "1~mSYearsEscBreachedForEmail_t~" + yearsEscBreachedforEmail + "|";
+//}
+
+//res = res + "1~mPSPricingApproverYearsBreached_c~" + yearsEscBreachedVal + "|";
+//res = res + "1~mSPricingApproverYearsBreached_t~" + yearsBreachedVal + "|";
+//START_HYPERCARE-CR_CHG#0082000_CR#33_DescriptionOfChange_by Namrata
+
+
+errorMessageDict = dict("string");
+recordSet = bmql("select MESSAGE_NAME,MESSAGE_TEXT from RAC_ErrorMessages where ACTIVE = 'Y'");
+	for each in recordSet{
+		put(errorMessageDict,get(each,"MESSAGE_NAME"),get(each,"MESSAGE_TEXT"));
+	}
+//END_HYPERCARE-CR_CHG#0082000_CR#33_DescriptionOfChange_by Namrata
+
+pricingApprovalWarningMPSg = "";
+print "mSPricingApproverLevel_t---";
+print mSPricingApproverLevel_t;
+pricingApprovalWarningMPSgTemp = "";
+if(productAvailabilityFlag){
+// if(find(mSPricingApproverLevel_t,"Level") <> -1){
+	// pricingApprovalWarningMPSg = mSPricingApprovalNote_t ;
+// }
+
+//if(containsMPSIteMPS){ //Defect 17781 - Added if Condition to display below message only when MPS lines are present
+	pricingApprovalWarningMPSg = pricingApprovalWarningMPSg + "<html><body><table>";
+	if(yearsBreachedVal <>""){
+	
+	//START_HYPERCARE-CR_CHG#0082000_CR#33_DescriptionOfChange_by Namrata
+	// print "TEST 2335---";
+	// print retValLevel;
+	if(retValLevel == "Level 1"){
+		pricingApprovalWarningMPSg = pricingApprovalWarningMPSg +"<tr><td><ul>" +get(errorMessageDict,"MPS_Level1_Pricing_Error") +" "+get(errorMessageDict,"MPS_Level1_Threshold")+"</ul></td> </tr>";
+	}
+	if(retValLevel == "Level 2"){
+		pricingApprovalWarningMPSg = pricingApprovalWarningMPSg+"<tr><td><ul>" +get(errorMessageDict,"MPS_Level1_Pricing_Error") +" "+get(errorMessageDict,"MPS_Level2_Threshold")+"</ul></td> </tr>";
+	}
+	if(retValLevel == "Level 3"){
+		pricingApprovalWarningMPSg = pricingApprovalWarningMPSg+"<tr><td><ul>" +get(errorMessageDict,"MPS_Level1_Pricing_Error") +" "+get(errorMessageDict,"MPS_Level3_Threshold")+"</ul></td> </tr>";
+	}
+	pricingApprovalWarningMPSg = replace(pricingApprovalWarningMPSg,"{{YearsBreached}}",yearsBreachedforEmail);
+	pricingApprovalWarningMPSg = replace(pricingApprovalWarningMPSg,"{{FindLevel}}",retValLevel );
+	//END_HYPERCARE-CR_CHG#0082000_CR#33_DescriptionOfChange_by Namrata
+	}
+	if(retValEscLevel <> "" AND find(pricingApprovalWarningMPSg,"Annual Escalation") == -1){ 
+		pricingApprovalWarningMPSg = pricingApprovalWarningMPSg + "<tr><td><ul>This Quote Requires Annual Escalation Approval due to quote level Annual Escalation value threshold being breached.</ul></td> </tr>";
+	}
+	pricingApprovalWarningMPSg = pricingApprovalWarningMPSg + " </table></body></html>";
+//}
+}
+print "pricingApprovalWarningMPSg---";
+print pricingApprovalWarningMPSg;
+res = res + "1~mSPricingApprovalNote_t~" + pricingApprovalWarningMPSg + "|";
+
+ExcludeArray = string[]{"Rebate","MPS Total"};
+totalfirstMonthRevenue = 0.0;
+totalFirstMonthCost =0.0;
+totalfirstMonthMargin=0.0;
+firstMonthRevenueCost = 0.0;
+firstMonthRevenueVal = 0.0;
+MarginVal = 0.0 ;
+
+for eachData in firstMonthBillingRowListArray{
+
+
+firstMonthRevenueVal = 0.0;
+// firstMonthRevenueCost = 0.0;
+// MarginVal = 0.0;
+	if(findinarray(ExcludeArray,eachData) == -1){
+		if(not(isnull(get(pricingDict,eachData+"_Month1_REV")))){
+		firstMonthRevenueVal=get(pricingDict,eachData+"_Month1_REV");
+		}
+		// if(not(isnull(get(pricingDict,eachData+"_Month1_COST")))){
+		// firstMonthRevenueCost=get(pricingDict,eachData+"_Month1_COST");
+		// }
+		totalfirstMonthRevenue = totalfirstMonthRevenue +firstMonthRevenueVal;
+				//print totalfirstMonthRevenue;
+
+		// totalFirstMonthCost = totalFirstMonthCost +firstMonthRevenueCost;
+		// if(firstMonthRevenueVal <> 0.0){
+		
+		// MarginVal = ((firstMonthRevenueVal - firstMonthRevenueCost)/firstMonthRevenueVal)*100;
+		// }
+		
+		
+		jsonput(firstMonthBillingJson, "mPSComponents_c",eachData);
+		jsonput(firstMonthBillingJson, "month1RevenueMPS_c", firstMonthRevenueVal);
+		// jsonput(firstMonthBillingJson, "month1Costs_FirstMonthBilling",firstMonthRevenueCost);
+		// jsonput(firstMonthBillingJson, "month1Margin_FirstMonthBilling", MarginVal);
+
+	}
+	elif(eachData == "MPS Total"){
+		// if(totalfirstMonthRevenue <> 0.0){
+		// totalfirstMonthMargin = (totalfirstMonthRevenue-totalFirstMonthCost)/totalfirstMonthRevenue*100;
+		// }
+		jsonput(firstMonthBillingJson, "mPSComponents_c",eachData);
+		
+		jsonput(firstMonthBillingJson, "month1RevenueMPS_c", totalfirstMonthRevenue);
+		//HYPERCARE changes CR#11 description by Namrata
+		FirstMonthPaymentPIMA= totalfirstMonthRevenue;
+		// jsonput(firstMonthBillingJson, "month1Costs_FirstMonthBilling",totalFirstMonthCost);
+		// jsonput(firstMonthBillingJson, "month1Margin_FirstMonthBilling", totalfirstMonthMargin);
+		
+	}elif(eachData == "Rebate"){
+		jsonput(firstMonthBillingJson, "mPSComponents_c",eachData);
+
+		jsonput(firstMonthBillingJson, "month1RevenueMPS_c", 0.0);
+		// jsonput(firstMonthBillingJson, "month1Costs_FirstMonthBilling",0.0);
+		// jsonput(firstMonthBillingJson, "month1Margin_FirstMonthBilling", 0.0);
+	}
+	jsonarrayappend(firstMonthBillingArray, firstMonthBillingJson);
+
+}
+
+// Iterating on the Pima data table to match the price 
+for eachData in resultSet{
+	MPSLaborYear1Val = 0.0;
+		MPSLaborYear2Val = 0.0;
+		MPSLaborYear3Val = 0.0;
+		MPSLaborYear4Val = 0.0;
+		MPSLaborYear5Val = 0.0;
+		MPSLaborYear6Val = 0.0;
+		MPSLaborYear7Val = 0.0;
+		MPSLaborTotalContract= 0.0;
+		sectionName = get(eachData,"SectionName");
+		ItemName = get(eachData,"Item");
+	// Populate MPS Labor component table-----------
+	
+	if((param1 == "" AND find(ItemName,"Standard Cost") == -1) OR (param1 == "Price Analyst")){
+
+		// Populate MPS Labor component table
+		if(get(eachData,"SectionName") == "MPS Labor"){
+			
+			// created util library to populate component Arrays - Code Optimization.
+			MPSLaborPIMAJson= util.mPSPIMAComponentArrayGeneration(sectionName, ItemName, PricingDict, "", MPSLaborPIMAJson);
+			
+			jsonarrayappend(MPSPIMAArray,MPSLaborPIMAJson);
+			
+			
+		}
+		if(get(eachData,"SectionName") == "3rd Party / MICR Service"){
+			// created util library to populate component Arrays - Code Optimization.
+			ThirdPartyPIMAJson= util.mPSPIMAComponentArrayGeneration(sectionName, ItemName, PricingDict, "", ThirdPartyPIMAJson);
+			jsonarrayappend(ThirdPartyPIMAArray,ThirdPartyPIMAJson);
+			///print ThirdPartyPIMAJson;
+				
+		}
+		if(get(eachData,"SectionName") == "Zebra Service"){
+			ZebraPIMAJson= util.mPSPIMAComponentArrayGeneration(sectionName, ItemName, PricingDict, "", ZebraPIMAJson);
+			jsonarrayappend(ZebraPIMAArray,ZebraPIMAJson);
+		
+		}
+		if(get(eachData,"SectionName") == "Fleet 3rd Party / MICR"){
+			ThirdPartyFleetPIMAJson= util.mPSPIMAComponentArrayGeneration(sectionName, ItemName, PricingDict, "", ThirdPartyFleetPIMAJson);
+			jsonarrayappend(ThirdPartyFleetPIMAArray,ThirdPartyFleetPIMAJson);
+			//print ThirdPartyFleetPIMAJson;
+		}
+
+		
+		if(get(eachData,"SectionName") == "Fleet Zebra"){
+			
+			ZebraFleetPIMAJson= util.mPSPIMAComponentArrayGeneration(sectionName, ItemName, PricingDict, "", ZebraFleetPIMAJson);
+			
+			jsonarrayappend(ZebraFleetPIMAArray,ZebraFleetPIMAJson);
+		}
+		if(get(eachData,"SectionName") == "Implementation Cost"){
+			
+			ImplementationCostPIMAJson= util.mPSPIMAComponentArrayGeneration(sectionName, ItemName, PricingDict, "", ImplementationCostPIMAJson);
+			
+			jsonarrayappend(ImplememtationCostPIMAArray,ImplementationCostPIMAJson);
+		}
+		
+		//Rebate Json Array
+		if(get(eachData,"SectionName") == "Rebate(s)"){
+			
+			rebateTotalJson= util.mPSPIMAComponentArrayGeneration(sectionName, ItemName, PricingDict, "", rebateTotalJson);
+			jsonarrayappend(rebateTotalArray,rebateTotalJson);
+		}
+
+			
+
+	}
+}
+
+	
+
+
+//----------------------------------------------
+// GP Message Generation--------
+
+
+if((totalMarginPercent1 > 18.0 AND totalMarginPercent1 <= 20.0) OR (totalMarginPercent2 > 18.0 AND totalMarginPercent2 <= 20.0) OR (totalMarginPercent3 > 18.0 AND totalMarginPercent3 <= 20.0) OR (totalMarginPercent4 > 18.0 AND totalMarginPercent4 <= 20.0) OR (totalMarginPercent5 > 18.0 AND totalMarginPercent5 <= 20.0) OR (totalMarginPercent6 > 18.0 AND totalMarginPercent6 <= 20.0) OR (totalMarginPercent7 > 18.0 AND totalMarginPercent7 <= 20.0)){
+	
+GPMessageforFnF	= "Quote contains GP in the PIMA Report that is >18% and <=20%";
+	
+}
+
+if((year1Flag AND totalMarginPercent1 <= 18.0) OR (year2Flag AND totalMarginPercent2 <= 18.0) OR (year3Flag AND totalMarginPercent3 <= 18.0) OR (year4Flag AND totalMarginPercent4 <= 18.0) OR (year5Flag AND totalMarginPercent5 <= 18.0) OR (year6Flag AND totalMarginPercent6 <= 18.0) OR (year7Flag AND totalMarginPercent7 <= 18.0)){
+	
+GPMessageforFnF	= GPMessageforFnF + "#$#Quote contains GP in the PIMA Report that is <=18%";
+}
+
+if(variableAnnualRevenueEscalation_t== false){
+annualRevenueEscalationJson = json();
+annualEscalationBuild = jsonarray();
+value = 0;
+jsonput(annualRevenueEscalationJson , "year1", string(value));
+jsonput(annualRevenueEscalationJson , "year2",string(value));
+jsonput(annualRevenueEscalationJson , "year3", string(value));
+jsonput(annualRevenueEscalationJson , "year4",string(value));
+jsonput(annualRevenueEscalationJson , "year5", string(value));
+jsonput(annualRevenueEscalationJson , "year6", string(value));
+jsonput(annualRevenueEscalationJson , "year7", string(value));
+jsonarrayappend(annualEscalationBuild, annualRevenueEscalationJson );
+res = res + "1~variableAnnualEscalationArraySet_t~" + jsonarrayrefid(annualEscalationBuild) + "|";
+}
+
+
+// Update Threshold in Jsonarray - Created this to include threshold level in deal section
+MPSTotalDealArray1 = jsonarray();
+dealArray =range(jsonarraysize(MPSTotalDealArray));
+jsonTempData = json();
+
+for each in dealArray{
+	
+	jsonTempData = jsonarrayget(MPSTotalDealArray,each,"json");
+	
+	totalDealKey = jsonget(jsonTempData,"mPSTotalDealRows_Aray_c");
+	
+	if(totalDealKey == "Pricing Threshold Breach"){
+		
+		
+		
+			jsonput(jsonTempData, "mPSTotalDealRows_Aray_c","Pricing Threshold Breach");
+			jsonput(jsonTempData, "year1_MPSTotalArraySetStr_c",(pricingThresholdBreachY1));
+			jsonput(jsonTempData, "year2_MPSTotalArraySetStr_c",(pricingThresholdBreachY2));
+			jsonput(jsonTempData, "year3_MPSTotalArraySetStr_c", (pricingThresholdBreachY3));
+			jsonput(jsonTempData, "year4_MPSTotalArraySetStr_c", (pricingThresholdBreachY4));
+			jsonput(jsonTempData, "year5_MPSTotalArraySetStr_c",(pricingThresholdBreachY5));
+			jsonput(jsonTempData, "year6_MPSTotalArraySetStr_c", (pricingThresholdBreachY6));
+			jsonput(jsonTempData, "year7_MPSTotalArraySetStr_c",(pricingThresholdBreachY7));
+			jsonput(jsonTempData, "totalContract_MPSTotalArrayset_c",(MPSTotalContractValue));
+			
+	}
+	
+	jsonarrayappend(MPSTotalDealArray1,jsonTempData);
+	
+}
+
+res = res + "1~mPSTotalDealSectionArrayset_t_c~" + jsonarrayrefid(MPSTotalDealArray1) + "|";
+res = res + "1~firstMonthBillingMPSArrayset_t_c~" + jsonarrayrefid(firstMonthBillingArray) + "|";
+res = res + "1~mPSLaborPIMAArrayset_t_c~" + jsonarrayrefid(MPSPIMAArray) + "|";
+res = res + "1~thirdPartyServiceMPSArrayset_c~" + jsonarrayrefid(ThirdPartyPIMAArray) + "|";
+res = res + "1~zebraServicePIMAMPSArrayset_c~" + jsonarrayrefid(ZebraPIMAArray) + "|";
+res = res + "1~thirdPartyFleetPIMAMPSArrayset_c~" + jsonarrayrefid(ThirdPartyFleetPIMAArray) + "|";
+res = res + "1~mICRFleetPIMAMPSArrayset_c~" + jsonarrayrefid(MICRFleetPIMAArray) + "|";
+res = res + "1~zebraFleetMPSPIMAArrayset_c~" + jsonarrayrefid(ZebraFleetPIMAArray) + "|";
+res = res + "1~implementationCostMPSPIMAArrayset_c~" + jsonarrayrefid(ImplememtationCostPIMAArray) + "|";
+res = res + "1~rebateArray_MPS_t_c~" + jsonarrayrefid(rebateTotalArray) + "|";
+
+
+res = res + "1~pricingGPThresholdMPS_Year1_c~" + pricingThresholdBreachY1+ "|";
+res = res + "1~pricingGPThresholdMPS_Year2_c~" + pricingThresholdBreachY2+ "|";
+res = res + "1~pricingGPThresholdMPS_Year3_c~" + pricingThresholdBreachY3+ "|";
+res = res + "1~pricingGPThresholdMPS_Year4_c~" + pricingThresholdBreachY4+ "|";
+res = res + "1~pricingGPThresholdMPS_Year5_c~" + pricingThresholdBreachY5+ "|";
+res = res + "1~pricingGPThresholdMPS_Year6_c~" + pricingThresholdBreachY6+ "|";
+res = res + "1~pricingGPThresholdMPS_Year7_c~" + pricingThresholdBreachY7+ "|";
+res = res + "1~pricingGPLevel_Description_t~" + "Pricing Threshold Breach"+ "|";
+
+
+//res = res + "1~pIMADate_t~" + _system_date+ "|";
+//res = res + "1~pIMADate_t~" + ("PIMA generation" + " " + datetostr(getdate(true), "MM/dd/YYYY, HH:MM", _system_user_time_zone) + "ET")+ "|";
+
+return res;

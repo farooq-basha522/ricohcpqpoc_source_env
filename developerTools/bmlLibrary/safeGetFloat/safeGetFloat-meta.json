@@ -1,0 +1,15 @@
+{
+  "name" : "Safe Get - Float",
+  "variableName" : "safeGetFloat",
+  "description" : "Safer version of get function for floats. Auto-handles nulls as 0.0",
+  "libraryFunctions" : [ ],
+  "returnType" : "Float",
+  "parameters" : [ {
+    "name" : "inputDict",
+    "type" : "Float Dictionary"
+  }, {
+    "name" : "key",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

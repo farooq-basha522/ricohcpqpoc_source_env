@@ -1,0 +1,23 @@
+/*MainDoc UpdateAsset Script 
+Purpose: Helper to convert to asset , all or selected lines in the transaction 
+System Variables :  
+	_system_buyside_id
+Main doc fields: 
+	_transaction_customer_id(_transaction prefix is from maindco varname)
+      	(process specific): 
+		currency_t, 
+		paymentTerms_t
+Line fields:
+	status_l
+	_document_number, 
+	requestDate_l, 
+	itemInstanceId_l, 
+	oRCL_ABO_ActionCode_l, 
+	_line_bom_parent_id, 
+	fulfillmentStatus_l
+Library Functions:
+	abo_initializeContext,
+	abo_updateAsset,
+	convertLibraryFunctionDateStringToDate
+*/
+return "";

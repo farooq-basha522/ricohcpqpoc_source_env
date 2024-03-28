@@ -1,0 +1,21 @@
+//************************************************************************************************************
+//** Function:    Safe Get - Float (safeGetFloat)
+//** Type:        Utility Library Function   
+//**
+//** Description: Enhanced version of 'get' function. Automatically performs null check and returns 0.0
+//**              if key does not exist
+//** 
+//** Param:       inputDict - Input Dictionary.
+//**              key - key we are fetching a value for.
+//**
+//** Return type: Float - Value in dict, or 0.0 if null
+//**
+//** History:     Date     Author       Comment 
+//**              INITIAL  RConaghan    Initital Build  
+//************************************************************************************************************
+
+result = 0.0;
+if(containskey(inputDict, key)){
+	return get(inputDict, key);
+}
+return result;

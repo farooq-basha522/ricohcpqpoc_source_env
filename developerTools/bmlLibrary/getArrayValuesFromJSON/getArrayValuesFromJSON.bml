@@ -1,0 +1,40 @@
+retArr = String[];
+attrPath = "";
+attrVal = "";
+rootNode = "";
+
+//get attrPath from data table
+jsonMap = bmql("SELECT RootNode, JSONPath FROM EtilizeJSONMapping WHERE AttrName=$attrName");
+for path in jsonMap {
+	attrPath = get(path, "JSONPath");
+	rootNode = get(path, "RootNode");
+}
+
+productIdsJArr = jsonpathgetmultiple(productJSON, "$.outputObject.products.productSummary[?(@.id>0)]");
+
+indexArr = range(jsonarraysize(productIdsJArr));
+
+for index in indexArr {
+	attrVal = "";
+	//get sku data
+	vendorNamesJArr = jsonpathgetmultiple(productJSON, "$.outputObject.products.productSummary[" + string(index) + "].skus.sku[?(@.type!='MFGPARTNUMBER')]");
+	vendorIndexArr = range(jsonarraysize(vendorNamesJArr));
+	for vendorIndex in vendorIndexArr {
+		if (rootNode == "sku") {
+			attrVal = jsonpathgetsingle(productJSON, "$.outputObject.products.productSummary[" + string(index) + "].skus.sku[" + string(vendorIndex) + "]" + attrPath);
+		}
+		else {
+			//if (not(isjsonnull(productJSON, "$.outputObject.products.productSummary[" + string(index) + "].skus.sku[" + string(vendorIndex) + "]" + attrPath))) {
+			attrVal = jsonpathgetsingle(productJSON, "$.outputObject.products.productSummary[" + string(index) + "]." + rootNode + attrPath);
+			//}
+			if (isnull(attrVal)) {
+				attrVal = "";
+			}
+		}
+			
+		append(retArr, attrVal);
+
+	}
+
+}
+return retArr;

@@ -1,0 +1,21 @@
+{
+  "name" : "Normalize String to X Digits",
+  "variableName" : "normalizeStringToXDigits",
+  "description" : "Normalizes a string to a certain length. Typically used when casting numerics to strings. (ex: we want \"1\" to be normalized to \"001\")",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "inputStr",
+    "type" : "String"
+  }, {
+    "name" : "requestedDigits",
+    "type" : "Integer"
+  }, {
+    "name" : "placeholderChar",
+    "type" : "String"
+  }, {
+    "name" : "appendOrPrepend",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

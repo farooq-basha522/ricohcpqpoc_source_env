@@ -1,0 +1,14 @@
+{
+  "name" : "FetchMSApproversList",
+  "variableName" : "fetchMSApproversList",
+  "description" : "",
+  "libraryFunctions" : [ "commerce.getMSApprovers" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "namesFor",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "mSTotalDealSectionArray_t", "mSTransactionType_t", "annualRevenueEscalation_t", "mSPricingApproverYearsBreached_t", "mSPricingApproverLevel_t", "mSPricingApproverEscalationLevel_t" ],
+  "systemAttributes" : [ "_system_supplier_company_name" ]
+}

@@ -1,0 +1,11 @@
+{
+  "name" : "Set Linked Items",
+  "variableName" : "setLinkedItems",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_document_number", "_parent_doc_number", "_group_sequence_number", "_part_number", "parent_bundle", "subscriptionTerm_l", "linkedItem_l", "_price_quantity", "qty_Vendor_l", "_price_calculation_info" ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ "_system_user_groups" ]
+}

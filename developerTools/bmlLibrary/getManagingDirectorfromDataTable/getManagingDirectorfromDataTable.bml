@@ -1,0 +1,9 @@
+managinDirectorNameFromRISE = trim(inputParam);
+managingDirectorEmail = "";
+resultSet = bmql("select Name, Email from RAC_ManagingDirector where Name = $managinDirectorNameFromRISE");
+//loop through the records
+for record in resultSet {
+	managingDirectorEmail = get(record, "Email");
+}
+
+return managingDirectorEmail;

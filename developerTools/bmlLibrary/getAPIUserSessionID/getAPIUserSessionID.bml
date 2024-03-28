@@ -1,0 +1,81 @@
+result = "";
+//soapBody = "";
+
+//qtcRequest = "";
+//author = "";
+
+companyName = lower( _company_name );
+userName = "";
+password = "";
+//url      = "";
+usernameParam = "USERNAME";
+passwordParam = "USERPASS";
+soapURL = "https://" + companyName + ".bigmachines.com/v1_0/receiver";
+
+
+loginDict  = dict("string");
+
+loginParameters = string[];
+append( loginParameters, usernameParam);
+append( loginParameters, passwordParam);
+
+
+accessSet = bmql("SELECT Keyword, Value, Value_Secure FROM GlobalVars WHERE Keyword = 'INTERNAL_INTEGRATION_USER_LOGIN' OR Keyword = 'INTERNAL_INTEGRATION_USER_PW'");
+for record in accessSet{
+		putKey = "";
+		putValue = "";
+		if(get(record, "Keyword") == "INTERNAL_INTEGRATION_USER_LOGIN"){
+			putKey = "USERNAME";
+		}
+		else{ //Keyword is INTERNAL_INTEGRATION_USER_PW
+			putKey = "USERPASS";
+		}
+		
+		if(get(record, "Value") <> ""){
+			putValue = get(record, "Value");
+		}
+		else{
+			putValue = get(record, "Value_Secure");
+		}
+		put(loginDict, putKey, putValue);
+}
+
+if( containskey( loginDict, usernameParam ) == true ) {
+    userName    = get( loginDict, usernameParam );
+}
+if( containskey( loginDict, passwordParam ) == true ) {
+    password    = get( loginDict, passwordParam );
+}
+
+
+soapXML = "<?xml version='1.0' encoding='UTF-8'?>"
+        + "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'>"
+        + "<soapenv:Header>"
+        + "<bm:category xmlns:bm='urn:soap.bigmachines.com'>Security</bm:category>"
+        + "<bm:xsdInfo xmlns:bm='urn:soap.bigmachines.com'>"
+        + "<bm:schemaLocation>" + companyName + ".bigmachines.com/bmfsweb/" + companyName + "/schema/v1_0/security/Security.xsd</bm:schemaLocation>"
+        + "</bm:xsdInfo>"
+        + "</soapenv:Header>"
+        + "<soapenv:Body>"
+        + "<bm:login xmlns:bm='urn:soap.bigmachines.com'>"
+        + "<bm:userInfo>"
+        + "<bm:username>" + userName + "</bm:username>"
+        + "<bm:password><![CDATA[" + password + "]]></bm:password>"
+        + "</bm:userInfo>"
+        + "</bm:login>"
+        + "</soapenv:Body>"
+        + "</soapenv:Envelope>"
+        ;
+
+loginResponse = urldatabypost( soapURL, soapXML, "Bad Connection" );
+
+// Parse the result from the RTP Call
+xpath = string[];
+
+append( xpath, "//bm:sessionId" );
+
+output = readxmlsingle( loginResponse, xpath );
+
+result = get( output, xpath[0] );
+
+return result;

@@ -1,0 +1,11 @@
+{
+  "name" : "ABO FollowOn Order Action",
+  "variableName" : "oRCL_abo_FollowOnOrderAction",
+  "description" : "ABO implementation of follow on order line action.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

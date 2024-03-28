@@ -1,0 +1,15 @@
+{
+  "name" : "abo_updateAsset",
+  "variableName" : "abo_updateAsset",
+  "description" : "Entry level utility BML for header level 'Update Asset' action. Can be exposed as a generic service as well. For the given transaction and list of lines in that transaction as passed in the input, it will aggregate the lines for that same product instance in order of request date to calculate the final project state and compare it with the asset state to generate CRUD operation on the asset for all lines in an atomic RESTful call.",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_apply", "util.abo_convertDeltaBomtoAsset", "util.abo_getContext", "util.abo_invokeAssetService", "util.abo_jsonSort", "util.abo_loadAsset", "util.abo_processDeltaBom" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "txn_json",
+    "type" : "Json"
+  }, {
+    "name" : "lines_json_array",
+    "type" : "JsonArray"
+  } ],
+  "attributes" : [ ]
+}

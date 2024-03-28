@@ -1,0 +1,12 @@
+{
+  "name" : "GetDataTableStatus",
+  "variableName" : "getDataTableStatus",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Boolean",
+  "parameters" : [ {
+    "name" : "tablesList",
+    "type" : "String[]"
+  } ],
+  "attributes" : [ "_company_name" ]
+}

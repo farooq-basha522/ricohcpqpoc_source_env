@@ -1,0 +1,24 @@
+{
+  "name" : "get Additional Labor Parts Pricing",
+  "variableName" : "getAdditionalLaborParts",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "JsonArray",
+  "parameters" : [ {
+    "name" : "Licenses",
+    "type" : "String[]"
+  }, {
+    "name" : "Phone",
+    "type" : "Boolean[]"
+  }, {
+    "name" : "adminPc",
+    "type" : "Boolean[]"
+  }, {
+    "name" : "LaborType",
+    "type" : "String[]"
+  }, {
+    "name" : "quantity",
+    "type" : "Integer[]"
+  } ],
+  "attributes" : [ ]
+}

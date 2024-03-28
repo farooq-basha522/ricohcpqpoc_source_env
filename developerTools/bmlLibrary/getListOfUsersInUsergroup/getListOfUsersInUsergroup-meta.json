@@ -1,0 +1,15 @@
+{
+  "name" : "Get List of Users In Usergroup",
+  "variableName" : "getListOfUsersInUsergroup",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "userGroup",
+    "type" : "String"
+  }, {
+    "name" : "urlCompanyName",
+    "type" : "String"
+  } ],
+  "attributes" : [ "_user_session_id", "_user_type" ]
+}

@@ -1,0 +1,14 @@
+errorMessage = "";
+style ="<div class=\"warning\" style=\"border: 1px solid; margin: 10px 0px; padding: 15px 10px 15px 50px; background-repeat: no-repeat; background-position: 10px center; color: #9f6000; background-color: #feefb3;\"><span style=\"font-family: 'georgia' , 'palatino' , serif;\">";
+//errorMessageDict = dict("string");
+recordSet = bmql("select MESSAGE_NAME,MESSAGE_TEXT from RAC_ErrorMessages where MESSAGE_NAME= $msgName AND ACTIVE = 'Y'");
+for each in recordSet{
+	errorMessage = get(each,"MESSAGE_TEXT");
+	//put(errorMessageDict,get(each,"MESSAGE_NAME"),get(each,"MESSAGE_TEXT"));
+}
+style = style + errorMessage;
+//errorMessage = get(errorMessageDict,"MPS_LABOR");
+style = style + "</span></div>";
+
+
+return errorMessage;

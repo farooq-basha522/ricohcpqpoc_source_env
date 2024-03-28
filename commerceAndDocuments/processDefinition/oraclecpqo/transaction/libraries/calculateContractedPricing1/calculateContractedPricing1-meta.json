@@ -1,0 +1,14 @@
+{
+  "name" : "Calculate Contracted Pricing1",
+  "variableName" : "calculateContractedPricing1",
+  "description" : "",
+  "libraryFunctions" : [ "commerce.contractedPricing", "util.safeAtof" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "retDict1",
+    "type" : "String Dictionary"
+  } ],
+  "subDocAttributes" : [ "_part_custom_field9", "_part_number", "_document_number", "locationName_l" ],
+  "mainDocAttributes" : [ "customerID_t", "partsDataText_t" ],
+  "systemAttributes" : [ ]
+}

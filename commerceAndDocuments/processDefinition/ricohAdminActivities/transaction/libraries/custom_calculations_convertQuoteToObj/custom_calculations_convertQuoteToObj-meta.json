@@ -1,0 +1,23 @@
+{
+  "name" : "custom_calculations_convertQuoteToObj",
+  "variableName" : "custom_calculations_convertQuoteToObj",
+  "description" : "This function should be overridden to update the system behavior. It can be used to add additional output attributes. It can also be used to remove any output attributes set by the system function. 'quoteData' also be updated to change any system logic behavior.\n\nPlease refer to documentation.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "mainDocOutputAttrs",
+    "type" : "String Dictionary"
+  }, {
+    "name" : "subDocOutputAttrs",
+    "type" : "String Dictionary"
+  }, {
+    "name" : "quoteData",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "lineNumbersArray",
+    "type" : "String[]"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

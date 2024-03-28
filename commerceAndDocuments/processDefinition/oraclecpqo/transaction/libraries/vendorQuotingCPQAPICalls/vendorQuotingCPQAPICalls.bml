@@ -1,0 +1,15 @@
+siteName = lower(_system_company_name);
+resultSet = bmql("select Username,Password,InstancesName from INT_SYSTEM_DETAILS where InstancesName = $siteName");
+endpoint = "";
+authString = "";
+//loop through the records
+for record in resultSet {
+	authString = "Basic " + encodebase64(get(record,"Username") + ":" + get(record,"Password"));
+	endpoint = get(record,"InstancesName");
+	}
+	headers = dict("string");
+	put(headers, "Content-Type", "application/json");
+	put(headers, "Authorization", authString );
+fnfEndPoint_URL="https://"+_system_company_name+".bigmachines.com/rest/v12/commerceDocumentsOraclecpqoTransaction/"+bs_id+"/actions/"+actionName;
+	restFnFActionResp= urldatabypost(fnfEndPoint_URL, "", "ERROR",headers, true);
+return "";

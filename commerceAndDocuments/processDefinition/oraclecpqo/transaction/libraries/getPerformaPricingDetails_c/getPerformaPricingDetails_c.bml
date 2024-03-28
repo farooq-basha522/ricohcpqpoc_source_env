@@ -1,0 +1,903 @@
+headerTable = "";
+fleetTable = "";
+MPS_DEBUG_FLAG = false;
+performaDataJson = json();
+SummaryTable = "";
+tableName = "";
+headerTable = "";
+PIMASALESMARGINCAL = 0.0;
+if(performaData_t <> ""){
+	performaDataJson = json(performaData_t);
+}
+//print performaDataJson ;
+if(containskey(retStringDict,"tableName")){
+	tableName = get(retStringDict,"tableName");
+}
+
+if(tableName == "ThirdPartyCPIVolumeDetails"){
+	originalBWCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalBWCommittedCPI")){
+		originalBWCommittedCPI = jsonpathgetsingle(performaDataJson,"OriginalBWCommittedCPI" ,"float");
+	}
+	//Added by Nupur for CR#13 2/8/2024
+	originalTargetBWCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalTargetBWCommittedCPI")){
+		originalTargetBWCommittedCPI = jsonpathgetsingle(performaDataJson,"OriginalTargetBWCommittedCPI" ,"float");
+	}
+	originalTargetBWCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalTargetBWCommittedVolume")){
+		originalTargetBWCommittedVolume = jsonpathgetsingle(performaDataJson,"OriginalTargetBWCommittedVolume" ,"float");
+	}
+	originalTargetBWOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalTargetBWOverageCPI")){
+		originalTargetBWOverageCPI = jsonpathgetsingle(performaDataJson,"OriginalTargetBWOverageCPI" ,"float");
+	}
+	originalTargetBWWeighted = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalTargetBWWeighted")){
+		originalTargetBWWeighted = jsonpathgetsingle(performaDataJson,"OriginalTargetBWWeighted" ,"float");
+	}
+	originalTargetColorCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalTargetColorCommittedCPI")){
+		originalTargetColorCommittedCPI = jsonpathgetsingle(performaDataJson,"OriginalTargetColorCommittedCPI" ,"float");
+	}
+	originalTargetColorCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalTargetColorCommittedVolume")){
+		originalTargetColorCommittedVolume = jsonpathgetsingle(performaDataJson,"OriginalTargetColorCommittedVolume" ,"float");
+	}
+	originalTargetColorOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalTargetColorOverageCPI")){
+		originalTargetColorOverageCPI = jsonpathgetsingle(performaDataJson,"OriginalTargetColorOverageCPI" ,"float");
+	}
+	originalTargetColorWeighted = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalTargetColorWeighted")){
+		originalTargetColorWeighted = jsonpathgetsingle(performaDataJson,"OriginalTargetColorWeighted" ,"float");
+	}
+	originalTotalBaseTargetPrice = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalTotalBaseTargetPrice")){
+		originalTotalBaseTargetPrice = jsonpathgetsingle(performaDataJson,"OriginalTotalBaseTargetPrice" ,"float");
+	}
+	originalBWWeightedSalesCost = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalBWWeightedSalesCost")){
+		originalBWWeightedSalesCost = jsonpathgetsingle(performaDataJson,"OriginalBWWeightedSalesCost" ,"float");
+	}
+	originalColorWeightedSalesCost = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalColorWeightedSalesCost")){
+		originalColorWeightedSalesCost = jsonpathgetsingle(performaDataJson,"OriginalColorWeightedSalesCost" ,"float");
+	}
+	originalTotalBaseSalesCost = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalTotalBaseSalesCost")){
+		originalTotalBaseSalesCost = jsonpathgetsingle(performaDataJson,"OriginalTotalBaseSalesCost" ,"float");
+	}
+	originalTotalBaseTargetPrice = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalTotalBaseTargetPrice")){
+		originalTotalBaseTargetPrice = jsonpathgetsingle(performaDataJson,"OriginalTotalBaseTargetPrice" ,"float");
+	}
+	originalBWCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalBWCommittedVolume")){
+		originalBWCommittedVolume = jsonpathgetsingle(performaDataJson,"OriginalBWCommittedVolume" ,"float");
+	}
+	originalBWOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalBWOverageCPI")){
+		originalBWOverageCPI = jsonpathgetsingle(performaDataJson,"OriginalBWOverageCPI" ,"float");
+	}
+	originalColorCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalColorCommittedCPI")){
+		originalColorCommittedCPI = jsonget(performaDataJson,"OriginalColorCommittedCPI","float");
+	}
+	originalColorCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalColorCommittedVolume")){
+		originalColorCommittedVolume = jsonget(performaDataJson,"OriginalColorCommittedVolume","float");
+	}
+	originalColorOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalColorOverageCPI")){
+		originalColorOverageCPI = jsonget(performaDataJson,"OriginalColorOverageCPI","float");
+	}
+	base = 0.0;
+	if(jsonpathcheck(performaDataJson,"base")){
+		base = jsonget(performaDataJson,"base","float");
+	}
+	/* orginalFleetManagmentPerDevice = 0.0;
+	if(jsonpathcheck(performaDataJson,"orginalFleetManagmentPerDevice")){
+		orginalFleetManagmentPerDevice = jsonget(performaDataJson,"orginalFleetManagmentPerDevice","float");
+	}
+	orginalTotalFleetManagmentPerDevice = 0.0;
+	if(jsonpathcheck(performaDataJson,"orginalTotalFleetManagmentPerDevice")){
+		orginalTotalFleetManagmentPerDevice = jsonget(performaDataJson,"orginalTotalFleetManagmentPerDevice","float");
+	} */
+	originalThirdPartySalesGPPercentage = 0.0;
+	if(jsonpathcheck(performaDataJson,"originalThirdPartySalesGPPercentage")){
+		originalThirdPartySalesGPPercentage = jsonget(performaDataJson,"originalThirdPartySalesGPPercentage","float");
+	}
+
+	calculatedBWCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"CalculatedBWCommittedCPI")){
+		calculatedBWCommittedCPI = jsonget(performaDataJson,"CalculatedBWCommittedCPI","float");
+	}
+	calculatedBWCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"CalculatedBWCommittedVolume")){
+		calculatedBWCommittedVolume = jsonget(performaDataJson,"CalculatedBWCommittedVolume","float");
+	}
+	calculatedBWOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"CalculatedBWOverageCPI")){
+		calculatedBWOverageCPI = jsonget(performaDataJson,"CalculatedBWOverageCPI","float");
+	}
+	calculatedBWOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"CalculatedBWOverageCPI")){
+		calculatedBWOverageCPI = jsonget(performaDataJson,"CalculatedBWOverageCPI","float");
+	}
+	calculatedTargetBWWeighted = 0.0;
+	if(jsonpathcheck(performaDataJson,"CalculatedTargetBWWeighted")){
+		calculatedTargetBWWeighted = jsonget(performaDataJson,"CalculatedTargetBWWeighted","float");
+	}
+	calculatedColorCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"CalculatedColorCommittedCPI")){
+		calculatedColorCommittedCPI = jsonget(performaDataJson,"CalculatedColorCommittedCPI","float");
+	}
+	calculatedColorCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"CalculatedColorCommittedVolume")){
+		calculatedColorCommittedVolume = jsonget(performaDataJson,"CalculatedColorCommittedVolume","float");
+	}
+	calculatedColorOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"CalculatedColorOverageCPI")){
+		calculatedColorOverageCPI = jsonget(performaDataJson,"CalculatedColorOverageCPI","float");
+	}
+	calculatedTargetColorWeighted = 0.0;
+	if(jsonpathcheck(performaDataJson,"CalculatedTargetColorWeighted")){
+		calculatedTargetColorWeighted = jsonget(performaDataJson,"CalculatedTargetColorWeighted","float");
+	}
+	calculatedTotalBaseTargetPrice = 0.0;
+	if(jsonpathcheck(performaDataJson,"CalculatedTotalBaseTargetPrice")){
+		calculatedTotalBaseTargetPrice = jsonget(performaDataJson,"CalculatedTotalBaseTargetPrice","float");
+	}
+	calculatedbase = 0.0;
+	if(jsonpathcheck(performaDataJson,"Calculatedbase")){
+		calculatedbase = jsonget(performaDataJson,"Calculatedbase","float");
+	}
+	gPSalesBWCommitted = 0.0;
+	gPSalesBWCommittedFinal =0.0;
+	if(jsonpathcheck(performaDataJson,"GPSalesBWCommitted")){
+	gPSalesBWCommitted = jsonget(performaDataJson,"GPSalesBWCommitted","float");
+	gPSalesBWCommittedFinal = gPSalesBWCommitted * 100;
+	}
+	gPSalesBWOverage = 0.0;
+	GPSALESBWOVERAGEFINAL = 0.0;
+	if(jsonpathcheck(performaDataJson,"GPSalesBWOverage")){
+	gPSalesBWOverage = jsonget(performaDataJson,"GPSalesBWOverage","float");
+	gPSalesBWOverageFinal = gPSalesBWOverage * 100;
+	}
+	gpSalesBWWeighted = 0.0;
+	if(jsonpathcheck(performaDataJson,"GPSalesBWWeighted")){
+	gpSalesBWWeighted = jsonget(performaDataJson,"GPSalesBWWeighted","float");
+	}
+	gPSalesColorCommitted = 0.0;
+	GPSALESCOLORCOMMITTEDFINAL =0.0;
+	if(jsonpathcheck(performaDataJson,"GPSalesColorCommitted")){
+	gPSalesColorCommitted = jsonget(performaDataJson,"GPSalesColorCommitted","float");
+	gPSalesColorCommittedFinal = gPSalesColorCommitted * 100;
+	}
+	gPSalesColorOverage = 0.0;
+	GPSALESCOLOROVERAGEFINAL =0.0;
+	if(jsonpathcheck(performaDataJson,"GPSalesColorOverage")){
+	gPSalesColorOverage = jsonget(performaDataJson,"GPSalesColorOverage","float");
+	gPSalesColorOverageFinal = gPSalesColorOverage * 100;
+	}
+	gpSalesColorWeighted = 0.0;
+	if(jsonpathcheck(performaDataJson,"GPSalesColorWeighted")){
+	gpSalesColorWeighted = jsonget(performaDataJson,"GPSalesColorWeighted","float");
+	}
+	OriginalGPSalesBWCommittedFinal = 0.0;
+	OriginalGPSalesBWCommitted = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalGPSalesBWCommitted")){
+	OriginalGPSalesBWCommitted = jsonget(performaDataJson,"OriginalGPSalesBWCommitted","float");
+	OriginalGPSalesBWCommittedFinal = OriginalGPSalesBWCommitted * 100;
+	}
+	OriginalGPSalesBWOverageFinal = 0.0;
+	OriginalGPSalesBWOverage = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalGPSalesBWOverage")){
+	OriginalGPSalesBWOverage = jsonget(performaDataJson,"OriginalGPSalesBWOverage","float");
+	OriginalGPSalesBWOverageFinal = OriginalGPSalesBWOverage * 100;
+	}
+	OriginalGPSalesBWweightedBase = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalGPSalesBWweightedBase")){
+	OriginalGPSalesBWweightedBase = jsonget(performaDataJson,"OriginalGPSalesBWweightedBase","float");
+	}
+	OriginalGPSalesColorCommittedFinal = 0.0;
+	OriginalGPSalesColorCommitted = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalGPSalesColorCommitted")){
+	OriginalGPSalesColorCommitted = jsonget(performaDataJson,"OriginalGPSalesColorCommitted","float");
+	OriginalGPSalesColorCommittedFinal = OriginalGPSalesColorCommitted * 100;
+	}
+	OriginalGPSalesColorOverageFinal = 0.0;
+	OriginalGPSalesColorOverage = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalGPSalesColorOverage")){
+	OriginalGPSalesColorOverage = jsonget(performaDataJson,"OriginalGPSalesColorOverage","float");
+	OriginalGPSalesColorOverageFinal = OriginalGPSalesColorOverage * 100;
+	}
+	OriginalGPSalesColorweightedBase = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalGPSalesColorweightedBase")){
+	OriginalGPSalesColorweightedBase = jsonget(performaDataJson,"OriginalGPSalesColorweightedBase","float");
+	}
+	OriginalGPSalesTotalBaseFinal = 0.0;
+	OriginalGPSalesTotalBase = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalGPSalesTotalBase")){
+	OriginalGPSalesTotalBase = jsonget(performaDataJson,"OriginalGPSalesTotalBase","float");
+	OriginalGPSalesTotalBaseFinal = OriginalGPSalesTotalBase * 100;
+	}
+	gpSalesTotalBaseFinal = 0.0;
+	gpSalesTotalBase = 0.0;
+	if(jsonpathcheck(performaDataJson,"GPSalesTotalBase")){
+	gpSalesTotalBase = jsonget(performaDataJson,"GPSalesTotalBase","float");
+	gpSalesTotalBaseFinal = gpSalesTotalBase * 100;
+	}
+	/* fleetManagmentPerDevice = 0.0;
+	if(jsonpathcheck(performaDataJson,"fleetManagmentPerDevice")){
+		fleetManagmentPerDevice = jsonget(performaDataJson,"fleetManagmentPerDevice","float");
+	}
+	totalFleetManagmentPerDevice = 0.0;
+	if(jsonpathcheck(performaDataJson,"totalFleetManagmentPerDevice")){
+		totalFleetManagmentPerDevice = jsonget(performaDataJson,"totalFleetManagmentPerDevice","float");
+	} 
+	calculatedThirdPartySalesGPPercentage = 0.0;
+	if(jsonpathcheck(performaDataJson,"calculatedThirdPartySalesGPPercentage")){
+		calculatedThirdPartySalesGPPercentage = jsonget(performaDataJson,"calculatedThirdPartySalesGPPercentage","float");
+	}
+
+	totalBaseBWCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"totalBaseBWCommittedCPI")){
+		totalBaseBWCommittedCPI = jsonget(performaDataJson,"totalBaseBWCommittedCPI","float");
+	}
+	totalBaseBWCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"totalBaseBWCommittedVolume")){
+		totalBaseBWCommittedVolume = jsonget(performaDataJson,"totalBaseBWCommittedVolume","float");
+	}
+	totalBaseBWOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"totalBaseBWOverageCPI")){
+		totalBaseBWOverageCPI = jsonget(performaDataJson,"totalBaseBWOverageCPI","float");
+	}
+	totalBaseColorCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"totalBaseColorCommittedCPI")){
+		totalBaseColorCommittedCPI = jsonget(performaDataJson,"totalBaseColorCommittedCPI","float");
+	}
+	totalBaseColorCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"totalBaseColorCommittedVolume")){
+		totalBaseColorCommittedVolume = jsonget(performaDataJson,"totalBaseColorCommittedVolume","float");
+	}
+	totalBaseColorOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"totalBaseColorOverageCPI")){
+		totalBaseColorOverageCPI = jsonget(performaDataJson,"totalBaseColorOverageCPI","float");
+	}
+	totalBase = 0.0;
+	if(jsonpathcheck(performaDataJson,"totalBase")){
+		totalBase = jsonget(performaDataJson,"totalBase","float");
+	}*/
+}
+//START 12_29_2023 CR#13 Added by Vasundhara
+if(tableName == "MICRCPIVolumeDetails"){
+	mICROriginalBWCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalBWCommittedCPI")){
+		mICROriginalBWCommittedCPI = jsonpathgetsingle(performaDataJson,"mICROriginalBWCommittedCPI" ,"float");
+	}
+	mICROriginalBWCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalBWCommittedVolume")){
+		mICROriginalBWCommittedVolume = jsonpathgetsingle(performaDataJson,"mICROriginalBWCommittedVolume" ,"float");
+	}
+	mICROriginalBWOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalBWOverageCPI")){
+		mICROriginalBWOverageCPI = jsonpathgetsingle(performaDataJson,"mICROriginalBWOverageCPI" ,"float");
+	}
+	mICROriginalColorCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalColorCommittedCPI")){
+		mICROriginalColorCommittedCPI = jsonget(performaDataJson,"mICROriginalColorCommittedCPI","float");
+	}
+	mICROriginalColorCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalColorCommittedVolume")){
+		mICROriginalColorCommittedVolume = jsonget(performaDataJson,"mICROriginalColorCommittedVolume","float");
+	}
+	mICROriginalColorOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalColorOverageCPI")){
+		mICROriginalColorOverageCPI = jsonget(performaDataJson,"mICROriginalColorOverageCPI","float");
+	}
+	mICROriginalBWWeightedSalesCost = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalBWWeightedSalesCost")){
+		mICROriginalBWWeightedSalesCost = jsonget(performaDataJson,"mICROriginalBWWeightedSalesCost","float");
+	}
+	mICROriginalColorWeightedSalesCost = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalColorWeightedSalesCost")){
+	mICROriginalColorWeightedSalesCost = jsonget(performaDataJson,"mICROriginalColorWeightedSalesCost","float");
+	}
+	mICRriginalTotalBaseSalesCost = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRriginalTotalBaseSalesCost")){
+	mICRriginalTotalBaseSalesCost = jsonget(performaDataJson,"mICRriginalTotalBaseSalesCost","float");
+	}
+	mICROriginalTargetBWCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalTargetBWCommittedCPI")){
+	mICROriginalTargetBWCommittedCPI = jsonget(performaDataJson,"mICROriginalTargetBWCommittedCPI","float");
+	}
+	mICROriginalTargetBWCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalTargetBWCommittedVolume")){
+	mICROriginalTargetBWCommittedVolume = jsonget(performaDataJson,"mICROriginalTargetBWCommittedVolume","float");
+	}
+	mICROriginalTargetBWOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalTargetBWOverageCPI")){
+	mICROriginalTargetBWOverageCPI = jsonget(performaDataJson,"mICROriginalTargetBWOverageCPI","float");
+	}
+	mICROriginalTargetBWWeighted = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalTargetBWWeighted")){
+	mICROriginalTargetBWWeighted = jsonget(performaDataJson,"mICROriginalTargetBWWeighted","float");
+	}
+	mICROriginalTargetColorCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalTargetColorCommittedCPI")){
+	mICROriginalTargetColorCommittedCPI = jsonget(performaDataJson,"mICROriginalTargetColorCommittedCPI","float");
+	}
+	mICROriginalTargetColorCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalTargetColorCommittedVolume")){
+	mICROriginalTargetColorCommittedVolume = jsonget(performaDataJson,"mICROriginalTargetColorCommittedVolume","float");
+	}
+	mICROriginalTargetColorOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalTargetColorOverageCPI")){
+	mICROriginalTargetColorOverageCPI = jsonget(performaDataJson,"mICROriginalTargetColorOverageCPI","float");
+	}
+	mICROriginalTargetColorWeighted = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalTargetColorWeighted")){
+	mICROriginalTargetColorWeighted = jsonget(performaDataJson,"mICROriginalTargetColorWeighted","float");
+	}
+	mICROriginalTotalBaseTargetPrice = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICROriginalTotalBaseTargetPrice")){
+	mICROriginalTotalBaseTargetPrice = jsonget(performaDataJson,"mICROriginalTotalBaseTargetPrice","float");
+	}
+	mICRbase = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRbase")){
+		mICRbase = jsonget(performaDataJson,"mICRbase","float");
+	}
+	originalMICRSalesGPPercentage = 0.0;
+	if(jsonpathcheck(performaDataJson,"originalMICRSalesGPPercentage")){
+		originalMICRSalesGPPercentage = jsonget(performaDataJson,"originalMICRSalesGPPercentage","float");
+	}
+	orginalFleetManagmentPerDevice = 0.0;
+	if(jsonpathcheck(performaDataJson,"orginalFleetManagmentPerDevice")){
+		orginalFleetManagmentPerDevice = jsonget(performaDataJson,"orginalFleetManagmentPerDevice","float");
+	}
+	orginalTotalFleetManagmentPerDevice = 0.0;
+	if(jsonpathcheck(performaDataJson,"orginalTotalFleetManagmentPerDevice")){
+		orginalTotalFleetManagmentPerDevice = jsonget(performaDataJson,"orginalTotalFleetManagmentPerDevice","float");
+	} 
+
+	mICRCalculatedBWCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRCalculatedBWCommittedCPI")){
+		mICRCalculatedBWCommittedCPI = jsonget(performaDataJson,"mICRCalculatedBWCommittedCPI","float");
+	}
+	mICRCalculatedBWCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRCalculatedBWCommittedVolume")){
+		mICRCalculatedBWCommittedVolume = jsonget(performaDataJson,"mICRCalculatedBWCommittedVolume","float");
+	}
+	mICRCalculatedBWOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRCalculatedBWOverageCPI")){
+		mICRCalculatedBWOverageCPI = jsonget(performaDataJson,"mICRCalculatedBWOverageCPI","float");
+	}
+	mICRCalculatedTargetBWWeighted = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRCalculatedTargetBWWeighted")){
+	mICRCalculatedTargetBWWeighted = jsonget(performaDataJson,"mICRCalculatedTargetBWWeighted","float");
+	}
+	mICRCalculatedColorCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRCalculatedColorCommittedCPI")){
+		mICRCalculatedColorCommittedCPI = jsonget(performaDataJson,"mICRCalculatedColorCommittedCPI","float");
+	}
+	mICRCalculatedColorCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRCalculatedColorCommittedVolume")){
+		mICRCalculatedColorCommittedVolume = jsonget(performaDataJson,"mICRCalculatedColorCommittedVolume","float");
+	}
+	mICRCalculatedColorOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRCalculatedColorOverageCPI")){
+		mICRCalculatedColorOverageCPI = jsonget(performaDataJson,"mICRCalculatedColorOverageCPI","float");
+	}
+	mICRCalculatedTargetColorWeighted = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRCalculatedTargetColorWeighted")){
+	mICRCalculatedTargetColorWeighted = jsonget(performaDataJson,"mICRCalculatedTargetColorWeighted","float");
+	}
+	mICRCalculatedTotalBaseTargetPrice = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRCalculatedTotalBaseTargetPrice")){
+	mICRCalculatedTotalBaseTargetPrice = jsonget(performaDataJson,"mICRCalculatedTotalBaseTargetPrice","float");
+	}
+	mICRGPSalesBWCommittedFinal = 0.0;
+	mICRGPSalesBWCommitted = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRGPSalesBWCommitted")){
+	mICRGPSalesBWCommitted = jsonget(performaDataJson,"mICRGPSalesBWCommitted","float");
+	mICRGPSalesBWCommittedFinal = mICRGPSalesBWCommitted * 100;
+	}
+	mICRGPSalesBWOverageFinal = 0.0;
+	mICRGPSalesBWOverage = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRGPSalesBWOverage")){
+	mICRGPSalesBWOverage = jsonget(performaDataJson,"mICRGPSalesBWOverage","float");
+	mICRGPSalesBWOverageFinal = mICRGPSalesBWOverage * 100;
+	}
+ 	mICRGPSalesBWWeighted = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRGPSalesBWWeighted")){
+	mICRGPSalesBWWeighted = jsonget(performaDataJson,"mICRGPSalesBWWeighted","float");
+	}
+	mICRGPSalesColorCommittedFinal = 0.0;
+	mICRGPSalesColorCommitted = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRGPSalesColorCommitted")){
+	mICRGPSalesColorCommitted = jsonget(performaDataJson,"mICRGPSalesColorCommitted","float");
+	mICRGPSalesColorCommittedFinal = mICRGPSalesColorCommitted * 100;
+	}
+	mICRGPSalesColorOverageFinal = 0.0;
+	mICRGPSalesColorOverage = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRGPSalesColorOverage")){
+	mICRGPSalesColorOverage = jsonget(performaDataJson,"mICRGPSalesColorOverage","float");
+	mICRGPSalesColorOverageFinal = mICRGPSalesColorOverage * 100;
+	}
+	mICRGPSalesColorWeighted = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRGPSalesColorWeighted")){
+	mICRGPSalesColorWeighted = jsonget(performaDataJson,"mICRGPSalesColorWeighted","float");
+	}
+	OriginalmICRGPSalesBWCommittedFinal = 0.0;
+	OriginalmICRGPSalesBWCommitted = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalmICRGPSalesBWCommitted")){
+	OriginalmICRGPSalesBWCommitted = jsonget(performaDataJson,"OriginalmICRGPSalesBWCommitted","float");
+	OriginalmICRGPSalesBWCommittedFinal = OriginalmICRGPSalesBWCommitted * 100;
+	}
+	OriginalmICRGPSalesBWOverageFinal = 0.0;
+    OriginalmICRGPSalesBWOverage = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalmICRGPSalesBWOverage")){
+	OriginalmICRGPSalesBWOverage = jsonget(performaDataJson,"OriginalmICRGPSalesBWOverage","float");
+	OriginalmICRGPSalesBWOverageFinal = OriginalmICRGPSalesBWOverage * 100;
+	}
+	OriginalmICRGPSalesBWweightedBase = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalmICRGPSalesBWweightedBase")){
+	OriginalmICRGPSalesBWweightedBase = jsonget(performaDataJson,"OriginalmICRGPSalesBWweightedBase","float");
+	}
+	OriginalmICRGPSalesColorCommittedFinal = 0.0;
+	OriginalmICRGPSalesColorCommitted = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalmICRGPSalesColorCommitted")){
+	OriginalmICRGPSalesColorCommitted = jsonget(performaDataJson,"OriginalmICRGPSalesColorCommitted","float");
+	OriginalmICRGPSalesColorCommittedFinal = OriginalmICRGPSalesColorCommitted * 100;
+	}
+	OriginalmICRGPSalesColorOverageFinal = 0.0;
+	OriginalmICRGPSalesColorOverage = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalmICRGPSalesColorOverage")){
+	OriginalmICRGPSalesColorOverage = jsonget(performaDataJson,"OriginalmICRGPSalesColorOverage","float");
+	OriginalmICRGPSalesColorOverageFinal = OriginalmICRGPSalesColorOverage * 100;
+	}
+	OriginalmICRGPSalesColorweightedBase = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalmICRGPSalesColorweightedBase")){
+	OriginalmICRGPSalesColorweightedBase = jsonget(performaDataJson,"OriginalmICRGPSalesColorweightedBase","float");
+	}
+	OriginalmICRGPSalesTotalBaseFinal = 0.0;
+	OriginalmICRGPSalesTotalBase = 0.0;
+	if(jsonpathcheck(performaDataJson,"OriginalmICRGPSalesTotalBase")){
+	OriginalmICRGPSalesTotalBase = jsonget(performaDataJson,"OriginalmICRGPSalesTotalBase","float");
+	OriginalmICRGPSalesTotalBaseFinal = OriginalmICRGPSalesTotalBase * 100;
+	}
+	mICRGPSalesTotalBaseFinal = 0.0;
+	mICRGPSalesTotalBase = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRGPSalesTotalBase")){
+	mICRGPSalesTotalBase = jsonget(performaDataJson,"mICRGPSalesTotalBase","float");
+	mICRGPSalesTotalBaseFinal = mICRGPSalesTotalBase * 100;
+	}
+	/*mICRCalculatedbase = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRCalculatedbase")){
+		mICRCalculatedbase = jsonget(performaDataJson,"mICRCalculatedbase","float");
+	}
+	calculatedMICRSalesGPPercentage = 0.0;
+	if(jsonpathcheck(performaDataJson,"calculatedMICRSalesGPPercentage")){
+		calculatedMICRSalesGPPercentage = jsonget(performaDataJson,"calculatedMICRSalesGPPercentage","float");
+	}
+	fleetManagmentPerDevice = 0.0;
+	if(jsonpathcheck(performaDataJson,"fleetManagmentPerDevice")){
+		fleetManagmentPerDevice = jsonget(performaDataJson,"fleetManagmentPerDevice","float");
+	}
+	totalFleetManagmentPerDevice = 0.0;
+	if(jsonpathcheck(performaDataJson,"totalFleetManagmentPerDevice")){
+		totalFleetManagmentPerDevice = jsonget(performaDataJson,"totalFleetManagmentPerDevice","float");
+	}
+
+	mICRTotalBaseBWCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRTotalBaseBWCommittedCPI")){
+		mICRTotalBaseBWCommittedCPI = jsonget(performaDataJson,"mICRTotalBaseBWCommittedCPI","float");
+	}
+	mICRTotalBaseBWCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRTotalBaseBWCommittedVolume")){
+		mICRTotalBaseBWCommittedVolume = jsonget(performaDataJson,"mICRTotalBaseBWCommittedVolume","float");
+	}
+	mICRTotalBaseBWOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRTotalBaseBWOverageCPI")){
+		mICRTotalBaseBWOverageCPI = jsonget(performaDataJson,"mICRTotalBaseBWOverageCPI","float");
+	}
+	mICRTotalBaseColorCommittedCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRTotalBaseColorCommittedCPI")){
+		mICRTotalBaseColorCommittedCPI = jsonget(performaDataJson,"mICRTotalBaseColorCommittedCPI","float");
+	}
+	mICRTotalBaseColorCommittedVolume = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRTotalBaseColorCommittedVolume")){
+		mICRTotalBaseColorCommittedVolume = jsonget(performaDataJson,"mICRTotalBaseColorCommittedVolume","float");
+	}
+	mICRTotalBaseColorOverageCPI = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRTotalBaseColorOverageCPI")){
+		mICRTotalBaseColorOverageCPI = jsonget(performaDataJson,"mICRTotalBaseColorOverageCPI","float");
+	}
+	mICRTotalBase = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRTotalBase")){
+		mICRTotalBase = jsonget(performaDataJson,"mICRTotalBase","float");
+	}*/
+}
+
+if(tableName == "MonthlyBaseSummary"){
+	base = 0.0;
+	if(jsonpathcheck(performaDataJson,"base")){
+		base = jsonget(performaDataJson,"base","float");
+	}
+	TotalBase = 0.0;
+	if(jsonpathcheck(performaDataJson,"totalBase")){
+	TotalBase = jsonget(performaDataJson,"totalBase","float");
+	}
+	calculatedbase = 0.0;
+	if(jsonpathcheck(performaDataJson,"Calculatedbase")){
+		calculatedbase = jsonget(performaDataJson,"Calculatedbase","float");
+	}
+	if(modifyPricingScenario_t== "Revert to Original"){
+	calculatedbase = base ;
+	
+	}
+	mICRbase = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRbase")){
+		mICRbase = jsonget(performaDataJson,"mICRbase","float");
+	}
+	mICRCalculatedbase = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRCalculatedbase")){
+		mICRCalculatedbase = jsonget(performaDataJson,"mICRCalculatedbase","float");
+	}
+	if(modifyPricingScenario_MICR_c == "Revert to Original"){
+	mICRCalculatedbase = mICRbase ;
+	
+	}
+	mICRTotalBase = 0.0;
+	if(jsonpathcheck(performaDataJson,"mICRTotalBase")){
+	mICRTotalBase = jsonget(performaDataJson,"mICRTotalBase","float");
+	}
+	FleetTotal = 0.0;
+	if(jsonpathcheck(performaDataJson,"orginalTotalFleetManagmentPerDevice")){
+		FleetTotal = jsonget(performaDataJson,"orginalTotalFleetManagmentPerDevice","float");
+		
+	}
+	FleetTotalCal = 0.0;
+	if(jsonpathcheck(performaDataJson,"calculatedTotalFleetManagmentPerDevice")){
+		FleetTotalCal = jsonget(performaDataJson,"calculatedTotalFleetManagmentPerDevice","float");
+	}
+	if(modifyPricingScenarioFleetManagement3rdPartyMICR_c == "Revert to Original"){
+	FleetTotalCal = FleetTotal;
+	
+	}
+
+	ZebraFleetTotal = 0.0;
+	if(jsonpathcheck(performaDataJson,"orginalZebraTotalFleetManagmentPerDevice")){
+		ZebraFleetTotal = jsonget(performaDataJson,"orginalZebraTotalFleetManagmentPerDevice","float");
+
+	}
+	ZebraFleetTotalCalc = 0.0;
+	if(jsonpathcheck(performaDataJson,"calculatedZebraFleetManagmentPerDevice")){
+		ZebraFleetTotalCalc = jsonget(performaDataJson,"calculatedZebraFleetManagmentPerDevice","float");
+	}
+	if(modifyPricingScenarioFleetManagementZebra_t_c == "Revert to Original"){
+	ZebraFleetTotalCalc = ZebraFleetTotal;
+	}
+	TotalBaseSummaryOriginal = base + mICRbase + FleetTotal + ZebraFleetTotal;
+	TotalBaseSummaryCal = calculatedbase+ mICRCalculatedbase + FleetTotalCal + ZebraFleetTotalCalc ;
+
+	yearParam = "year1_MPSTotalArraySet_c";
+	if(jsonarraysize(mPSTotalDealSectionArrayset_t_c) > 5){
+		if(NOT isnull(jsonget(json(jsonarrayget(mPSTotalDealSectionArrayset_t_c, 10)),yearParam))){
+		marginQuoteSummary = jsonget(json(jsonarrayget(mPSTotalDealSectionArrayset_t_c, 10)),yearParam);
+		if(marginQuoteSummary <> ""){
+			PIMASalesMarginCal  = atof(marginQuoteSummary);
+			PIMASalesMarginCal  = round(PIMASalesMarginCal , 2);
+			}
+		}
+	}
+	
+	PIMASalesMarginOrignal = 0.0;
+	if(modifyPricingScenario_t <> "Total Base" AND modifyPricingScenario_t <> "CPI"
+	AND modifyPricingScenario_MICR_c <> "Total Base" AND  modifyPricingScenario_MICR_c <> "CPI" 
+	AND monthlyFleetManagement_MICR_c < 1 AND monthlyFleetManagement_Zebra_c < 1)
+	{
+		PIMASalesMarginOrignal  = PIMASalesMarginCal  ;
+	}
+	else{
+			
+		if(pIMAOrignalMarginPerforma_t_c<> "" AND Not(isnull(pIMAOrignalMarginPerforma_t_c))){
+			PIMASalesMarginOrignal = atof(pIMAOrignalMarginPerforma_t_c);
+		}
+		
+	}
+
+}
+cPIColumns = string[];
+
+if(leadingPricingStrategy_t == "Base+Overage"){
+	cPIColumns = string[]{
+		"B&W",
+		"B&W Volume",
+		"B&W Overage",
+		"BW Base",
+		"Color",
+		"Color Volume",
+		"Color Overage",
+		"Color Base",
+		"Total Base"
+		
+	};
+}
+else {
+	cPIColumns = string[]{
+		"B&W",
+		"B&W Volume",
+		"BW Base",
+		"Color",
+		"Color Volume",
+		"Color Base",
+		"Total Base"
+		
+	};
+
+}
+
+fleetColumns = string[]{
+	"Fleet Management Per Device",
+	"Fleet Management Total",
+	"Total Base"
+};
+SummaryColumns = string[]{
+	"3rd Party Base-(Breakfix+Supplies)",
+	"MICR Base-(Breakfix+Supplies)",
+	"3rd Party / MICR Monthly Fleet Management",
+	"Zebra Monthly Fleet Management",
+	"Monthly Total Base",
+	"Sales GP%"
+	};
+//Added Dummy Values below
+cPIDict = dict("float");
+if(tableName == "ThirdPartyCPIVolumeDetails"){
+	put(cPIDict, "B&W Original", originalBWCommittedCPI);
+	put(cPIDict, "B&W Volume Original", originalBWCommittedVolume);
+	put(cPIDict, "B&W Overage Original", originalBWOverageCPI);
+	put(cPIDict, "BW Base Original", originalBWWeightedSalesCost);
+	put(cPIDict, "Color Original", originalColorCommittedCPI);
+	put(cPIDict, "Color Volume Original", originalColorCommittedVolume);
+	put(cPIDict, "Color Overage Original", originalColorOverageCPI);
+	put(cPIDict, "Color Base Original", originalColorWeightedSalesCost);
+	put(cPIDict, "Total Base Original", originalTotalBaseSalesCost);
+    
+	//Target Price
+    put(cPIDict, "B&W TargetOriginal", originalTargetBWCommittedCPI);
+	put(cPIDict, "B&W Volume TargetOriginal", originalTargetBWCommittedVolume);
+	put(cPIDict, "B&W Overage TargetOriginal", originalTargetBWOverageCPI);
+	put(cPIDict, "BW Base TargetOriginal", originalTargetBWWeighted);
+	put(cPIDict, "Color TargetOriginal", originalTargetColorCommittedCPI);
+	put(cPIDict, "Color Volume TargetOriginal", originalTargetColorCommittedVolume);
+	put(cPIDict, "Color Overage TargetOriginal", originalTargetColorOverageCPI);
+	put(cPIDict, "Color Base TargetOriginal", originalTargetColorWeighted);
+	put(cPIDict, "Total Base TargetOriginal", originalTotalBaseTargetPrice);
+	
+	//Net Selling Price (PPI)	
+	put(cPIDict, "B&W Calculated", calculatedBWCommittedCPI);
+	put(cPIDict, "B&W Volume Calculated", calculatedBWCommittedVolume);
+	put(cPIDict, "B&W Overage Calculated", calculatedBWOverageCPI);
+	put(cPIDict, "BW Base Calculated", calculatedTargetBWWeighted);
+	put(cPIDict, "Color Calculated", calculatedColorCommittedCPI);
+	put(cPIDict, "Color Volume Calculated", calculatedColorCommittedVolume);
+	put(cPIDict, "Color Overage Calculated", calculatedColorOverageCPI);
+	put(cPIDict, "Color Base Calculated", calculatedTargetColorWeighted);
+	put(cPIDict, "Total Base Calculated", calculatedTotalBaseTargetPrice);
+ 
+    //GP%(Sales Cost) Original
+	put(cPIDict, "B&W GPOriginal", OriginalGPSalesBWCommittedFinal);
+	put(cPIDict, "B&W Overage GPOriginal", OriginalGPSalesBWOverageFinal);
+	//put(cPIDict, "BW Base GPOriginal", OriginalGPSalesBWweightedBase);
+	put(cPIDict, "Color GPOriginal", OriginalGPSalesColorCommittedFinal);
+	put(cPIDict, "Color Overage GPOriginal", OriginalGPSalesColorOverageFinal);
+	//put(cPIDict, "Color Base GPOriginal", OriginalGPSalesColorweightedBase);
+	put(cPIDict, "Total Base GPOriginal", OriginalGPSalesTotalBaseFinal);
+
+	//GP%(Sales Cost)
+	put(cPIDict, "B&W GPSales", gPSalesBWCommittedFinal);
+	put(cPIDict, "B&W Overage GPSales", gPSalesBWOverageFinal);
+	//put(cPIDict, "BW Base GPSales", gpSalesBWWeighted);
+	put(cPIDict, "Color GPSales", gPSalesColorCommittedFinal);
+	put(cPIDict, "Color Overage GPSales", gPSalesColorOverageFinal);
+	//put(cPIDict, "Color Base GPSales", gpSalesColorWeighted);
+	put(cPIDict, "Total Base GPSales", gpSalesTotalBaseFinal);
+	
+	
+}elif(tableName == "MICRCPIVolumeDetails"){
+    
+	put(cPIDict, "B&W Original", mICROriginalBWCommittedCPI);
+	put(cPIDict, "B&W Volume Original", mICROriginalBWCommittedVolume);
+	put(cPIDict, "B&W Overage Original", mICROriginalBWOverageCPI);
+	put(cPIDict, "BW Base Original", mICROriginalBWWeightedSalesCost);
+	put(cPIDict, "Color Original", mICROriginalColorCommittedCPI);
+	put(cPIDict, "Color Volume Original", mICROriginalColorCommittedVolume);
+	put(cPIDict, "Color Overage Original", mICROriginalColorOverageCPI);
+	put(cPIDict, "Color Base Original", mICROriginalColorWeightedSalesCost);
+	put(cPIDict, "Total Base Original", mICRriginalTotalBaseSalesCost);
+    
+	put(cPIDict, "B&W TargetOriginal", mICROriginalTargetBWCommittedCPI);
+	put(cPIDict, "B&W Volume TargetOriginal", mICROriginalTargetBWCommittedVolume);
+	put(cPIDict, "B&W Overage TargetOriginal", mICROriginalTargetBWOverageCPI);
+	put(cPIDict, "BW Base TargetOriginal", mICROriginalTargetBWWeighted);
+	put(cPIDict, "Color TargetOriginal", mICROriginalTargetColorCommittedCPI);
+	put(cPIDict, "Color Volume TargetOriginal", mICROriginalTargetColorCommittedVolume);
+	put(cPIDict, "Color Overage TargetOriginal", mICROriginalTargetColorOverageCPI);
+	put(cPIDict, "Color Base TargetOriginal", mICROriginalTargetColorWeighted);
+	put(cPIDict, "Total Base TargetOriginal", mICROriginalTotalBaseTargetPrice);
+	
+	//Net Selling Price (PPI)	
+	put(cPIDict, "B&W Calculated", mICRCalculatedBWCommittedCPI);
+	put(cPIDict, "B&W Volume Calculated", mICRCalculatedBWCommittedVolume);
+	put(cPIDict, "B&W Overage Calculated", mICRCalculatedBWOverageCPI);
+	put(cPIDict, "BW Base Calculated", mICRCalculatedTargetBWWeighted);
+	put(cPIDict, "Color Calculated", mICRCalculatedColorCommittedCPI);
+	put(cPIDict, "Color Volume Calculated", mICRCalculatedColorCommittedVolume);
+	put(cPIDict, "Color Overage Calculated", mICRCalculatedColorOverageCPI);
+	put(cPIDict, "Color Base Calculated", mICRCalculatedTargetColorWeighted);
+	put(cPIDict, "Total Base Calculated", mICRCalculatedTotalBaseTargetPrice);
+
+	//GP%(Sales Cost) Original
+	put(cPIDict, "B&W GPOriginal", OriginalmICRGPSalesBWCommittedFinal);
+	put(cPIDict, "B&W Overage GPOriginal", OriginalmICRGPSalesBWOverageFinal);
+	//put(cPIDict, "BW Base GPOriginal", OriginalmICRGPSalesBWweightedBase);
+	put(cPIDict, "Color GPOriginal", OriginalmICRGPSalesColorCommittedFinal);
+	put(cPIDict, "Color Overage GPOriginal", OriginalmICRGPSalesColorOverageFinal);
+	//put(cPIDict, "Color Base GPOriginal", OriginalmICRGPSalesColorweightedBase);
+	put(cPIDict, "Total Base GPOriginal", OriginalmICRGPSalesTotalBaseFinal);
+	
+	//GP%(Sales Cost) 
+	put(cPIDict, "B&W GPSales", mICRGPSalesBWCommittedFinal);
+	put(cPIDict, "B&W Overage GPSales", mICRGPSalesBWOverageFinal);
+	//put(cPIDict, "B&W Base GPSales", mICRGPSalesBWWeighted);
+	put(cPIDict, "Color GPSales", mICRGPSalesColorCommittedFinal);
+	put(cPIDict, "Color Overage GPSales", mICRGPSalesColorOverageFinal);
+	//put(cPIDict, "Color Base GPSales", mICRGPSalesColorWeighted);
+	put(cPIDict, "Total Base GPSales", mICRGPSalesTotalBaseFinal);
+}
+
+
+
+	/*print "B&W Committed Original:" + string(originalBWCommittedCPI);
+	print "B&W Committed Volume Original:" + string(originalBWCommittedVolume);
+	print "B&W Overage Original:" + string(originalBWOverageCPI);
+	print "Weighted BW Original original:" + string(originalBWWeightedSalesCost);
+
+	print "Color Committed Original:" + string(originalColorCommittedCPI);
+	print "Color Committed Volume Original:" + string(originalColorCommittedVolume);
+	print "Color Overage CPI Original:" + string(originalColorOverageCPI);
+	print "Weighted Color Original:" + string(originalColorWeightedSalesCost);
+	print "Total Base Original:" + string(originalTotalBaseSalesCost);*/
+
+//Header Summary Table
+//CPITable = "<table class=\"performaView_HTML\"><tr><th style=\"width:209px\"></th><th style=\"width:209px\">Original Value</th><th style=\"width:209px\">Calculated Value</th></tr>";
+CPITable = "<table class=\"performaView_HTML\"><tr><th style=\"width:209px\"></th><th style=\"width:90px\">Sales Cost(CPI)</th><th style=\"width:104px\">Target Price(PPI)</th><th style=\"width:40px\">GP%(Sales Cost)</th></th><th style=\"width:102px\">Net Selling Price (PPI)</th><th style=\"width:40px\">GP%(Sales Cost)</th></tr>";
+if(tableName == "ThirdPartyCPIVolumeDetails"){
+	headerTable  = "<table class=\"performaView_HTML\"><tr><th style=\"width:209px\">3rd Party Blended Values</th><th style=\"width:632px\">Blended Original</th><th style=\"width:419px\">Calculated Value</th></tr>";
+}elif(tableName == "MICRCPIVolumeDetails"){
+	headerTable  = "<table class=\"performaView_HTML\"><tr><th style=\"width:209px\">MICR Blended Values</th><th style=\"width:632px\">Blended Original</th><th style=\"width:419px\">Calculated Value</th></tr>";
+}elif(tableName == "MonthlyBaseSummary"){
+	headerTable  = "<table class=\"performaView_HTML\"><tr><th style=\"width:209px\">3rd Party / MICR / Zebra</th><th style=\"width:209px\">Monthly Base Summary</th><th style=\"width:209px\"></th>";
+}
+
+headerTable = headerTable + "</tr>";
+if(tableName <> "MonthlyBaseSummary"){
+	for cPI in cPIColumns{
+	    CPITable = CPITable + "<tr><td>" + cPI + "</td>";
+		fieldValues1 = 0.0;
+		fieldValues2 = 0.0;
+		fieldValues3 = 0.0;
+		fieldValues4 = 0.0;
+		fieldValues5 = 0.0;
+		originalCPI = 0.0;
+		if(containskey(cPIDict, cPI + " Original")){
+			originalCPI = get(cPIDict, cPI + " Original");
+			fieldValues1 = round(originalCPI,4);
+		}
+				
+		if(containskey(cPIDict, cPI + " TargetOriginal")){
+			originalCPI = get(cPIDict, cPI + " TargetOriginal");
+			fieldValues2 = round(originalCPI,4);
+		}
+		if(containskey(cPIDict, cPI + " GPOriginal")){
+			originalCPI = get(cPIDict, cPI + " GPOriginal");
+			fieldValues3 = round(originalCPI,2);
+		}
+       		 if(containskey(cPIDict, cPI + " Calculated")){
+			originalCPI = get(cPIDict, cPI + " Calculated");
+			fieldValues4 = round(originalCPI,4);
+		}
+		if(containskey(cPIDict, cPI + " GPSales")){
+			originalCPI = get(cPIDict, cPI + " GPSales");
+			fieldValues5 = round(originalCPI,2);
+		}
+
+
+        	if(find(cPI,"Volume") <> -1){
+				fieldValues1 = round(originalCPI,0);
+				fieldValues2 = round(originalCPI,0);
+				//fieldValues3 = integer(originalCPI);
+				fieldValues4 = round(originalCPI,0);
+				//fieldValues5 = integer(originalCPI);
+		}
+
+
+		modifyPricingScenario = "";
+		if(tableName == "ThirdPartyCPIVolumeDetails"){
+			modifyPricingScenario = modifyPricingScenario_t;
+		}elif(tableName == "MICRCPIVolumeDetails"){
+			modifyPricingScenario = modifyPricingScenario_MICR_c;
+		}
+		/*if(modifyPricingScenario == "CPI"){
+			calculatedCPI = get(cPIDict, cPI + " Calculated");
+			if(containskey(cPIDict, cPI + " Calculated")){
+				fieldValues2 = round(calculatedCPI,4);
+			}
+		/*}elif(modifyPricingScenario == "Total Base" OR modifyPricingScenario == "Total Base"){
+			totalBase = get(cPIDict, cPI + " TotalBase");
+			if(containskey(cPIDict, cPI + " TotalBase")){
+				fieldValues2 = round(totalBase,4);
+			}
+			if(find(cPI,"Volume") <> -1){
+				fieldValues2 = integer(totalBase);
+			}
+		}*/
+		if(find(cPI,"Base") <> -1){
+			fieldValues1 = round(fieldValues1,2);
+			fieldValues2 = round(fieldValues2,2);
+			//fieldValues3 = integer(originalCPI);
+			fieldValues4 = round(fieldValues4,2);
+			//fieldValues5 = integer(originalCPI);
+		}
+		
+	    string1 = ""; string2 = ""; string3 = ""; string4 = ""; string5 = "";
+		
+		
+		string1 = string(fieldValues1);
+		if(find(cPI,"Volume") == -1){
+			string1 = "$"+ string1;
+		}else{ 
+			string1 = substring(string1,0, len(string1)-2);
+		}
+		string2 = string(fieldValues2);
+		if(find(cPI,"Volume") == -1){
+			string2 = "$"+ string2 ;
+		}else{ 
+			string2 = substring(string2 , 0, len(string2 )-2);
+		}
+		if(find(cPI,"Volume") == -1){
+			string3 = string(fieldValues3);
+			string3 =  string3 + "%";
+		}
+		if((find(cPI,"BW Base") <> -1) OR (find(cPI,"Color Base")<>-1)){
+			string3 = "";
+		}
+		
+		string4 = string(fieldValues4);
+		if(find(cPI,"Volume") == -1){
+			string4 = "$"+ string4 ;
+		}else{ 
+			string4= substring(string4,0, len(string4)-2);
+		}
+		if(find(cPI,"Volume") == -1){
+			string5 = string(fieldValues5);
+			string5 =  string5 + "%";
+		}
+		if((find(cPI,"BW Base") <> -1) OR (find(cPI,"Color Base")<>-1)){
+			string5 = "";
+		}
+	CPITable = CPITable + "<td>" +  string1 + "</td>";
+	    CPITable = CPITable + "<td>" + string2 + "</td>";
+	    CPITable = CPITable + "<td>" + string3 + "</td>";
+	    CPITable = CPITable + "<td>" + string4 + "</td>";
+	    CPITable = CPITable + "<td>" + string5+  "</td>";
+	CPITable = CPITable + "</tr>";
+	}
+}
+//headerTable = headerTable + CPITable + fleetTable + SummaryTable + "</table><br><br>";
+headerTable = headerTable + CPITable + "</table><br><br>";
+print headerTable;
+return headerTable;

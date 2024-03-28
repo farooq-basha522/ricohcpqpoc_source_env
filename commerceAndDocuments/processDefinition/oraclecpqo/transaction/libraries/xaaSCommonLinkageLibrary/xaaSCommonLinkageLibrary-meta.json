@@ -1,0 +1,11 @@
+{
+  "name" : "XaaS Common Linkage Library",
+  "variableName" : "xaaSCommonLinkageLibrary",
+  "description" : "",
+  "libraryFunctions" : [ "commerce.linkedItemLibrary", "commerce.setLinkedItemsLibrary" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_document_number", "_part_number", "_model_name", "bundleNameRWA", "_parent_doc_number" ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,15 @@
+{
+  "name" : "Get Quote Template Values from Table",
+  "variableName" : "getQuoteTemplateValuesFromTable",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String[]",
+  "parameters" : [ {
+    "name" : "templateDisplayName",
+    "type" : "String"
+  }, {
+    "name" : "configAttribute",
+    "type" : "String"
+  } ],
+  "attributes" : [ "_user_login" ]
+}

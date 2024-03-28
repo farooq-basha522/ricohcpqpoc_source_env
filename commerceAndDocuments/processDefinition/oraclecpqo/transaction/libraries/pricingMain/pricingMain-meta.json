@@ -1,0 +1,11 @@
+{
+  "name" : "Pricing Main",
+  "variableName" : "pricingMain",
+  "description" : "Main Pricing Function - return all calculation values in this function",
+  "libraryFunctions" : [ "commerce.checkForITSItemType", "util.decodeNameValuePairs", "util.getMutliplteCustomFieldValuesForselectedParts", "util.safeGetFloat", "util.safeGetString" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_part_number", "_document_number", "_parent_doc_number", "locationName_l", "_part_custom_field9", "netAmount_l", "netAmountNRR_l", "_part_custom_field18", "finalListUnitPrice_l", "finalListUnitPriceExt_l", "finalListUnitPriceNRRExt_l", "_sequence_number", "finalListUnitPriceNRR_l", "lastSequenceModel_l", "_line_item_comment", "locationID_l", "customDiscountValue_l", "customDiscountType_l", "requestedQuantity_l", "approvalGroup_l", "_part_custom_field30", "UOM_l", "_part_units", "itemCategory_l", "chargeType_l", "type_l", "extNetPrice_l", "quantitySA_l", "_config_attr_info", "_model_name", "_price_quantity", "bundleID_l", "promoCodeId", "_part_custom_field24", "_price_calculation_info" ],
+  "mainDocAttributes" : [ "transactionID_t", "totalOneTimeAmount_t", "totalRecurringAmount_t", "totalAmountITS_t", "partsDataText_t" ],
+  "systemAttributes" : [ "_auto_update_triggered_from", "_system_user_groups", "_system_user_login" ]
+}

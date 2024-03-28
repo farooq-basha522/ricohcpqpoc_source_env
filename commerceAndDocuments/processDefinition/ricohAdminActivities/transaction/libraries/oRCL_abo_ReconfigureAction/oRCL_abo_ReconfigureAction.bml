@@ -1,0 +1,28 @@
+//////// BEGINING of ABO SCRIPT//////////////////
+//oRCL_abo_ReconfigureAction
+//Commerce library function that should be added to MainDoc/SubDoc Reconfig Action Script
+//Script code is available when ABO package is migrated.
+//////////////////////////////////////////
+//Function Definition
+//  Input Parameters:
+//      "isMainDoc" - Boolean
+//                    true for MainDoc Reconfigure Action and false for SubDoc Reconfigure Action
+// Associate to transaction's existing reconfigure action's Advance Modify -  Before Formula'. 
+// In MainDoc Reconfigure Action add the following - result = commerce.oRCL_abo_ReconfigureAction(true);
+// In SubDoc Reconfigure Action add the following - result = commerce.oRCL_abo_ReconfigureAction(false);
+// Usually a BML script may be associated with the Reconfigure action
+// It is recommended that you add ABO logic to the beginning of action script.  
+// ABO logic in the reconfig action script is exactly the same in maindoc and subdoc
+//   Only difference is in mainDoc '_system_selected_document_number' is used 
+// to locate selected line. In subDoc reconfigure,'_system_current_document_number'
+// is used to locate selected document
+//Select following attributes in addition to existing attributes from context:
+//   system : _system_selected_document_number,_system_buyside_id
+//   Main Doc: None
+//   lineItem:  _document_number,itemInstanceId_l, requestDate_l,oRCL_ABO_ActionCode_l
+//    fulfillmentStatus_l
+//Select following util libraries for import: abo_reconfigure, abo_InitializeContext, 
+
+//Process specific seting, also need to change the reference to transactionLine in main logic
+
+ return "";

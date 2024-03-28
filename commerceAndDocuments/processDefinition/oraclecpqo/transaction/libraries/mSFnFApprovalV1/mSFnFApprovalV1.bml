@@ -1,0 +1,1471 @@
+//return email Ids for MS FnF approval.
+//Code added by Kumar Abhishek for INC2649241/CHG0085031
+tempParam2 = string[];
+OtherCodeLineIds = "";
+MPSApprovalDict = dict("string");
+emailIdArray = string[];
+fFRoleIdArray = string[];
+fFUserRoleIdArray = string[];
+rebateAppliedFlag = false;
+isEnterpriseAccount = false;
+projectZipDict = dict("string");
+msGroupCERArray = string[];
+zipCodeArray = string[];
+uniqueApprovalArray = string[];
+ADOEmailArray = string[];
+RDOEmailArray = string[];
+EDOEmailArray = string[];
+NOMEmailArray = string[];
+DFOEmailArray = string[];
+ITSLaborArray = string[];
+mpsLaborArray = string[];
+TASSLaborArray = string[];
+RebateGPOArray = string[];
+MPSFlag = false;
+OtherMSPart= false;
+serviceStatusArray = string[];
+ServiceEntityArray = string[];
+percentageFleetArray = string[];
+conditionalAuditArray = string[];
+otherServicesArray = string[];
+breakfixResponseArray = string[];
+percentageFleetConditionAuditArray = string[];
+contractTermArray = string[];
+mPSServiceStatus = "";
+DFOUserList = "";
+NOMUserList = "";
+ADOUserList = "";
+EDOUserList = "";
+RDOUserList = "";
+emailIdDFO = "";
+emailList = "";
+operationList = "";
+finalemailList = "";
+rebateGPOUserList = "";
+MPSUserList = "";
+ITSUserList = "";
+TASSUserList = "";
+rebateGPOUserList = "";
+secondIndexParam2 = "";
+firstIndexParam1 = "";
+projectFoundInDB = false;
+EDPApproverArray = string[];
+EDPCodeUserList = "";
+costOnlyarray = integer[] {
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+};
+
+
+approvalArrayJson = json();
+approvalArray = jsonarray();
+approvalOriginalArray = fFParticipantsAutoPopulateArraySet_t;
+if(NOT ISNULL(approvalOriginalArray)){
+approvalOriginalArraySize = range(jsonarraysize(approvalOriginalArray));
+}
+
+// uniqueApprovalArray = split(fnFApproverEmails_t,"##");
+// append(uniqueApprovalArray,fnFManagerApprover_t);
+//approvalArray = fFParticipantsAutoPopulateArraySet_t;
+
+
+// The Param2 is to indentify the approval Type whether its EDO,ADO,NOM,RDO,DFO or Rebate OR Labor Type
+if (find(param2, "##") <> -1) {
+    tempParam2 = split(param2, "##");
+
+    if (not(isnull(tempParam2[0]))) {
+        firstIndexParam1 = tempParam2[0];
+    }
+    if (not(isnull(tempParam2[1]))) {
+        secondIndexParam2 = tempParam2[1];
+    }
+} else {
+
+    firstIndexParam1 = param2;
+}
+
+notificationArray = string[];
+res = "";
+RDOEmailId = "";
+contractTerm = 12;
+CERCost = 0.0;
+jsonAttr = json();
+configDict = dict("string");
+projectNumArray = string[];
+zipQuery = recordset();
+projectNumQuery = recordset();
+projectNumberVal = "";
+CERCostVal = "";
+emailIdADO = "";
+emailIdRDO = "";
+tempCERCost = 0.0;
+tempCostOnly = 0.0;
+costOnlyTotal = 0.0;
+msFlag = false;
+splitValue = string[];
+tempCostOnlyVal = string[];
+//POST MVP -CR 91 description by Namrata
+JoinArray1 = "";
+JoinArray2 = "";
+JoinArray3 = "";
+JoinArray4 = "";
+EmailNotificationString = "";
+//POST MVP -CR 91 description by Namrata
+
+	// MPS Approver Declaration-------------
+	
+	mPSApproversJsonData = json();
+	 mPHeaderApprovalDataString = "";
+		   mPSLineApprovalDataString = "";
+	//--------------------MPS End------------
+
+// getting contractTerm in single internal variable
+if (termMonths_t == "Other") {
+
+    contractTerm = contractOtherTerm_t;
+}
+elif(isnumber(termMonths_t)) {
+
+    contractTerm = atoi(termMonths_t);
+}
+
+// condition to check Enterprise account, get single value in internal Variable ----
+//PostMVP_CR076# - Added ZBA Condition - Chakri
+//PostMVP_CR077# - Added Expansion New Location Condition - Chakri
+if (mSTransactionType_t == "Net New" OR mSTransactionType_t == "ZBA" OR mSTransactionType_t == "Expansion (New Location)") {
+    isEnterpriseAccount = isThisAnEnterpriseAccountEdit_t;
+} else {
+
+    isEnterpriseAccount = isThisAnEnterpriseAccount_t;
+}
+serviceStatus = "";
+			BreakFixResponse = "";
+recordSet = recordset();			
+// if(approvalType == "MPS"){
+    recordSet = bmql("select * from RAC_MS_FNFAPPROVAL where Product = 'MPS'");
+	  // mPHeaderApprovalDataString = "CPQ Line Id##Configuration##Item Number##Comments##%fleet";
+	  // mPSLineApprovalDataString = "CPQ Line Id##Configuration##Item Number##BreakFixResponse##Service Status";
+//}
+
+emailIdCheckArray= string[];
+
+for line in transactionLine {
+serviceStatus = "";
+ServiceEntity = "";
+	LaborType = "";
+    EDPCode = "";
+    CERCheck = "false";
+	approvalReasonLine = "";
+	lineApproval = false;
+	MPSHeaderLineApproval = false;
+	headerComment = "";
+    tempString = replace(line._line_bom_attributes, "&quot;", "\"");
+	fleetPercentage = "";
+	approvalEmail = "";
+	 conditionalAudit = "";
+		 conditionalAuditPercent= "";
+		 otherServicesName = "";
+		 solutionPercentage=  "";
+		 partNumber = line._part_number;
+		 ModelNameVal = line.parentModel_l;
+		  zebraSolutionflag = false;
+		  serviceStatusOther = "";
+			serviceEntityOther =  "";
+			PrintermanufacturOther =  "";
+			BWOther = 0.0;
+			ColorOther = 0.0;
+			printerModelAdmin =  "";
+			zipcode =  "";
+			typeOther =  "";
+    if (line._model_name == "Ricoh Managed Services") {
+        MSFlag = true;
+
+        // get Cost only Values and store in dictionary to trigger cost only related approval.
+        costOnlyValues = getconfigattrvalue(line._document_number, "costOnly_cost");
+
+        if (find(costOnlyValues, "$,$") <> -1) {
+            tempCostOnlyVal = split(costOnlyValues, "$,$");
+            for eachVal in tempCostOnlyVal {
+                if (isnumber(eachVal)) {
+                    costOnlyTotal = costOnlyTotal + atof(eachVal);
+                }
+            }
+        }
+        elif(isnumber(costOnlyValues)) {
+            costOnlyTotal = atof(costOnlyValues);
+        }
+    }
+	
+	// MPS config data
+	// if (line._model_variable_name == "a3rdParty" OR line._model_variable_name == "zebra"){
+		if (line._model_variable_name == "managedPrintServices"){
+		  MPSFlag = true;
+		   ModelNameVal = line._model_name; 
+		  
+		 conditionalAudit = getconfigattrvalue(line._document_number, "conditionalAudit");
+		 conditionalAuditPercent= getconfigattrvalue(line._document_number, "OfConditionalAudit_header_zebra");
+		 solutionPercentage= getconfigattrvalue(line._document_number, "OfServiceSolutionImplementation");
+		 IF(isnull(solutionPercentage) OR solutionPercentage == "" OR (isnumber(solutionPercentage) AND atoi(solutionPercentage) == 100)){
+			 solutionPercentage= getconfigattrvalue(line._document_number, "OfFleet_header_zebra"); 
+			
+			 zebraSolutionflag = true;
+		 }
+		
+		 // print "193---";
+		 // print solutionPercentage;
+		 // // // print conditionalAudit;
+		// print conditionalAuditPercent;
+			
+	 }elif(line.parentModel_l == "3rd Party/MICR" OR line.parentModel_l ==  "Zebra" OR line.parentModel_l ==  "Managed Print Services"){
+		 
+			
+		   MPSFlag = true;
+		   if (tempString <> "") {
+			jsonAttr = json(tempString);
+			
+			serviceStatus = jsonpathgetsingle(jsonAttr, "$.ServiceStatus.value");
+			ServiceEntity = jsonpathgetsingle(jsonAttr, "$.ServiceEntity.value");
+			// PRINT "ServiceEntity---";
+			// PRINT ServiceEntity;
+			// PRINT "serviceStatus---";
+			// PRINT serviceStatus;
+		//	print line._group_sequence_number;
+			if(serviceStatus == "Obsolete"){
+				mPSServiceStatus = serviceStatus;
+			}elif(serviceStatus == "" AND mPSServiceStatus <> "Obsolete"){
+				mPSServiceStatus = serviceStatus;	
+				
+			}
+			BreakFixResponse = jsonpathgetsingle(jsonAttr, "$.BreakFixResponse.value");
+			//print line._part_number;
+			otherServicesName = jsonpathgetsingle(jsonAttr, "$.categoryName.value");
+			
+			put(MPSApprovalDict,line._document_number,line.cPQLineID_l +"_"+serviceStatus+"_"+BreakFixResponse);
+
+			if(isnull(serviceStatus)){
+				
+				MPSHeaderLineApproval = true;
+			}
+		 }
+	}
+	
+	
+	if(line._part_number == "MS-MPS-FLEET-OTHER"){
+		  if (tempString <> "") {
+			jsonAttr = json(tempString);
+			//print "jsonAttr-other--";print jsonAttr;
+			serviceStatusOther = jsonpathgetsingle(jsonAttr, "$.Servicestatusadmin.value");
+			serviceEntityOther = jsonpathgetsingle(jsonAttr, "$.Serviceentityadmin.value");
+			PrintermanufacturOther = jsonpathgetsingle(jsonAttr, "$.Printermanufacturer.value");
+			if(isnumber(jsonpathgetsingle(jsonAttr, "$.Bwcpiestdsales.value"))){
+			BWOther = atof(jsonpathgetsingle(jsonAttr, "$.Bwcpiestdsales.value"));
+			}
+			if(isnumber(jsonpathgetsingle(jsonAttr, "$.Colorcpiestdsales.value"))){
+			ColorOther = atof(jsonpathgetsingle(jsonAttr, "$.Colorcpiestdsales.value"));
+			}
+			printerModelAdmin = jsonpathgetsingle(jsonAttr, "$.printerModelAdmin.value");
+			zipcode = jsonpathgetsingle(jsonAttr, "$.zipcode.value");
+			typeOther = jsonpathgetsingle(jsonAttr, "$.TypeAdmin.value");
+			// print "BWOther---";
+			// print BWOther;
+			// print ColorOther;
+			// print "2678---";
+			// print BWOther;
+			// print ColorOther;
+			// print "----";
+			
+		//	print (BWOther <= 0.0 OR ColorOther <= 0.0);
+			if(serviceStatusOther == "" OR serviceEntityOther == "" OR PrintermanufacturOther == "-Select-" OR PrintermanufacturOther == "" OR printerModelAdmin == "" OR  zipcode == "" OR typeOther == "" OR (BWOther <= 0.0 AND ColorOther <= 0.0)){
+			OtherMSPart= true;
+			
+			OtherCodeLineIds = OtherCodeLineIds  + line._group_sequence_number  + ",";
+			
+			}
+		  }
+		
+	}
+	 
+			// JobTitle = jsonpathgetsingle(jsonAttr, "$.JobTitle.value");
+		 // print "serviceStatus--";
+		// print serviceStatus;
+		// print BreakFixResponse;
+		
+			// check with data table
+		// print "recordset--";
+			 // print recordset;
+	if(MPSFlag){
+			
+			for eachMPS in recordset{
+			category = get(eachMPS,"Category");
+			Value = get(eachMPS,"Value");
+			EmailId =  get(eachMPS,"EmailId");
+			 // print "183---";
+			// // print serviceStatus;
+			// print Value;
+			// print category;
+			// print "=---------";
+				if(category == "Service Status" AND serviceStatus == Value){
+					if(EmailId <> ""){
+						approvalEmail= lower(EmailId);
+					
+						lineApproval = true;
+						approvalReasonLine = "Configured with " + serviceStatus + " lines in configuration";
+						if(findinarray(emailIdCheckArray,approvalEmail) == -1){
+							
+						append(serviceStatusArray,approvalEmail);
+						append(emailIdCheckArray,approvalEmail);
+						}
+					}
+					
+
+				
+				}
+				
+				// Service Entity---
+				
+				if(category == "Service Entity" AND ServiceEntity == Value){
+					
+					if(EmailId <> ""){
+						approvalEmail= lower(EmailId);
+						lineApproval = true;
+						approvalReasonLine = "Service Provider other than Ricoh has been selected";
+						if(findinarray(emailIdCheckArray,approvalEmail) == -1){
+						append(ServiceEntityArray,approvalEmail);
+						append(emailIdCheckArray,approvalEmail);
+						}
+					}
+					
+					
+
+				
+				}
+				
+				if(isnumber(solutionPercentage) AND isnumber(Value) AND category == "Percentage of Fleet" AND atof(solutionPercentage) < atof(Value)){
+					if(EmailId <> ""){
+						approvalEmail= lower(EmailId);
+					
+					if(zebraSolutionflag){
+					ModelNameVal = "Zebra";
+					}else{
+						ModelNameVal = "3rd Party/MICR";
+					}
+				//	lineApproval = true;
+					approvalReason = serviceStatus;
+					if(findinarray(emailIdCheckArray,approvalEmail) == -1){
+					append(percentageFleetArray,approvalEmail);
+					append(emailIdCheckArray,approvalEmail);
+					}
+						
+					headerComment = "Configured with " +solutionPercentage+ " Percentage of Service/Solution Implementation";
+					// break;
+					partNumber = "MS-MPS-IMPLEMENTATION";
+					mPHeaderApprovalDataString = mPHeaderApprovalDataString + "$$" + line.cPQLineID_l + "##" + ModelNameVal + "##" + partNumber + "##" + headerComment +"##" + approvalEmail;
+					}
+					//print mPHeaderApprovalDataString;
+				}
+				if(category == "Conditional Audit" AND conditionalAudit == Value AND find(mSTransactionType_t,"Renewal") == -1){
+					
+					ModelNameVal = "Zebra";
+					if(EmailId <> ""){
+						approvalEmail= lower(EmailId);
+					
+				//	lineApproval = true;
+					approvalReason = serviceStatus;
+					headerComment = "Conditional Audit is No";
+					if(findinarray(emailIdCheckArray,approvalEmail) == -1){
+					append(conditionalAuditArray,approvalEmail);
+					append(emailIdCheckArray,approvalEmail);
+					}
+						
+					partNumber = "MS-MPS-DEVICE-CONDITION";
+					
+					mPHeaderApprovalDataString = mPHeaderApprovalDataString + "$$" + line.cPQLineID_l + "##" + ModelNameVal + "##" + partNumber + "##" + headerComment +"##" + approvalEmail;
+					// break;
+					}
+				}
+				
+				// print "otherServicesName---";
+				// print category;
+				// print otherServicesName;
+				
+				// print Value;
+				// print "-------------------";
+				if(category == "Other Services" AND otherServicesName == Value){
+					//print "otherServicesName---";print otherServicesName;
+					//print "295---";
+					ModelNameVal = "Managed Print Services";
+					if(EmailId <> ""){
+						approvalEmail= lower(EmailId);
+					//lineApproval = true;
+					approvalReason = serviceStatus;
+					headerComment = "MPS Configuration Contains Extended Hours";
+					if(findinarray(emailIdCheckArray,approvalEmail) == -1){
+					append(otherServicesArray,approvalEmail);
+					append(emailIdCheckArray,approvalEmail);
+					}
+						
+					// break;
+					
+					mPHeaderApprovalDataString = mPHeaderApprovalDataString + "$$" + line.cPQLineID_l + "##" + ModelNameVal + "##" + partNumber + "##" + headerComment +"##" + approvalEmail;
+					}
+				}
+				// print "solutionPercentage---";
+				// print conditionalAuditPercent;
+				// print Value;
+				// print category;
+				// print "------------------------------";
+				if(isnumber(conditionalAuditPercent) AND isnumber(Value) AND category == "Conditional Audit Percent" AND atof(conditionalAuditPercent) < atof(Value) AND conditionalAudit == "true"){
+					ModelNameVal = "Zebra";
+					// print "300---Inside----";
+					//print "otherServicesName---";print otherServicesName;
+					if(EmailId <> ""){
+						approvalEmail= lower(EmailId);
+					approvalReason = serviceStatus;
+					headerComment = "Configured with " +conditionalAuditPercent+ " Percentage of Conditional Audit.";
+					if(findinarray(emailIdCheckArray,approvalEmail) == -1){
+					append(percentageFleetConditionAuditArray,approvalEmail);
+					append(emailIdCheckArray,approvalEmail);
+					}
+						
+						partNumber = "MS-MPS-DEVICE-CONDITION";
+					// break;
+					mPHeaderApprovalDataString = mPHeaderApprovalDataString + "$$" + line.cPQLineID_l + "##" + ModelNameVal + "##" + partNumber + "##" + headerComment +"##" + approvalEmail;
+					}
+				}
+				if(isnumber(Value) AND category == "Contract Term" AND contractTerm < atoi(Value)){
+					//print "otherServicesName---";print otherServicesName;
+					if(EmailId <> ""){
+						approvalEmail= lower(EmailId);
+					//lineApproval = true;
+					approvalReason = contractTerm;
+					headerComment ="Configured with "+string(contractTerm)+ " Contract term is less than threshold";
+					if(findinarray(emailIdCheckArray,approvalEmail) == -1){
+					append(contractTermArray,approvalEmail);
+					append(emailIdCheckArray,approvalEmail);
+					}
+						
+						mPHeaderApprovalDataString = mPHeaderApprovalDataString + "$$" + line.cPQLineID_l + "##" + ModelNameVal + "##" + partNumber + "##" + headerComment +"##" + approvalEmail;
+					// break;
+					}
+				}
+				
+				if(category == "Breakfix Response" AND BreakFixResponse == Value){
+					if(EmailId <> ""){
+						approvalEmail= lower(EmailId);
+						lineApproval = true;
+						approvalReasonLine = "Configured with " + BreakFixResponse + " in Breakfix Response Time";
+						if(findinarray(emailIdCheckArray,approvalEmail) == -1){
+							
+						append(breakfixResponseArray,approvalEmail);
+						append(emailIdCheckArray,approvalEmail);
+						}
+						
+					// break;
+					// headerComment = 
+					}
+				}
+		   } // End of RecordSet
+		   //percentageFleetConditionAuditArray = string[];
+			// print "lineApproval--391-";
+			// print lineApproval;
+			
+			// print MPSHeaderLineApproval;
+		   if(lineApproval){
+				// if(headerComment <> ""){
+					// // print "ModelNameVal---";
+					// // print ModelNameVal;
+			   // mPHeaderApprovalDataString = mPHeaderApprovalDataString + "$$" + line.cPQLineID_l + "##" + ModelNameVal + "##" + partNumber + "##" + headerComment +"##" + approvalEmail;
+				// }else{
+			   // mPSLineApprovalDataString = mPSLineApprovalDataString + "$$" + line.cPQLineID_l + "##" + line.parentModel_l + "##"+ line._part_number+"##"+ approvalReasonLine + "##" + approvalEmail;
+				// }
+				
+				if(headerComment == ""){
+				
+					 mPSLineApprovalDataString = mPSLineApprovalDataString + "$$" + line.cPQLineID_l + "##" + line.parentModel_l + "##"+ line._part_number+"##"+ approvalReasonLine + "##" + approvalEmail;
+					  //	print mPSLineApprovalDataString;
+				}
+		   }
+		//   print mPHeaderApprovalDataString;
+	}
+	//print mPSLineApprovalDataString;
+		
+    // store all configured Project Numbers and Zip code in the array to check in the query....
+    if (line.projectNumber_l <> "" AND find(line.projectNumber_l, "BLANK") == -1) {
+        append(projectNumArray, line.projectNumber_l);
+
+
+    }
+
+    if (line.zIPCode_l <> "") {
+        append(zipCodeArray, line.zIPCode_l);
+
+
+    }
+    if (line.projectNumber_l <> ""
+        OR line.zipCode_l <> "") {
+        put(projectZipDict, line._document_number, line.projectNumber_l + "#$$#" + line.zipCode_l);
+    }
+    
+    if (tempString <> "") {
+        jsonAttr = json(tempString);
+        //LaborType = line.laborType_l;
+
+
+        //LaborType= jsonget(jsonAttr,"LaborType","string");
+
+        AdminPC = jsonpathgetsingle(jsonAttr, "$.AdminPC.value");
+        JobGrade = jsonpathgetsingle(jsonAttr, "$.JobGrade.value");
+        JobTitle = jsonpathgetsingle(jsonAttr, "$.JobTitle.value");
+
+        // The below condition to Identify if Labor type is from Labor Component or Not ( below parameters are applicable only to Labor componenents.
+
+        // Labor type is one of the component require to trigger FnF Approval.
+        if (not(isnull(AdminPC)) OR not(isnull(JobGrade)) OR not(isnull(JobTitle))) {
+
+            LaborType = jsonpathgetsingle(jsonAttr, "$.LaborType.value");
+        }
+
+        if (not(isnull(LaborType)) AND LaborType <> "") {
+            if (not(containskey(configDict, "Labor Type"))) {
+
+                put(configDict, "Labor Type", LaborType);
+            } else {
+                TempLabor = get(configDict, "Labor Type");
+
+                TempLabor = TempLabor + "##" + LaborType;
+                put(configDict, "Labor Type", TempLabor);
+
+            }
+
+        }
+        
+        //START_PostMVP CR#69 description by Namrata
+        
+        EDPCode = line._part_number;
+        
+        if(EDPCode <>""){
+        	if (not(containskey(configDict, "EDP_Code"))) {
+                 	put(configDict, "EDP_Code", EDPCode);
+                 }
+                                    
+                TempEDPCode = get(configDict, "EDP_Code");
+                TempEDPCode = TempEDPCode + "##" + EDPCode;
+                put(configDict, "EDP_Code", TempEDPCode);
+	}
+	//print configDict;
+        //END_PostMVP CR#69 description by Namrata
+  
+
+        vehicleType = jsonpathgetsingle(jsonAttr, "$.VehicleType.value");
+        if (not(isnull(vehicleType)) AND vehicleType <> "null") {
+            if (not(containskey(configDict, "Vehicle"))) {
+                put(configDict, "Vehicle", vehicleType);
+            } else {
+                tempVahicle = get(configDict, "Vehicle");
+                tempVahicle = tempVahicle + "##" + vehicleType;
+                put(configDict, "Vehicle", tempVahicle);
+            }
+        }
+
+        // there is approval based on CER Check from Other services.
+
+        CERCheck = jsonpathgetsingle(jsonAttr, "$.CERCheckbox.value");
+
+        if (not(isnull(CERCheck)) AND CERCheck <> "null"
+            AND CERCheck == "true") {
+
+
+            CERCostVal = jsonpathgetsingle(jsonAttr, "$.Cost.value");
+
+            if (not(isnull(CERCostVal)) AND CERCostVal <> "null") {
+
+                put(configDict, "ProjectNumber", projectNumberVal);
+
+                if (not(containskey(configDict, "CERCost"))) {
+                    put(configDict, "CERCost", CERCostVal);
+
+                } else {
+
+                    if (isnumber(get(configDict, "CERCost"))) {
+                        tempCERCost = atof(get(configDict, "CERCost"));
+                        tempCERCost = tempCERCost + atof(CERCostVal);
+
+                        put(configDict, "CERCost", string(tempCERCost));
+                    }
+                }
+            }
+        }
+    }
+}
+
+	if(OtherMSPart){
+		if(endswith(OtherCodeLineIds,",")){
+			
+			OtherCodeLineIds = substring(OtherCodeLineIds,0,len(OtherCodeLineIds)-1);
+		}
+	throwerror(OtherCodeLineIds + " Other Admin field values data is missing in configuration, cannot proceed for F&F approval");
+	//Line Id Other Admin field values data is missing in configuration, cannot proceed for F&F approval
+	}
+put(configDict, "COST_ONLY", string(costOnlyTotal));
+
+
+if (not(MSFlag) AND not(MPSFlag)) {
+    return "";
+}
+if (rebateApplied_t <> "none"
+    AND rebateType_t <> "") {
+    put(configDict, "Rebate Type", rebateType_t);
+}
+
+retVal = "";
+
+//Rebate GPO Query If Price List is populating GPO value then In that case we need to trigger Notifications to certain set of Users capture in FnFMSApproval table---
+
+if (rAC_Pricelist_RISE <> ""
+    AND NOT ISNULL(rAC_Pricelist_RISE) AND rAC_Pricelist_RISE <> "nodata") {
+
+
+    rebateTable = BMQL("SELECT Name, PRICE_LIST_NAME, GPO FROM MS_RebatesWorkbook where PRICE_LIST_NAME like $rAC_Pricelist_RISE");
+
+    for eachRow in rebateTable {
+        name = get(eachRow, "Name");
+        gpo = get(eachRow, "GPO");
+        retVal = name;
+    }
+}
+
+
+if (rebateGPOThirdparty_t <> ""
+    AND retVal <> "") {
+    put(configDict, "Rebate GPO", "TRUE");
+}
+
+// End of Rebate GPO Notification code--------------
+
+
+// the Flag is required to trigger DFO approval for customer specific rebate....
+if (rebateGPOThirdparty_t == ""
+    AND rebateApplied_t <> "none"
+    AND rebateApplied_t <> "") {
+
+    rebateAppliedFlag = true;
+}
+
+
+emailArray = string[];
+keyVal = keys(configDict);
+
+// Main Code block to Validate All configDict parameter with MSFnFApproval data table.....
+if (approvalType == "MS"
+    OR approvalType == "Notification") {
+
+    recordSet = bmql("select * from RAC_MS_FNFAPPROVAL");
+
+
+    for eachkey in keyVal {
+        DictVal = "";
+        actorType = "";
+        emailId = "";
+
+        for data in recordSet {
+            splitValue = string[];
+            if (get(data, "Category") == eachkey) {
+
+                DictVal = get(configDict, eachkey);
+
+                if (find(DictVal, "##") <> -1) {
+                    splitValue = split(DictVal, "##");
+                } else {
+
+                    append(splitValue, DictVal);
+                }
+
+                for eachVal in splitValue {
+                    if (eachVal <> ""
+                        AND eachVal <> "null") {
+
+                        if (get(data, "Value") == eachVal) {
+                            actorType = get(data, "ActorType");
+
+                            // get ms participants ----------------
+                            if (param1 == "Participant"
+                                AND actorType == param1) {
+                                if (approvalType == "Notification") {
+                                    emailId = get(data, "EmailId");
+                                    append(notificationArray, emailId);
+
+                                    break;
+                                }
+
+                            }
+                            elif(param1 == "Approver"
+                                AND find(secondIndexParam2, get(data, "Category") + "_" + eachVal) <> -1 AND actorType == param1) {
+
+                                emailId = get(data, "EmailId");
+
+                                append(emailArray, emailId);
+
+                                break;
+
+                            } else {
+                                emailId = get(data, "EmailId");
+                                if (get(data, "Value") == "ITS"
+                                    AND get(data, "Category") == "Labor Type" AND findinarray(uniqueApprovalArray,emailId) ==-1) {
+                                    append(ITSLaborArray, emailId);
+									append(uniqueApprovalArray,emailId);
+
+                                }
+                                elif(get(data, "Value") == "MPS"
+                                    AND get(data, "Category") == "Labor Type" AND findinarray(uniqueApprovalArray,emailId) ==-1) {
+                                    append(mpsLaborArray, emailId);
+									append(uniqueApprovalArray,emailId);
+                                }
+                                elif(get(data, "Value") == "TASS"
+                                    AND get(data, "Category") == "Labor Type"  AND findinarray(uniqueApprovalArray,emailId) ==-1) {
+                                   
+                             append(TASSLaborArray, emailId);
+				//append(uniqueApprovalArray,emailId);
+				
+                                }
+                                elif(get(data, "Value") == "TRUE"
+                                    AND get(data, "Category") == "Rebate GPO" AND findinarray(uniqueApprovalArray,emailId) ==-1) {
+                                    append(RebateGPOArray, emailId);
+									append(uniqueApprovalArray,emailId);
+
+                                }
+				//START_POSTMVP CR#69 description by Namrata
+				elif( get(data, "Category") == "EDP_Code"  ) {
+                                    append(EDPApproverArray, emailId);
+					append(uniqueApprovalArray,emailId);
+                                }
+								//END_POST MVP CR#69 description by Namrata
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+//Bring ADO/RDO/DFO and NMO/EDO from RAC_MS_FNF_AUTHORITY and RAC_MS_FNF_AUTH_NEW data tables respectively----
+
+
+if (sizeofarray(zipCodeArray) > 0) {
+    zipQuery = bmql("select Zip,ADO,RDO,DFO from RAC_MS_FNF_AUTH_NEW where Zip in $zipCodeArray");
+}
+
+
+if (sizeofarray(projectNumArray) > 0 AND quoteProduct_t == "Managed Services") {
+    projectNumQuery = bmql("select OracleProjectNumber,NOM_Email,EDO,ADO,RDO,AccountType from RAC_MS_FNF_AUTHORITY where OracleProjectNumber in $projectNumArray");
+
+    for each in projectNumQuery {
+
+        temp = get(each, "ADO");
+        projectFoundInDB = true;
+    }
+}
+
+if(quoteProduct_t <> "Managed Services"){
+ projectFoundInDB = true;	
+	
+}
+// MS CER Approval Code block to check approval in 	RAC_CER_FNFAPPROVAL table....
+
+if (approvalType == "MS_CER"
+    OR approvalType == "Notification") {
+
+
+    recordSet = bmql("select * from RAC_CER_FNFAPPROVAL");
+    for data in recordSet {
+        DictVal = "";
+        actorType = "";
+        emailId = "";
+        lowerThreshold = atof(get(data, "LowerThreshold"));
+        upperThreshold = atof(get(data, "UpperThreshold"));
+
+        for eachkey in keyVal {
+
+
+            if (get(data, "Category") == eachkey) {
+
+
+                if (isnumber(get(configDict, eachkey))) {
+
+                    CERCost = atof(get(configDict, eachkey));
+
+                }
+                projectNumberVal = get(configDict, "ProjectNumber");
+
+                if (lowerThreshold <= CERCost AND upperThreshold >= CERCost) {
+
+                    actorType = get(data, "Participant_Approver");
+
+                    if (actorType == param1 OR approvalType == "Notification") {
+
+                        if (secondIndexParam2 == "MS_CER") {
+                            emailId = get(data, "EmailId");
+
+                        }
+
+                        if (emailId == "") {
+                            msGroup = get(data, "MSGroup");
+                            append(msGroupCERArray, msGroup);
+
+
+                        }
+
+                        append(emailArray, emailId);
+                        if (approvalType == "Notification") {
+
+                            append(notificationArray, emailId);
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+    }
+
+}
+
+keysdoc = keys(projectZipDict);
+
+for eachkey in keysdoc {
+
+    ProjectAndZip = get(projectZipDict, eachkey);
+
+    tempArray = split(ProjectAndZip, "#$$#");
+
+    projectNo = tempArray[0];
+    zipNo = tempArray[1];
+
+    if (isEnterpriseAccount) {
+	//PostMVP_CR076# - Added ZBA Condition - Chakri
+	//PostMVP_CR077# - Added Expansion New Location Condition - Chakri
+        if (mSTransactionType_t == "Net New" OR mSTransactionType_t == "ZBA" OR mSTransactionType_t == "Expansion (New Location)") {
+            if (not(isnull(projectNo)) AND projectNo <> "BLANK_PROJECT"
+                AND projectNo <> "") {
+
+                // Project No for Net New
+				// print "projectFoundInDB--739--";
+				// print projectFoundInDB;
+                if (not projectFoundInDB) {
+//print "740---";
+                    throwerror("Project code doesnt Exist, configure valid project code to proceed with FnF...!");
+                }
+
+                for eachProj in projectNumQuery {
+
+
+                    if (get(eachProj, "OracleProjectNumber") == projectNo AND get(eachProj, "AccountType") == "Enterprise") {
+
+                        // if( secondIndexParam2 == "EDO"){
+                        // emailIdEDO=get(eachProj,"EDO");
+
+                        // if(emailIdEDO <> ""){
+                        // append(emailArray,emailIdEDO);
+                        // }else{
+                        // append(emailArray,eDOEnterpriseDirOperations_t);
+                        // }
+                        // }
+                        // if( secondIndexParam2 == "NOM"){
+                        // emailIdNOM=get(eachProj,"NOM_Email");
+
+
+                        // if(emailIdNOM <> ""){
+                        // append(emailArray,emailIdNOM);
+                        // }else{
+                        // append(emailArray,nOMNationalOperationsManager_t);
+                        // }
+                        // }
+
+
+                        emailIdEDO = get(eachProj, "EDO");
+
+                        if (emailIdEDO <> "" AND findinarray(uniqueApprovalArray,emailIdEDO) == -1) {
+                            append(EDOEmailArray, emailIdEDO);
+							append(uniqueApprovalArray,emailIdEDO);
+                        } elif(findinarray(uniqueApprovalArray,eDOEnterpriseDirOperations_t) == -1) {
+                            append(EDOEmailArray, eDOEnterpriseDirOperations_t);
+							append(uniqueApprovalArray,eDOEnterpriseDirOperations_t);
+                        }
+
+                        emailIdNOM = get(eachProj, "NOM_Email");
+
+                        if (emailIdNOM <> "" AND findinarray(uniqueApprovalArray,emailIdNOM) == -1) {
+                            append(NOMEmailArray, emailIdNOM);
+							append(uniqueApprovalArray,emailIdNOM);
+                        } elif(findinarray(uniqueApprovalArray,nOMNationalOperationsManager_t) == -1) {
+                            append(NOMEmailArray, nOMNationalOperationsManager_t);
+							append(uniqueApprovalArray,nOMNationalOperationsManager_t);
+                        }
+                    }
+
+                }
+            }
+            elif(sizeofarray(projectNumArray) <= 0) {
+                // Zip code for Net New to be taken directly from Layout fields.
+
+
+
+                // if( secondIndexParam2 == "EDO"){
+
+                // append(emailArray,eDOEnterpriseDirOperations_t);
+
+                // }
+                // if( secondIndexParam2 == "NOM"){
+
+                // append(emailArray,nOMNationalOperationsManager_t);
+
+                // }
+				 if (findinarray(uniqueApprovalArray,eDOEnterpriseDirOperations_t) == -1) {
+					append(EDOEmailArray, eDOEnterpriseDirOperations_t);
+					append(uniqueApprovalArray,eDOEnterpriseDirOperations_t);
+				 }
+				if (findinarray(uniqueApprovalArray,nOMNationalOperationsManager_t) == -1) {
+                append(NOMEmailArray, nOMNationalOperationsManager_t);
+				append(uniqueApprovalArray,nOMNationalOperationsManager_t);
+				}
+
+            }
+        } else {
+
+
+            if (not(isnull(projectNo)) AND projectNo <> "BLANK_PROJECT"
+                AND projectNo <> "") {
+				print "projectFoundInDB--825--";
+				print projectFoundInDB;
+                if (not projectFoundInDB) {
+
+                    throwerror("Project code doesnt Exist, configure valid project code to proceed with FnF...!");
+                }
+                // Project No for Net New
+                for eachProj in projectNumQuery {
+
+                    if (get(eachProj, "OracleProjectNumber") == projectNo AND get(eachProj, "AccountType") == "Enterprise") {
+
+                        // if( secondIndexParam2 == "EDO"){
+                        // emailIdEDO=get(eachProj,"EDO");
+
+                        // if(emailIdEDO <> ""){
+                        // append(emailArray,emailIdEDO);
+                        // }else{
+                        // append(emailArray,eDOEnterpriseDirOperations_t);
+                        // }
+                        // }
+                        // if( secondIndexParam2 == "NOM"){
+                        // emailIdNOM=get(eachProj,"NOM_Email");
+
+
+                        // if(emailIdNOM <> ""){
+                        // append(emailArray,emailIdNOM);
+                        // }else{
+                        // append(emailArray,nOMNationalOperationsManager_t);
+                        // }
+                        // }
+
+                        emailIdEDO = get(eachProj, "EDO");
+
+                        if (emailIdEDO <> "" AND findinarray(uniqueApprovalArray,emailIdEDO) == -1) {
+                            append(EDOEmailArray, emailIdEDO);
+							append(uniqueApprovalArray,emailIdEDO);
+                        } elif(findinarray(uniqueApprovalArray,eDOEnterpriseDirOperations_t) == -1) {
+                            append(EDOEmailArray, eDOEnterpriseDirOperations_t);
+							append(uniqueApprovalArray,eDOEnterpriseDirOperations_t);
+                        }
+
+
+
+                        emailIdNOM = get(eachProj, "NOM_Email");
+
+
+                        if (emailIdNOM <> "" AND findinarray(uniqueApprovalArray,emailIdNOM) == -1) {
+                            append(NOMEmailArray, emailIdNOM);
+							append(uniqueApprovalArray,emailIdNOM);
+                        } elif(findinarray(uniqueApprovalArray,nOMNationalOperationsManager_t) == -1) {
+                            append(NOMEmailArray, nOMNationalOperationsManager_t);
+							append(uniqueApprovalArray,nOMNationalOperationsManager_t);
+                        }
+                    }
+
+                }
+            }
+        }
+    } else {
+
+	//PostMVP_CR076# - Added ZBA Condition - Chakri
+	//PostMVP_CR077# - Added Expansion New Location Condition - Chakri
+        if (mSTransactionType_t == "Net New" OR mSTransactionType_t == "ZBA" OR mSTransactionType_t == "Expansion (New Location)") {
+
+            if (not(isnull(projectNo)) AND projectNo <> "BLANK_PROJECT"
+                AND projectNo <> "") {
+                // Project No for Net New
+	
+                if (not projectFoundInDB) {
+
+                    throwerror("Project code doesnt Exist, configure valid project code to proceed with FnF...!");
+                }
+                for eachProj in projectNumQuery {
+
+                    if (get(eachProj, "OracleProjectNumber") == projectNo) {
+
+                        // if(secondIndexParam2 == "ADO"){
+                        // emailIdADO=get(eachProj,"ADO");
+                        // append(emailArray,emailIdADO);
+                        // }
+                        // if(secondIndexParam2 == "RDO"){
+                        // emailIdRDO=get(eachProj,"RDO");
+
+                        // append(emailArray,emailIdRDO);
+                        // }
+						
+                        emailIdADO = get(eachProj, "ADO");
+						if(findinarray(uniqueApprovalArray,emailIdADO) == -1){
+                        append(ADOEmailArray, emailIdADO);
+						append(uniqueApprovalArray,emailIdADO);
+						}
+						
+                        emailIdRDO = get(eachProj, "RDO");
+						if(findinarray(uniqueApprovalArray,emailIdRDO) == -1){
+                        append(RDOEmailArray, emailIdRDO);
+						append(uniqueApprovalArray,emailIdRDO);
+						}
+
+                    }
+
+                }
+            }
+            elif(sizeofarray(projectNumArray) <= 0) {
+                // Zip code for Net New ------------
+
+                for eachZip in zipQuery {
+
+                    if (get(eachZip, "Zip") == zipNo) {
+                        // if(secondIndexParam2 == "ADO"){
+                        // emailIdADO=get(eachZip,"ADO");
+                        // append(emailArray,emailIdADO);
+
+                        // }
+                        // if(secondIndexParam2 == "RDO"){
+                        // emailIdRDO=get(eachZip,"RDO");
+
+                        // append(emailArray,emailIdRDO);
+                        // }
+
+                        emailIdADO = get(eachZip, "ADO");
+						if(findinarray(uniqueApprovalArray,emailIdADO) == -1){
+                        append(ADOEmailArray, emailIdADO);
+						append(uniqueApprovalArray,emailIdADO);
+						}
+
+                        emailIdRDO = get(eachZip, "RDO");
+						if(findinarray(uniqueApprovalArray,emailIdRDO) == -1){
+                        append(RDOEmailArray, emailIdRDO);
+						append(uniqueApprovalArray,emailIdRDO);
+						}
+                    }
+                }
+
+
+            }
+
+        } else {
+				print "963--";
+            if (not projectFoundInDB) {
+
+                throwerror("Project code doesnt Exist, configure valid project code to proceed with FnF...!");
+            }
+            if (not(isnull(projectNo)) AND projectNo <> "BLANK_PROJECT"
+                AND projectNo <> "") {
+
+                // Project No for Net New
+                for eachProj in projectNumQuery {
+
+                    if (get(eachProj, "OracleProjectNumber") == projectNo) {
+
+                        // if(secondIndexParam2 == "ADO"){
+                        // emailIdADO=get(eachProj,"ADO");
+                        // append(emailArray,emailIdADO);
+                        // }
+                        // if(secondIndexParam2 == "RDO"){
+                        // emailIdRDO=get(eachProj,"RDO");
+
+                        // append(emailArray,emailIdRDO);
+                        // }
+
+                        emailIdADO = get(eachProj, "ADO");
+						if(findinarray(uniqueApprovalArray,emailIdADO) == -1){
+                        append(ADOEmailArray, emailIdADO);
+						append(uniqueApprovalArray,emailIdADO);
+						}
+                        emailIdRDO = get(eachProj, "RDO");
+						if(findinarray(uniqueApprovalArray,emailIdRDO) == -1){
+                        append(RDOEmailArray, emailIdRDO);
+						append(uniqueApprovalArray,emailIdRDO);
+						}
+						
+                    }
+                }
+
+            }
+        }
+
+    }
+
+}
+
+
+//DFO Logic for Rebate----------------------
+
+if (rebateAppliedFlag) {
+
+ /*START_POST MVP CR#80 description by Namrata. 
+   for eachZip in zipQuery {
+
+        if (findinarray(zipCodeArray, get(eachZip, "Zip")) <> -1) {
+
+            // if(secondIndexParam2 == "DFO" AND secondIndexParam2 <>"" AND NOT ISNULL(secondIndexParam2 )){
+            // emailIdDFO=get(eachZip,"DFO");
+
+
+            // if(findinarray(DFOEmailArray,emailIdDFO) == -1){
+            // append(DFOEmailArray,emailIdDFO);
+            // }
+
+            // }
+
+       emailIdDFO = get(eachZip, "DFO");
+	*/
+	
+	AreaDict = dict("string");
+	DFO_RecordFound = false;
+	DFOEmailVar = "";
+	mdEmailVar = "";
+	areaIndicator_MDNAME = "";
+	DFOTable = BMQL("SELECT MD_Name,DFO_Email , Area_Indicator FROM RAC_DFO") ;
+	for record in DFOTable{
+	put(AreaDict , get(record , "Area_Indicator"), get(record , "DFO_Email")) ;
+	
+	if(get(record , "MD_Name") <> "" AND NOT ISNULL(get(record , "DFO_Email")) AND (lower(get(record , "DFO_Email")) == lower(pricingApproverEmailfromRISE_t) OR managinDirectorNameFromRISE_t 
+	== get(record , "MD_Name"))){
+	mdEmailVar = get(record , "DFO_Email");
+	areaIndicator_MDNAME = get(record , "Area_Indicator");
+	}
+	
+	}
+	if(areaIndicator_t <> ""){
+		if(containsKey(AreaDict,areaIndicator_t)){
+			DFOEmailVar = get(AreaDict,areaIndicator_t);
+			DFO_RecordFound = true;
+		}
+	}
+		//Modifed existing for this CR change CHG0087276
+	if((areaIndicator_t <> "") OR (mdEmailVar <> "" AND areaIndicator_MDNAME == "")){
+		if(containsKey(AreaDict,areaIndicator_t) AND mdEmailVar == ""){
+			DFOEmailVar = get(AreaDict,areaIndicator_t);
+			DFO_RecordFound = true;
+		}elif(mdEmailVar <> ""){//Start here: Modifed existing for this CR change CHG0087276
+
+			DFOEmailVar = mdEmailVar;
+			DFO_RecordFound = true;
+		}	//End here:Modifed existing for this CR change CHG0087276
+
+	}
+	if(DFO_RecordFound == false){
+		DFOEmailVar = get(AreaDict,"Catch All");
+	}
+    	emailIdDFO = DFOEmailVar;
+
+//END POST MVP CR#80 description by Namrata
+
+	if(findinarray(DFOEmailArray, emailIdDFO) == -1 AND findinarray(uniqueApprovalArray,emailIdDFO) == -1) {
+	append(DFOEmailArray, emailIdDFO);
+	append(uniqueApprovalArray,emailIdDFO);
+	}
+}
+
+
+
+//Below code block is to check if Email ID present or not if no email id present then condition will set to false and no approval will trigger.
+emailcount = 0;
+
+if (firstIndexParam1 == "Condition"
+    AND param1 == "Approver") {
+
+    for eachVal in emailArray {
+
+        if (eachVal <> "") {
+
+            emailcount = emailcount + 1;
+            return "true";
+        }
+    }
+
+    if (sizeofarray(emailArray) > 0 AND emailcount > 0) {
+        return "true";
+    } else {
+        return "false";
+    }
+}
+
+// the Code block will pull the Userlogin format to pass to the Approval reasons.
+if (param1 == "Approver"
+    AND firstIndexParam1 == "") { // it wll return approval string
+
+    res = util.getUserDetails(emailArray, "");
+
+} else { // else block is to trigger Notification email , it store emails ids in below attribute and mapped the attributes to steps notification.
+
+    if (sizeofarray(notificationArray) > 0) {
+
+        emailList = join(notificationArray, ";");
+
+    }
+    // POSTMVP_CR060# - Getting Opertional Analysit Attribute Data - Chakri
+    if((mSTransactionType_t == "Renewal" OR mSTransactionType_t == "Expansion" OR mSTransactionType_t == "Reduction") AND operationsAnalysts_t <> "") {
+    	operationList = replace(operationsAnalysts_t,",",";");
+    }
+
+    finalemailList = emailList + ";" + operationList;  // POSTMVP_CR060# - Appending Data to Notification EMail Attribute so that we can avoid making modfiction under steps and trigger notifications for Opertion Analysis Users as well - Chakri
+    res = res + "1~notificationEmailsIdsFnFApprovals_t~" + finalemailList + "|";
+
+  
+
+    if (sizeofarray(DFOEmailArray) > 0) {
+
+        DFOUserList = util.getUserDetailsV1(DFOEmailArray, "");
+
+    }
+
+    res = res + "1~dFOFnFApproverUser_t~" + DFOUserList + "|";
+
+
+    if (sizeofarray(NOMEmailArray) > 0) {
+	JoinArray1 = join(NOMEmailArray,"$$$");
+        NOMUserList = util.getUserDetailsV1(NOMEmailArray, "");
+	EmailNotificationString = EmailNotificationString + JoinArray1;
+
+    }
+
+    res = res + "1~nOMFnFApprovalUser_t~" + NOMUserList + "|";
+
+    if (sizeofarray(EDOEmailArray) > 0) {
+    	JoinArray2 = join(EDOEmailArray,"$$$");
+        EDOUserList = util.getUserDetailsV1(EDOEmailArray, "");
+        EmailNotificationString = EmailNotificationString + "$$$"+JoinArray2 ;
+	}
+
+    res = res + "1~eDOFnFApprovalUer_t~" + EDOUserList + "|";
+
+    if (sizeofarray(RDOEmailArray) > 0) {
+	JoinArray3 = join(RDOEmailArray,"$$$");
+	RDOUserList = util.getUserDetailsV1(RDOEmailArray, "");
+	EmailNotificationString = EmailNotificationString + "$$$"+JoinArray3 ;
+
+    }
+
+    res = res + "1~rDOFnFApproverUser_t~" + RDOUserList + "|";
+
+    if (sizeofarray(ADOEmailArray) > 0) {
+	JoinArray4 = join(ADOEmailArray,"$$$");
+        ADOUserList = util.getUserDetailsV1(ADOEmailArray, "");
+        EmailNotificationString = EmailNotificationString + "$$$"+JoinArray4 ;
+
+    }
+
+    res = res + "1~aDOFnFApproverUser_t~" + ADOUserList + "|";
+
+//START POST_MVP CR-91 description by Namrata
+if(startswith(EmailNotificationString ,"$$$")){
+EmailNotificationString = substring(EmailNotificationString ,3,len(EmailNotificationString));
+}
+//print EmailNotificationString;
+//END POST_MVP CR-91 description by Namrata
+	
+    // FNF Approval list
+    if (sizeofarray(mpsLaborArray) > 0) {
+
+        MPSUserList = util.getUserDetailsV1(mpsLaborArray, "");
+
+    }
+
+    res = res + "1~mPSLaborFnFApproverUser_t~" + MPSUserList + "|";
+
+    if (sizeofarray(ITSLaborArray) > 0) {
+
+        ITSUserList = util.getUserDetailsV1(ITSLaborArray, "");
+
+    }
+
+    res = res + "1~iTSLaborFnFApproverUser_t~" + ITSUserList + "|";
+
+    if (sizeofarray(TASSLaborArray) > 0) {
+
+        TASSUserList = util.getUserDetailsV1(TASSLaborArray, "");
+
+    }
+
+    res = res + "1~tASSLaborFnFApprover_t~" + TASSUserList + "|";
+
+    if (sizeofarray(RebateGPOArray) > 0) {
+
+        rebateGPOUserList = util.getUserDetailsV1(RebateGPOArray, "");
+
+    }
+
+    res = res + "1~rebateValueFnFApprover_t~" + rebateGPOUserList + "|";
+	
+	//START_POST MVP CR#69 description by Namrata
+	if (sizeofarray(EDPApproverArray) > 0) {
+		
+		EDPCodeUserList = util.getUserDetailsV1(EDPApproverArray, "");
+	}
+    res = res + "1~EDPCodeFnFApproverUser_t~" + EDPCodeUserList + "|";
+	//END_POST MVP CR#69 description by Namrata
+
+}
+
+// this block is create to avoid duplicate approvals- CR 078----
+
+tempArrayTest = string[];
+participantEmails = string[];
+PDLEmails = "";
+approversInputArray = split(param2,"|");
+
+for resultVal in approversInputArray{
+	
+	
+	if(find(resultVal,"~") <> -1){
+		
+		tempArrayTest = split(resultVal,"~");
+		
+		if(find(resultVal,"fnFApproverEmails_t") <> -1){
+			
+			participantEmails = split(tempArrayTest[2],"##");
+		}
+		
+		if(find(resultVal,"fnFManagerApprover_t") <> -1){
+			
+			PDLEmails = tempArrayTest[2];
+		}
+	}
+}
+fnFParticipantUniqueApprovers = "";
+fnFPDLUniqueApprovers = "";
+FnFNewParticipantArray = string[];
+for eachEmail in participantEmails{
+	if(eachEmail <> "" AND findinarray(uniqueApprovalArray,eachEmail) == -1){
+	append(FnFNewParticipantArray,eachEmail);
+	}
+}
+if(sizeofarray(FnFNewParticipantArray) > 0){
+fnFPDLUniqueApprovers = join(FnFNewParticipantArray,"##");
+}
+// append(uniqueApprovalArray,PDLEmails);
+if(not(isnull(PDLEmails)) AND PDLEmails <> "" AND findinarray(uniqueApprovalArray,PDLEmails) == -1){
+	fnFParticipantUniqueApprovers = PDLEmails;
+}
+
+
+// MPS Approver Data
+// print "serviceStatusArray---";
+// print serviceStatusArray;
+   if (sizeofarray(serviceStatusArray) > 0) {
+
+        serviceStatusList = util.getUserDetailsV1(serviceStatusArray, "");
+		
+		jsonput(mPSApproversJsonData,"serviceStatus",serviceStatusList);
+
+    }
+	
+	  if (sizeofarray(ServiceEntityArray) > 0) {
+
+        serviceEntityList = util.getUserDetailsV1(ServiceEntityArray, "");
+		
+		jsonput(mPSApproversJsonData,"serviceEntity",serviceEntityList);
+
+    }
+	if (sizeofarray(percentageFleetArray) > 0) {
+
+        percentageFleetList = util.getUserDetailsV1(percentageFleetArray, "");
+		jsonput(mPSApproversJsonData,"percentageFleet",percentageFleetList);
+
+    }
+	if (sizeofarray(conditionalAuditArray) > 0) {
+
+        conditionalAuditList = util.getUserDetailsV1(conditionalAuditArray, "");
+		
+       jsonput(mPSApproversJsonData,"conditionalAudit",conditionalAuditList);
+		
+
+    }
+
+	if (sizeofarray(otherServicesArray) > 0) {
+
+        otherServicesList = util.getUserDetailsV1(otherServicesArray, "");
+		jsonput(mPSApproversJsonData,"otherServices",otherServicesList);
+
+    }
+	if (sizeofarray(breakfixResponseArray) > 0) {
+		//print breakfixResponseArray;
+        breakfixResponseList = util.getUserDetailsV1(breakfixResponseArray, "");
+		
+		jsonput(mPSApproversJsonData,"breakfixResponse",breakfixResponseList);
+
+    }
+	if (sizeofarray(percentageFleetConditionAuditArray) > 0) {
+
+        percentageFleetConditionAuditList = util.getUserDetailsV1(percentageFleetConditionAuditArray, "");
+		jsonput(mPSApproversJsonData,"percentageFleetConditionAudit",percentageFleetConditionAuditList);
+
+    }
+	
+	if (sizeofarray(contractTermArray) > 0) {
+
+        contractTermList = util.getUserDetailsV1(contractTermArray, "");
+		jsonput(mPSApproversJsonData,"contractTerm",contractTermList);
+
+    }
+	
+
+
+    res = res + "1~tASSLaborFnFApprover_t~" + TASSUserList + "|";
+ // res = res + "1~fnFApproverEmails_t~" + fnFParticipantUniqueApprovers + "|";
+  // res = res + "1~fnFManagerApprover_t~" + fnFPDLUniqueApprovers + "|";
+  
+// print "-------------------";
+// print fnFParticipantUniqueApprovers;
+// print fnFPDLUniqueApprovers;
+// // print "-------------------";
+   res = res + "1~fnFManagerApprover_t~" + fnFParticipantUniqueApprovers + "|";
+  res = res + "1~fnFApproverEmails_t~" + fnFPDLUniqueApprovers + "|";
+  
+  res = res + "1~storeADORDOEDONOMEmail_t~" + EmailNotificationString + "|" ;//Post MVP-CR 91 description by Namrata
+//---------------------complete CR 78 change--------------
+
+// MPS Approver Return data
+// print "mPSApproversJsonData---";
+// print mPSApproversJsonData;
+// print breakfixResponseArray;
+// print mPSLineApprovalDataString;
+// print mPHeaderApprovalDataString;
+ res = res + "1~mPSServiceStatus_c~" + mPSServiceStatus + "|" ;
+  res = res + "1~mPSApproversJsonData_c~" + jsontostr(mPSApproversJsonData) + "|" ;
+   res = res + "1~mPSLineApprovalDataString_c~" + mPSLineApprovalDataString + "|" ;
+    res = res + "1~mPHeaderApprovalDataString_c~" + mPHeaderApprovalDataString + "|" ;
+   
+ 
+  
+// mPSApproversJsonData_c
+return res;

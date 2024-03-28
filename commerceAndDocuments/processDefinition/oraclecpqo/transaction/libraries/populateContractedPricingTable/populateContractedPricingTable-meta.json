@@ -1,0 +1,11 @@
+{
+  "name" : "Populate Contracted Pricing Table",
+  "variableName" : "populateContractedPricingTable",
+  "description" : "Populates the Contract_Pricing data table based on discounted parts on a quote. Invoked upon creating an order (post customer signature)",
+  "libraryFunctions" : [ "util.getMutliplteCustomFieldValuesForselectedParts" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "customDiscountValue_l", "customDiscountType_l", "_document_number", "_part_number", "locationName_l", "_line_item_comment", "netPrice_l", "netPriceNRR_l", "finalListUnitPrice_l", "finalListUnitPriceNRR_l", "_part_custom_field9", "contractedPriceFound_l", "contractedPriceFoundNRR_l" ],
+  "mainDocAttributes" : [ "customerID_t", "transactionID_t", "_transaction_customer_t_company_name", "currency_t" ],
+  "systemAttributes" : [ "_system_user_session_id", "_system_company_name" ]
+}

@@ -1,0 +1,13 @@
+// SubDoc FollowonOrder Action Script used in Sub doc action oRCL_ABO_CreateFollowOnOrder > Destination > Define Destination Rule
+//	Script code is available when ABO package is migrated
+//
+//Associate this BML to 'Create Followonorder' Action's Destination ->Define Function
+//'Create FollowonOrder' is Transactionline level action. Name: Create FollowOnOrder, Var: oRCL_ABO_CreateFollowOnOrder
+//type: 'Add from Catalog'. Being 'Add from Catalog' type, this will automatically displayed in linegrid
+//Select following attributes
+//  System attribute:_system_buyside_id. _system_selected_document_number, _system_process_name
+//  transaction:  defaultRequestDate_t
+//  line - itemInstanceId_l,line_bom_parent_id, _document_number
+//Select following util libraries: abo_InitilizeContext, abo_getConfigurationInstance, abo_dateTimeConverter
+
+return "";

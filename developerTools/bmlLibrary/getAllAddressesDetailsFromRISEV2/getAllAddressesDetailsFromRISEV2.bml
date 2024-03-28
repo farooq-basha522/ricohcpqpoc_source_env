@@ -1,0 +1,153 @@
+/**
+Developer       Date            Comments
+---------       ----------      --------------
+Prashanth       12/6/2022       Base version
+Akshay          31/05/2023      INC2439675/CHG0082491-Added Null check to Postal COde
+*/
+ 
+//CHG0078656 : CPQ MS- CPQ Changes deployment//
+
+totalNoOfPages = "1";
+pageSize = "500";
+
+utilStartTime = getcurrenttimeinmillis();
+accountNumber = get(inputParam, "AccountNumber");
+pageNumber = get(inputParam, "pageNumber");
+
+headerDict = dict("string");
+addressHeaderDict = dict("string");
+
+results = recordset();
+
+enCodeFormat = "";
+endpointURL = "";
+
+reqBodyJson = json();
+queryJson = json();
+	
+cpqInstanceName = _company_name;
+
+XAPIKEY = "";
+
+/**********************Authorization Query*************************************/
+
+recordSet = bmql("select ENDPOINTURL,LOGIN,PASSWORD from MS_AddressAPI where INSTANCE = $cpqInstanceName AND KEY = 'GetToken'");
+
+clientID = "";
+clientpwd = "";
+endpointURL = "";
+
+for each in recordSet{
+	clientID = get(each,"LOGIN");
+	clientpwd = get(each,"PASSWORD");
+	endpointURL = get(each,"ENDPOINTURL");
+}
+
+authString = "";
+
+put(headerDict, "Authorization", "Basic " + encodebase64(clientID + ":" + clientpwd));
+put(headerDict, "Content-Type", "application/x-www-form-urlencoded");
+
+tokenRequestBody = "grant_type=client_credentials";
+
+urldatabypostResponse = urldatabypost(endpointURL, tokenRequestBody, "", headerDict, true);
+print "urldatabypostResponse";
+print urldatabypostResponse;
+
+access_token = "";
+
+if(urldatabypostResponse <> "" AND NOT ISNULL(urldatabypostResponse)){
+	responseJSON = json(urldatabypostResponse);	
+	print "responseJSON" ;
+	print responseJSON ;
+	if(jsonpathcheck(responseJSON, "access_token")){
+		access_token = "Bearer " + jsonget(responseJSON, "access_token");
+	}
+}
+
+/**********************Addresses Query*************************************/
+
+if(access_token <> ""){
+	keyCriteria = String[]{"GetAddresses", "GetAPIKey"};
+	recordSet = bmql("select LOGIN, ENDPOINTURL,KEY from MS_AddressAPI where INSTANCE = $cpqInstanceName AND KEY IN $keyCriteria ");
+	endpointURL = "";	
+	for each in recordSet{
+		Key = get(each,"KEY");
+		if(Key <> "GetAPIKey") { 
+			endpointURL = get(each,"ENDPOINTURL");
+		}
+		
+		if(Key == "GetAPIKey"){
+			XAPIKEY = get(each,"ENDPOINTURL");
+		}	
+	}
+	
+	account_EndpointUrl = endpointURL + "/cm/accounts/" + accountNumber + "/sites?sort=%2Baddress1&pageNumber=" + pageNumber + "&pageSize=" + pageSize + "&filter=%5B%7B%22name%22:%22siteUse%22,%22op%22:%22like%22,%22value%22:%22SHIP_TO%22%7D%5D";
+	
+	put(addressHeaderDict, "Content-Type", "application/json");
+	put(addressHeaderDict, "Accept", "application/json");
+	//put(addressHeaderDict, "x-api-key", "EA6GObm6cympO2mKZrTw9lNwExf8drW17mwtbLJ6");
+	put(addressHeaderDict, "x-api-key", XAPIKEY);
+	put(addressHeaderDict, "Authorization", access_token);
+	
+	response = urldatabyget(account_EndpointUrl, "", "ERROR", 500000, addressHeaderDict);
+	print "response ";
+	print response ;
+	if(response <> "ERROR"){
+		responseObj = json(response);
+		responseDataArray = jsonarray(jsonget(responseObj, "data"));
+		
+		responseMetaJson = jsonget(responseObj, "meta", "json");		
+		totalNoOfPages = jsonget(responseMetaJson, "totalPages");
+		
+		noOfAddresses = range(jsonarraysize(responseDataArray));
+		//totalNoOfAddresses = jsonarraysize(responseDataArray);
+		for eachAddress in noOfAddresses{
+			eachAddressDetails = jsonarrayget(responseDataArray,eachAddress);
+			eachAddressJson	= json(eachAddressDetails);
+			
+			address1 	= jsonget(eachAddressJson,"address1");
+			address2 	= jsonget(eachAddressJson,"address2");
+			address3 	= jsonget(eachAddressJson,"address3");
+			address4 	= jsonget(eachAddressJson,"address4");
+			
+			city		= jsonget(eachAddressJson,"city");
+			country		= jsonget(eachAddressJson,"country");
+			county		= jsonget(eachAddressJson,"county");
+			isPrimary	= jsonget(eachAddressJson,"isPrimary");
+			locationId	= jsonget(eachAddressJson,"locationId");
+			partySiteId 	= jsonget(eachAddressJson,"partySiteId");
+			LocationSiteNumber = jsonget(eachAddressJson, "PartySiteNumber");
+			postalCode	= jsonget(eachAddressJson,"postalCode");
+			siteUse		= jsonget(eachAddressJson,"siteUse");
+			state		= jsonget(eachAddressJson,"state");
+			
+			fullAddress	= address1;
+			if(address2 <> "" AND address2 <> "null" AND NOT ISNULL(address2)){
+				fullAddress = fullAddress + " " + address2;
+			}
+			
+			zipcode = "99999";
+			postalCodeArray = string[];
+
+//Below null check dded by Akshay for INC2439675/CHG0082491 as we were reciving null data for postal code for one of account and it was throwing run time error            
+    	if(postalCode<>"null" and postalCode <>"" and NOT(ISNULL(postalCode))){
+            		if(find(postalCode, "-") <> -1){
+               			 postalCodeArray = split(postalCode, "-");    
+               			 zipcode = postalCodeArray[0];
+
+            }else
+            {
+                zipcode = postalCode;
+            }
+        }
+			
+			/*********Inserting Address Data into Data Table***********/
+			if(address1 <> ""){
+				results = bmql("insert into Customer_Acnt_Data (Account,AddressLine1,City,State,ZipCode,LocationName,PrimaryAddress,LocationSiteID,LocationSiteNumber) values ($accountNumber, $fullAddress, $city, $state, $zipcode, $fullAddress, $isPrimary, $partySiteId, $LocationSiteNumber)");		
+			}
+		}		
+	}
+}
+
+return totalNoOfPages;

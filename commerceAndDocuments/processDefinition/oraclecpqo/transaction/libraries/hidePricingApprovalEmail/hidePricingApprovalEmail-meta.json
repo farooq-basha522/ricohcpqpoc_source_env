@@ -1,0 +1,11 @@
+{
+  "name" : "Hide Pricing Approval Email (NOT USING)",
+  "variableName" : "hidePricingApprovalEmail",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Boolean",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "pricingApproverEmailfromRISE_t", "customerAccountResult_t" ],
+  "systemAttributes" : [ ]
+}

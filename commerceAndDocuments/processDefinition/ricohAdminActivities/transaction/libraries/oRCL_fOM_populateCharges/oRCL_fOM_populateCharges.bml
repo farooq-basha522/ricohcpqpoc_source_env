@@ -1,0 +1,181 @@
+v__document_number = get(lineDict, "_document_number", "string");
+  	chargeJson = json();
+	chargesArray = jsonArray();
+	v_sequenceNumber = 0;
+	v_partPriceExist = false;
+	// Preparing the charge details
+	v_listPrice_l = get(lineDict, "listPrice_l", "float");
+	//Check whether part prices have been defined
+	if (v_listPrice_l > 0) 
+	{
+		v_partPriceExist = true;	//indicates that part prices have been defined
+		jsonput(chargeJson,"oRCL_listPrice", get(lineDict, "listPrice_l", "float"));
+		if(isnull(jsonget(chargeJson, "oRCL_listPrice"))){
+			jsonremove(chargeJson,"oRCL_listPrice");
+		}
+	
+		v_priceType_l = get(lineDict, "priceType_l", "string");
+		if(v_priceType_l == "Recurring" OR v_priceType_l == "Usage") {				
+			jsonput(chargeJson, "_s_oRCL_chargeDefIntegrationId", "QP_RECURRING_SALE_PRICE");
+		} else {			
+			jsonput(chargeJson, "_s_oRCL_chargeDefIntegrationId", "QP_SALE_PRICE");
+		}
+		jsonput(chargeJson, "_s_oRCL_chargeType", "ORA_SALE");
+		
+		jsonput(chargeJson,"oRCL_listAmount", get(lineDict, "listAmount_l", "float"));
+		if(isnull(jsonget(chargeJson, "oRCL_listAmount"))){
+			jsonremove(chargeJson,"oRCL_listAmount");
+		}	
+		jsonput(chargeJson,"oRCL_netPrice", get(lineDict, "netPrice_l", "float"));
+		if(isnull(jsonget(chargeJson, "oRCL_netPrice"))){
+			jsonremove(chargeJson,"oRCL_netPrice");
+		}	
+		jsonput(chargeJson,"oRCL_netAmount", get(lineDict, "netAmount_l", "float"));
+		if(isnull(jsonget(chargeJson, "oRCL_netAmount"))){
+			jsonremove(chargeJson,"oRCL_netAmount");
+		}
+		v_sequenceNumber = v_sequenceNumber + 1;	
+		jsonput(chargeJson, "oRCL_chargeSequenceNumber", v_sequenceNumber);
+		jsonput(chargeJson, "oRCL_applyTo", "Price");	
+		jsonput(chargeJson, "oRCL_primaryCharge", true);
+	
+		jsonput(chargeJson,"_s_oRCL_customDiscountType", get(lineDict, "customDiscountType_l", "string"));
+		if(isnull(jsonget(chargeJson, "_s_oRCL_customDiscountType"))){
+			jsonremove(chargeJson,"_s_oRCL_customDiscountType");
+		}	
+		jsonput(chargeJson,"oRCL_customDiscountAmount", get(lineDict, "customDiscountAmount_l", "float"));
+		if(isnull(jsonget(chargeJson, "oRCL_customDiscountAmount"))){
+			jsonremove(chargeJson,"oRCL_customDiscountAmount");
+		}	
+		jsonput(chargeJson,"oRCL_discountAmount", get(lineDict, "discountAmount_l", "float"));
+		if(isnull(jsonget(chargeJson, "oRCL_discountAmount"))){
+			jsonremove(chargeJson,"oRCL_discountAmount");
+		}
+		jsonput(chargeJson,"_s_oRCL_priceType", get(lineDict, "priceType_l", "string"));
+		if(isnull(jsonget(chargeJson, "_s_oRCL_priceType"))){
+			jsonremove(chargeJson,"_s_oRCL_priceType");
+		}
+		jsonput(chargeJson,"_s_oRCL_pricePeriod", get(lineDict, "pricePeriod_l", "string"));
+		if(isnull(jsonget(chargeJson, "_s_oRCL_pricePeriod"))){
+			jsonremove(chargeJson,"_s_oRCL_pricePeriod");
+		}
+		jsonput(chargeJson,"_s_oRCL_priceUOM", get(lineDict, "requestedUnitOfMeasure_l", "string"));
+		if(isnull(jsonget(chargeJson, "_s_oRCL_priceUOM"))){
+			jsonremove(chargeJson,"_s_oRCL_priceUOM");
+		}		
+		jsonput(chargeJson,"oRCL_contractNetValue", get(lineDict, "contractValue_l", "float"));
+		if(isnull(jsonget(chargeJson, "oRCL_contractNetValue"))){
+			jsonremove(chargeJson,"oRCL_contractNetValue");
+		}	
+		jsonput(chargeJson,"oRCL_contractListValue", get(lineDict, "contractListValue_l", "float"));
+		if(isnull(jsonget(chargeJson, "oRCL_contractListValue"))){
+			jsonremove(chargeJson,"oRCL_contractListValue");
+		}	
+		jsonput(chargeJson,"oRCL_contractDiscountAmount", get(lineDict, "contractDiscount_l", "float"));
+		if(isnull(jsonget(chargeJson, "oRCL_contractDiscountAmount"))){
+			jsonremove(chargeJson,"oRCL_contractDiscountAmount");
+		}	
+	
+		jsonarrayappend(chargesArray, chargeJson);		
+	}
+	
+	//Check if charges exist	
+	chargeSetSize = get(lineDict, "_chargeSetControl", "integer");
+	if(chargeSetSize > 0){
+		contractedPeriods = get(lineDict, "contractedPeriods_l", "integer");		
+		chargesets = get(lineDict, "_chargeSet", "string");
+		chargesetArraySet = jsonarray(chargesets);
+		indices = range(chargeSetSize);
+		for index in indices {
+			v_chargeListAmount = 0.0;
+			v_chargeDiscountAmount = 0.0;
+			v_chargeNetAmount = 0.0;
+			v_chargePricePeriod = "";
+			chargeJson = json();
+			v_sequenceNumber = v_sequenceNumber + 1;
+			
+			chargeSetJson = jsonarrayget(chargesetArraySet, index, "json");
+			keyArray = jsonkeys(chargeSetJson, true);
+			
+			if (findinarray(keyArray, "_chargeSet_chargeDefIntegrationId") <> -1 AND (NOT(isnull(jsonget(chargeSetJson,"_chargeSet_chargeDefIntegrationId", "string"))))) {
+				jsonput(chargeJson, "_s_oRCL_chargeDefIntegrationId", jsonget(chargeSetJson,"_chargeSet_chargeDefIntegrationId", "string"));
+			}
+			
+			if (findinarray(keyArray, "_chargeSet_chargeType") <> -1 AND (NOT(isnull(jsonget(chargeSetJson,"_chargeSet_chargeType", "string"))))) {			
+				//Charge Type
+				jsonput(chargeJson, "_s_oRCL_chargeType", jsonget(chargeSetJson,"_chargeSet_chargeType", "string"));
+			}
+			if (findinarray(keyArray, "_chargeSet_priceType") <> -1 AND (NOT(isnull(jsonget(chargeSetJson,"_chargeSet_priceType", "string"))))) {			
+				//Price Type
+				jsonput(chargeJson, "_s_oRCL_priceType", jsonget(chargeSetJson,"_chargeSet_priceType", "string"));
+			}
+			v_chargeType_l = jsonget(chargeJson, "_s_oRCL_chargeType", "string", "");
+			v_priceType_l = jsonget(chargeJson, "_s_oRCL_priceType", "string", "");
+			
+			if (findinarray(keyArray, "_chargeSet_pricePeriod") <> -1 AND (NOT(isnull(jsonget(chargeSetJson,"_chargeSet_pricePeriod", "string"))))) {
+				//Price Period
+				v_chargePricePeriod = jsonget(chargeSetJson,"_chargeSet_pricePeriod", "string");
+				jsonput(chargeJson, "_s_oRCL_pricePeriod", v_chargePricePeriod);
+			}
+			if (findinarray(keyArray, "_chargeSet_priceUOM") <> -1 AND (NOT(isnull(jsonget(chargeSetJson,"_chargeSet_priceUOM", "string"))))) {
+				//Price UOM
+				jsonput(chargeJson, "_s_oRCL_priceUOM", jsonget(chargeSetJson,"_chargeSet_priceUOM", "string"));
+			}
+			if (findinarray(keyArray, "_chargeSet_unitPrice") <> -1 AND (NOT(isnull(jsonget(chargeSetJson,"_chargeSet_unitPrice", "float"))))) {
+				//List Price
+				unitPrice = jsonget(chargeSetJson,"_chargeSet_unitPrice", "float", 0.0);
+				jsonput(chargeJson, "oRCL_listPrice", unitPrice);
+				//List Amount
+				v__price_quantity = get(lineDict, "_price_quantity", "integer");
+				v_chargeListAmount = unitPrice*v__price_quantity;				
+				jsonput(chargeJson, "oRCL_listAmount", v_chargeListAmount);
+			}
+			if (findinarray(keyArray, "_chargeSet_discountType") <> -1 AND (NOT(isnull(jsonget(chargeSetJson,"_chargeSet_discountType", "string"))))) {
+				//Custom Discount Type
+				jsonput(chargeJson, "_s_oRCL_customDiscountType", jsonget(chargeSetJson,"_chargeSet_discountType", "string"));
+			}		
+			if (findinarray(keyArray, "_chargeSet_discountValue") <> -1 AND (NOT(isnull(jsonget(chargeSetJson,"_chargeSet_discountValue", "float"))))) {
+				//Custom Discount Amount
+				jsonput(chargeJson, "oRCL_customDiscountAmount", jsonget(chargeSetJson,"_chargeSet_discountValue", "float"));
+			}
+			if (findinarray(keyArray, "_chargeSet_discountAmount") <> -1 AND (NOT(isnull(jsonget(chargeSetJson,"_chargeSet_discountAmount", "float"))))) {
+				//Discount Amount
+				v_chargeDiscountAmount = jsonget(chargeSetJson,"_chargeSet_discountAmount", "float");
+				jsonput(chargeJson, "oRCL_discountAmount",v_chargeDiscountAmount );
+			}			
+			if (findinarray(keyArray, "_chargeSet_netPrice") <> -1 AND (NOT(isnull(jsonget(chargeSetJson,"_chargeSet_netPrice", "float"))))) {
+				//Net Price
+				jsonput(chargeJson, "oRCL_netPrice", jsonget(chargeSetJson,"_chargeSet_netPrice", "float"));
+			}
+			if (findinarray(keyArray, "_chargeSet_netAmount") <> -1 AND (NOT(isnull(jsonget(chargeSetJson,"_chargeSet_netAmount", "float"))))) {
+				//Net Amount
+				v_chargeNetAmount = jsonget(chargeSetJson,"_chargeSet_netAmount", "float");
+				jsonput(chargeJson, "oRCL_netAmount", v_chargeNetAmount);
+			}			
+			
+			//Sequence Number
+			jsonput(chargeJson, "oRCL_chargeSequenceNumber", v_sequenceNumber);
+			//Apply To
+			jsonput(chargeJson, "oRCL_applyTo", "Price");	
+			//Set Primary Charge to true if part price is not defined 
+			//Set the first charge as primary by default
+			if (v_partPriceExist == false AND v_sequenceNumber == 1) {
+				jsonput(chargeJson, "oRCL_primaryCharge", true); 
+			} else {
+				jsonput(chargeJson, "oRCL_primaryCharge", false);
+			}
+			if(v_chargePricePeriod == "Per Month" AND (v_priceType_l == "Recurring" OR v_priceType_l == "Usage")) {
+				jsonput(chargeJson,"oRCL_contractNetValue", v_chargeNetAmount*contractedPeriods );
+				jsonput(chargeJson,"oRCL_contractListValue", v_chargeListAmount*contractedPeriods);
+				jsonput(chargeJson,"oRCL_contractDiscountAmount", v_chargeDiscountAmount*contractedPeriods); 	
+			} elif (v_chargePricePeriod == "Per Year" AND (v_priceType_l == "Recurring" OR v_priceType_l == "Usage")) {
+				jsonput(chargeJson,"oRCL_contractNetValue", v_chargeNetAmount );
+				jsonput(chargeJson,"oRCL_contractListValue", v_chargeListAmount);
+				jsonput(chargeJson,"oRCL_contractDiscountAmount", v_chargeDiscountAmount); 
+			}
+			
+			jsonarrayappend(chargesArray, chargeJson);
+		}
+	}
+	put(lineDict, "oRCL_charges", jsonarraytostr(chargesArray));
+return "";

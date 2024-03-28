@@ -1,0 +1,11 @@
+{
+  "name" : "OSC Transaction Status",
+  "variableName" : "oRCL_OSC_TransactionStatus",
+  "description" : "Sets the OSC Status value for the transaction and the line based upon the mapping of CPQ to OSC statuses in the Status Datatable.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "status_l" ],
+  "mainDocAttributes" : [ "status_t" ],
+  "systemAttributes" : [ ]
+}

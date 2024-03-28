@@ -1,0 +1,18 @@
+{
+  "name" : "abo_addDiagnosticInfo",
+  "variableName" : "abo_addDiagnosticInfo",
+  "description" : "This is the utility function to manage diagnosis, which provides  in-depth log information when enabled. It provide capability to add/retrieve/reset diagnosis log.",
+  "libraryFunctions" : [ "util.abo_getContext", "util.abo_initializeContext", "util.abo_isjsonnull", "util.abo_jsonSort" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "msgTitle",
+    "type" : "String"
+  }, {
+    "name" : "msgJson",
+    "type" : "Json"
+  }, {
+    "name" : "action",
+    "type" : "String"
+  } ],
+  "attributes" : [ "_user_login" ]
+}

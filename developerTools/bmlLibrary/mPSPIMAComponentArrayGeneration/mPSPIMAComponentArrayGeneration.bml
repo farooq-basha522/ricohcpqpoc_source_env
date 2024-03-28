@@ -1,0 +1,194 @@
+MPSLaborYear1Val = 0.0;
+		MPSLaborYear2Val = 0.0;
+		MPSLaborYear3Val = 0.0;
+		MPSLaborYear4Val = 0.0;
+		MPSLaborYear5Val = 0.0;
+		MPSLaborYear6Val = 0.0;
+		MPSLaborYear7Val = 0.0;
+		MPSLaborTotalContract= 0.0;
+		MPSLaborPIMAJson1 = json();
+		if(not(isnull(get(PricingDict,Item+"_Year1")))){
+		MPSLaborYear1Val = get(PricingDict,Item+"_Year1");
+		
+		// print "12---";
+		// print MPSLaborYear1Val ;
+		}
+		if(not(isnull(get(PricingDict,Item+"_Year2")))){
+		MPSLaborYear2Val = get(PricingDict,Item+"_Year2");
+		}
+		if(not(isnull(get(PricingDict,Item+"_Year3")))){
+		MPSLaborYear3Val = get(PricingDict,Item+"_Year3");
+		}
+		if(not(isnull(get(PricingDict,Item+"_Year4")))){
+		MPSLaborYear4Val = get(PricingDict,Item+"_Year4");
+		}
+		if(not(isnull(get(PricingDict,Item+"_Year5")))){
+		MPSLaborYear5Val = get(PricingDict,Item+"_Year5");
+		}
+		if(not(isnull(get(PricingDict,Item+"_Year6")))){
+		MPSLaborYear6Val = get(PricingDict,Item+"_Year6");
+		}
+		if(not(isnull(get(PricingDict,Item+"_Year7")))){
+		MPSLaborYear7Val = get(PricingDict,Item+"_Year7");
+		}
+		
+		if(not(isnull(get(PricingDict,Item+"_Total Contract")))){
+		MPSLaborTotalContract = get(PricingDict,Item+"_Total Contract");
+		}
+		
+		
+		if(sectionName == "MPS Labor"){
+			jsonput(MPSLaborPIMAJson1,"mPSLabourPIMADescriptionArray_c",Item);
+			jsonput(MPSLaborPIMAJson1,"mPSLabourPIMAYear1_c",string(round(MPSLaborYear1Val,2)));
+			jsonput(MPSLaborPIMAJson1,"mPSLabourPIMAYear2_c",string(round(MPSLaborYear2Val,2)));
+			jsonput(MPSLaborPIMAJson1,"mPSLabourPIMAYear3_c",string(round(MPSLaborYear3Val,2)));
+			jsonput(MPSLaborPIMAJson1,"mPSLabourPIMAYear4_c",string(round(MPSLaborYear4Val,2)));
+			jsonput(MPSLaborPIMAJson1,"mPSLabourPIMAYear5_c",string(round(MPSLaborYear5Val,2)));
+			jsonput(MPSLaborPIMAJson1,"mPSLabourPIMAYear6_c",string(round(MPSLaborYear6Val,2)));
+			jsonput(MPSLaborPIMAJson1,"mPSLabourPIMAYear7_c",string(round(MPSLaborYear7Val,2)));
+			jsonput(MPSLaborPIMAJson1,"mPSLabourTotalContractArray_c",string(round(MPSLaborTotalContract,2)));
+			
+			
+		
+		}
+
+		if(sectionName == "3rd Party / MICR Service"){
+		
+		
+		jsonput(MPSLaborPIMAJson1,"thirdPartyServiceDescriptionArray_c",Item);
+		jsonput(MPSLaborPIMAJson1,"thirdPartyServicePIMAMPSYear1_c",string(round(MPSLaborYear1Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyServicePIMAMPSYear2_c",string(round(MPSLaborYear2Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyServicePIMAMPSYear3_c",string(round(MPSLaborYear3Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyServicePIMAMPSYear4_c",string(round(MPSLaborYear4Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyServicePIMAMPSYear5_c",string(round(MPSLaborYear5Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyServicePIMAMPSYear6_c",string(round(MPSLaborYear6Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyServicePIMAMPSYear7_c",string(round(MPSLaborYear7Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyServicePIMAMPSTotalContract_c",string(round(MPSLaborTotalContract,2)));
+		MPSLaborTotalContractStr = formatascurrency(round(MPSLaborTotalContract,2), "USD");
+		jsonput(MPSLaborPIMAJson1,"thirdPartyMPSPIMATotalContractStr_c",substring(MPSLaborTotalContractStr ,1,len(MPSLaborTotalContractStr )));
+	
+	}
+	if(sectionName == "Zebra Service"){
+		
+		
+		jsonput(MPSLaborPIMAJson1,"zebraPIMAMPSArrayDescription_c",Item);
+		jsonput(MPSLaborPIMAJson1,"zebraPIMAMPSArrayYear1_c",string(round(MPSLaborYear1Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraPIMAMPSArrayYear2_c",string(round(MPSLaborYear2Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraPIMAMPSArrayYear3_c",string(round(MPSLaborYear3Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraPIMAMPSArrayYear4_c",string(round(MPSLaborYear4Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraPIMAMPSArrayYear5_c",string(round(MPSLaborYear5Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraPIMAMPSArrayYear6_c",string(round(MPSLaborYear6Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraPIMAMPSArrayYear7_c",string(round(MPSLaborYear7Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraPIMAMPSArrayTotalContract_c",string(round(MPSLaborTotalContract,2)));
+		MPSLaborTotalContractStr = formatascurrency(round(MPSLaborTotalContract,2), "USD");
+		jsonput(MPSLaborPIMAJson1,"zebraServicePIMAMPSTotalContractStr_c",substring(MPSLaborTotalContractStr ,1,len(MPSLaborTotalContractStr )));
+
+
+	}
+	
+	if(sectionName == "Fleet 3rd Party / MICR"){
+	
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSDescription_c",Item);
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYear1_c",string(round(MPSLaborYear1Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYear2_c",string(round(MPSLaborYear2Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYear3_c",string(round(MPSLaborYear3Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYear4_c",string(round(MPSLaborYear4Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYear5_c",string(round(MPSLaborYear5Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYear6_c",string(round(MPSLaborYear6Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYear7_c",string(round(MPSLaborYear7Val,2)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMATotalContract_c",string(round(MPSLaborTotalContract,2)));
+		MPSLaborYear1ValStr  = formatascurrency(round(MPSLaborYear1Val,2), "USD");
+		MPSLaborYear2ValStr =  formatascurrency(round(MPSLaborYear2Val,2), "USD");
+		MPSLaborYear3ValStr =  formatascurrency(round(MPSLaborYear3Val,2), "USD");
+		MPSLaborYear4ValStr =  formatascurrency(round(MPSLaborYear4Val,2), "USD");
+		MPSLaborYear5ValStr = formatascurrency(round(MPSLaborYear5Val,2), "USD");
+		MPSLaborYear6ValStr =  formatascurrency(round(MPSLaborYear6Val,2), "USD");
+		MPSLaborYear7ValStr = formatascurrency(round(MPSLaborYear7Val,2), "USD");
+		MPSLaborTotalContractStr = formatascurrency(round(MPSLaborTotalContract,2), "USD");
+		
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYear1Str_c",substring(MPSLaborYear1ValStr,1,len(MPSLaborYear1ValStr)));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYearStr2_c",substring(MPSLaborYear2ValStr,1,len(MPSLaborYear2ValStr )));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYear3Str_c",substring(MPSLaborYear3ValStr ,1,len(MPSLaborYear3ValStr )));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYear4Str_c",substring(MPSLaborYear4ValStr ,1,len(MPSLaborYear4ValStr )));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYear5Str_c",substring(MPSLaborYear5ValStr ,1,len(MPSLaborYear5ValStr )));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYear6Str_c",substring(MPSLaborYear6ValStr ,1,len(MPSLaborYear6ValStr )));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMAMPSYear7Str_c",substring(MPSLaborYear7ValStr ,1,len(MPSLaborYear7ValStr )));
+		jsonput(MPSLaborPIMAJson1,"thirdPartyFleetPIMATotalContractStr_c",substring(MPSLaborTotalContractStr ,1,len(MPSLaborTotalContractStr )));
+
+	}
+	
+	
+	
+	
+	if(sectionName == "Fleet Zebra"){
+		
+	
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMADescription_c",Item);
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear1_c",string(round(MPSLaborYear1Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear2_c",string(round(MPSLaborYear2Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear3_c",string(round(MPSLaborYear3Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear4_c",string(round(MPSLaborYear4Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear5_c",string(round(MPSLaborYear5Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear6_c",string(round(MPSLaborYear6Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear7_c",string(round(MPSLaborYear7Val,2)));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMATotalContract_c",string(round(MPSLaborTotalContract,2)));
+		MPSLaborYear1ValStr  = formatascurrency(round(MPSLaborYear1Val,2), "USD");
+		MPSLaborYear2ValStr =  formatascurrency(round(MPSLaborYear2Val,2), "USD");
+		MPSLaborYear3ValStr =  formatascurrency(round(MPSLaborYear3Val,2), "USD");
+		MPSLaborYear4ValStr =  formatascurrency(round(MPSLaborYear4Val,2), "USD");
+		MPSLaborYear5ValStr = formatascurrency(round(MPSLaborYear5Val,2), "USD");
+		MPSLaborYear6ValStr =  formatascurrency(round(MPSLaborYear6Val,2), "USD");
+		MPSLaborYear7ValStr = formatascurrency(round(MPSLaborYear7Val,2), "USD");
+		MPSLaborTotalContractStr = formatascurrency(round(MPSLaborTotalContract,2), "USD");
+		
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear1Str_c",substring(MPSLaborYear1ValStr,1,len(MPSLaborYear1ValStr)));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear2Str_c",substring(MPSLaborYear2ValStr ,1,len(MPSLaborYear2ValStr )));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear3Str_c",substring(MPSLaborYear3ValStr ,1,len(MPSLaborYear3ValStr )));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear4Str_c",substring(MPSLaborYear4ValStr ,1,len(MPSLaborYear4ValStr )));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear5Str_c",substring(MPSLaborYear5ValStr ,1,len(MPSLaborYear5ValStr )));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear6Str_c",substring(MPSLaborYear6ValStr ,1,len(MPSLaborYear6ValStr )));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMAYear7Str_c",substring(MPSLaborYear7ValStr ,1,len(MPSLaborYear7ValStr )));
+		jsonput(MPSLaborPIMAJson1,"zebraFleetMPSPIMATotalContractString_c",substring(MPSLaborTotalContractStr ,1,len(MPSLaborTotalContractStr )));
+
+		
+	}
+	
+	if(sectionName == "Implementation Cost"){
+		
+		
+		
+		jsonput(MPSLaborPIMAJson1,"implementationCostMPSPIMADescription_c",Item);
+		jsonput(MPSLaborPIMAJson1,"implementationCostMPSPIMAYear1_c",string(round(MPSLaborYear1Val,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationCostMPSPIMAYear2_c",string(round(MPSLaborYear2Val,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationCostMPSPIMAYear3_c",string(round(MPSLaborYear3Val,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationCostMPSPIMAYear4_c",string(round(MPSLaborYear4Val,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationCostMPSPIMAYear5_c",string(round(MPSLaborYear5Val,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationCostMPSPIMAYear6_c",string(round(MPSLaborYear6Val,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationCostMPSPIMAYear7_c",string(round(MPSLaborYear7Val,2)));
+		jsonput(MPSLaborPIMAJson1,"MPStotalContractPIMAArray_t",string(round(MPSLaborTotalContract,2)));
+		jsonput(MPSLaborPIMAJson1,"implementationCostMPSPIMATotalContract_c",string(round(MPSLaborTotalContract,2))); 
+		
+	}
+	//Rebate Json Array
+	if(sectionName == "Rebate(s)"){
+		
+		MSLaborPIMAJson1= json();
+		
+		jsonput(MPSLaborPIMAJson1,"rebateRows_MPS_ArraySet_c",Item);
+		jsonput(MPSLaborPIMAJson1,"year1_MPS_rebateArraySet_c",string(round(MPSLaborYear1Val,2)));
+		jsonput(MPSLaborPIMAJson1,"year2_MPS_rebateArraySet_c",string(round(MPSLaborYear2Val,2)));
+		jsonput(MPSLaborPIMAJson1,"year3_MPS_rebateArraySet_c",string(round(MPSLaborYear3Val,2)));
+		jsonput(MPSLaborPIMAJson1,"year4_MPS_rebateArraySet_c",string(round(MPSLaborYear4Val,2)));
+		jsonput(MPSLaborPIMAJson1,"year5_MPS_rebateArraySet_c",string(round(MPSLaborYear5Val,2)));
+		jsonput(MPSLaborPIMAJson1,"year6_MPS_rebateArraySet_c",string(round(MPSLaborYear6Val,2)));
+		jsonput(MPSLaborPIMAJson1,"year7_MPS_rebateArraySet_c",string(round(MPSLaborYear7Val,2)));
+		jsonput(MPSLaborPIMAJson1,"totalContract_MPS_rebateArraySet_c",string(round(MPSLaborTotalContract,2)));
+		
+	}
+
+	
+
+
+
+		
+	return MPSLaborPIMAJson1;

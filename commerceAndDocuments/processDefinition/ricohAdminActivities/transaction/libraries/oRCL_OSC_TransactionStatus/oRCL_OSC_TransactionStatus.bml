@@ -1,0 +1,18 @@
+//default to starting status
+statusOSC = "ZCA_IN_PROGRESS";
+status = status_t;
+
+
+if (status == "CREATED" OR status == "QUOTED") {
+  statusOSC = "ZCA_IN_PROGRESS";
+} elif (status == "DELETED") {
+  statusOSC = "ZCA_DELETED";
+} elif (status == "REJECTED_BY_CUSTOMER" OR status == "CANCELED") {
+  statusOSC = "ZCA_LOST";
+} elif (status == "DELETED") {
+  statusOSC = "ZCA_DELETED";
+} else {
+  statusOSC = "ZCA_WIN";
+}
+
+return statusOSC;

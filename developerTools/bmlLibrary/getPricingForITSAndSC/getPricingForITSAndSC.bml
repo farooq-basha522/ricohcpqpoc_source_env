@@ -1,0 +1,342 @@
+/******************************************************************************************************/
+//Author: 		Chakri 11/11/2021
+/******************************************************************************************************/
+
+DEBUG_FLAG = true;
+result = "";
+unitStandardCost = 0.0;
+defaultListPrice = 0.0;
+vendorCost = 0.0;
+partNumber = "";
+listPrice = 0.0;
+frozenCost = 0.0;
+priceUpliftCategory = "ACCESSORY.MFP";
+docNum = "";
+unitSRP = 0.0;
+extSRP = 0.0; //Defect-14742 Added by vasundhara
+derivedFrom = "";
+processGroup = "";
+ITSUnitSalesCost = 0.0;
+EquipmentComment = "";
+//Defect-13511 START Added by vasundhara
+vpFlag = false;
+unitSellingPrice = 0.0;
+modelNameForParts = ""; //Added by Vasundhara for Defect-14742
+price_quantity = 0; //Added by Vasundhara for Defect-14742
+variableItem = "";
+FIPItemsFlag = "N"; //Added by Vasundhara for Defect-15149
+FIPvalidFieldQty = 0; //Added by Vasundhara for Defect-15149
+finalSalesCost = 0.0;
+contractedPrice = 0.0;
+//Defect-13511
+unitSRP_vp=0.0;
+if(containskey(retFloatDict,"unitSRP_l")){
+	unitSRP_vp = get(retFloatDict,"unitSRP_l");
+}
+//CR28 - START Added by Vasundhara - Defect 17654 //CHG0078656 : CPQ MS- CPQ Changes deployment//
+unitSRP_Backend=0.0;
+if(containskey(retFloatDict,"unitSRPBackend_l")){
+	unitSRP_Backend = get(retFloatDict,"unitSRPBackend_l");
+}
+addToTransactionItemSearchFlag_t = false;
+if(containskey(retBooleanDict,"addToTransactionItemSearchFlag_t")){
+	addToTransactionItemSearchFlag_t = get(retBooleanDict,"addToTransactionItemSearchFlag_t");
+}
+//CR28 - END Added by Vasundhara Defect 17654 //CHG0078656 : CPQ MS- CPQ Changes deployment//
+RicohVendorQuoteNumber="";
+if(containskey(retStringDict,"RicohVendorQuoteNumber")){
+	RicohVendorQuoteNumber = get(retStringDict,"RicohVendorQuoteNumber");
+}
+if(containskey(retStringDict,"derivedFrom")){
+	derivedFrom = get(retStringDict,"derivedFrom");
+}
+if(containskey(retFloatDict,"defaultListPriceStr")){
+	defaultListPrice = get(retFloatDict,"defaultListPriceStr");
+}
+if(containskey(retFloatDict,"VendorCost")){
+	vendorCost = get(retFloatDict,"VendorCost");
+}
+if(containskey(retStringDict,"PartNumber")){
+	partNumber =get(retStringDict,"PartNumber");
+}
+if(containskey(retFloatDict,"ListPrice")){
+	listPrice = get(retFloatDict,"ListPrice");
+}
+if(containskey(retFloatDict,"FrozenCost")){
+	frozenCost = get(retFloatDict,"FrozenCost");
+}
+if(containskey(retStringDict,"PriceUpliftCategory")){
+	priceUpliftCategory = get(retStringDict,"PriceUpliftCategory");
+}
+if(containskey(retStringDict,"docNum")){
+	docNum = get(retStringDict,"docNum");
+}
+if(containskey(retStringDict,"processGroup")){
+	processGroup = get(retStringDict,"processGroup");
+}
+if(containskey(retFloatDict,"ITSUnitSalesCost")){
+	ITSUnitSalesCost = get(retFloatDict,"ITSUnitSalesCost");
+}
+//Defect-13511 START Added by vasundhara
+if(containskey(retBooleanDict,"vpFlag")){
+	vpFlag = get(retBooleanDict,"vpFlag");
+}
+if(containskey(retFloatDict,"unitSellingPrice")){
+	unitSellingPrice = get(retFloatDict,"unitSellingPrice");
+}
+//Defect-13511
+//Defect-14742 START Added by vasundhara
+if(containskey(retStringDict,"modelNameForParts")){
+	modelNameForParts = get(retStringDict,"modelNameForParts");
+}
+if(containskey(retIntegerDict,"_price_quantity")){
+	price_quantity = get(retIntegerDict,"_price_quantity");
+}
+//Defect-14742 END Added by vasundhara
+if(containskey(retStringDict,"VariableItem")){
+	variableItem = get(retStringDict,"VariableItem");
+}
+//Defect-15149 START Added by vasundhara
+if(containskey(retStringDict,"FIPItemsFlag")){
+	FIPItemsFlag = get(retStringDict,"FIPItemsFlag");
+}
+if(containskey(retIntegerDict,"FIPvalidFieldQty")){
+	FIPvalidFieldQty = get(retIntegerDict,"FIPvalidFieldQty");
+}
+//Defect-15149 END Added by vasundhara
+//CR28 - START Added by vasundhara
+termMonthInNumber = 0;
+if(containskey(retIntegerDict,"termMonthInNumber")){
+	termMonthInNumber = get(retIntegerDict,"termMonthInNumber");
+}
+costOfMoney = 0.0;
+if(containskey(retFloatDict,"CostOfMoney")){
+	costOfMoney = get(retFloatDict,"CostOfMoney");
+}
+chargeType = "";
+if(containskey(retStringDict,"chargeType")){
+	chargeType = get(retStringDict,"chargeType");
+}
+includeInMSAddress = false;
+if(containskey(retBooleanDict,"includeInMSAddress")){
+	includeInMSAddress = get(retBooleanDict,"includeInMSAddress");
+}
+//CR28 - END Added by vasundhara
+
+//START 08_16_2023 PERFORMANCE_ACTIVITIES added by Vasundhara
+fplaStr = "";
+if(containskey(retStringDict,"fplaFlag")){
+	fplaStr = get(retStringDict,"fplaFlag");
+}
+//START Added for Defect-18915
+codePresent = "";
+if(containskey(retStringDict,"codePresent")){
+	codePresent = get(retStringDict,"codePresent");
+}
+//START Added for Defect-18915
+sMA = 0.0;
+if(containskey(retFloatDict,"sMA")){
+	sMA = get(retFloatDict,"sMA");
+}
+priceListPrice = 0.0;
+if(containskey(retFloatDict,"cashPrice")){
+	priceListPrice = get(retFloatDict,"cashPrice");
+}
+rebatePercentage = 0.0;
+if(containskey(retFloatDict,"rebatePercentage")){
+	rebatePercentage = get(retFloatDict,"rebatePercentage");
+}
+minGPPercentage = 0.0;
+if(containskey(retFloatDict,"minGPPercentage")){
+	minGPPercentage = get(retFloatDict,"minGPPercentage");
+}
+productFloor = 0.0;
+if(containskey(retFloatDict,"productFloor")){
+	productFloor = get(retFloatDict,"productFloor");
+}
+sgaSegement = 0.0;
+if(containskey(retFloatDict,"sgaSegement")){
+	sgaSegement = get(retFloatDict,"sgaSegement");
+}
+hardwareTargetPrice = 0.0;
+if(containskey(retFloatDict,"hardwareTargetPrice")){
+	hardwareTargetPrice = get(retFloatDict,"hardwareTargetPrice");
+}
+//END 08_16_2023 PERFORMANCE_ACTIVITIES added by Vasundhara
+
+if(derivedFrom == "Calcualtions on Transaction Line - Before Formulas" OR derivedFrom == "Before Formulas"){
+	//START - Derivation of unit SRP// 
+	
+	unitSRP = defaultListPrice; 
+
+	if(RicohVendorQuoteNumber <> ""){
+		//unitSRP = unitSRP_vp; Commented by Vasundhara for CR28 Defect 17654
+		unitSRP = unitSRP_Backend; // CR28 Defect 17654 Added by Vasundhara //CHG0078656 : CPQ MS- CPQ Changes deployment//
+	}elif(vpFlag){
+		unitSRP = unitSellingPrice;
+	}
+	
+	//Defect-14742 START Added by vasundhara
+	//Commented by Vasundhara for Defect 17654
+	/* if(unitSRP_vp > 0 AND modelNameForParts <> "Equipment"){
+		unitSRP = unitSRP_vp;
+	} */
+	//START - Defect 17654 CR28 Added by Vasundhara //CHG0078656 : CPQ MS- CPQ Changes deployment//
+	if(unitSRP_Backend > 0 AND modelNameForParts <> "Equipment"){
+		unitSRP = unitSRP_Backend;
+	}
+	//END - Defect 17654 CR28 Added by Vasundhara //CHG0078656 : CPQ MS- CPQ Changes deployment//
+	if(FIPItemsFlag == "Y"){
+		unitSRP = (defaultListPrice / 2) * FIPvalidFieldQty;
+	}
+	//CR28 - START Added by Vasundhara //CHG0078656 : CPQ MS- CPQ Changes deployment//
+	/* if(((chargeType == "One Time" AND processGroup == "SC" AND includeInMSAddress) OR (processGroup == "SC" AND includeInMSAddress AND variableItem == "VP")) AND costOfMoney <> 0 AND termMonthInNumber <> 0){
+		unitSRP = unitSRP * costOfMoney;
+	} */ 
+	//CR28 - End Added by Vasundhara //CHG0078656 : CPQ MS- CPQ Changes deployment//
+	
+	//Defect-14742 END Added by vasundhara 
+	//END - Derivation of unit SRP// 
+	
+	//START - Derivation of Unit Standard Cost//
+	
+// ITS // Commented below condition and Added another By Iswarya to calculate standard cost for ITS items CHG0081706
+	//if(processGroup == "ITS" AND ITSUnitSalesCost > 0.0 AND VariableItem <> "VP"){//Added VP code condition as part of CHG0080949
+	if((processGroup == "ITS" AND ITSUnitSalesCost > 0.0 AND modelNameForParts == "Equipment") OR (processGroup == "ITS" AND ITSUnitSalesCost > 0.0 AND variableItem <> "VP")){ 		
+		unitStandardCost = ITSUnitSalesCost;
+	}else{ 
+		//Defect-13511 START Added by vasundhara - Added if condition to Calculate unitStandardCost for VP Item when SRP and cost are Zero
+		if(vpFlag){
+			unitStandardCost = unitSellingPrice * (1 - minGPPercentage);
+		}elif(vendorCost > 0.01){ 
+			unitStandardCost = vendorCost; /* elif(vendorCost == 0.0 AND listPrice > 0){unitStandardCost = listPrice;} */
+		}elif((vendorCost == 0.0 OR vendorCost == 0.01) AND (frozenCost > 0.01) AND processGroup <> "SC" ){
+			unitStandardCost = frozenCost;
+		}elif((vendorCost == 0.0 OR vendorCost == 0.01 OR frozenCost == 0.0 OR frozenCost == 0.01 OR (substring(partNumber,4,len(partNumber)) == "-DS" OR substring(partNumber,4,len(partNumber)) == "-PS1") OR (processGroup == "SC")) AND listPrice > 0.01){ //02_08_2023_Added Condition Vendor Cost == 0.0/0.01 for PS_Pricing by Vasundhara
+			unitStandardCost = listPrice;
+		}else{
+			//unitStandardCost = unitSRP * (1 - (minGPPercentage/100));  
+			unitStandardCost = unitSRP * (1 - minGPPercentage); 
+		}
+	}
+	
+	//CR28 - START Added by Vasundhara
+	/* if((chargeType == "One Time" AND processGroup == "SC" AND includeInMSAddress) OR (processGroup == "SC" AND includeInMSAddress AND variableItem == "VP") AND costOfMoney <> 0 AND termMonthInNumber <> 0){
+		unitStandardCost = unitStandardCost * costOfMoney;
+	} */
+	//CR28 - End Added by Vasundhara
+	if(FIPItemsFlag == "Y"){
+		unitStandardCost = (listPrice / 2) * FIPvalidFieldQty;
+	}
+	//END - Derivation of Unit Standard Cost//
+	
+	//START - Derivation of Unit Sales Cost//
+	//initialSalesCost = unitStandardCost * (1 + productFloor + sgaSegement);
+
+	initialSalesCost = (unitStandardCost - sMA) * (1 + productFloor + sgaSegement); //02_08_2023_Commented above line and added this line to add sMA for PS_Pricing by Vasundhara.
+
+	if(priceListPrice > 0.0){
+
+		//initialSalesCost = initialSalesCost + (priceListPrice * (rebatePercentage/100)) - sMA;
+		initialSalesCost = initialSalesCost + (priceListPrice * (rebatePercentage/100));//02_08_2023_Commented above line and added this line to remove SMA for PS_Pricing by Vasundhara.
+	}elif(codePresent == "true" AND priceListPrice == 0.0){ //09_06_2023 Added the elif condition for PS_Pricing by Vasundhara PS_Pricing
+		initialSalesCost = 0.0;
+	}
+	else{
+		//initialSalesCost = initialSalesCost + (initialSalesCost * (rebatePercentage/100)) - sMA;
+		initialSalesCost = initialSalesCost + (initialSalesCost * (rebatePercentage/100));//02_08_2023_Commented above line and added this line to remove SMA for PS_Pricing by Vasundhara.
+	}
+
+	finalSalesCost = 0.0;
+	if(unitSRP <> 0.0 AND initialSalesCost <> 0.0){
+		salesCostArray = float[]{unitSRP,initialSalesCost};	
+		finalSalesCost = min(salesCostArray);
+	}elif(unitSRP == 0.0 AND initialSalesCost <> 0.0){
+		finalSalesCost = initialSalesCost;
+	}elif(unitSRP <> 0.0 AND initialSalesCost == 0.0 AND codePresent <> "true"){ //09_06_2023 Added the codePresent condition for PS_Pricing by Vasundhara PS_Pricing
+		finalSalesCost = unitSRP;
+	}
+	//END - Derivation of Unit Sales Cost//
+	
+	//START - Derivation of Unit Contracted Price//	
+	if((processGroup == "ITS" AND modelNameForParts == "Equipment") OR (processGroup == "ITS" AND variableItem <> "VP")){ // Added modelNameForParts condition for Equipment by Vasundhara Defect-14742
+		contractedPrice = unitSRP;
+	}else{
+		contractedPrice = finalSalesCost * (1 + hardwareTargetPrice);
+		print "hardwareTargetPrice";
+		print hardwareTargetPrice;
+		print contractedPrice;
+		//if(priceListPrice > 0 AND codePresent == "true"){ //09_01_2023Commented this for DEFECT-18958 by Vasundhara PS_Pricing
+		if(codePresent == "true"){ //08_30_2023_Added codePresent Condition for PS_Pricing by  for Defect -18915 //09_01_2023 removing the PricelistPrice > 0 condition for DEFECT-18958 by Vasundhara PS_Pricing
+			contractedPrice = priceListPrice;
+			print "contractedPrice";
+			print contractedPrice;
+		}
+		//Defect-13511 START Added by vasundhara - Added if/elif condition
+		if(unitSRP <> 0.0 AND contractedPrice <> 0.0){
+			contractedPriceArray = float[]{unitSRP,contractedPrice};
+			contractedPrice = min(contractedPriceArray);
+		}elif(unitSRP <> 0.0 AND contractedPrice == 0.0 AND codePresent <> "true"){
+			contractedPrice = unitSRP;
+		}
+		//Defect-13511 END
+	}
+	//END - Derivation of Unit Sales Cost//
+	
+	//CR28 - START Added by Vasundhara
+	if(((chargeType == "One Time" AND processGroup == "SC" AND includeInMSAddress) OR (processGroup == "SC" AND includeInMSAddress AND variableItem == "VP")) AND costOfMoney <> 0 AND termMonthInNumber <> 0){
+		unitSRP = unitSRP * costOfMoney;
+		unitStandardCost = unitStandardCost * costOfMoney;
+		finalSalesCost = finalSalesCost * costOfMoney;
+		contractedPrice = contractedPrice * costOfMoney;
+	/* 	print "unitSRP " + string(unitSRP);
+		print "unitStandardCost " + string(unitStandardCost);
+		print "finalSalesCost " + string(finalSalesCost);
+		print "contractedPrice " + string(contractedPrice); */
+		
+	}
+	//CR28 - End Added by Vasundhara
+	//START-Added for PS_Pricing by Vasundhara for Defect -18941, Unit Cost should be the 0/0.01 if vendor provides 0.0/0.01
+	if(RicohVendorQuoteNumber <> "" AND (vendorCost == 0.0 OR vendorCost == 0.01)){
+		unitStandardCost = vendorCost;
+	}
+	//END-Added for PS_Pricing by Vasundhara for Defect -18941, Unit Cost should be the 0/0.01 if vendor provides 0.0/0.01
+	roundUnitSRP = round(unitSRP,2);
+	if(startswith(partNumber, "FIPS")){
+		roundUnitSRP = round(unitSRP,4);
+	}
+	extSRP = price_quantity * unitSRP;
+	roundExtSRP = round(extSRP,2);
+	if(startswith(partNumber, "FIPS")){
+		roundExtSRP = round(extSRP,4);
+	}
+	roundUnitCost = round(unitStandardCost,2);
+	if(startswith(partNumber, "FIPS")){
+		roundUnitCost = round(unitStandardCost,4);
+	}
+	roundSalesCost = round(finalSalesCost,2);
+	if(startswith(partNumber, "FIPS")){
+		roundSalesCost = round(finalSalesCost,4);
+	}
+	roundContractedPrice = round(contractedPrice,2);
+	if(startswith(partNumber, "FIPS")){
+		roundContractedPrice = round(contractedPrice,4);
+	}
+	roundHardwareTargetPrice = round(hardwareTargetPrice,2);
+	if(startswith(partNumber, "FIPS")){
+		roundHardwareTargetPrice = round(hardwareTargetPrice,4);
+	}
+}
+result = result + docNum + "~unitSRP_l~" + string(roundUnitSRP) + "|";
+//CHG0078656 : CPQ MS- CPQ Changes deployment//
+if(addToTransactionItemSearchFlag_t){
+	result = result + docNum + "~unitSRPBackend_l~" + string(roundUnitSRP) + "|"; //CR28 Added by Vasundhara. Defect 17654
+}
+result = result + docNum + "~extSRP_l~" + string(roundExtSRP) + "|"; //Defect-14742 Added by vasundhara
+result = result + docNum + "~unitCost_l~" + string(roundUnitCost) + "|";
+result = result + docNum + "~unitSalesCost_l~" + string(roundSalesCost) + "|";
+result = result + docNum + "~contractedUnitPrice_l~" + string(roundContractedPrice) + "|";
+result = result + docNum + "~contractPrice_l~" + string(roundContractedPrice) + "|";
+result = result + docNum + "~targetPrice_l~" + string(roundHardwareTargetPrice) + "|";
+
+return result;

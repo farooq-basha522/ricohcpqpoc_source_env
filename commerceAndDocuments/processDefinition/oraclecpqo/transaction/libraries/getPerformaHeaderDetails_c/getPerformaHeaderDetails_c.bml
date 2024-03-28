@@ -1,0 +1,202 @@
+headerTable = "";
+fleetTable = "";
+VolumeTable = "";
+MICRVolumeTable = "";
+ZebrafleetTable = "";
+termmonth = termMonths_t;
+performaHeaderDataJson  = json();
+if(performaHeaderDetailsString_t_c <> ""){
+performaHeaderDataJson = json(performaHeaderDetailsString_t_c);
+}
+if(termmonth == "Other" AND contractOtherTerm_t > 0){
+	termmonth = string(contractOtherTerm_t);
+}
+leadPricingStr = leadingPricingStrategy_t;
+
+rmsscThirdPartyRISE = "";
+if(jsonpathcheck(performaHeaderDataJson,"rmsscThirdPartyRISE")){
+    rmsscThirdPartyRISE = jsonpathgetsingle(performaHeaderDataJson,"rmsscThirdPartyRISE" ,"string");
+}
+rmsscThirdZebraRISE = "";
+if(jsonpathcheck(performaHeaderDataJson,"rmsscThirdZebraRISE")){
+    rmsscThirdZebraRISE = jsonpathgetsingle(performaHeaderDataJson,"rmsscThirdZebraRISE" ,"string");
+}
+trackingSoftwareZebra = "";
+if(jsonpathcheck(performaHeaderDataJson,"trackingSoftwareZebra")){
+    trackingSoftwareZebra = jsonpathgetsingle(performaHeaderDataJson,"trackingSoftwareZebra" ,"string");
+}
+trackingSoftware3rdparty = "";
+if(jsonpathcheck(performaHeaderDataJson,"trackingSoftware3rdparty")){
+    trackingSoftware3rdparty = jsonpathgetsingle(performaHeaderDataJson,"trackingSoftware3rdparty" ,"string");
+}
+serviceSolutionImplementation = "";
+if(jsonpathcheck(performaHeaderDataJson,"ServiceSolutionImplementation")){
+    serviceSolutionImplementation = jsonpathgetsingle(performaHeaderDataJson,"ServiceSolutionImplementation" ,"string");
+}
+ServiceSolutionImplementationZebra = "";
+if(jsonpathcheck(performaHeaderDataJson,"ServiceSolutionImplementationZebra")){
+    ServiceSolutionImplementationZebra = jsonpathgetsingle(performaHeaderDataJson,"ServiceSolutionImplementationZebra" ,"string");
+}
+MICRbwCommittedVolume = "";
+if(jsonpathcheck(performaHeaderDataJson,"MICRbwCommittedVolume")){
+    MICRbwCommittedVolume = jsonpathgetsingle(performaHeaderDataJson,"MICRbwCommittedVolume" ,"string");
+}
+bwCommittedVolume = "";
+if(jsonpathcheck(performaHeaderDataJson,"bwCommittedVolume")){
+    bwCommittedVolume = jsonpathgetsingle(performaHeaderDataJson,"bwCommittedVolume" ,"string");
+}
+colorCommittedVolume = "";
+if(jsonpathcheck(performaHeaderDataJson,"colorCommittedVolume")){
+    colorCommittedVolume = jsonpathgetsingle(performaHeaderDataJson,"colorCommittedVolume" ,"string");
+}
+MICRcolorCommittedVolume= "";
+if(jsonpathcheck(performaHeaderDataJson,"MICRcolorCommittedVolume")){
+    MICRcolorCommittedVolume = jsonpathgetsingle(performaHeaderDataJson,"MICRcolorCommittedVolume" ,"string");
+}
+totalCommittedVolume = "";
+if(jsonpathcheck(performaHeaderDataJson,"totalCommittedVolume")){
+    totalCommittedVolume = jsonpathgetsingle(performaHeaderDataJson,"totalCommittedVolume" ,"string");
+}
+MICRtotalCommittedVolume = "";
+if(jsonpathcheck(performaHeaderDataJson,"MICRtotalCommittedVolume")){
+    MICRtotalCommittedVolume= jsonpathgetsingle(performaHeaderDataJson,"MICRtotalCommittedVolume" ,"string");
+}
+breakFixIncluded = "No";
+if(containsMPSFleetLines_t_c){
+	breakFixIncluded  = "Yes";
+}
+tonerType = "";
+if(jsonpathcheck(performaHeaderDataJson,"tonerType")){
+    tonerType = jsonpathgetsingle(performaHeaderDataJson,"tonerType" ,"string");
+}
+
+contractColumns = string[]{
+	"CPQ Quote Number",
+	"Customer Company Name",
+    "Service Contract Term",
+	"Lead Pricing Strategy"
+	};
+fleetColumns = string[]{
+        "RMSSC Level",
+		"Tracking Software",
+		"Services/Solutions Implementations"
+	};
+zebrafleetColumns = string[]{
+        "RMSSC Level",
+		"Tracking Software",
+		"Services/Solutions Implementations"
+	};
+VolumeColumns = string[]{
+        "B&W Comitted Volume",
+		"Color Committed Volume",
+		"Total Committed Volume"
+	};
+MICRVolumeColumns = string[]{
+        "B&W Comitted Volume",
+		"Color Committed Volume",
+		"Total Committed Volume"
+	};
+DeviceColumns = string[]{
+        "Breakfix Included",
+		"Toner Type"
+	};
+//Added Dummy Values below
+headerSummaryDict = dict("string");
+put(headerSummaryDict, "CPQ Quote Number", transactionID_t);
+put(headerSummaryDict, "Customer Company Name", customerCompanyName_t);
+put(headerSummaryDict, "Service Contract Term", termmonth);
+put(headerSummaryDict, "Lead Pricing Strategy", leadPricingStr);
+
+
+fleetSummaryDict = dict("string");
+put(fleetSummaryDict, "RMSSC Level", rmsscThirdPartyRISE);
+put(fleetSummaryDict, "Tracking Software", trackingSoftware3rdparty);
+put(fleetSummaryDict, "Services/Solutions Implementations", serviceSolutionImplementation);
+
+zebfleetSummaryDict = dict("string");
+put(zebfleetSummaryDict, "RMSSC Level", rmsscThirdZebraRISE);
+put(zebfleetSummaryDict, "Tracking Software", trackingSoftwareZebra);
+put(zebfleetSummaryDict, "Services/Solutions Implementations", ServiceSolutionImplementationZebra);
+
+volumeSummaryDict = dict("string");
+put(volumeSummaryDict, "B&W Comitted Volume", bwCommittedVolume);
+put(volumeSummaryDict, "Color Committed Volume", colorCommittedVolume);
+put(volumeSummaryDict, "Total Committed Volume", totalCommittedVolume);
+
+MICRvolumeSummaryDict = dict("string");
+put(MICRvolumeSummaryDict, "B&W Comitted Volume", MICRbwCommittedVolume);
+put(MICRvolumeSummaryDict, "Color Committed Volume", MICRcolorCommittedVolume);
+put(MICRvolumeSummaryDict, "Total Committed Volume", MICRtotalCommittedVolume);
+
+
+deviceSummaryDict = dict("string");
+put(deviceSummaryDict, "Breakfix Included", breakFixIncluded);
+put(deviceSummaryDict, "Toner Type", tonerType);
+
+print "Service Contract Term:" + termmonth;
+print "Lead Pricing Strategy:" + leadPricingStr;
+print "RMSSC Standard Level:" + rmsscThirdPartyRISE;
+print "Tracking Software:" + trackingSoftware3rdparty;
+print "Services/Solutions Implementations:" + serviceSolutionImplementation;
+print "B&W Comitted Volume:" + bwCommittedVolume;
+print "Color Committed Volume:" + colorCommittedVolume;
+print "Total Committed Volume:" + totalCommittedVolume;
+print "Breakfix Included:" + breakFixIncluded;
+print "Toner Type:" + tonerType;
+
+//Header Summary Table
+contractTable = "<table class=\"performaView_HTML\"><tr><th>Quote Details</th><th></th>";
+//fleetTable  =  "<table class=\"performaView_HTML\"><tr><th>Fleet Management Details</th><th>3rd Party/MICR</th>";
+//ZebrafleetTable  =  "<table class=\"performaView_HTML\"><tr><th>Fleet Management Details</th><th>Zebra</th>";
+//VolumeTable  =  "<table class=\"performaView_HTML\"><tr><th>Volume Details</th><th>3rd Party</th>";
+//MICRVolumeTable  =  "<table class=\"performaView_HTML\"><tr><th>Volume Details</th><th>MICR</th>";
+//DeviceTable = "<table class=\"performaView_HTML\"><tr><th>Device Details</th><th></th>";
+
+
+contractTable = contractTable + "</tr>";
+for contract in contractColumns {
+    contractTable = contractTable + "<tr><td>" + contract + "</td>";
+    fieldValues = get(headerSummaryDict, contract);
+	contractTable = contractTable + "<td>" + fieldValues + "</td>";
+    contractTable = contractTable + "</tr>";
+}
+print contractTable;
+/*fleetTable = fleetTable + "</tr>";
+for fleet in fleetColumns {
+    fleetTable = fleetTable + "<tr><td>" + fleet + "</td>";
+    fieldValues = get(fleetSummaryDict, fleet);
+	fleetTable = fleetTable + "<td>" + fieldValues + "</td>";
+    fleetTable = fleetTable + "</tr>";
+}
+ZebrafleetTable = ZebrafleetTable + "</tr>";
+for zebfleet in zebrafleetColumns {
+    ZebrafleetTable = ZebrafleetTable + "<tr><td>" + zebfleet + "</td>";
+    fieldValues = get(zebfleetSummaryDict, zebfleet);
+	ZebrafleetTable = ZebrafleetTable + "<td>" + fieldValues + "</td>";
+    ZebrafleetTable = ZebrafleetTable + "</tr>";
+}
+VolumeTable = VolumeTable + "</tr>";
+for Volume in VolumeColumns {
+    VolumeTable = VolumeTable + "<tr><td>" + Volume + "</td>";
+    fieldValues = get(volumeSummaryDict, Volume);
+	VolumeTable = VolumeTable + "<td>" + fieldValues + "</td>";
+    VolumeTable = VolumeTable + "</tr>";
+}
+MICRVolumeTable = MICRVolumeTable + "</tr>";
+for MICRVolume in MICRVolumeColumns{
+    MICRVolumeTable = MICRVolumeTable + "<tr><td>" + MICRVolume + "</td>";
+    fieldValues = get(MICRvolumeSummaryDict, MICRVolume);
+	MICRVolumeTable = MICRVolumeTable + "<td>" + fieldValues + "</td>";
+    MICRVolumeTable = MICRVolumeTable + "</tr>";
+}
+DeviceTable = DeviceTable + "</tr>";
+for Device in DeviceColumns {
+    DeviceTable = DeviceTable + "<tr><td>" + Device + "</td>";
+    fieldValues = get(deviceSummaryDict, Device);
+	DeviceTable = DeviceTable + "<td>" + fieldValues + "</td>";
+    DeviceTable = DeviceTable + "</tr>";
+}*/
+//headerTable = contractTable + VolumeTable + MICRVolumeTable + fleetTable + ZebrafleetTable + DeviceTable + "</table><br><br>";
+headerTable = contractTable + "</table><br><br>";
+
+return headerTable;

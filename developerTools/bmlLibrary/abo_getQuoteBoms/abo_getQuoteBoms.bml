@@ -1,0 +1,137 @@
+//FunctionName: abo_getQuoteBoms
+//   input: assetKey(String), transactionDate(Date), transactionId(Integer), lineNum_to_exclude(Integer), requestedAction(String)
+//   output: bomArrtoApply(jsonarray)
+//Description:
+//   This utility BML is used to retrieve the open order lines in BOM format for a given product instance up to requested date.
+//   This is used by abo_generatePAC.
+//Implementation Overview: 
+//     Query quote db with the assetKey for open txns and return the corresponding BOMs
+//     to support reconfig case, it will exclude current line being reconfiged (aka the input of txnId & lineNumToExclude)
+//     the result will be sorted by transaction date in ascending order, empty transaction date will be treated as today
+//     the retrieved bom will be in 2-level flat strcuture.
+//     the requestedAction will be used to valiate whether the user action will conflict with existing open order.
+
+
+//step1  query the order line service for open order lines, 
+//   the criteria is    
+//        ( (in other order and status=being fulfilled) or (in current order and status <> fulfilled)) and trasnactionDate< inputRequesteDate
+
+//Step 1: Handle empty date case.
+TRANSACTION_DATE = "requestDate_l";
+transDate =  datetostr(transactionDate, "yyyy-MM-dd HH:mm:ss");
+reqDateQueryParam  = "";
+todayDt =  datetostr(getDate(false), "yyyy-MM-dd HH:mm:ss");
+
+//If requestDate is later than today, we will need to explicitly add criteria to include the lines with empty date
+if(transDate > todayDt OR transDate == todayDt){
+     reqDateQueryParam =  ",{$or: [ {requestDate_l :{$lte:'" + transDate + "'}}" +
+                          ", {requestDate_l :{$exists:false}}]}" ;
+}else{
+     reqDateQueryParam = ", {requestDate_l :{$lt:'" + transDate + "'}}";
+}
+
+//Step 2: Construct the criteria, use explicitly indented lines to show the logic of criteria
+qval="{$and:["
+      + "{itemInstanceId_l:{$exists:true}}"                  
+      + ",{itemInstanceId_l:{$eq:'" + assetKey + "'}}"  
+      +  reqDateQueryParam
+      + ",{$or:["              
+          +"{fulfillmentStatus_l:{$eq:'BEING_FULFILLED'}}"
+              +",{$and:["
+                  + "{$or:["
+                      +"{fulfillmentStatus_l:{$eq:'CREATED'}}"
+                      +",{fulfillmentStatus_l:{$eq:''}}"
+                  +"]}"
+                  +",{_bs_id:{$eq:'" + string(transactionId) + "'}}"          
+             +"]}"
+          +"]}"   
+      +"]}";
+
+      
+encodedQval=util.adf_EncodeURIComponent(qval);
+fieldArr =  "&fields=itemInstanceId_l,_bs_id,_document_number,requestDate_l,oRCL_ABO_ActionCode_l";
+
+queryParam =  "?q="+encodedQval+fieldArr+"&orderby=requestDate_l:asc";
+
+//Step3: Now make RESTfull call to retrieve the open order lines.
+isLine =  true;
+response = util.abo_invokeOrderService(isLine, queryParam);
+
+//Extract the list of lines collection from REST service response.
+arrItems= jsonarray();
+if(util.abo_isjsonnull(response,"items")<>true){
+   arrItems =jsonget(response,"items", "jsonarray"); 
+}
+
+arrQuoteBom  =  jsonarray();
+arrItemSize = 0;
+if(isnull(arrItems)<>true){
+  arrItemSize = jsonarraysize(arrItems);
+}
+if(arrItemSize == 0){
+  return arrQuoteBom;
+}
+
+
+//Step 4:  Populate Transaction Date field for the lines with empty value to re-sort them so that we will have right order.
+dummyArrItem= string[arrItemSize];
+index=0;
+for item in dummyArrItem{
+  if(index ==arrItemSize){
+      break;
+  }
+  curNode =  jsonarrayget(arrItems, index, "json");
+  docNum =  jsonget(curNode, "_document_number", "integer");
+  bsidfromarrItem = jsonget(curNode, "_bs_id", "integer");
+  if(docNum == lineNum_to_exclude AND bsidfromarrItem == transactionId){
+      arrItemSize=jsonarrayremove(arrItems, index);//when we remove the curNode, index points to next element automatically
+      continue;
+  }
+  index =  index+1;
+  //To improve sort performance, remove links from arrItems
+  jsonpathremove(curNode, "$.links");
+  reqDate =  jsonget(curNode, TRANSACTION_DATE, "string");
+  if (isnull(reqDate)){     
+     jsonput(curNode, TRANSACTION_DATE, todayDt);
+  }
+}
+
+critArr =  jsonarray();
+crit1 = json("{\"field\":\"requestDate_l\",\"order\":\"asc\",\"dateFormat\": \"yyyy-MM-dd\"}");
+crit2 = json("{\"field\":\"_bs_id\",\"type\":\"number\",\"order\":\"asc\"}");
+crit3 = json("{\"field\":\"_document_number\", \"type\":\"number\",\"order\":\"asc\"}");
+jsonarrayappend(critArr, crit1);
+jsonarrayappend(critArr, crit2);
+jsonarrayappend(critArr, crit3);
+arrItems =  util.abo_jsonSort(arrItems, critArr);
+
+//ensure uniqueness. For reconfigure existing line is selected for update. Hence check doesn't make sense. 
+//During getBom, we ignore selected line. Hence arrQuoteBom will not have selected line 
+ res = util.abo_checkConflictRequest(arrItems, requestedAction, transDate, assetKey, transactionId);
+
+//Step5: Load BOM for each line
+//Specify list of additional commerce fields to load
+lineField =  string[3];
+lineField[0]="oRCL_ABO_ActionCode_l";
+lineField[1] = "itemInstanceName_l";
+lineField[2] = TRANSACTION_DATE;
+//PLACEHOLDER to retrieve additional fields in BOM, need to adjust array index as well.
+dummyArr= string[arrItemSize];
+index=0;
+for item in dummyArr{
+  curNode =  jsonarrayget(arrItems, index, "json");
+  index =  index+1;
+  bs_id = jsonget(curNode,"_bs_id","string");
+  bsId = atoi(bs_id);
+  lineNumStr =  jsonget(curNode, "_document_number","string");
+  lineNum = atoi(lineNumStr);  
+ 
+//Make multiple getbom call in oneshot once platform improvement is in place.
+  oneQuoteBom =   getbom(bsId, lineNum, lineField, 
+                 false,  //validate
+                 true,  //flatten
+                 true); //isSalesBom
+  jsonarrayappend(arrQuoteBom, oneQuoteBom);
+}//end of loop through lines to load bom
+
+return arrQuoteBom;

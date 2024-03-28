@@ -1,0 +1,14 @@
+{
+  "name" : "ApprovalTriggers",
+  "variableName" : "approvalTriggers",
+  "description" : "",
+  "libraryFunctions" : [ "util.getCustomfieldValueForPartNumber", "util.getMutliplteCustomFieldValuesForselectedParts", "util.getPartExists", "util.getProcessGroup" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "inputDict",
+    "type" : "String Dictionary"
+  } ],
+  "subDocAttributes" : [ "_part_number", "_part_custom_field24", "_line_item_comment", "type_l", "_document_number", "_price_calculation_info" ],
+  "mainDocAttributes" : [ "quoteWorkbench_VQt", "partsDataText_t" ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,11 @@
+{
+  "name" : "OSC Set Date for Upsert Quote",
+  "variableName" : "oRCL_OSC_SetDateForUpsertQuote",
+  "description" : "Sets the date and time to be recorded as the synchronization time for a transaction when it is synced to the associated OSC opportunity.  This value is passed to OSC in the Upsert Quote integration and used as the basis for display of the Active transaction in OSC.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

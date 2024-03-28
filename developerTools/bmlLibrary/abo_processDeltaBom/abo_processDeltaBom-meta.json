@@ -1,0 +1,15 @@
+{
+  "name" : "abo_processDeltaBom",
+  "variableName" : "abo_processDeltaBom",
+  "description" : "This bml is invoked from abo_delta to compare pacBom & configBom and add actionCode",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_getContext", "util.abo_isjsonnull", "util.abo_processDeltaItem" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "pacBom",
+    "type" : "Json"
+  }, {
+    "name" : "configBom",
+    "type" : "Json"
+  } ],
+  "attributes" : [ ]
+}

@@ -1,0 +1,11 @@
+{
+  "name" : "RWA Pricing Setup",
+  "variableName" : "rWAPricingSetup",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_price_quantity", "partName_l", "_part_number", "_parent_doc_number", "_group_sequence_number", "qty_l", "_document_number", "bundleName_l", "bundleID_l", "bundleNameRWA" ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

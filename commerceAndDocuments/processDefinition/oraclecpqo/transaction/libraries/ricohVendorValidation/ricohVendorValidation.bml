@@ -1,0 +1,22 @@
+requestToQuoteItemsArray = requestToQuoteItemsArray_VQt;
+arraysize = range(jsonarraysize(requestToQuoteItemsArray));
+checkFlag = "false";
+ret = dict("string");
+vendorProductNumber_RequestQuoteVQt="";
+for arr in arraysize{
+	searchResultRow = jsonarrayget(requestToQuoteItemsArray,arr);
+	searchResultJson = json(searchResultRow);
+	selectAll_RequestQuoteVQt = jsonget(searchResultJson,"selectAll_RequestQuoteVQt");
+	vendorProductNumber_RequestQuoteVQt = jsonget(searchResultJson,"vendorProductNumber_RequestQuoteVQt");
+
+	if(NOT ISNULL(selectAll_RequestQuoteVQt) AND selectAll_RequestQuoteVQt == "true"){
+	checkFlag = "true";
+
+	}
+	
+	}
+	if(checkFlag == "false" AND NOT ISNULL(vendorProductNumber_RequestQuoteVQt) AND vendorProductNumber_RequestQuoteVQt  <> ""){
+		put(ret,"RICOHVENDORSENDSELECTED","true");
+
+	}
+	return ret;

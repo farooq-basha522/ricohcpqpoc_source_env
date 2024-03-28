@@ -1,0 +1,15 @@
+{
+  "name" : "abo_updateLineIdandFields",
+  "variableName" : "abo_updateLineIdandFields",
+  "description" : "This utility is invoked from abo_delta for populating additional fields after delta caculation before saving to Commerce Transaction Line",
+  "libraryFunctions" : [ "util.abo_isjsonnull" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "configBom",
+    "type" : "Json"
+  }, {
+    "name" : "inputBom",
+    "type" : "Json"
+  } ],
+  "attributes" : [ ]
+}

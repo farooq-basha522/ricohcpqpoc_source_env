@@ -1,0 +1,12 @@
+{
+  "name" : "Get All Addresses Details from RISE - V2",
+  "variableName" : "getAllAddressesDetailsFromRISEV2",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "inputParam",
+    "type" : "String Dictionary"
+  } ],
+  "attributes" : [ "_company_name" ]
+}

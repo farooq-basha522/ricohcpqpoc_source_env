@@ -1,0 +1,11 @@
+{
+  "name" : "ITS Vendor Quoting Item Creation",
+  "variableName" : "iTSVendorQuotingItemCreation",
+  "description" : "Using these library function to add the unavailble parts in CPQ to Data table and send the Payload to Rise to created those Items",
+  "libraryFunctions" : [ "util.getMutliplteCustomFieldValuesForselectedParts" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_parent_doc_number", "type_l", "_part_number", "vendorPartNumberLIG_l", "vendorName_l", "_part_custom_field23", "manufacturerLIG_l", "manufacturerPartNumberLIG_l", "_part_custom_field24", "_price_quantity", "_line_item_comment", "unitSRP_l", "_document_number", "supportTerm_l", "partDescriptionOnProposal_l", "equipmentCategoryId_l" ],
+  "mainDocAttributes" : [ "transactionID_t", "iTSMarketApprovalRequestorEmailID_t", "iTSVendorQuotingItemCreationProcessPayload_t", "marketActivationApprovalStatus_t", "RISEAccountNumber_t", "customerCompanyName_t", "opportunityID_t", "opportunityName_t", "rISEOpportunityLink_t", "opportunityNumber_t" ],
+  "systemAttributes" : [ "_system_date", "_system_company_name", "_system_user_email", "_system_user_first_name", "_system_user_last_name" ]
+}

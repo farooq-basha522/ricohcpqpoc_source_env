@@ -1,0 +1,11 @@
+{
+  "name" : "Upload MPS Config Line ArraySets",
+  "variableName" : "uploadMPSConfigLineArraySets_c",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_group_sequence_number", "_document_number", "_parent_doc_number", "zebraArrayController_c", "_model_name" ],
+  "mainDocAttributes" : [ "uploadMPSConfigurationFile_t", "uploadedMPSModelDocNumber_c", "bs_id", "errorLogMPSConfigurationFile_t_c", "printerModelList_c" ],
+  "systemAttributes" : [ "_system_supplier_company_name" ]
+}

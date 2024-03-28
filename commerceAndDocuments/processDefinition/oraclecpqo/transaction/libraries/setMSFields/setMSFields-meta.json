@@ -1,0 +1,11 @@
+{
+  "name" : "Set MS Fields",
+  "variableName" : "setMSFields",
+  "description" : "Using these rule to set Input MS and Tranasction Details",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_part_number", "includeInMS_l", "unitSRP_l", "_parent_doc_number", "qty_l", "unitSalesCost_l", "unitCost_l", "contractedUnitPrice_l", "_model_name" ],
+  "mainDocAttributes" : [ "paymentTermsMS_t", "nOMNationalOperationsManager_t", "eDOEnterpriseDirOperations_t", "projectNumber_t", "isThisAnEnterpriseAccount_t", "annualRevenueEscalation_t", "customerAccountResult_t", "rebateGPOThirdparty_t", "rebateCustomer_t", "isThisAnEnterpriseAccountEdit_t", "rebateApplied_t", "rebateValueOption_t" ],
+  "systemAttributes" : [ ]
+}

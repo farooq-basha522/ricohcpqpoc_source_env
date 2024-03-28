@@ -1,0 +1,15 @@
+retString = "";
+appName = "";
+appString = commerce.generateSAApproversString(Level, Type);
+splitRes = split(appString ,"#!#");
+if(Location == "Action"){
+	if(splitRes[ArrIndex] <> "" AND NOT(ISNULL(splitRes[ArrIndex]))){
+		appName = splitRes[ArrIndex];
+	}
+	retString = "1~" + appName + "~" + _system_supplier_company_name ;
+}elif(Location == "Condition"){
+	if(splitRes[ArrIndex] <> "" AND NOT(ISNULL(splitRes[ArrIndex]))){
+		retString = "true";
+	}
+}
+return retString ;

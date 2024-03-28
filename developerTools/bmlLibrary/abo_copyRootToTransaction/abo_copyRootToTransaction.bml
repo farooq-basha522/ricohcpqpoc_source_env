@@ -1,0 +1,84 @@
+//Function Name: abo_copyRootToTransaction
+//input: actionCode(string), assetKey(String), transactionDate(Date), transactionId(Integer), commerceProcess(String)
+//output:resultDict(String Dictionary)
+//Purpose: 
+//   This is entry BML for all ABO flow which does not launch configurator like terminate, suspend, resume. 
+//   It will be invoked as copyRootToTransaction operation on asset resource.
+
+TERMINATE = "TERMINATE";
+
+abocontext= util.abo_initializeContext(commerceProcess);
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true);  
+callContext="copyRootToTransaction";
+
+
+inputLog=json();
+if(not bDiagnosisOff){ //log the input when diagnosis is on
+   jsonput(inputLog, "actionCode", actionCode);
+   jsonput(inputLog, "assetKey", assetKey);
+   jsonput(inputLog, "transactionDate", datetostr(transactionDate));
+   jsonput(inputLog, "transactionId", transactionId);
+   jsonput(inputLog, "commerceProcess", commerceProcess);
+   dummy=util.abo_addDiagnosticInfo(callContext+"_input", inputLog,"addToSummary");
+   //flush input diagnosis info to global cache in case error happen during PAC
+   //processing
+   dummy=util.abo_addDiagnosticInfo("", json(),"flushToRemote");
+}
+
+
+pacBom =  util.abo_generatePAC(assetKey, transactionDate, transactionId, -1, actionCode);
+//partNumber is a required field if PAC BOM is not empty
+if(util.abo_isjsonnull(pacBom, "partNumber")){
+   msg =  "Product Instance does not exist as of date:" +datetostr(transactionDate);
+   throwError(msg);
+}
+
+resBom = json();
+if(actionCode == TERMINATE ){
+   resBom =  util.abo_terminate(pacBom, transactionDate);
+}else{
+   msg = "The requested action: " + actionCode +" is invalid on the product instance, please contact your system administrator." ;
+   throwError(msg);
+}
+//PLACEHOLDER: Similar if block can be added here to take care of Suspend and Resume flow
+
+//we will set _is_line_item_mandatory to true for all abo lines, so that we will disable the user to delete the sublines from commerce UI
+child = jsonpathgetsingle(resBom, "$.children", "jsonarray", jsonarray());
+childSize = jsonarraysize(child);
+dummyIter = string[childSize];
+index = 0;
+for iter in dummyIter {
+   currentChild = jsonarrayget(child,index,"json");
+   fields =  jsonget(currentChild, "fields", "json", json());
+   jsonput(fields, "_is_line_item_mandatory", true);
+   index = index+1;
+}
+
+if(not bDiagnosisOff){ 
+   dummy=util.abo_addDiagnosticInfo(callContext+"_inputForSaveBom", resBom,"addToSummary");
+   //push the diagnostic information from current user session to global cache 
+   //as otherwise the information won't be available to examine on UI session
+   dummy=util.abo_addDiagnosticInfo("", json(),"flushToRemote");
+}
+//Model validation
+partNumber =  jsonget(resbom, "partNumber", "string");
+resultDict = util.abo_getProductModelInfo(partNumber);
+//now we will call saveBom to create a new line in commerce
+lineNum = savebom(transactionId, resBom);
+
+//prepare return
+resultDict = dict("string");
+put(resultDict,"bomkey", assetKey);
+put(resultDict,"linenum", string(lineNum));
+
+//log the output if diagnostic mode is on.
+if(not bDiagnosisOff){ 
+   dummy=util.abo_addDiagnosticInfo(callContext+"_output=(checklog)", json(),"addToSummary");
+    //workaround as we are not able to convert dict to json within one line call. 
+   
+   //push the diagnostic information from current user session to global cache 
+   //as otherwise the information won't be available to examine on UI session
+   dummy=util.abo_addDiagnosticInfo("", json(),"flushToRemote");
+}
+
+return resultDict;

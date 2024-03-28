@@ -1,0 +1,7 @@
+//if(priceExpirationDate_t <> "") {
+//	return priceExpirationDate_t;
+//	}
+//	else {
+	today = getdate(true);
+	expiredate = adddays(today, 30);
+	return datetostr(expiredate);

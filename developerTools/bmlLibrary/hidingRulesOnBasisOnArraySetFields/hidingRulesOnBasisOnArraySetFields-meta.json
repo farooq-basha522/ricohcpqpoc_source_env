@@ -1,0 +1,21 @@
+{
+  "name" : "Hiding Rules on Basis on Array Fields",
+  "variableName" : "hidingRulesOnBasisOnArraySetFields",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Boolean",
+  "parameters" : [ {
+    "name" : "inputJsonArray",
+    "type" : "JsonArray"
+  }, {
+    "name" : "statusParam",
+    "type" : "String"
+  }, {
+    "name" : "statusValue",
+    "type" : "String"
+  }, {
+    "name" : "statusParam1",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

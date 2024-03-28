@@ -1,0 +1,15 @@
+{
+  "name" : "get User Details",
+  "variableName" : "getUserDetails",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "emailId",
+    "type" : "String[]"
+  }, {
+    "name" : "param1",
+    "type" : "String"
+  } ],
+  "attributes" : [ "_company_name" ]
+}

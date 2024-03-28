@@ -1,0 +1,546 @@
+/*
+    @name                   :    Library Function to fetch BOM prices/logic to handle promotion data
+    @author                 :    Supriya
+    @created                :    18-Aug-2022
+   
+    This function will return the calculated price/promotion/config related data for LIG
+    @return   -    	    :	[String]
+*/
+result = "";
+promoFlag=false;
+promotionjson = json();
+promotionjsonarray = jsonarray();
+sysdate = datetostr(getdate(), "MM/dd/yyyy");
+promoDescription ="";
+startDate = "";uom ="";bundleName="";
+promotionCode="";
+endDate = "";
+docNumArray = string[];
+retDict = dict("string");
+xaaSdict = dict("string");
+bundledict = dict("string");
+partdict = dict("string");
+bundleDict = dict("string");
+BundleArray = string[];
+BundleNameArray = string[];
+DEBUG_FLAG = true;
+XaaSLineCounter= 0;  XaaSDealCounter=0;
+subscriptionTerm = "";promotionCode="";promotionDollarAmt="";promotionComments="";promotionType="";bundleId ="";quantity="";
+promotionTypeTable="";modelName="";serviceType="";productLine="";subscriptionFlag="";
+promotionperiod=0;promotionValue=0.0;totalCostExtNetPrice=0.0;promodiscPrice=0.0;unitSellingPrice=0.0;
+subterm=0;ttlTotalCaontractValueRec=0.0;
+unitSRPXaaS =0.0;
+unitSalesCostXaaS =0.0;
+unitStdCostXaaS=0.0;
+contractedUnitPriceXaaS=0.0;
+contractedValueXaaS=0.0;
+extNetPriceXaaS=0.0;
+extSellingPriceXaaS=0.0;
+marginSalesCost = 0.0;
+marginStandardCost = 0.0;
+promoPercent=0.0;
+unitSellPrice=0.0;
+ContractPrice=0.0;
+XaaSOTJson =json();
+XaaSTotalDealJson=json();
+XaaSTotalDealMRRJson=json();
+XaaSJson=json();allModelJson =json();allModelFinalJson=json();
+quoteSummuryBuild = jsonArray();
+/* Set Dictionary-retDict to store config related attributes*/
+for each in transactionLine{
+	documentNumber = each._document_number;
+	partNumber = each._part_number;
+	bundleId= each.bundleID_l;
+	
+	if((each._parent_doc_number == "")){
+	
+	    bundleName = getconfigattrvalue(documentNumber,"bundleName_t") ;
+		if(startswith(bundleName,"RPAP")) {
+	  	
+		bundle="RPAP";
+		subscriptionFlag="TRUE";
+		bundleNameRPAP=getconfigattrvalue(documentNumber,"rPAPBundleName_t");
+		bundleNameAddOnUser1 = getconfigattrvalue(documentNumber,"additionalScanUser_t");
+		bundleNameAddOnUser2 = getconfigattrvalue(documentNumber,"additionalDBUser");
+		bundleNameAddOnUser3 = getconfigattrvalue(documentNumber,"additionalStorage");
+		bundleNameAddOnUser4 = getconfigattrvalue(documentNumber,"additonalPages1000");
+		bundleNameAddOnUser5 = getconfigattrvalue(documentNumber,"addionalPages4000");
+		bundleNameAddOnUser6 = getconfigattrvalue(documentNumber,"supplierQuantityOne");
+		bundleNameAddOnUser7 = getconfigattrvalue(documentNumber,"supplierQuantityFive");
+		bundleNameAddOnUser8 = getconfigattrvalue(documentNumber,"quickBookSageIntegration");
+		append(BundleNameArray, bundleNameRPAP);
+		append(BundleNameArray, bundleNameAddOnUser1);
+		append(BundleNameArray, bundleNameAddOnUser2);
+		append(BundleNameArray, bundleNameAddOnUser3);
+		append(BundleNameArray, bundleNameAddOnUser4);
+		append(BundleNameArray, bundleNameAddOnUser5);
+		append(BundleNameArray, bundleNameAddOnUser6);
+		append(BundleNameArray, bundleNameAddOnUser7);
+		append(BundleNameArray, bundleNameAddOnUser8);
+		if(billingFrequency_t<>"selectOne"){
+		put(retDict,documentNumber + "-SubscriptionFrequency",billingFrequency_t);
+		}
+		put(retDict,documentNumber + "-ServiceType",bundle);
+		put(retDict,documentNumber + "-ProdLine",bundle);
+		put(retDict,documentNumber + "-PromotionCode",promotionCode);
+		put(retDict,documentNumber + "-PromoVal",string(promotionValue));
+		put(retDict,documentNumber + "-PromoType",promotionType);
+		put(retDict,documentNumber + "-PromoPeriod",string(promotionPeriod));
+		put(retDict,documentNumber + "-PromoDollarAmt",promotionDollarAmt); 
+		put(retDict,documentNumber + "-PromoComments",promotionComments);
+		
+	   }
+	   else{
+		subscriptionTerm = getconfigattrvalue(documentNumber,"subscriptionTerm_t") ;
+	      promotionCode=getconfigattrvalue(documentNumber,"promotionCode_t") ; 
+	      promoVal=getconfigattrvalue(documentNumber,"promotionValue");
+	    if(promoVal<>"" AND NOT(ISNULL(promoVal))){
+		promotionValue= atof(promoVal);
+		}
+		promotionType=getconfigattrvalue(documentNumber,"promotionType");
+		if(promotionCode<>""){
+		if(getconfigattrvalue(documentNumber,"promotionPeriod")<>"" AND NOT(ISNULL(getconfigattrvalue(documentNumber,"promotionPeriod")))){
+		promotionPeriod=atoi(getconfigattrvalue(documentNumber,"promotionPeriod"));
+		}
+		}
+		else
+		{
+			promotionPeriod=0;
+		}
+		if(NOT(ISNULL(getconfigattrvalue(documentNumber,"promotionDollarAmount")))){
+		promotionDollarAmt= getconfigattrvalue(documentNumber,"promotionDollarAmount");
+		}
+		//promotionDollarAmt=getconfigattrvalue(documentNumber,"promotionDollarAmount");
+		promotionComments=getconfigattrvalue(documentNumber,"promotionComments");
+		bundleId= getconfigattrvalue(documentNumber,"bOMID");
+		if(NOT(ISNULL(getconfigattrvalue(documentNumber,"bundleQuantity")))){
+		quantity= getconfigattrvalue(documentNumber,"bundleQuantity");
+		}
+		//quantity=getconfigattrvalue(documentNumber,"bundleQuantity");
+		modelName=getconfigattrvalue(documentNumber,"bundleGroupName");
+		productLine=getconfigattrvalue(documentNumber,"serviceType");
+		subscriptionFlag=getconfigattrvalue(documentNumber,"subscriptionFlag");
+	     
+		put(retDict,documentNumber + "-SubscriptionTerm",subscriptionTerm);
+		if(billingFrequency_t<>"selectOne"){
+		put(retDict,documentNumber + "-SubscriptionFrequency",billingFrequency_t);
+		}
+		put(retDict,documentNumber + "-SubscriptionFlag","True");
+		put(retDict,documentNumber + "-PromotionCode",promotionCode);
+		put(retDict,documentNumber + "-bundleId",bundleId);
+		
+		put(retDict,documentNumber + "-bundleName",bundleName);
+		put(retDict,documentNumber + "-PromoVal",string(promotionValue));
+		put(retDict,documentNumber + "-PromoType",promotionType);
+		put(retDict,documentNumber + "-PromoPeriod",string(promotionPeriod));
+		put(retDict,documentNumber + "-PromoDollarAmt",promotionDollarAmt);
+		put(retDict,documentNumber + "-Quantity",quantity);
+		put(retDict,documentNumber + "-ModelName",modelName);
+		put(retDict,documentNumber + "-ServiceType",serviceType);
+		put(retDict,documentNumber + "-ProdLine",productLine);
+		put(retDict,documentNumber + "-PromoComments",promotionComments);
+		append(BundleNameArray, bundleName);
+		
+		}
+	}
+	append(docNumArray, each._document_number);
+	
+}
+
+
+bundleSet = bmql("select BomItemVarName,ConfigAttrValue from Oracle_BomItemMap where ConfigAttrValue in $BundleNameArray");
+for eachRow in bundleSet{
+	BomItemVarName = get(eachRow,"BomItemVarName");
+	bundleName = get(eachRow,"ConfigAttrValue");
+	append(BundleArray, BomItemVarName);	
+	put(bundleDict,BomItemVarName,bundleName);
+}
+/*Set the Dictionary -Partdict to store Price related details from standard table-Oracle_BomItemDef2*/
+recordSet = bmql("select ItemId,VariableName,ParentVariableName,Parent_ID,ItemType,Name,PartNumber,OracleSetName,StandardCost,BOMPrice,ContractPrice,SellingPrice,OracleSetName,SalesCost,ChargeType from Oracle_BomItemDef2 where VariableName in $BundleArray");
+for eachRow in recordSet{
+	OracleSetName = get(eachRow,"OracleSetName");
+	ItemType = get(eachRow,"ItemType");
+	ItemId= get(eachRow,"ItemId");
+	
+	PartNumber = get(eachRow,"PartNumber");
+	Name = get(eachRow,"Name");
+	ListPrice = get(eachRow,"StandardCost");
+	BOMPrice = get(eachRow,"BOMPrice");
+	SalesCost = get(eachRow,"SalesCost");
+	ContractPrice= atof(get(eachRow,"ContractPrice"));
+	SellingPrice= get(eachRow,"SellingPrice");
+	variableName = get(eachRow,"VariableName");
+	chargeType= get(eachRow,"ChargeType");
+	bundleName = "";
+	if(containskey(bundleDict,variableName)){
+		bundleName = get(bundleDict,variableName);
+	}
+	put(Partdict, bundleName + "-" + PartNumber + " OracleSetName", OracleSetName);
+	put(Partdict, bundleName + "-" + PartNumber + " ItemType", ItemType);
+	put(Partdict, bundleName + "-" + PartNumber + " ItemID", ItemId);
+	put(Partdict, bundleName + "-" + PartNumber + " Name", Name);
+	put(Partdict, bundleName + "-" + PartNumber + " ListPrice", ListPrice);
+	put(Partdict, bundleName + "-" + PartNumber + " BOMPrice", BOMPrice);
+	put(Partdict, bundleName + "-" + PartNumber + " SalesCost", SalesCost);
+	put(Partdict, bundleName + "-" + PartNumber + " ContractPrice", string(ContractPrice));
+	put(Partdict, bundleName + "-" + PartNumber + " SellingPrice", SellingPrice);
+	put(Partdict, bundleName + "-" + PartNumber + " ChargeType", chargeType);
+	put(Partdict, PartNumber + " SalesCost", SalesCost);
+}
+
+
+
+headerset = bmql("select HeaderId,BundleName from BOM_HEADER where BundleName in $BundleNameArray");
+for eachRow in headerset{
+     HeaderId = get(eachRow,"HeaderId");
+     BundleName = get(eachRow,"BundleName");
+     put(retDict,BundleName + "-HeaderId",HeaderId);
+} 
+for eachLine in transactionLine{
+	partNumber = eachLine._part_number;
+	
+	docNum = eachLine._document_number; 
+	PartQtyLine=eachLine.qty_l;
+	parentDocNumber = eachLine._parent_doc_number;
+	groupSeqNumber=eachLine._group_sequence_number;
+	uom = eachLine._part_units;
+	parentDocNum = eachLine._parent_doc_number;
+	period=eachLine.promotionPeriod_l;
+	subscriptiont = eachLine.subscriptionTerm_l;
+	//if(eachLine.subscriptionTerm_l<>"" AND NOT(ISNULL(eachLine.subscriptionTerm_l))){
+	if(subscriptiont<>"" AND ISNUMBER(subscriptiont)){
+	subterm=atoi(subscriptiont);
+	}
+		
+	/* Logic to fetch the promotion data */	
+	promoValue =0.0;unitNetPrice =0.0;PartQtyLine=eachLine.qty_l;
+	if(PartQtyLine==0){
+		PartQtyLine=eachLine._price_quantity;
+	}
+	docNumber = eachLine._document_number;
+	if(partNumber <> ""){
+		if(containskey(Partdict,bundleName + "-" + partNumber + " SellingPrice") AND isnumber(get(Partdict,bundleName + "-" + partNumber + " SellingPrice"))){
+			unitSellingPrice = atof(get(Partdict,bundleName + "-" + partNumber + " SellingPrice"));
+		}
+		OracleSetName = "";BOMPrice = 0.0;	SalesCost = 0.0;Name = "";ItemType = "";ItemId="";ListPrice = 0.0;
+		unitSalesCostLine = eachLine.unitSalesCost_l;
+	        unitStandardCostLine = eachLine.unitCost_l;
+		subscriptionTerm = "";subscriptionFreq="";
+		quantity="";chargeType="";promotionCode="";bundleName = "";HeaderId = "";serviceType="";
+		if(containskey(retDict,parentDocNum + "-PromoType")){
+			promotionType= get(retDict,parentDocNum + "-PromoType");
+		}
+		if(containskey(retDict,parentDocNum + "-PromoVal")){
+			promoValue =atof(get(retDict,parentDocNum + "-PromoVal"));
+			//promoValue = (promotionValue);
+		}      			
+		if (promotionType == "Amount") {
+			promoValueAmt =(promoValue);
+			unitNetPrice = (unitSellingPrice - promoValue);
+					
+		}if (promotionType == "Percent") {
+				promoValueAmt = (((promoValue) / 100) * unitSellingPrice);
+				unitNetPrice = unitSellingPrice - (((promoValue) / 100) * unitSellingPrice);
+		}if (promotionType == "Override") {
+				promoValueAmt = promoValue;
+				unitNetPrice = promoValue;
+		}
+			       
+		if(containskey(retDict,parentDocNumber + "-bundleName")){
+			bundleName = get(retDict,parentDocNumber + "-bundleName");
+		}
+		print bundleName;
+		if(bundleName ==""){
+		bundleName=eachLine.bundleNameRWA; 
+		}
+		if(containskey(Partdict,bundleName + "-" + partNumber + " SalesCost") AND isnumber(get(Partdict,bundleName + "-" + partNumber + " SalesCost"))){
+			SalesCost= atof(get(Partdict,bundleName + "-" + partNumber + " SalesCost"));
+		}
+		if(containskey(Partdict,bundleName + "-" + partNumber + " OracleSetName")){
+			OracleSetName= get(Partdict,bundleName + "-" + partNumber + " OracleSetName");
+		}
+		if(containskey(Partdict,bundleName + "-" + partNumber + " BOMPrice") AND isnumber(get(Partdict,bundleName + "-" + partNumber + " BOMPrice"))){
+			BOMPrice= atof(get(Partdict,bundleName + "-" + partNumber + " BOMPrice"));
+		}
+		if(containskey(Partdict,bundleName + "-" + partNumber + " SellingPrice") AND isnumber(get(Partdict,bundleName + "-" + partNumber + " SellingPrice"))){
+			unitSellPrice = atof(get(Partdict,bundleName + "-" + partNumber + " SellingPrice"));
+		}
+		if(containskey(Partdict,bundleName + "-" + partNumber + " ContractPrice") AND isnumber(get(Partdict,bundleName + "-" + partNumber + " ContractPrice"))){
+			ContractPrice= atof(get(Partdict,bundleName + "-" + partNumber + " ContractPrice"));
+		}
+		if(containskey(Partdict,bundleName + "-" + partNumber + " Name")){
+			Name= get(Partdict,bundleName + "-" + partNumber + " Name");
+		}
+		if(containskey(Partdict,bundleName + "-" + partNumber + " ItemType")){
+			ItemType= get(Partdict,bundleName + "-" + partNumber + " ItemType");
+		}
+		if(containskey(Partdict,bundleName + "-" + partNumber + " ItemID")){
+			ItemId= get(Partdict,bundleName + "-" + partNumber + " ItemID");
+		}
+		
+		if(containskey(Partdict,bundleName + "-" + partNumber + " ChargeType")){
+			chargeType= get(Partdict,bundleName + "-" + partNumber + " ChargeType");
+		}
+		if(containskey(Partdict,bundleName + "-" + partNumber + " ListPrice") AND isnumber(get(Partdict,bundleName + "-" + partNumber + " ListPrice"))){
+			ListPrice = atof(get(Partdict,bundleName + "-" + partNumber + " ListPrice"));
+		}
+		if(containskey(retDict,parentDocNumber + "-SubscriptionTerm")){
+			subscriptionTerm = get(retDict,parentDocNumber + "-SubscriptionTerm");
+		}
+		if(subscriptionTerm==""){
+			subscriptionTerm=eachLine.bundleSubscription; 
+		}	
+		if(containskey(retDict,parentDocNumber + "-SubscriptionFrequency")){
+			subscriptionFreq = get(retDict,parentDocNumber + "-SubscriptionFrequency");
+		}
+		
+		if(containskey(retDict,parentDocNumber + "-SubscriptionFlag")){
+			subscriptionFlag = get(retDict,parentDocNumber + "-SubscriptionFlag");
+		}
+		if(containskey(retDict,parentDocNumber + "-PromotionCode")){
+			promotionCode= get(retDict,parentDocNumber + "-PromotionCode");
+		}
+		if(containskey(retDict,bundleName + "-HeaderId")){
+			HeaderId = get(retDict,bundleName + "-HeaderId");
+		}
+		if(containskey(retDict,parentDocNumber + "-PromoVal")){
+			promotionValue= atof(get(retDict,parentDocNumber + "-PromoVal"));
+		}
+		if(containskey(retDict,parentDocNumber + "-PromoType")){
+			promotionType= get(retDict,parentDocNumber + "-PromoType");
+		}
+		if(containskey(retDict,parentDocNumber + "-PromoPeriod")){
+			promotionPeriod= atoi(get(retDict,parentDocNumber + "-PromoPeriod"));
+		}
+		if(containskey(retDict,parentDocNumber + "-PromoDollarAmt")){
+			promotionDollarAmt= (get(retDict,parentDocNumber + "-PromoDollarAmt"));
+		}
+		if(containskey(retDict,parentDocNumber + "-PromoComments")){
+			promotionComments= get(retDict,parentDocNumber + "-PromoComments");
+		}
+		if(containskey(retDict,parentDocNumber + "-bundleId")){
+			bundleId = get(retDict,parentDocNumber + "-bundleId");
+		}
+		if(containskey(retDict,parentDocNumber + "-Quantity")){
+			quantity= get(retDict,parentDocNumber + "-Quantity");
+		}
+		if(containskey(retDict,parentDocNumber + "-ModelName")){
+			modelName= get(retDict,parentDocNumber + "-ModelName");
+		}
+		if(containskey(retDict,parentDocNumber + "-ServiceType")){
+		serviceType= get(retDict,parentDocNumber + "-ServiceType");
+		}
+		if(containskey(retDict,parentDocNumber + "-ProdLine")){
+		productLine= get(retDict,parentDocNumber + "-ProdLine");
+		}
+	   
+	    if (promotionType == "Month" ) {
+				unitNetPrice = unitSellPrice;										
+	    }
+        if(promotionType == "" ) {	
+	       unitNetPrice = unitSellPrice;										
+	    }
+	    extNetPrice = (unitNetPrice * PartQtyLine);//*(subterm-period);			 
+        if(unitNetPrice <> 0.0) {
+			marginSalesCost = ((unitNetPrice - unitSalesCostLine)/unitNetPrice) * 100;
+			marginStandardCost = ((unitNetPrice - unitStandardCostLine)/unitNetPrice) * 100;
+		}
+	
+	
+		extSrpPrice= BOMPrice* PartQtyLine;
+		extSellingPrice= unitSellPrice * PartQtyLine;
+		
+		//extSellingPrice=extSrpPrice;
+		
+		//Changes added for XaaS code-to handle Quote summary part
+		//============================= XaaS Code Start ==================================
+		    if(eachLine.chargeType_l== "Recurring" AND eachLine.bundleID_l<> ""){
+			    XaaSLineCounter = XaaSLineCounter + 1;
+				XaaSDealCounter=XaaSDealCounter+1;
+			    unitSRPXaaS = unitSRPXaaS + (eachLine.unitSRP_l);
+		    	unitSalesCostXaaS = unitSalesCostXaaS + (eachLine.unitSalesCost_l);
+			    unitStdCostXaaS = unitStdCostXaaS + (eachLine.unitCost_l);
+			    contractedUnitPriceXaaS = contractedUnitPriceXaaS + (eachLine.contractedUnitPrice_l);
+			    contractedValueXaaS = contractedValueXaaS + (extNetPrice*12);
+			    extNetPriceXaaS = extNetPriceXaaS + extNetPrice;
+				totalCostExtNetPrice=totalCostExtNetPrice+ (extNetPrice * subterm);
+				promodiscPrice=promodiscPrice+(extNetPrice * period);
+			    extSellingPriceXaaS = extSellingPriceXaaS + extSellingPrice;
+				ttlTotalCaontractValueRec = ttlTotalCaontractValueRec + (extNetPrice * (subterm -period));
+		         }
+	    //=============================XaaS Code End ===================================== 
+		result = result  + docNum + "~unitSellingPrice_l~" + string(unitSellPrice) + "|" ;
+		result = result  + docNum + "~extSRP_l~" + string(extSrpPrice) + "|";
+		result = result  + docNum + "~contractedUnitPrice_l~" + string(ContractPrice) + "|";
+		
+		result = result  + docNum + "~oracleSetName_l~" + OracleSetName  + "|";
+		result = result  + docNum + "~unitSalesCost_l~" + string(SalesCost) + "|" ;
+		
+		result = result  + docNum + "~contractPrice_l~" + string(extSrpPrice) + "|" ;
+		result = result  + docNum + "~extSellingPrice_l~" + string(extSellingPrice) + "|" ;
+		result = result  + docNum + "~unitCost_l~" + string(ListPrice) + "|" ;
+		result = result  + docNum + "~chargeType_l~" + (chargeType) + "|" ;
+		
+		/*if(promoFlag== false){
+		result = result  + docNum + "~unitNetPrice_l~" + string(ListPrice) + "|" ;
+		}*/
+		result = result  + docNum + "~serviceType~" + modelName+ "|";
+		result = result  + docNum + "~productLine~" + productLine+ "|";
+		result = result  + docNum + "~promoCodeXaas~" + bundleId+ "|";
+		result = result  + docNum + "~promotionValue_l~" + string(promotionValue) + "|";
+		result = result  + docNum + "~promotionType_l~" + promotionType+ "|";
+		result = result  + docNum + "~promotionPeriod_l~" + string(promotionPeriod) + "|";
+		result = result  + docNum + "~percentAmountPercentage_l~" + (promotionDollarAmt) + "|";
+		result = result  + docNum + "~promotionComments_l~" + promotionComments+ "|";
+		result = result  + docNum + "~promoCodeId~" + bundleId+ "|";
+		
+		
+		result = result  + docNum + "~qty_l~" + quantity+ "|";
+		result = result  + docNum + "~unitSRP_l~" + string(BOMPrice)  + "|"  ;
+		result = result  + docNum + "~partDescriptionOnProposal_l~" + Name + "|" ;
+		result = result  + docNum + "~subscriptionTerm_l~" + subscriptionTerm + "|";
+		result = result  + docNum + "~subscriptionBillingFrequency_l~" + subscriptionFreq+ "|";
+		result = result  + docNum + "~subscriptionFlag~" + subscriptionFlag+ "|";
+		result = result  + docNum + "~promoCode_l~" + promotionCode+ "|";
+		
+		result = result  + docNum + "~itemCategory_l~" + ItemType + "|";
+		
+		
+		result = result  + docNum + "~ItemId_l~" + ItemId+ "|";
+		result = result  + docNum + "~type_l~" + ItemType + "|";
+		print startswith(bundleName,"RPAP");
+		if((startswith(bundleName,"RPAP")==true) OR (startswith(bundleName,"PRINTINONE")==true)) {
+		print "Inside";
+		result = result  + docNum + "~bundleName_l~" + bundleName + "|";
+		print 	bundleName ;
+		}
+		result = result  + docNum + "~bundleID_l~" + HeaderId + "|";
+		result=  result  + docNum + "~cPQLineID_l~" + transactionID_t + "-" + groupSeqNumber + "|";
+		//result=  result  + docNum + "~linkedItem_l~" + groupSeqNumber + "|";
+		 result = result  + docNumber + "~unitNetPrice_l~" + string(unitNetPrice) + "|";
+		 result = result  + docNumber  + "~marginPercentagesalescost_l~" + string(marginSalesCost) + "|";
+		 result = result  + docNumber  + "~marginPercentagestdscost_l~" + string(marginStandardCost) + "|";
+	        	result = result  + docNumber + "~extNetPrice_l~" + string(extNetPrice) + "|" + "|";
+		        result = result  + docNumber + "~UOM_l~" + uom + "|";
+		
+	}	
+}
+
+//XaaS Json for Quote Summary section
+if(XaaSLineCounter > 0){
+	jsonput(XaaSOTJson, "itemType_quoteSummary", "MRR");
+	jsonput(XaaSOTJson, "sRP_quoteSummary", unitSRPXaaS);
+	jsonput(XaaSOTJson, "salesCost_quoteSummary", unitSalesCostXaaS);
+	jsonput(XaaSOTJson, "contractTargetPrice_quoteSummary", contractedUnitPriceXaaS);
+	/*if(contractedUnitPriceXaaS <> 0.0 AND NOT(ISNULL(contractedUnitPriceXaaS)) AND (((contractedUnitPriceXaaS - extSellingPriceXaaS)/contractedUnitPriceXaaS) * 100) > 0.0){
+		jsonput(XaaSOTJson, "discount_quoteSummary", (((contractedUnitPriceXaaS - extSellingPriceXaaS)/contractedUnitPriceXaaS) * 100));
+	}else{
+		jsonput(XaaSOTJson, "discount_quoteSummary", "0.0");
+	}*/
+	if(extNetPriceXaaS <> 0.0 AND NOT(ISNULL(extNetPriceXaaS)) AND (((extSellingPriceXaaS - extNetPriceXaaS)/extSellingPriceXaaS) * 100) > 0.0){
+		jsonput(XaaSOTJson, "promotionPct_quoteSummary", (((extSellingPriceXaaS - extNetPriceXaaS)/extSellingPriceXaaS) * 100));
+	}else{
+		jsonput(XaaSOTJson, "promotionPct_quoteSummary",  "0.0");
+	}
+	jsonput(XaaSOTJson, "sellingPrice_quoteSummary", extNetPriceXaaS);
+	if(extNetPriceXaaS <> 0.0){
+		marginPercentagesalescostOTXaaS = (((extNetPriceXaaS - unitSalesCostXaaS)/extNetPriceXaaS) * 100);
+	}else{
+		marginPercentagesalescostOTXaaS = 0.0;
+	}
+	if(extNetPriceXaaS <> 0.0){
+		marginPercentagestdscostOTXaaS = (((extNetPriceXaaS - unitStdCostXaaS)/extNetPriceXaaS) * 100);
+	}else{
+		marginPercentagestdscostOTXaaS = 0.0;
+	}
+	if(totalCostExtNetPrice>0){
+	promoPercent=(promodiscPrice/totalCostExtNetPrice)*100;
+	}
+	
+	jsonput(XaaSOTJson, "promotionPct_quoteSummary", promoPercent);
+	jsonput(XaaSOTJson, "margin_quoteSummary", marginPercentagesalescostOTXaaS);
+	jsonput(XaaSOTJson, "standardMargin_quoteSummary", marginPercentagestdscostOTXaaS);
+	jsonput(XaaSOTJson, "totalContractPrice_quoteSummary", contractedValueXaaS);
+}
+
+//Total Deal Json for Quote Summary section
+if(XaaSDealCounter > 0){
+	jsonput(XaaSTotalDealMRRJson, "itemType_quoteSummary", "MRR");
+	jsonput(XaaSTotalDealMRRJson, "sRP_quoteSummary", unitSRPXaaS);
+	jsonput(XaaSTotalDealMRRJson, "salesCost_quoteSummary", unitSalesCostXaaS);
+	jsonput(XaaSTotalDealMRRJson, "contractTargetPrice_quoteSummary", contractedUnitPriceXaaS);
+	/*if(contractedUnitPriceXaaS <> 0.0 AND NOT(ISNULL(contractedUnitPriceXaaS)) AND (((contractedUnitPriceXaaS - extSellingPriceXaaS)/contractedUnitPriceXaaS) * 100) > 0.0){
+		jsonput(XaaSOTJson, "discount_quoteSummary", (((contractedUnitPriceXaaS - extSellingPriceXaaS)/contractedUnitPriceXaaS) * 100));
+	}else{
+		jsonput(XaaSOTJson, "discount_quoteSummary", "0.0");
+	}*/
+	if(extNetPriceXaaS <> 0.0 AND NOT(ISNULL(extNetPriceXaaS)) AND (((extSellingPriceXaaS - extNetPriceXaaS)/extSellingPriceXaaS) * 100) > 0.0){
+		jsonput(XaaSTotalDealMRRJson, "promotionPct_quoteSummary", (((extSellingPriceXaaS - extNetPriceXaaS)/extSellingPriceXaaS) * 100));
+	}else{
+		jsonput(XaaSTotalDealMRRJson, "promotionPct_quoteSummary",  "0.0");
+	}
+	jsonput(XaaSTotalDealMRRJson, "sellingPrice_quoteSummary", extNetPriceXaaS);
+	if(extNetPriceXaaS <> 0.0){
+		marginPercentagesalescostOTXaaS = (((extNetPriceXaaS - unitSalesCostXaaS)/extNetPriceXaaS) * 100);
+	}else{
+		marginPercentagesalescostOTXaaS = 0.0;
+	}
+	if(extNetPriceXaaS <> 0.0){
+		marginPercentagestdscostOTXaaS = (((extNetPriceXaaS - unitStdCostXaaS)/extNetPriceXaaS) * 100);
+	}else{
+		marginPercentagestdscostOTXaaS = 0.0;
+	}
+	if(totalCostExtNetPrice >0){
+	promoPercent=(promodiscPrice/totalCostExtNetPrice)*100;
+	}
+	jsonput(XaaSTotalDealMRRJson, "promotionPct_quoteSummary", promoPercent);
+	jsonput(XaaSTotalDealMRRJson, "margin_quoteSummary", marginPercentagesalescostOTXaaS);
+	jsonput(XaaSTotalDealMRRJson, "standardMargin_quoteSummary", marginPercentagestdscostOTXaaS);
+	jsonput(XaaSTotalDealMRRJson, "totalContractPrice_quoteSummary", contractedValueXaaS);
+}
+//Changes added for Quote Summary section
+jsonput(XaaSJson, "MRR", XaaSOTJson);
+jsonput(XaaSTotalDealJson, "MRR", XaaSTotalDealMRRJson);
+
+if(jsontostr(XaaSJson) <> "{\"MRR\":{}}"){
+	jsonput(allModelJson, "XaaS Service", XaaSJson);
+}
+if(jsontostr(XaaSTotalDealJson) <> "{\"MRR\":{}}"){
+	jsonput(allModelJson, "Total Deal", XaaSTotalDealMRRJson);
+}
+keys = jsonkeys(allModelJson);
+for eachKey in keys{
+	if(NOT(ISNULL(eachKey))){
+		  XaaSMRR=json();
+		   TTLMRR=json();
+		if(eachKey == "XaaS Service"){
+			XaaSJson1 = json(jsonget(allModelJson,"XaaS Service"));
+			
+			jsonput(allModelFinalJson , "itemType_quoteSummary", "XaaS Service");
+			jsonarrayappend(quoteSummuryBuild, allModelFinalJson);
+			if(NOT(ISNULL(jsonget(XaaSJson1, "MRR"))) AND jsonget(XaaSJson1, "MRR") <> "{}"){
+				XaaSMRR = json(jsonget(XaaSJson1, "MRR"));
+			}else{
+				jsonput(XaaSMRR, "itemType_quoteSummary","MRR");
+			}
+			jsonarrayappend(quoteSummuryBuild, XaaSMRR);
+			
+		}
+		if(eachKey == "XaaS Service"){
+			TTLJson1 = json(jsonget(allModelJson,"XaaS Service"));
+			jsonput(allModelFinalJson , "itemType_quoteSummary", "Total Deal");
+			jsonarrayappend(quoteSummuryBuild, allModelFinalJson);
+			if(NOT(ISNULL(jsonget(TTLJson1, "MRR"))) AND jsonget(TTLJson1, "MRR") <> "{}"){
+				TTLMRR = json(jsonget(TTLJson1, "MRR"));
+			}else{
+				jsonput(TTLMRR, "itemType_quoteSummary","MRR");
+			}
+			jsonarrayappend(quoteSummuryBuild, TTLMRR);
+			
+		}
+	}
+}
+result= result+ "1~billingFrequency_t~" + "Monthly" +"|";
+result= result+ "1~totalMRRContractValue_t~" + string(ttlTotalCaontractValueRec) +"|";
+result = result + _transaction_document_number + "~quoteSummaryArraySet_t~" + jsonarrayrefid(quoteSummuryBuild) + "|";
+return result;

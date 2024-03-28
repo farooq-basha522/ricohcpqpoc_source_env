@@ -1,0 +1,68 @@
+retValue = "";
+rowNum = 1;
+rowNum1 = 1;
+itemsArray = selectedItemsArray;
+itemsArray1 = selectedItemsBasedOnVendorQuoteNumberArray;
+arraySize = range(jsonarraysize(itemsArray));
+arraySize1 = range(jsonarraysize(itemsArray1));
+SUBMITED_TO_VEND = "Submitted to Vendor";
+
+if(vendorQuoteRequestNumberField_VQt == "") {
+
+	for arr in arraySize 
+	{
+		ricohEDPCode = jsonget(json(jsonarrayget(itemsArray , arr)),"ricohEDPCode_selectedItemsArray");
+		unitCost = jsonget(json(jsonarrayget(itemsArray , arr)),"unitCost_selectedItemsArray");
+		zeroCost = jsonget(json(jsonarrayget(itemsArray , arr)),"zeroCost_selectedItemsArray");
+		lineID = jsonget(json(jsonarrayget(itemsArray , arr)),"lineID_selecteditemArray");
+		status = jsonget(json(jsonarrayget(itemsArray , arr)),"status_selectedItemsArray");
+		unitCostInNumber = 0.0;
+		//START PS_Pricing add below code by Vasundhara for Unit Cost
+		if(isnumber(unitCost)){
+			unitCostInNumber = atof(unitCost);
+		}
+                if(isnull(zeroCost)){
+			zeroCost = "false";
+		}
+		//END PS_Pricing add above code by Vasundhara for Unit Cost
+		if((unitCostInNumber == 0.0 OR unitCostInNumber == 0.01) AND zeroCost == "false" AND status == SUBMITED_TO_VEND)// Updated condition for PS_Pricing by Vasundhara
+		{
+			retValue = retValue + lineID + " " + ": Unit Cost is required.\n ";
+		}
+		if(unitCostInNumber <> 0.0 AND unitCostInNumber <> 0.01 AND zeroCost == "true" AND status == SUBMITED_TO_VEND)  // Updated condition for PS_Pricing by Vasundhara
+		{
+			retValue = retValue + lineID + " " + ": Zero Cost Allowed is Checked and amount entered is Greater than $0.01, either uncheck or revise cost to proceed.\n ";
+		
+		}
+	
+		rowNum = rowNum + 1;
+	}
+} else {
+	for arr1 in arraySize1 {
+		ricohEDPCode = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"ricohEDPCode_SelectedItemsVQArray");
+		unitCost = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"unitCost_SelectedItemsVQArray");
+		zeroCost = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"zeroCost_SelectedItemsVQArray");
+		lineID = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"lineID_SelectedItemsVQArray");
+		status = jsonget(json(jsonarrayget(itemsArray1, arr1)),"status_SelectedItemsVQArray");
+		//START PS_Pricing add below code by Vasundhara for Unit Cost
+		unitCostInNumber = 0.0;
+		if(isnumber(unitCost)){
+			unitCostInNumber = atof(unitCost);
+		}
+		if(isnull(zeroCost)){
+			zeroCost = "false";
+		}
+	     //END PS_Pricing add above code by Vasundhara for Unit Cost
+		if((unitCostInNumber == 0.0 OR unitCostInNumber == 0.01) AND zeroCost == "false" AND status == SUBMITED_TO_VEND)	// Updated condition for PS_Pricing by Vasundhara
+		{
+			retValue = retValue + lineID + " " + ": Unit Cost is required.\n ";
+		}
+		if(unitCostInNumber <> 0.0 AND unitCostInNumber <> 0.01 AND zeroCost == "true" AND status == SUBMITED_TO_VEND) // Updated condition for PS_Pricing by Vasundhara
+		{
+			retValue = retValue + lineID + " " + ": Zero Cost Allowed is Checked and amount entered is Greater than $0.01, either uncheck or revise cost to proceed.\n ";
+		}
+		
+		rowNum1 = rowNum1+ 1;
+	}
+}
+return retValue;

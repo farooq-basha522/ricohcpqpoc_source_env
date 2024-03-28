@@ -1,0 +1,27 @@
+partDict = dict("string");
+vPart = BMQL("select part_number,custom_field13,custom_field24,custom_field23,custom_field27,price from _parts where part_number in $partNumberArray");
+for vpartdata in vPart{
+	partNumber= get(vpartdata ,"part_number");
+	vProdName = get(vpartdata ,"custom_field13");
+	portfolioFlag = get(vpartdata ,"custom_field24");
+	itemType = get(vpartdata ,"custom_field23");
+	variableItem= get(vpartdata ,"custom_field27");
+	itemType = get(vpartdata ,"custom_field23");
+	price = get(vpartdata ,"price");
+	if(customFieldVarName == "_part_custom_field24"){
+		put(partDict, partNumber,portfolioFlag);
+	}
+	if(customFieldVarName == "_part_custom_field23"){
+		put(partDict, partNumber,itemType);
+	}
+	if(customFieldVarName == "_part_custom_field27"){
+		put(partDict, partNumber,variableItem);
+	}
+	if(customFieldVarName == "price"){
+		put(partDict, partNumber,price);
+	}
+	if(customFieldVarName == "custom_field13"){
+		put(partDict, partNumber,vProdName);
+	}
+}
+return partDict;

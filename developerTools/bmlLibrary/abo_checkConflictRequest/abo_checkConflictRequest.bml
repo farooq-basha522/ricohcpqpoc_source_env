@@ -1,0 +1,66 @@
+//Function Name : abo_checkConflictRequest
+//Input : arrLine (JsonArray), requestedAction (String), requestDate(String), requestAssetKey (String), transactionId (Integer)
+//Output :dummy string
+//Purpose: 
+//  This function is to ensure the current requested action will not conflict with other open requests on the same lines.
+//  For example,  the same action for the same date on the same product instance can only happen once in a given transaction. 
+//  It will throw error when it detects such conflict.
+abocontext = util.abo_getContext();
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true);
+
+if(not bDiagnosisOff){//log input
+  dummyJson = json();
+  jsonput(dummyjson, "BomArr", arrLine);
+  jsonput(dummyjson, "requestedAction", requestedAction);
+  jsonput(dummyjson, "requestDate", requestDate);
+  jsonput(dummyjson, "requestAssetKey", requestAssetKey);
+  jsonput(dummyjson, "transactionId", transactionId);
+  dummy=util.abo_addDiagnosticInfo("abo_checkConflictRequest_input", dummyjson,"addToSummary");
+}
+
+ACTION =  "oRCL_ABO_ActionCode_l";
+TRANSACTIONDATE = "requestDate_l";
+ASSET_KEY = "itemInstanceId_l";
+BS_ID = "_bs_id";
+
+bRequestModify = false;
+isModify = false;
+if(requestedAction == "modify" OR requestedAction == "reconfigure" ){
+   bRequestModify = true;    
+}
+if(isnull(arrLine) OR jsonarraysize(arrLine)==0){
+    return "";
+}
+
+sizeofArrLine =  jsonarraysize(arrLine) ;
+dummyArr =  string[sizeofArrLine];
+
+index =  0;
+for eachRootLine in dummyArr{
+  oneRootLine =  jsonarrayget(arrLine, index, "json");
+  index = index + 1;
+  
+  curAssetKey = jsonget(oneRootLine, ASSET_KEY, "string","");
+  curActionCode = jsonget(oneRootLine, ACTION, "string");
+  curReqDate = jsonget(oneRootLine, TRANSACTIONDATE, "string");
+  curbsId = jsonget(oneRootLine, BS_ID, "string");
+  curLineNum=jsonget(oneRootLine, "_document_number", "string","");
+  
+  if(curAssetKey <> requestAssetKey OR curbsId <> string(transactionId) OR startswith(requestDate,curReqDate)<>true){
+     continue;
+  }
+  //now we will check action code.
+  if(curActionCode == "ADD" OR curActionCode == "UPDATE" OR curActionCode == "DELETE" OR curActionCode == "NO_UPDATE"){
+    isModify = true;
+  }
+  if((isModify AND bRequestModify )OR (isModify <> true AND curActionCode == requestedAction)){
+     errMsg="You already have a line(number:"+curLineNum+") with same action category on the same requested date for this product instance,"
+         +" only one such line is allowed within the same transaction.";
+     if(not bDiagnosisOff){
+        errMsg = errMsg+"====requestedAction="+requestedAction+", requestDate="+requestDate+", requesteAssetkey="+requestAssetKey
+                  +",requestedTxnId="+string(transactionId) +",curAction="+curActionCode+",curDate="+curReqDate;
+     }
+     throwerror(errMsg);
+  }    
+}
+return "";

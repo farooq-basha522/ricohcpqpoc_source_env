@@ -1,0 +1,12 @@
+{
+  "name" : "Get Error Message",
+  "variableName" : "getErrorMessage",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "msgName",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

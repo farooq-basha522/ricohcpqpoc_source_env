@@ -1,0 +1,44 @@
+//default to starting status
+status = status_t;
+statusDict = dict("integer");
+
+//Add all menu items from status_t
+put(statusDict, "CREATED", 1);
+put(statusDict, "QUOTED", 2);
+put(statusDict, "INVOICED", 3);
+put(statusDict, "AWAIT_BILLING", 4);
+put(statusDict, "BILLED", 5);
+put(statusDict, "ORDERED", 6);
+put(statusDict, "SCHEDULED", 7);
+put(statusDict, "PICKED", 8);
+put(statusDict, "MANUFACTURED", 9);
+put(statusDict, "AWAIT_SHIP", 10);
+put(statusDict, "SHIPPED", 11);
+put(statusDict, "DELIVERED", 12);
+put(statusDict, "ACTIVATED", 13);
+put(statusDict, "FULFILLED", 14);
+put(statusDict, "CANCELED", 15);
+put(statusDict, "DELETED", 16);
+put(statusDict, "REJECTED_BY_CUSTOMER", 17);
+put(statusDict, "SUBSCRIPTION_CREATED", 18);
+put(statusDict, "DOO_DRAFT", 19);
+put(statusDict, "DOO_APPROVAL_PENDING", 20);
+put(statusDict, "OPEN", 21);
+put(statusDict, "DOO_SUBMITTED", 22);
+put(statusDict, "CLOSED", 23);
+put(statusDict, "DOO_REFERENCE", 24);
+
+maxStatusId = get(statusDict, status);//check for furthest progressed line item using the above dict
+currStatusId = 0;
+for line in transactionLine {
+   line_status = line.status_l;
+   if(containskey(statusDict, line_status) == true) 
+   {
+   	currStatusId = get(statusDict, line_status);
+   }
+   if (currStatusId > maxStatusId) {
+      status = line_status;
+      maxStatusId = currStatusId;
+   }
+}
+return status;

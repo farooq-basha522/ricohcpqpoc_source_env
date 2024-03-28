@@ -1,0 +1,47 @@
+//getSOStatusFromFOM
+/////////////////////////////////////////
+//Function Definition
+//  
+//  Imported MainDoc Attributes:
+//      "orderKey_t"
+//  Returns string - concatenation of docNum~AttributeVarName~AttributeValue strings 
+//                   in the format compatible with BML integration
+
+// Get connection details stored in Generic Integration - GetSOStatusfromFOM
+connectionInfo = bmql("select username,password,requestUrl from integration.genericIntegration where name = 'GetSOStatusfromFOM'");
+icsUrl = "";
+username = "";
+password = "";
+for info in connectionInfo{
+	username = get(info, "username");
+	password = get(info, "password");
+	icsUrl = get(info, "requestUrl");
+}
+auth = encodebase64(username+":"+password);
+// create request headers
+headers = dict("string");
+put (headers , "Authorization", "Basic "+auth);
+put (headers , "Accept", "application/json");
+// create request url - <ICS url>/<orderKey>
+url = icsUrl+orderKey_t;
+// Call ICS Rest Api
+restResponse = urldata(url, "GET",headers,"",100000);
+// Get the status code
+statusCode = get(restResponse,"Status-Code");
+if(statusCode <> "200"){
+// The request errored out
+	errorMsg = get(restResponse,"Error-Message");
+	message = "";
+	if(statusCode == "404"){
+		message = "Error: Order with Order Key "+orderKey_t+" not found.";
+		throwerror(message);
+	}else {
+		message = "Error: " + errorMsg;
+		throwerror(errorMsg);
+	}
+}
+// Request was successful, hence get the formatted concatenated string from response and return it.
+resp = get(restResponse, "Message-Body");
+respJson=json(resp);
+cpqresp = jsonget(respJson,"statusResponse");
+return cpqresp;

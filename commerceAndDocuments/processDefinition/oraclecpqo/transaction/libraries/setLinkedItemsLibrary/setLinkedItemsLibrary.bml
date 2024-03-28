@@ -1,0 +1,108 @@
+/*
+    @name                   :    Library Function to fetch the linkage(association between parent part- sequence number/child -sequence number)
+    @author                 :    Supriya
+    @created                :    28-Aug-2022
+   
+    This function will return the mapping in terms of sequence number in Linked item column
+     @return   		        :	[String]
+*/
+result = "";
+partNumber="";itemId ="";parentSeqNum="";parentPartSeqNum="";
+partParentdNumber="";groupSequenceNumber ="";itemChildId ="";partChildNumber="";docNum="";
+linkedItemArrayJson= jsonarray();
+linkedItemJson= json();linkedItemPartsJson=json();psLinkedJSON  =json(); psLinkedDocNumJSON=json();
+/*Logic to fetch the group sequence numer for harwdare/software parts and store it in JSON-linkedItemJson*/
+for each in transactionLine{
+   if((NOT ISNULL(each._parent_doc_number)) AND(each._parent_doc_number <>"")){
+              if((endswith(each._part_numbeR, "RIC")) AND (each.oracleSetName_l<>"")) {
+		groupSequenceNumber=each._group_sequence_number;
+	}
+	  }
+           partNumber = each._part_number;
+           cpqLineId= each.cPQLineID_l;
+           itemId=each.ItemId_l;
+	        if(itemId<>""){
+	          jsonput(linkedItemJson,itemId+partNumber,groupSequenceNumber);
+	        }
+	   
+} 
+
+/* Json array to store parts and sequence number */
+for each in transactionLine{
+
+   if((NOT ISNULL(each._parent_doc_number)) AND(each._parent_doc_number <>"")){
+	   if(NOT ISNULL(each._document_number)){
+	    docNum= each._document_number;
+	   }    
+	    partNumber = each._part_number;
+	    cpqLineId= each.cPQLineID_l;
+	    grpSeq=each._group_sequence_number;
+	    itemId=each.ItemId_l;
+	   
+	   jsonput(linkedItemPartsJson,itemId+partNumber,grpSeq);
+	   jsonput(psLinkedDocNumJSON,itemId+partNumber,docNum);  
+	   
+	}	
+}
+/* Logic to fetch the sequence number set in  Oracle_BomItemDef2 for parent part to associate the linkage*/	 
+jsonarrayappend(linkedItemArrayJson,linkedItemJson);
+myArr = range(jsonarraysize(linkedItemArrayJson));
+for eachArr in myArr {
+psLinkedJSON  = jsonarrayget(linkedItemArrayJson, eachArr , "json");
+
+          for each in transactionLine{
+          if((NOT ISNULL(each._parent_doc_number)) AND(each._parent_doc_number <>"")){
+           
+	    val=0;
+	    partNumber = each._part_number;
+	    itemId=each.ItemId_l;
+	    
+	     psBomItemRecord = bmql("Select ParentSequenceNum,ItemId,PartNumber from Oracle_BomItemDef2 where ItemId = $itemId and ParentSequenceNum<> $val");
+            for eachRecord in psBomItemRecord {
+                parentSeqNum=get(eachRecord,"ParentSequenceNum");
+                partParentdNumber=get(eachRecord,"PartNumber");
+                itemParentId =get(eachRecord,"ItemId"); 
+                parentPartSeqNum=itemParentId+partParentdNumber;                       
+               comboPartSeqNum=jsonget(psLinkedJSON,parentPartSeqNum)+","+jsonget(linkedItemPartsJson,parentPartSeqNum);
+           
+            if (NOT(isnull(parentSeqNum))){
+           
+            psBomItemInnerRecord = bmql("Select ItemId, PartNumber from Oracle_BomItemDef2 where SequenceNum= $parentSeqNum");
+             for eachInnerRecord in psBomItemInnerRecord{
+                 partChildNumber=get(eachInnerRecord ,"PartNumber");
+                
+                 itemChildId =get(eachInnerRecord ,"ItemId");
+                 }
+               } 
+                       
+               jsonput(psLinkedJSON,itemChildId +partChildNumber,comboPartSeqNum);   
+   } 
+    
+   }
+   }  
+     
+ } 
+
+keys= jsonkeys(psLinkedJSON);
+ for key in keys{
+    linkedItemVal=jsonget(psLinkedJSON,key);
+    if(NOT ISNULL(jsonget(psLinkedDocNumJSON,key))){
+    docNum=jsonget(psLinkedDocNumJSON,key);
+    }
+    result = result  + docNum + "~linkedItem_l~" + linkedItemVal+  "|";
+     }
+for each in transactionLine{
+if(NOT ISNULL(each._document_number)){
+	    docNum= each._document_number;
+	   }
+if((NOT ISNULL(each._parent_doc_number)) AND(each._parent_doc_number <>"")){
+ 
+     keys= jsonkeys(psLinkedJSON);
+     for key in keys{
+     linkedItemVal=jsonget(psLinkedJSON,key);
+   
+  } 
+ } 
+ } 
+
+return result;

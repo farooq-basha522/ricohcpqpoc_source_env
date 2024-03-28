@@ -1,0 +1,11 @@
+{
+  "name" : "Validate Zero Cost on Preview/Validate",
+  "variableName" : "validateZeroCostOnPreviewValidate",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "selectedItemsArray", "selectedItemsBasedOnVendorQuoteNumberArray", "vendorQuoteRequestNumberField_VQt" ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,11 @@
+{
+  "name" : "Quote Summary Validations",
+  "variableName" : "quoteSummaryValidations",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "quoteWorkbench_VQt", "quoteWorkbench_t" ],
+  "systemAttributes" : [ ]
+}

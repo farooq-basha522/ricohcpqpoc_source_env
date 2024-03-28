@@ -1,0 +1,11 @@
+{
+  "name" : "Set Team Members RISE->CPQ",
+  "variableName" : "setTeamMembersCPQRISE",
+  "description" : "Using these library function to fetch Team Data from CRM and Populate in Resouce Details array and get Title and Role form HRMS and Team Members Data Table",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "selectedDRTeamMemberArraySet_t", "teamMembers_RECase_Flag", "businessChallenges_t", "otherRelevantInformation_t", "opportunityID_t", "acquisitionType_t", "designLead_t", "designEmailId_t", "managerOfLDE_c" ],
+  "systemAttributes" : [ "_system_company_name", "_system_user_email", "_system_supplier_company_name" ]
+}

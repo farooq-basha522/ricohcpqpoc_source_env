@@ -1,0 +1,23 @@
+{
+  "name" : "Get Performa Pricing Details",
+  "variableName" : "getPerformaPricingDetails_c",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "retStringDict",
+    "type" : "String Dictionary"
+  }, {
+    "name" : "retIntegerDict",
+    "type" : "Integer Dictionary"
+  }, {
+    "name" : "retFloatDict",
+    "type" : "Float Dictionary"
+  }, {
+    "name" : "retBooleanDict",
+    "type" : "Boolean Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "performaData_t", "modifyPricingScenario_MICR_c", "modifyPricingScenario_t", "mPSTotalDealSectionArrayset_t_c", "monthlyFleetManagement_Zebra_c", "monthlyFleetManagement_MICR_c", "pIMAOrignalMarginPerforma_t_c", "modifyPricingScenarioFleetManagementZebra_t_c", "modifyPricingScenarioFleetManagement3rdPartyMICR_c", "leadingPricingStrategy_t" ],
+  "systemAttributes" : [ ]
+}

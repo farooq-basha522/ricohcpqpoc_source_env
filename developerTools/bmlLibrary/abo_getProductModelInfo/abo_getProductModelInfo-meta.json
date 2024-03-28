@@ -1,0 +1,12 @@
+{
+  "name" : "abo_getProductModelInfo",
+  "variableName" : "abo_getProductModelInfo",
+  "description" : "This utility function is used to look up model for the given part from Oracle_aboPart2Model table. It is used to deduce which model to use to launch configurator given the part number of the asset.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String Dictionary",
+  "parameters" : [ {
+    "name" : "partNumber",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

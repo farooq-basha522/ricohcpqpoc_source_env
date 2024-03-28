@@ -1,0 +1,27 @@
+{
+  "name" : "Get MS Pricing",
+  "variableName" : "getMSPricing",
+  "description" : "//CHG0078656 : CPQ MS- CPQ Changes deployment//",
+  "libraryFunctions" : [ "util.getPartPrice" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "msInputDict",
+    "type" : "String Dictionary"
+  }, {
+    "name" : "jobTitlesDict",
+    "type" : "String Dictionary"
+  }, {
+    "name" : "maxTurnOverRatioDict",
+    "type" : "Float Dictionary"
+  }, {
+    "name" : "gradeAndGeoZoneDict",
+    "type" : "Float Dictionary"
+  }, {
+    "name" : "ancillaryCostDict",
+    "type" : "String Dictionary"
+  }, {
+    "name" : "upliftCategoryDict",
+    "type" : "Float Dictionary"
+  } ],
+  "attributes" : [ ]
+}

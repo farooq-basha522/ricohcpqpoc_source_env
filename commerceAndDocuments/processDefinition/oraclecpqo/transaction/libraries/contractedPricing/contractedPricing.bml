@@ -1,0 +1,62 @@
+//*****************************************************************************************************
+//** Function:    Contracted Pricing Function
+//**
+//** Description: Uses contracted pricing table to determine pricing on the line item grid.
+//**                                                                                               
+//** History:	Date		Author     	Comment
+//**		11/22/16	HHo		Initial Implementation
+//*****************************************************************************************************
+customerId = custId; //OSC Customer ID
+partNum = partNumber; //SKU Part Number in the database
+lastPricedDate = DatedPrice; //yyyy-mm-dd (optional)
+noDateFlag = true;
+
+/*
+customerId = "300000001132659";
+partNum = "MST_CST_SERVER_ADVANCED";
+lastPricedDate = ""; 
+*/
+    
+ret = "";
+delim1 = "|&|";
+delim2 = "|^|";
+iteration = 0;
+prices = bmql("SELECT LocationName, LineItemComment, SoldAtNetPrice, SoldAtNetPriceNRR, SoldAtCurrency, SoldAtUnitPrice, SoldAtUnitPriceNRR, StartDate, EndDate FROM Contracted_Pricing WHERE PartNum = $partNum AND CustomerId = $customerId");
+
+// AND StartDate <= $lastPricedDate AND (EndDate >= $lastPricedDate OR EndDate IS Null
+
+for item in prices {
+	location = get(item, "LocationName");
+	lineComment = get(item, "LineItemComment");
+	soldNetPrice = get(item, "SoldAtNetPrice");
+	soldNetPriceNRR = get(item, "SoldAtNetPriceNRR");
+	soldCurrency = get(item, "SoldAtCurrency");
+	soldUnitPrice = get(item, "SoldAtUnitPrice");
+	soldUnitPriceNRR = get(item, "SoldAtUnitPriceNRR");
+	startDate = get(item, "StartDate");
+	endDate = get(item, "EndDate");
+	
+	if(lastPricedDate <> "") {
+		start = strtojavadate(startDate,"yyyy-MM-dd");
+		end = strtojavadate(endDate,"yyyy-MM-dd");
+		lastPriced = strtojavadate(lastPricedDate,"yyyy-MM-dd");
+	
+		if(comparedates(start, lastPriced) <> 1 AND comparedates(lastPriced, end) <> 1) {
+			noDateFlag = true;
+		} else {
+			noDateFlag = false;
+		}
+	} else {
+		noDateFlag = true;
+	}
+	
+	if(noDateFlag) {
+		if(iteration <> 0) {
+			ret = ret + delim2;
+		}
+		ret = ret + location +delim1+ lineComment +delim1+ soldNetPrice +delim1+ soldNetPriceNRR + delim1 + soldCurrency +delim1+ soldUnitPrice+delim1+ soldUnitPriceNRR;
+		iteration = iteration + 1;
+	}
+}
+
+return ret;

@@ -1,0 +1,55 @@
+htmlCode = "";
+
+nonHeaderRowCount = 100;
+rowArr = range(nonHeaderRowCount);
+useTHeadCode = false;
+
+if(NOT useTHeadCode){ //this displays header-formatted cells, but can't get repeating header working on page break
+	htmlCode = htmlCode 	+ "<div><table style=\"width: 7in;\" bmhasheader='1'>"
+				+ "    <tbody>"
+				//+ "        <tr style=\"page-break-inside: avoid; page-break-before:auto\">"
+				+ "        <tr style=\"page-break-inside: avoid;\">"
+				+ "            <th style=\"font-weight:bold; border:1px solid;\" colspan=\"2\" class='header'>"
+				+ "                This is our header"
+				+ "            </th>"
+				+ "        </tr>"
+				;
+}
+else{ 
+	htmlCode = htmlCode 	+ "<div><table style=\"width: 7in;\">"
+				//+ "    <thead style=\"display: table-header-group; -fs-table-paginate: paginate;\">"
+				+ "    <thead>"
+				+ "        <tr style=\"page-break-inside: avoid;\">"
+				//+ "            <td style=\"font-weight:bold; border:1px solid;\" colspan=\"2\">"
+				+ "<td>Test</td><td>"
+				+ "                This is our header"
+				+ "            </td>"
+				+ "        </tr>"
+				+ "    </thead>"
+				+ "    <tbody>"
+				;
+}
+
+index = 1;
+for row in rowArr{
+	htmlCode = htmlCode	+ "        <tr style=\"page-break-inside: avoid; page-break-before:auto\">"
+				+ "            <td style=\"page-break-inside: avoid; page-break-before:auto; border-left: 1px solid #000000; border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000;\">Text " + string(index) + "</td>"
+				+ "            <td style=\"page-break-inside: avoid; page-break-before:auto; border: 1px solid\">Text<br/> " + string(index + 1) + "</td>"
+				
+				+ "        </tr>"
+				;
+	index = index + 1;
+			
+}
+			//+ "        <tr style=\"page-break-inside: avoid; page-break-before:auto\">"
+			//+ "            <td style=\"border-left: 1px solid #000000; border-top: 1px solid #000000; border-bottom: 1px solid #000000; border-right: 1px solid #000000;\">Text 1</td>"
+			//+ "            <td style=\"border: 1px solid\">Text 2</td>"
+			//+ "        </tr>"
+	
+	htmlCode = htmlCode 	+ "    </tbody>"
+				+ "</table></div>"
+				+ "<p>&nbsp;</p>"
+				;
+
+			
+return htmlCode;

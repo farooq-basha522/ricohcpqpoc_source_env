@@ -1,0 +1,27 @@
+Approvalarray= approval_history_submit_t;
+ApprovalJson= json();
+requestToQuote  = approvalAuditHistoryArraySet_t;
+Approvalarraysize = range(sizeofarray(approval_history_submit_t));
+//Approvalarrayrange = range(Approvalarraysize );
+i=0;
+j=0;
+result = "";
+for r in Approvalarraysize 
+{
+i=i+1;
+Approval_array =Approvalarray[r][r+i];
+Approvaldata_array=split(Approval_array ,"~");
+Approval_arraysize =range(sizeofarray(Approvaldata_array));
+for arrdata in Approval_arraysize 
+{
+jsonput(ApprovalJson,"approverApprovalAuditHistory_t",Approvaldata_array[0]);
+jsonput(ApprovalJson,"commentsApprovalAuditHistory_t",Approvaldata_array[3]);
+jsonput(ApprovalJson,"levelApprovalAuditHistory_t",Approvaldata_array[4]);
+jsonput(ApprovalJson,"approvalTypeApprovalAuditHistory_t","F&F Approver");
+}
+			jsonarrayappend(requestToQuote , ApprovalJson);
+}
+
+result = result + "1~approvalAuditHistoryArraySet_t~"+jsonarraytostr(requestToQuote)+"|";
+
+return result ;

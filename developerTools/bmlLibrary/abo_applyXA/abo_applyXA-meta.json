@@ -1,0 +1,15 @@
+{
+  "name" : "abo_applyXA",
+  "variableName" : "abo_applyXA",
+  "description" : "This is sub function used by abo_apply logic to apply the change of mapped BOM attributes(XA) for a given bom item.",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_getContext", "util.abo_isjsonnull" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "baseBomItem",
+    "type" : "Json"
+  }, {
+    "name" : "applyBomItem",
+    "type" : "Json"
+  } ],
+  "attributes" : [ ]
+}

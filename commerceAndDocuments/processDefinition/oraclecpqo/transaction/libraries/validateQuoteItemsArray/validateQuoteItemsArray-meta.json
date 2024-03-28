@@ -1,0 +1,14 @@
+{
+  "name" : "Validate Quote Items Array",
+  "variableName" : "validateQuoteItemsArray",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "inputDict",
+    "type" : "Dictionary of String Dictionaries"
+  } ],
+  "subDocAttributes" : [ "lineID_l" ],
+  "mainDocAttributes" : [ "quoteWorkbench_VQt" ],
+  "systemAttributes" : [ ]
+}

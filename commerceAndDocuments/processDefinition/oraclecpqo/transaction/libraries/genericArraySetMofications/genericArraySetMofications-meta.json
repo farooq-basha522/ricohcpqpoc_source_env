@@ -1,0 +1,14 @@
+{
+  "name" : "Generic Array Set Mofications",
+  "variableName" : "genericArraySetMofications",
+  "description" : "Written this library to support all arrayset if any modification or remove empty space.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "attrDict",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "quoteWorkbench_VQt" ],
+  "systemAttributes" : [ ]
+}

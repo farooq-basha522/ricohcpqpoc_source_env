@@ -1,0 +1,15 @@
+res = "";
+result = recordset();
+
+if(lower(typeOfattribute) == "quote")	{
+	result= BMQL("SELECT $attributeName FROM commerce.transaction");
+	}
+	
+elif(lower(typeOfattribute) == "line")	{
+	result= BMQL("SELECT $attributeName from commerce.transactionLine");
+	}
+
+for each in result {
+	res= get(each,attributeName);
+	}
+return res;

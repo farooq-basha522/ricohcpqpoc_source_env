@@ -1,0 +1,11 @@
+{
+  "name" : "Proposal Exists",
+  "variableName" : "proposalExists",
+  "description" : "Determines if the proposal document exists for a transaction.",
+  "libraryFunctions" : [ ],
+  "returnType" : "Boolean",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "fileAttachment_t" ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,230 @@
+calculateRollupRevenue = get(extraParams, "calculateRollupRevenue", "boolean");
+system_subscription_order_enabled = get(extraParams, "system_subscription_order_enabled", "boolean");
+fOM_enabled = get(extraParams, "fOM_enabled", "boolean");
+
+if (calculateRollupRevenue) { 
+   groupSeqDict = dict("string");     // holds group sequence number as key and document number as value
+   recurRevDict = dict("anytype");   // holds recurring revenue roll ups for root lines
+   nonRecurRevDict = dict("anytype");  // holds  non recurring revenue roll ups for root lines
+   usageRevDict = dict("anytype");  // holds usage revenue roll ups for root lines
+   contractValDict = dict("anytype");  // holds contract value roll ups for root lines
+   monthlyRecurRevDict = dict("anytype");  // holds monthly recurring revenue roll ups for root lines
+   monthlyUsageRevDict = dict("anytype");  // holds monthly recurring revenue roll ups for root lines
+   priceTypeDict = dict("string");  // holds group sequence number as key and rolled up price type as value
+   pricePeriodDict = dict("string");  // holds group sequence number as key and rolledup price period value
+   contractPeriodsDict = dict("anytype");  // holds group sequence number as key and rolled up contract periods
+   docGrpSeqDict = dict("string");  // holds doc number as key and grp seq number as value
+   contractListValDict = dict("anytype");  // holds contract list value rollups for root lines
+   quantityDict = dict("anytype");  // holds quantities of root lines
+   rootPriceTypeDict = dict("string");  // holds price types of root lines
+   rootPricePeriodDict = dict("string");  // holds actual price periods of root lines
+   rootContractPeriodsDict = dict("anytype"); // holds actual contract periods of root lines
+   rootRevenueCatDict = dict("string");     // holds revenue category values as key and value
+
+    put(quoteData, "groupSeqDict", groupSeqDict);
+    put(quoteData, "recurRevDict", recurRevDict);
+    put(quoteData, "nonRecurRevDict", nonRecurRevDict);
+    put(quoteData, "usageRevDict", usageRevDict);
+    put(quoteData, "contractValDict", contractValDict);
+    put(quoteData, "monthlyRecurRevDict", monthlyRecurRevDict);
+    put(quoteData, "monthlyUsageRevDict", monthlyUsageRevDict);
+    put(quoteData, "priceTypeDict", priceTypeDict);
+    put(quoteData, "pricePeriodDict", pricePeriodDict);
+    put(quoteData, "contractPeriodsDict", contractPeriodsDict);
+    put(quoteData, "docGrpSeqDict", docGrpSeqDict);
+    put(quoteData, "contractListValDict", contractListValDict);
+    put(quoteData, "quantityDict", quantityDict);
+    put(quoteData, "rootPriceTypeDict", rootPriceTypeDict);
+    put(quoteData, "rootPricePeriodDict", rootPricePeriodDict);
+    put(quoteData, "rootContractPeriodsDict", rootContractPeriodsDict);
+    put(quoteData, "rootRevenueCatDict", rootRevenueCatDict);
+}
+
+if (system_subscription_order_enabled) {
+   // Map from document number to parent document number
+   parentDocNumberMap = dict("string");
+
+   // Map from document numbers to rollup delta prices (for root line items only)
+   rollupDeltaPriceMap = dict("anytype");
+   // Map from document numbers to delta prices
+   deltaPriceMap = dict("anytype");
+   
+   put(quoteData, "parentDocNumberMap", parentDocNumberMap);
+   put(quoteData, "deltaPriceMap", deltaPriceMap);
+   put(quoteData, "rollupDeltaPriceMap", rollupDeltaPriceMap);
+}
+
+mainDocDict = dict("anytype");
+
+put(mainDocDict, "transactionID_t", transactionID_t);
+put(mainDocDict, "version_t", version_t);
+put(mainDocDict, "createdBy_t", createdBy_t);
+
+put(mainDocDict, "winLossStatus_t", winLossStatus_t);
+put(mainDocDict, "oRCL_SFA_Status_t", oRCL_SFA_Status_t);
+put(mainDocDict, "oRCL_ERP_OrderNumber_t", oRCL_ERP_OrderNumber_t);
+
+put(mainDocDict, "bs_id", bs_id);
+put(mainDocDict, "status_t", status_t);
+
+
+put(mainDocDict, "totalMonthlyListAmount_t", 0.0);
+put(mainDocDict, "totalMonthlyDiscount_t", 0.0);
+put(mainDocDict, "TotalAnnualDiscount_t", 0.0);
+put(mainDocDict, "totalContractListValue_t", 0.0);
+put(mainDocDict, "totalOneTimeListAmount_t", 0.0);
+put(mainDocDict, "totalOneTimeNetAmount_t", 0.0);
+put(mainDocDict, "totalRecurRevenue_t", 0.0);
+put(mainDocDict, "totalContractValue_t", 0.0);
+put(mainDocDict, "totalMonthlyUsageRev_t", 0.0);
+put(mainDocDict, "totalMonthlyNetAmount_t", 0.0);
+
+put(mainDocDict, "totalOneTimeCostAmount_t", 0.0);
+put(mainDocDict, "totalMonthlyMarginAmount_t", 0.0);
+put(mainDocDict, "totalOneTimeMarginAmount_t", 0.0);
+put(mainDocDict, "totalAnnualMarginAmount_t", 0.0);
+put(mainDocDict, "totalContractCostAmount_t", 0.0);
+put(mainDocDict, "totalMonthlyCostAmount_t", 0.0);
+put(mainDocDict, "totalUsageRevenue_t", 0.0);
+put(mainDocDict, "totalContractDiscount_t", 0.0);
+
+put(mainDocDict, "annualContractListValue_t", 0.0);
+put(mainDocDict, "totalContractMarginAmount_t", 0.0);
+put(mainDocDict, "totalAnnualValue_t", 0.0);
+put(mainDocDict, "totalAnnualCostAmount_t", 0.0);
+put(mainDocDict, "totalOneTimeDiscount_t", 0.0);
+
+put(mainDocDict, "defaultRequestDate_t", defaultRequestDate_t);
+put(mainDocDict, "contractStartDate_t", contractStartDate_t);
+put(mainDocDict, "contractEndDate_t", contractEndDate_t);
+put(mainDocDict, "priceType_t", priceType_t);
+put(mainDocDict, "contractedPeriods_t", contractedPeriods_t);
+
+put(mainDocDict, "_transaction_document_number", _transaction_document_number);
+put(quoteData, _transaction_document_number, mainDocDict);
+
+for line in transactionLine {
+
+	lineDict = dict("anytype");
+	put(lineDict, "_document_number", line._document_number);
+	put(lineDict, "_part_default_periodicity", line._part_default_periodicity);
+	put(lineDict, "_part_default_price_type", line._part_default_price_type);
+	put(lineDict, "_part_default_uom", line._part_default_uom);
+	put(lineDict, "priceType_l", line.priceType_l);
+	put(lineDict, "_price_unit_price_each", line._price_unit_price_each);
+	put(lineDict, "_pricing_rule_price_each", line._pricing_rule_price_each);
+	put(lineDict, "_price_quantity", line._price_quantity);
+	
+	put(lineDict, "contractedPeriods_l", line.contractedPeriods_l);
+	put(lineDict, "customDiscountValue_l", line.customDiscountValue_l);
+	put(lineDict, "customDiscountType_l", line.customDiscountType_l);
+        put(lineDict, "contractStartDate_l", line.contractStartDate_l);
+        put(lineDict, "contractEndDate_l", line.contractEndDate_l);
+	
+	put(lineDict, "unitCost_l", line.unitCost_l);
+	put(lineDict, "_model_variable_name", line._model_variable_name);
+	put(lineDict, "_model_partner_entity_id", line._model_partner_entity_id);
+	
+	put(lineDict, "_partner_entity_id", line._partner_entity_id);
+	put(lineDict, "_parent_doc_number", line._parent_doc_number);
+	put(lineDict, "_part_units", line._part_units);
+	put(lineDict, "oRCL_ABO_ActionCode_l", line.oRCL_ABO_ActionCode_l);							
+	put(lineDict, "_group_sequence_number", line._group_sequence_number);
+	put(lineDict, "_chargeSet", line._chargeSet);
+	put(lineDict, "_chargeSetControl", line._chargeSetControl);
+	
+	put(lineDict, "_price_period", line._price_period);
+	put(lineDict, "_price_type", line._price_type);
+	
+	if (system_subscription_order_enabled) {
+	    put(lineDict, "_delta_price", line._delta_price);	
+	    put(lineDict, "_line_bom_id", line._line_bom_id);	
+	    put(lineDict, "_line_bom_parent_id", line._line_bom_parent_id);	
+	    put(lineDict, "_prior_price", line._prior_price);	
+	    put(lineDict, "_rollup_delta_price", line._rollup_delta_price);	
+	}
+	
+	put(quoteData, line._document_number, lineDict);
+	append(lineNumbersArray, line._document_number);
+
+}
+
+
+put(mainDocOutputAttrs, "userKey_t", "string");
+put(mainDocOutputAttrs, "owner_t", "string");
+put(mainDocOutputAttrs, "currency_t", "string");
+put(mainDocOutputAttrs, "totalMonthlyListAmount_t", "float");
+put(mainDocOutputAttrs, "totalMonthlyDiscount_t", "float");
+put(mainDocOutputAttrs, "TotalAnnualDiscount_t", "float");
+put(mainDocOutputAttrs, "totalContractListValue_t", "float");
+put(mainDocOutputAttrs, "totalOneTimeListAmount_t", "float");
+put(mainDocOutputAttrs, "totalOneTimeNetAmount_t", "float");
+put(mainDocOutputAttrs, "totalRecurRevenue_t", "float");
+put(mainDocOutputAttrs, "totalContractValue_t", "float");
+put(mainDocOutputAttrs, "totalMonthlyUsageRev_t", "float");
+put(mainDocOutputAttrs, "totalMonthlyNetAmount_t", "float");
+put(mainDocOutputAttrs, "totalOneTimeCostAmount_t", "float");
+put(mainDocOutputAttrs, "totalMonthlyMarginAmount_t", "float");
+put(mainDocOutputAttrs, "totalOneTimeMarginAmount_t", "float");
+put(mainDocOutputAttrs, "totalAnnualMarginAmount_t", "float");
+put(mainDocOutputAttrs, "totalContractCostAmount_t", "float");
+put(mainDocOutputAttrs, "totalMonthlyCostAmount_t", "float");
+put(mainDocOutputAttrs, "totalUsageRevenue_t", "float");
+put(mainDocOutputAttrs, "totalContractDiscount_t", "float");
+put(mainDocOutputAttrs, "annualContractListValue_t", "float");
+put(mainDocOutputAttrs, "totalContractMarginAmount_t", "float");
+put(mainDocOutputAttrs, "totalAnnualValue_t", "float");
+put(mainDocOutputAttrs, "totalAnnualCostAmount_t", "float");
+put(mainDocOutputAttrs, "totalOneTimeDiscount_t", "float");
+put(mainDocOutputAttrs, "transactionTotalDiscountPercent_t", "float");
+put(mainDocOutputAttrs, "transactionMarginPercent_t", "float");
+put(mainDocOutputAttrs, "contractedPeriods_t", "integer");
+put(mainDocOutputAttrs, "contractStartDate_t", "string");
+put(mainDocOutputAttrs, "contractEndDate_t", "string");
+
+put(subDocOutputAttrs, "winLossStatus_l", "string");
+put(subDocOutputAttrs, "pricePeriod_l", "string");
+put(subDocOutputAttrs, "oRCL_SFA_Status_l", "string");
+put(subDocOutputAttrs, "priceType_l", "string");
+put(subDocOutputAttrs, "oRCL_ERP_OrderNumber_l", "string");
+put(subDocOutputAttrs, "transactionID_l", "string");
+put(subDocOutputAttrs, "listPrice_l", "float");
+put(subDocOutputAttrs, "listAmount_l", "float");
+put(subDocOutputAttrs, "annualListValue_l", "float");
+put(subDocOutputAttrs, "contractListValue_l", "float");
+put(subDocOutputAttrs, "priceRecurFrequency_l", "string");
+put(subDocOutputAttrs, "customDiscountAmount_l", "float");
+put(subDocOutputAttrs, "discountAmount_l", "float");
+put(subDocOutputAttrs, "annualDiscount_l", "float");
+put(subDocOutputAttrs, "netPrice_l", "float");
+put(subDocOutputAttrs, "unitMargin_l", "float");
+put(subDocOutputAttrs, "contractDiscount_l", "float");
+put(subDocOutputAttrs, "lineType_l", "string");
+put(subDocOutputAttrs, "oRCL_SFA_InventoryItemID_l", "string");
+put(subDocOutputAttrs, "status_l", "string");
+put(subDocOutputAttrs, "rootLine_l", "string");
+put(subDocOutputAttrs, "contractedPeriods_l", "integer");
+put(subDocOutputAttrs, "netAmount_l", "float");
+put(subDocOutputAttrs, "contractValue_l", "float");
+put(subDocOutputAttrs, "recurringRevSummable_l", "float");
+put(subDocOutputAttrs, "usageRevSummable_l", "float");
+put(subDocOutputAttrs, "nonRecurRevSummable_l", "float");
+put(subDocOutputAttrs, "monthlyUsageRevSummable_l", "float");
+put(subDocOutputAttrs, "annualValue_l", "float");
+put(subDocOutputAttrs, "monthlyRecurRevSummable_l", "float");
+put(subDocOutputAttrs, "costAmount_l", "float");
+put(subDocOutputAttrs, "marginAmount_l", "float");
+put(subDocOutputAttrs, "contractMargin_l", "float");
+put(subDocOutputAttrs, "annualMargin_l", "float");
+put(subDocOutputAttrs, "contractCost_l", "float");
+put(subDocOutputAttrs, "marginPercent_l", "float");
+put(subDocOutputAttrs, "requestedUnitOfMeasure_l", "string");
+put(subDocOutputAttrs, "annualCost_l", "float");
+put(subDocOutputAttrs, "discountPercent_l", "float");
+put(subDocOutputAttrs, "_revenueCategory_l", "string");
+put(subDocOutputAttrs, "_chargeSet", "jsonarray");
+if (fOM_enabled) {
+   put(subDocOutputAttrs, "oRCL_charges", "jsonarray");
+}
+
+return "";

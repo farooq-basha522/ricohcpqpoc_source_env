@@ -1,0 +1,15 @@
+{
+  "name" : "abo_apply",
+  "variableName" : "abo_apply",
+  "description" : "This utility has the ABO core apply logic, given a list of BOM configuration of same product instance, it applies them on top of each other in the specified order and calculates the projected configuration BOM.",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_applyXA", "util.abo_getContext", "util.abo_isjsonnull" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "baseBomIn",
+    "type" : "Json"
+  }, {
+    "name" : "arrBomtoApply",
+    "type" : "JsonArray"
+  } ],
+  "attributes" : [ ]
+}

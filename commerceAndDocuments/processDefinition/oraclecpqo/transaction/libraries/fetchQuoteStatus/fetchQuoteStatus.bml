@@ -1,0 +1,52 @@
+ret = "";
+if(_system_current_step_var == "start_step" ){ //Create Quote
+	ret = "Create Quote";
+}
+elif(_system_current_step_var == "pending_process"){ //In Progress
+	ret = "pending_process";
+}
+elif(_system_current_step_var == "canceled"){ //In Progress
+	ret = "canceled";
+}
+//HYPERCARE-CR_56 CHG0078656 "CPQ Quote Status Indicator In between In Progress and F&F Approved" added by Nupur
+
+elif(_system_current_step_var == "pendingFnFApproval"){ // Request for FnF Approval
+	ret = "fFInProgress";
+}
+elif(_system_current_step_var == "approvedFnF"){ //Approved FnF
+	ret = "fitFeasibility";
+}
+elif(_system_current_step_var == "fitAndFeasibilityApproval"){ // Reject FnF
+	ret = "pending_process";
+}
+elif(_system_current_step_var == "waitingForInternalApproval"){ // Request for Pricing Approval
+	ret =  "priced";
+}
+elif(_system_current_step_var == "approved"){ //Approved Pricinf
+	ret = "approved";
+}
+elif(_system_current_step_var == "rejectPricingApproval"){ // Reject Pricing
+	ret =  "fitFeasibility";
+}
+elif(_system_current_step_var == "sentToCustomer"){ //Sent to Customer
+	ret =  "sentToCustomer";
+}
+elif(_system_current_step_var == "deleted"){ //Customer Approved
+	ret =  "customerApproved";
+}
+elif(_system_current_step_var == "orderedBeingFulfilled_bmClone_1"){ //Sent to RISE
+	ret =  "Sent to RISE";
+}
+elif(_system_current_step_var == "pending_process_bmClone_2"){ //Sent to RISE
+	ret =  "pending_process";
+}
+elif(_system_current_step_var == "pending_process_bmClone_3"){ //Sent to RISE
+	ret =  "pending_process";
+}
+elif(_system_current_step_var == "fitAndFeasibilityApproval_bmClone_1"){ //Sent to RISE
+	ret =  "pending_process";
+}
+elif(_system_current_step_var == "pending_process_bmClone_1"){ //Sent to RISE
+	ret =  "pending_process";
+}
+return ret;

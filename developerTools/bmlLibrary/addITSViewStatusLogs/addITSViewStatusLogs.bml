@@ -1,0 +1,26 @@
+retVal = false;
+retDelVal = false;
+insert_count_integer = "0";
+records_error_string = "0";
+curDate = getstrdate();
+
+
+if (_user_login <> "" AND (find(_user_group, "equipmentQuoters") <> -1 OR find(_user_group, "salesUser") <> -1 OR find(_user_group, "technicalAdminstrator") <> -1 OR find(_user_group, "rICOHCrossSellingDesign") <> -1 OR find(_user_group, "rICOHCrossSellingSalesrep") <> -1)){
+	
+	
+	retDelVal = util.removeITSViewStatusLogs();	
+	
+	results = bmql("insert into RAC_GS_ITS_VIEW (UserLoginId,ViewStatus,CreationDate) values ($_user_login,'true',$curDate)");
+		
+	for result in results {
+	    insert_count_integer = get(result, "records_inserted");
+	    records_error_string = get(result, "records_error");
+	}
+		
+	if(atoi(insert_count_integer) > 0){ 
+		retVal = true;
+	}
+
+}
+
+return retVal;

@@ -1,0 +1,14 @@
+{
+  "name" : "Revenue Items Sync To RISE",
+  "variableName" : "revenueItemsSyncToRISE",
+  "description" : "Library Function is to Create/Update/Delete the revenue lines REST API call to OSC.\nCPQ->OSC only.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "inputDict",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ "_document_number", "_parent_line_item", "_part_number", "_part_desc", "listPrice_l", "requestedQuantity_l", "_revenueId_l", "linkedItem_l", "parent_bundle", "subscriptionTerm_l", "oscRefID_l", "locationName_l", "locationID_l", "_part_custom_field9", "lineNumber_l", "parentLineNumber_l", "manufacturer_l", "manufacturerPartNum_l", "vendorName_l", "vendorPartNumber_t", "costAmount_l", "qwQuoteNum_l", "eDPCode_l", "unitSRP_l", "extSRP_l", "unitSalesCost_l", "nonStandardTerm_l", "_part_custom_field26", "subscriptionBillingFrequency_l", "shipToAddress_l", "cPQLineID_l", "extendedSupportTerm_l", "customDescription_l", "partDescriptionOnProposal_l", "partName_l", "extNetPrice_l" ],
+  "mainDocAttributes" : [ "opportunityID_t", "opportunityNumber_t", "selectedRevenueLineIds_t", "deletedRevLineId_t", "transactionName_t", "deleteRevenueSyncControl_quote", "transactionID_t", "quoteStep_t", "bs_id", "termMonths_t", "leaseTerm_t", "acquisitionType_t", "oscContractTerm_t", "otherTerm_t" ],
+  "systemAttributes" : [ "_system_supplier_company_name" ]
+}

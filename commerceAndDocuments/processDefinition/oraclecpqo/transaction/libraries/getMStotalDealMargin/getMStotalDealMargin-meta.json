@@ -1,0 +1,14 @@
+{
+  "name" : "GetMStotalDealMargin%",
+  "variableName" : "getMStotalDealMargin",
+  "description" : "",
+  "libraryFunctions" : [ "commerce.getMSApprovers" ],
+  "returnType" : "Float",
+  "parameters" : [ {
+    "name" : "Year",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "mSTotalDealSectionArray_t", "mSTotalDealMarginArrayRow_t", "mSTotalDealSectionArrayString_t" ],
+  "systemAttributes" : [ ]
+}

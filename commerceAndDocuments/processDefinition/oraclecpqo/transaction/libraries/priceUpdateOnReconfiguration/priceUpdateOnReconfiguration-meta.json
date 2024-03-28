@@ -1,0 +1,11 @@
+{
+  "name" : "Price Update on Reconfiguration",
+  "variableName" : "priceUpdateOnReconfiguration",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_part_number", "unitSRP_l", "_document_number" ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,70 @@
+//return email Ids for MS FnF approval.
+
+
+res = "";
+jsonAttr = json();
+configDict= dict("string");
+recordSet=bmql("select * from RAC_MS_FNFAPPROVAL");
+for line in transactionLine{
+	 LaborType= "";
+	tempString=replace(line._line_bom_attributes,"&quot;","\"");
+	 jsonAttr =json(tempString);
+	//LaborType = jsonpathgetsingle(jsonAttr,"$.LaborType.value");
+	LaborType = line.laborType_l;
+	
+	// LaborType= jsonget(jsonAttr,"LaborType","string");
+	  if(not(isnull(LaborType)) AND LaborType<>""){
+	if(not(containskey(configDict,"Labor Type"))){
+	 put(configDict,"Labor Type",LaborType);
+	}else{
+		TempLabor=get(configDict,"Labor Type");
+		TempLabor = TempLabor +"##"+LaborType;
+		 put(configDict,"Labor Type",TempLabor);
+		
+	}
+	 
+	 }
+	
+	vehicleType = jsonpathgetsingle(jsonAttr,"$.VehicleType.value");
+	 if(not(isnull(vehicleType)) AND vehicleType <> "null"){
+		if(not(containskey(configDict,"Labor Type"))){
+		 put(configDict,"Vehicle",vehicleType);
+		}else{
+		tempVahicle = get(configDict,"Vehicle");	
+		tempVahicle = tempVahicle + "##"+vehicleType;
+		 put(configDict,"Vehicle",tempVahicle);	
+		}
+	 }
+	 
+	 
+}
+
+emailArray =string[];
+	keyVal = keys(configDict);
+	for data in recordSet{
+		DictVal ="";
+		actorType = "";
+		emailId = "";
+			for eachkey in keyVal{
+				if(get(data,"Category") == eachkey){
+			
+					DictVal = get(configDict,eachkey);
+					
+					splitValue = split(DictVal,"##");
+					for eachVal in splitValue{
+						if(eachVal <> "" AND eachVal <>"null"){
+							if(get(data,"Value") == eachVal){
+								actorType = get(data,"ActorType");
+								if(actorType == param1){
+									
+								emailId  = 	get(data,"EmailId");
+								append(emailArray,emailId);
+								}
+							}
+						}
+					}
+				}
+			}
+	}
+	res = join(emailArray,";");
+return res;

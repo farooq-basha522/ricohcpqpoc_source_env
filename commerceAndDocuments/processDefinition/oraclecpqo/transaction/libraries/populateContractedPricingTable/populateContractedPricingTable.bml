@@ -1,0 +1,136 @@
+retVal = "";
+partNumberArray=string[];
+tableName = "Contracted_Pricing";
+tableAddTemplateLocation = "$BASE_PATH$/WebServices/tableAddCall_ContractedPrice_soapV2.xml";
+tableDeployTemplateLocation = "$BASE_PATH$/WebServices/tableDeployCall_ContractedPrice_soapV2.xml";
+tableDeleteTemplateLocation = "$BASE_PATH$/WebServices/tableDeleteCall_ContractedPrice_soapV2.xml";
+endpoint = "https://" + _system_company_name + ".bigmachines.com/v2_0/receiver/dataTables/" + tableName;
+deleteRequestXML = "";
+deleteResponeXML = "";
+addRequestXML = "";
+addResponseXML = "";
+deployRequestXML = "";
+deployResponseXML = "";
+
+//Get all discounted part numbers, their price, location, etc.
+discountedPartNumDict = dict("string"); //key = doc number. Value = part num
+discountedLocationDict = dict("string"); //key = doc number. Value = locationName
+discountedCommentDict = dict("string"); //key = doc number. Value = line item comment
+discountedNetMRRDict = dict("string"); //key = doc number. value = MRR Unit Net
+discountedNetNRRDict = dict("string"); //key = doc number. value = NRR Unit Net
+discountedUnitMRRDict = dict("string"); //key = doc number. value = MRR Unit Price
+discountedUnitNRRDict = dict("string"); //key = doc number. value = NRR Unit Price
+
+startDate = getDate(false);
+startDateStr = datetostr(startDate, "yyyy-MM-dd");
+
+for line in transactionLine{
+	partNumber = line._part_number;
+	append(partNumberArray,partNumber);
+	partCustomFieldDict=util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+	partType = "";
+	if(containskey(partCustomFieldDict,partNumber+"custom_field9")) {
+		partType = get(partCustomFieldDict,partNumber+"custom_field9");
+	}
+	if(partType == "MRR" AND (line.contractedPriceFound_l OR line.contractedPriceFoundNRR_l)){
+		put(discountedPartNumDict, line._document_number, line._part_number);
+		put(discountedLocationDict, line._document_number, line.locationName_l);
+		put(discountedCommentDict, line._document_number, line._line_item_comment);
+		put(discountedNetMRRDict , line._document_number, string(line.netPrice_l));
+		put(discountedNetNRRDict, line._document_number, string(line.netPriceNRR_l));
+		put(discountedUnitMRRDict, line._document_number, string(line.finalListUnitPrice_l));
+		put(discountedUnitNRRDict , line._document_number, string(line.finalListUnitPriceNRR_l));
+	}
+}
+
+payload = dict("string");
+//put(payload, "SESSION_ID", _system_user_session_id);
+put(payload, "SITE_NAME", _system_company_name);
+put(payload, "CUSTOMER_ID", customerID_t);
+//Get username & password from GlobalVars table and put into payload dict
+accessSet = bmql("SELECT Keyword, Value, Value_Secure FROM GlobalVars WHERE Keyword = 'INTERNAL_INTEGRATION_USER_LOGIN' OR Keyword = 'INTERNAL_INTEGRATION_USER_PW'");
+for record in accessSet{
+		putKey = "";
+		putValue = "";
+		if(get(record, "Keyword") == "INTERNAL_INTEGRATION_USER_LOGIN"){
+			putKey = "USERNAME";
+		}
+		else{ //Keyword is INTERNAL_INTEGRATION_USER_PW
+			putKey = "USERPASS";
+		}
+		
+		if(get(record, "Value") <> ""){
+			putValue = get(record, "Value");
+		}
+		else{
+			putValue = get(record, "Value_Secure");
+		}
+		put(payload, putKey, putValue);
+}
+
+partNumList = values(discountedPartNumDict);
+if(NOT isempty(partNumList)){
+	//Format and make delete table rows service.
+	
+	partNum = "<bm:value>" + join(partNumList, "</bm:value><bm:value>") + "</bm:value>"; //Add repeating sections in-line
+	put(payload, "PART_NUM_XML", partNum);
+	
+	deleteRequestXML = applytemplate(tableDeleteTemplateLocation, payload);
+	deleteRequestXML = replace(deleteRequestXML, "&lt;", "<");
+	deleteRequestXML = replace(deleteRequestXML, "&gt;", ">");
+	deleteResponeXML = urldatabypost(endpoint, deleteRequestXML, "ERROR");
+	//If Delete was successful, then do add
+	if(deleteResponeXML <> "ERROR"){
+		//payload = dict("string");
+		//put(payload, "SESSION_ID", _system_user_session_id);
+		//put(payload, "SITE_NAME", _system_company_name);
+		
+		eachRecordXML = "";
+		discountDocNums = keys(discountedPartNumDict);
+		for docNum in discountDocNums{
+			eachRecordXML = eachRecordXML
+						+ "<bm:each_record>"
+						+ "    <bm:CustomerId>" + customerID_t + "</bm:CustomerId>"
+						+ "    <bm:CustomerName>" + _transaction_customer_t_company_name + "</bm:CustomerName>"
+						+ "    <bm:PartNum>" + get(discountedPartNumDict, docNum) + "</bm:PartNum>"
+						+ "    <bm:LocationName>" + get(discountedLocationDict, docNum) + "</bm:LocationName>"
+						+ "    <bm:LineItemComment>" + get(discountedCommentDict, docNum) + "</bm:LineItemComment>"
+						+ "    <bm:StartDate>" + startDateStr + "</bm:StartDate>"
+						+ "    <bm:EndDate/>" //Insert any end-date logic here in the future
+						+ "    <bm:OriginalQuoteNum>" + transactionID_t + "</bm:OriginalQuoteNum>"
+						+ "    <bm:SoldAtCurrency>" + currency_t + "</bm:SoldAtCurrency>"
+						+ "    <bm:SoldAtNetPrice>" + get(discountedNetMRRDict, docNum) + "</bm:SoldAtNetPrice>"
+						+ "    <bm:SoldAtNetPriceNRR>" + get(discountedNetNRRDict, docNum) + "</bm:SoldAtNetPriceNRR>"
+						+ "    <bm:SoldAtUnitPrice>" + get(discountedUnitMRRDict, docNum) + "</bm:SoldAtUnitPrice>"
+						+ "    <bm:SoldAtUnitPriceNRR>" + get(discountedUnitNRRDict, docNum) + "</bm:SoldAtUnitPriceNRR>"
+						+ "</bm:each_record>"
+						;
+		}
+		put(payload, "RECORD_DATA", eachRecordXML);
+		
+		addRequestXML = applytemplate(tableAddTemplateLocation, payload);
+		addRequestXML = replace(addRequestXML, "&lt;", "<");
+		addRequestXML = replace(addRequestXML, "&gt;", ">");
+		addResponseXML = urldatabypost(endpoint, addRequestXML, "ERROR");	
+		//if both add & delete were successful, then deploy
+		if(addResponseXML <> "ERROR"){
+			//payload = dict("string");
+			//put(payload, "SESSION_ID", _system_user_session_id);
+			//put(payload, "SITE_NAME", _system_company_name);
+			deployRequestXML = applytemplate(tableDeployTemplateLocation, payload);
+			deployResponseXML = urldatabypost(endpoint, deployRequestXML, "ERROR");
+			
+		}
+	}
+}
+
+retVal = retVal
+		+ "1~contractPriceDeleteRequestXML_t~" + deleteRequestXML + "|"
+		+ "1~contractPriceDeleteResponseXML_t~" + deleteResponeXML + "|"
+		+ "1~contractPriceAddRequestXML_t~" + addRequestXML + "|"
+		+ "1~contractPriceAddResponseXML_t~" + addResponseXML + "|"
+		+ "1~contractPriceDeployRequestXML_t~" + deployRequestXML + "|"
+		+ "1~contractPriceDeployResponseXML_t~" + deployResponseXML + "|"
+		;
+
+return retVal;

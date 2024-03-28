@@ -1,0 +1,36 @@
+monthsToAdd = 1; //months counter for monthly and annual parts.
+//return 1 for all invalid use cases
+if(priceType <> "Recurring" AND priceType <> "Usage" AND priceType <> "Mixed"){
+  return 1;
+}else {
+  if(pricePeriod == "Per Month"){
+    monthsToAdd = 1;
+  }elif(pricePeriod == "Per Year"){
+    monthsToAdd = 12;
+  }else{
+    return 1;
+  }
+}
+returnPeriods = 1;
+if(contractStartDate <> "" AND isnull(contractStartDate) <> true AND contractEndDate <> "" AND isnull(contractEndDate) <> true)
+{
+  startDate = strtojavadate(contractStartDate , "yyyy-MM-dd HH:mm:ss");
+  endDate = strtojavadate(contractEndDate , "yyyy-MM-dd HH:mm:ss");
+  periodInDays = getdiffindays(startDate, endDate);
+  count = Integer[(periodInDays / (30 * monthsToAdd))+1];
+  //Keep adding months to contract start date till we reach contract end date. Number of times we add months will be the final contract periods.
+  for i in count{
+    nextDate = addmonths(startDate, monthsToAdd * returnPeriods);
+    dayOfAddedMonth = datetostr(nextDate, "dd");
+    dayOfStartDate = datetostr(startDate, "dd");
+    compareDate = nextDate;
+    if(atoi(dayOfAddedMonth) == atoi(dayOfStartDate )){
+      compareDate = minusdays(nextDate, 1);
+    }
+    if(comparedates(compareDate, endDate) >= 0 ) {
+      break;
+    }
+    returnPeriods = returnPeriods + 1;//Increment the returnPeriods counter if end date(nextDate) for the period is before the contract end date.
+  }
+}
+return returnPeriods;

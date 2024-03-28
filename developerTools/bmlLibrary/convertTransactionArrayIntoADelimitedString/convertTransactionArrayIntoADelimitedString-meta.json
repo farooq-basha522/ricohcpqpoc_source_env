@@ -1,0 +1,15 @@
+{
+  "name" : "Convert Transaction Array into a Delimited String",
+  "variableName" : "convertTransactionArrayIntoADelimitedString",
+  "description" : "Input 1 = Transaction Array Set Variable name\nInput 2 = Transaction Array attribute variable name",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "transactionArraySet",
+    "type" : "JsonArray"
+  }, {
+    "name" : "jsonKey",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

@@ -1,0 +1,20 @@
+{
+  "name" : "Get Approver Name",
+  "variableName" : "getApproverName",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "approvalLevel",
+    "type" : "String"
+  }, {
+    "name" : "approvalType",
+    "type" : "String"
+  }, {
+    "name" : "approvalGroup",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ "_system_supplier_company_name" ]
+}

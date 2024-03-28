@@ -1,0 +1,45 @@
+retString = "";
+LineNumber = "";
+NameArray = string [] {"3rdPartyFleet","MICRFleet","ZebraFleet","3rdPartyOtherFleet","MICROtherFleet"};
+
+
+for line in transactionLine 
+{
+	AttrName = "";
+	AttrValue = "";
+	PartNumberVar = "";
+	
+	RowArr = split(mPSCostsBeforeRollup_t_c,"@@@");
+	for eachRow in RowArr
+	{
+		colArr = split(eachRow ,"$$$");
+		for each in colArr 
+		{
+			valArr = split(each , "=");
+			AttrName = valArr[0];
+			AttrValue = valArr[1];
+			print AttrName ;print AttrValue ;
+			if(AttrName == "LineNumber")
+			{
+				LineNumber = AttrValue;
+			}
+			if(AttrName == "PartNumber")
+			{
+				PartNumberVar = AttrValue;
+			}
+			//for name in NameArray {
+			if(line._group_sequence_number == LineNumber AND line._part_number == PartNumberVar){
+				if(AttrName <> "LineNumber" AND AttrName <> "PartNumber")
+				{
+				retString = retString + line._document_number +"~"+ AttrName+"~"+AttrValue+"|";
+				}
+			}
+			//}	
+		}
+	}
+}
+	
+
+
+
+return retString;

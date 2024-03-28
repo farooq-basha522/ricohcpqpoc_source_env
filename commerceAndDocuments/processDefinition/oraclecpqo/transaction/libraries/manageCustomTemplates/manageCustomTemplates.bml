@@ -1,0 +1,316 @@
+// MANAGE CUSTOM TEMPLATES
+
+//Declare Variables
+userName = _system_user_login;
+userEnteredTempName = customTemplateName_t;
+selectedExistTemp = customTemplateNew_t; //selectedCustomTemplate_t;
+existingTemplateArr = string[];
+userEnteredAlreadyExists = false;
+selectedTempDoesExist = false;
+singleValidModelSelected = false;
+//selectedDocNumArr = split( _system_selected_document_number, "~" );
+selectedDocNum = "";
+soapHeader = "";
+soapBody = "";
+soapFooter = "";
+soapXML = "";
+templatesResult = dict("string");
+headers=dict("string");
+preUpdateValFlag = preUpdateValFlag_t;
+equipFlag = false;
+modelFlag = false;
+singleEquipPartSelected = false;
+nonEquipLinesSelected = false;
+configuredModelDict = dict("string");
+equipPartDict 		= dict("string");
+nonEquipPartDict	= dict("string");
+templateErrorHelpMessage = "";
+partNumberArray=string[];
+
+//replace devicePartDict with equipPartDict
+//put 2 generic part numbers into the equipPartDict 
+put (equipPartDict, "MST-HWSW", "MST-HWSW");
+put (equipPartDict, "GRY-HWSW", "GRY-HWSW");
+
+if(preUpdateValFlag){			
+//******************VALIDATIONS - START  ***************************
+// Validations will be done with hiding rule on selectTemplate_l attribute
+	
+	
+	//Verify user is not trying to Add a template name that already exists
+	if(action <> ""){
+		existTemplateRS = bmql( "SELECT DISTINCT TemplateID FROM CustomTemplates WHERE Owner = $userName" );
+
+		for eachET in existTemplateRS {
+			existTemplateName = get( eachET, "TemplateID" );
+			append(existingTemplateArr, existTemplateName);
+		}
+		
+		if(findinarray(existingTemplateArr, userEnteredTempName) > -1){
+			userEnteredAlreadyExists = true;
+		}
+		if(findinarray(existingTemplateArr, selectedExistTemp) > -1){
+			selectedTempDoesExist = true;
+		}
+	}
+
+	//Check for validation rule on Save New Template and Overwrite
+	if(userEnteredAlreadyExists){
+		if(action == "add"){
+			return "";
+		}
+		elif(action == "validateOnAdd"){
+			return "Template Name Already Exists";
+		}
+	}
+
+	if(userEnteredTempName == ""){
+		if(action == "add"){
+			return "";
+		}
+		elif(action == "validateOnAdd"){
+			return "Please Enter a Template Name";
+		}
+	}
+
+	if(selectedTempDoesExist == false OR selectedExistTemp == "" OR selectedExistTemp == "Please Select a Template"){
+		if(action == "overwrite" OR action == "delete"){
+			return "";
+		}
+		elif(action == "validateOnOverwrite" OR action == "validateOnDelete"){
+			return "Please Select an Existing Template";
+		}
+	}
+
+	if(find(action, "validate") > -1){
+		return "";
+	}
+//******************  VALIDATIONS - END ***************************
+}
+
+
+sessionIDResult = util.getAPIUserSessionID();
+if(ISNULL(sessionIDResult) OR sessionIDResult==""){
+	sessionIDResult = _system_user_session_id;	
+}
+
+soapURL = "https://" + _system_supplier_company_name + ".bigmachines.com/v1_0/receiver";
+soapHeader = soapHeader + "<?xml version='1.0' encoding='UTF-8'?><soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'>"
+						+ "<soapenv:Header>"
+						+ "<bm:userInfo xmlns:bm='urn:soap.bigmachines.com'>"
+						+ "<bm:sessionId>" + sessionIDResult + "</bm:sessionId>"
+						+ "</bm:userInfo>"
+						+ "<bm:category xmlns:bm='urn:soap.bigmachines.com'>Data Tables</bm:category>"
+						+ "<bm:xsdInfo xmlns:bm='urn:soap.bigmachines.com'>"
+						+ "<bm:schemaLocation>https://" + _system_supplier_company_name + ".bigmachines.com/bmfsweb/" + _system_supplier_company_name + "/schema/v1_0/datatables/CustomTemplates.xsd</bm:schemaLocation>"						
+						+ "</bm:xsdInfo>"
+						+ "</soapenv:Header>"
+						+ "<soapenv:Body>"
+						+ "<bm:add xmlns:bm='urn:soap.bigmachines.com'>"
+						+ "<bm:DataTables bm:table_name='CustomTemplates'/>"
+						;
+
+soapFooter = soapFooter + "</bm:add>"
+						+ "</soapenv:Body>"
+						+ "</soapenv:Envelope>"
+						;
+
+if(action == "delete" OR action == "overwrite"){
+	ret = "";
+	// Do delete
+	deleteSoapBody 	=  	"<bm:criteria>"
+					+ 	"<bm:field>TemplateID</bm:field>"
+					+ 	"<bm:value>" + selectedExistTemp + "</bm:value>"
+					+ 	"<bm:comparator>=</bm:comparator>"
+					+ 	"</bm:criteria>"
+					+	"<bm:criteria>"
+					+ 	"<bm:field>Owner</bm:field>"
+					+ 	"<bm:value>" + userName + "</bm:value>"
+					+ 	"<bm:comparator>=</bm:comparator>"
+					+ 	"</bm:criteria>"
+					;
+	deleteSoapXML = soapHeader + deleteSoapBody + soapFooter;
+	deleteSoapXML = replace( deleteSoapXML, ":add", ":delete" );
+
+	deleteResult = urldata( soapURL, "POST", headers, deleteSoapXML );
+	
+	// Deploy tables if the 'Templates' update was successful
+	if(containskey(deleteResult, "Message-Body")){
+		if(find(lower(get(deleteResult, "Message-Body")), "success") > -1){
+			soapXML = soapHeader + soapFooter;
+			soapXML = replace( soapXML, "add", "deploy" );
+
+			deployResult = urldata( soapURL, "POST", headers, soapXML );
+			ret = "1~templateErrorHelpMessage_t~|";
+		}
+		else {
+			//delete call failed
+			return "1~templateErrorHelpMessage_t~Delete error occurred and selected template was not deleted or overwritten. Please contact the CPQ administrator.";
+		}
+	}
+	
+	if(action == "delete"){
+		//return "";
+		lastAction = datetostr(getdate(), "MM/dd/yyyy hh:mm:ss a", "GMT-4") + " - " + action + " " + selectedExistTemp;
+		//return ret + "1~preUpdateValFlag_t~false|1~customTemplateName_t~|1~selectedCustomTemplate_t~|1~templateLastActionTimestamp_t~" + lastAction + "|";
+		return ret + "1~preUpdateValFlag_t~false|1~customTemplateName_t~|1~customTemplateNew_t~|1~templateLastActionTimestamp_t~" + lastAction + "|";
+	}
+}
+
+if(action == "add" OR action == "overwrite"){
+	templateToAdd = "";
+	if(action == "add"){
+		templateToAdd = userEnteredTempName;
+	}
+	elif(action == "overwrite"){
+		templateToAdd = selectedExistTemp;
+	}
+	
+		//attribute that need to be saved to the table:
+		docNum = "";
+		parentDocNum = "";
+		billingAuth = upper(billingAuthority_t);
+		vendorID = "";
+		vendorName = "";
+		vendorPartNum = "";
+		mfgName = "";
+		mfgPartNum = "";
+		partName = "";
+		partCost = "";
+		points = "";
+		partPrice = "";
+		partQty = "";
+		partDesc = "";
+		partDesc2 = "";	
+		partDesc3 = "";
+		partDesc4 = "";
+		partDesc5 = "";
+		partDesc6 = "";
+		partDesc7 = "";
+		partDesc8 = "";		
+	
+	for line in transactionLine{
+		//need to know if model selectTemplate_l = true
+		if(line.selectTemplate_l == true){
+			docNum = line._document_number;
+			parDocNum = line._parent_doc_number;
+			partNum = line._part_number;
+			vendorID = line.qwQuoteNum_l;	//will this work for QW? is the vendor ID now being sent from QW instead of quote num?
+			vendorName = line.vendorName_l;
+			vendorPartNum = line.vendorPartNumber_t;
+			mfgName = line.manufacturer_l;
+			mfgPartNum = line.manufacturerPartNum_l;
+			partName = line.partName_l;
+			//categoryType = line._part_custom_field23;
+			partCost = string(line.unitCost_l);
+			//djm 6/27/19 back-calculate this from cost and price:
+			points = "0.00";
+			append(partNumberArray,partNum);
+partCustomFieldDict=util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+categoryType = "";
+if(containskey(partCustomFieldDict,partNum+"custom_field23")) {
+	categoryType = get(partCustomFieldDict,partNum+"custom_field23");
+	}
+			/*if (line.listPriceNRR_l <> 0.00) {
+				points = string(round((((line.unitCost_l - line.listPriceNRR_l) / line.listPriceNRR_l) * 100), 3) * (-1)); 
+			}*/ 
+			if (line.unitSRP_l <> 0.00) {
+				points = string(round((((line.unitCost_l - line.unitSRP_l) / line.unitSRP_l) * 100), 3) * (-1)); 
+			}
+			partPrice = string(line.unitSRP_l);
+			partQty = string(line._price_quantity);
+			partDesc = substring(line.partDescriptionOnProposal_l, 0, 250);	
+			partDesc2 = substring(line.partDescriptionOnProposal_l, 251, 500);
+			partDesc3 = substring(line.partDescriptionOnProposal_l, 501, 750);
+			partDesc4 = substring(line.partDescriptionOnProposal_l, 751, 1000);
+			partDesc5 = substring(line.partDescriptionOnProposal_l, 1001, 1250);
+			partDesc6 = substring(line.partDescriptionOnProposal_l, 1251, 1500);
+			partDesc7 = substring(line.partDescriptionOnProposal_l, 1501, 1750);
+			partDesc8 = substring(line.partDescriptionOnProposal_l, 1751, 2000);
+			
+
+			soapBody = soapBody 	+ "<bm:each_record>"
+									+ "<bm:TemplateID><![CDATA[" + templateToAdd + "]]></bm:TemplateID>"
+									+ "<bm:TemplateDisplayName><![CDATA[" + templateToAdd + "]]></bm:TemplateDisplayName>"
+									+ "<bm:Owner><![CDATA[" + userName + "]]></bm:Owner>"
+									+ "<bm:BillingAuthority><![CDATA[" + billingAuth + "]]></bm:BillingAuthority>"
+									+ "<bm:VendorID><![CDATA[" + vendorID + "]]></bm:VendorID>"
+									+ "<bm:VendorName><![CDATA[" + vendorName + "]]></bm:VendorName>"
+									+ "<bm:VendorPartNumber><![CDATA[" + vendorPartNum + "]]></bm:VendorPartNumber>"
+									+ "<bm:Manufacturer><![CDATA[" + mfgName + "]]></bm:Manufacturer>"
+									+ "<bm:ManufacturerPartNum><![CDATA[" + mfgPartNum + "]]></bm:ManufacturerPartNum>"
+									+ "<bm:PartName><![CDATA[" + partName + "]]></bm:PartName>"
+									+ "<bm:CategoryType><![CDATA[" + categoryType + "]]></bm:CategoryType>"
+									+ "<bm:Cost><![CDATA[" + partCost + "]]></bm:Cost>"
+									+ "<bm:Points><![CDATA[" + points + "]]></bm:Points>"
+									+ "<bm:Price><![CDATA[" + partPrice + "]]></bm:Price>"
+									+ "<bm:Quantity><![CDATA[" + partQty + "]]></bm:Quantity>"
+									+ "<bm:PartDescription><![CDATA[" + partDesc + "]]></bm:PartDescription>"
+									+ "<bm:PartDesc2><![CDATA[" + partDesc2 + "]]></bm:PartDesc2>"
+									+ "<bm:PartDesc3><![CDATA[" + partDesc3 + "]]></bm:PartDesc3>"
+									+ "<bm:PartDesc4><![CDATA[" + partDesc4 + "]]></bm:PartDesc4>"
+									+ "<bm:PartDesc5><![CDATA[" + partDesc5 + "]]></bm:PartDesc5>"
+									+ "<bm:PartDesc6><![CDATA[" + partDesc6 + "]]></bm:PartDesc6>"
+									+ "<bm:PartDesc7><![CDATA[" + partDesc7 + "]]></bm:PartDesc7>"
+									+ "<bm:PartDesc8><![CDATA[" + partDesc8 + "]]></bm:PartDesc8>"
+									+ "</bm:each_record>"
+									;
+							
+			equipFlag = true;
+			
+		}
+	}
+	//Remove the trailing "~" from optionVals3
+	//optionVals3 = "&"+"partConcatString"+"="+substring(optionVals3,0,len(optionVals3)-1);
+	//populate the SOAP body for SMR if the flag is set 
+	if(equipFlag){
+			soapXML = soapHeader + soapBody + soapFooter;
+		
+	}
+		
+	//templatesResult = urldatabypost( soapURL, soapXML, "Bad Connect" );
+	templatesResult = urldata( soapURL, "POST", headers, soapXML );
+	// Deploy tables if the 'Templates' update was successful
+	if(containskey(templatesResult, "Message-Body")){
+		if(find(lower(get(templatesResult, "Message-Body")), "success") > -1){
+			soapXML = soapHeader + soapFooter;
+			soapXML = replace( soapXML, "add", "deploy" );
+
+			deployResult = urldata( soapURL, "POST", headers, soapXML );
+		}
+	}
+	else {
+		//add call failed
+		return "1~templateErrorHelpMessage_t~Error occurred while adding new parts to template. Please contact the CPQ administrator.";
+	}
+	
+	//return "";
+	lastAction = datetostr(getdate(), "MM/dd/yyyy hh:mm:ss a", "GMT-4") + " - " + action + " " + templateToAdd;
+	//return "1~preUpdateValFlag_t~false|1~customTemplateName_t~|1~selectedCustomTemplate_t~|1~templateErrorHelpMessage_t~|1~templateLastActionTimestamp_t~" + lastAction + "|";
+	return "1~preUpdateValFlag_t~false|1~customTemplateName_t~|1~customTemplateNew_t~|1~templateErrorHelpMessage_t~|1~templateLastActionTimestamp_t~" + lastAction + "|";
+}
+
+if(action == ""){
+	// Update templates for currentTemplates_t HTML attribute default
+	
+	tableHeader = "<table><thead><tr><th>My Saved Templates/Favorites</th></tr></thead>";
+	tableEnd = "</table>";
+	tableBody = "";
+	tBodyStart = "<tbody>";
+	tBodyEnd = "</tbody>";
+	trStart = "<tr>";
+	trEnd = "</tr>";
+	tdStart = "<td>";
+	tdEnd = "</td>";
+
+	latestTemplates = BMQL("SELECT DISTINCT TemplateID FROM CustomTemplates WHERE Owner = $userName");
+
+	for each in latestTemplates {
+		tableBody = tableBody + trStart + tdStart + get(each, "TemplateID") + tdEnd + trEnd;
+	}
+
+	latestTemplatesHTMLStr = tableHeader + tBodyStart + tableBody + tBodyEnd + tableEnd;
+	return latestTemplatesHTMLStr;
+}
+
+return "";

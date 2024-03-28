@@ -1,0 +1,14 @@
+{
+  "name" : "Set Quote Array Items to SRD Selected Items  Array",
+  "variableName" : "setQuoteArrayItemsToSRDSelectedItemsArray",
+  "description" : "This library bein called submit for one off approval action and child actions.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "attrDict",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "quoteWorkbench_VQt", "selectedItemsArray", "vendorPartNumbers_t", "vendorQuoteRequestNumberField_VQt", "selectedItemsBasedOnVendorQuoteNumberArray", "notesInstructions_VQt_New" ],
+  "systemAttributes" : [ ]
+}

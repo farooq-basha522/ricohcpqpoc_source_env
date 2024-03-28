@@ -1,0 +1,262 @@
+returnString = "";
+hybridModelFlag = "";
+perDocPricePart1 = 0.0;
+perDocPricePart2 = 0.0;
+perDocPriceTotal = 0.0;
+imgOveragePrice = 0.0;
+totalIDSPrice = 0.0;
+hostingPrice = 0.0;
+priceFIPSBPS5170 = 0.0;
+DMProjMgmt = 0;
+qtyFIPSBPS5171 = 0;
+qtyFIPSIBP5180 = 0;
+ttlConcurentUsers = 0;
+addonttlConcurentUsers = 0;
+registered_users = 0;
+GB_count = 0;
+Addon_GB_count = 0;
+Total_GB_count = 0;
+discountPct = 0.0;
+validFieldQty = 0;
+docQty = 0;
+docQuantity = 0.0;
+image_qty = 0.0;
+image_qty_Final = 0.0;
+projMgmtQty = 0;
+monthlyBasePay = 0.0;
+docsPerMonth = 0;
+estMonthlyBillPart = 0.0;
+estMonthlyBillPart1 = 0.0;
+estMonthlyBillPart2 = 0.0;
+oneTimeSetup = 0.0;
+DMPMgmt = false;
+FileShredding = false;
+partNumberArray=string[];
+pkgTypeDict = dict("string");
+StandardCostCalcDict = dict("string");
+IDSMandItemsDict = dict("string");
+lockPrice = "";
+applyGlobDisc = "";
+listPrice = 0.0;
+addonUsersQty = "";
+addonStorageGBQty = "";
+hostingEnvironment = "";
+IBPHostQuery = BMQL("SELECT ItemNumber, Custom_Qty, DataValidationRatio, PackageType, StandardCostCalc FROM IBP_Hosting_Data");
+for eachRow in IBPHostQuery{
+	put(pkgTypeDict, get(eachRow, "ItemNumber"), get(eachRow, "PackageType"));
+	if(get(eachRow, "PackageType") == "IDS Mandatory" OR get(eachRow, "PackageType") == "IDS Mandatory Image"){
+		put(IDSMandItemsDict, get(eachRow, "ItemNumber"), get(eachRow, "ItemNumber"));
+	}
+	if(get(eachRow, "StandardCostCalc") <> ""){
+		put(StandardCostCalcDict, get(eachRow, "ItemNumber"), get(eachRow, "StandardCostCalc"));
+	}
+}
+
+IDSAllItems = keys(pkgTypeDict);
+pkgTypeValues = values(pkgTypeDict);
+
+
+//-----------------------------------------LINE ITEM LOOP STARTS HERE------------------------------------------
+for line in transactionLine{
+	partNumber = line._part_number;
+	append(partNumberArray,partNumber);
+	//Changes done to handle perfromance optimization
+	//partCustomFieldDict= util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+	itemType = "";
+	itemTypeArray = string[];
+	/*if(containskey(partCustomFieldDict,partNumber+"custom_field23")) {
+		itemType = get(partCustomFieldDict,partNumber+"custom_field23");
+	}
+	if(containskey(partCustomFieldDict,partNumber+"custom_field16")) {
+		lockPrice = get(partCustomFieldDict,partNumber+"custom_field16");
+	}
+	if(containskey(partCustomFieldDict,partNumber+"custom_field7")) {
+		if(get(partCustomFieldDict,partNumber+"custom_field7") <> ""){
+			listPrice = atof(get(partCustomFieldDict,partNumber+"custom_field7"));
+		}
+	}*/
+	itemType=line._part_custom_field23;
+	lockPrice=line._part_custom_field16;
+	listPrice=line._part_custom_field7;
+	
+	processGroup = "";
+	processGroupDict = util.getProcessGroup(itemTypeArray);
+	if(containskey(processGroupDict,itemType)){
+		processGroup = get(processGroupDict,itemType);
+	}
+	if(line._parent_doc_number <> "" AND processGroup == "SC" AND findinarray(IDSAllItems,partNumber) <> -1){
+		if(getconfigattrvalue(line._parent_doc_number ,"docQuantity") <> ""){
+			docQuantity = atof(getconfigattrvalue(line._parent_doc_number ,"docQuantity"));
+			docQty = atoi(getconfigattrvalue(line._parent_doc_number ,"docQuantity"));
+		}
+		if(getconfigattrvalue(line._parent_doc_number ,"docQuantity_bmClone_1") <> ""){
+			validFieldQty = atoi(getconfigattrvalue(line._parent_doc_number ,"docQuantity_bmClone_1"));
+		}
+		noOfCoreUsers = getconfigattrvalue(line._parent_doc_number ,"noOfCoreUsers");
+		addonUsers = getconfigattrvalue(line._parent_doc_number ,"addonUsers");
+		addonUsersQty = getconfigattrvalue(line._parent_doc_number ,"basePackageQuantity_bmClone_1");
+		storageGB = getconfigattrvalue(line._parent_doc_number ,"storageGB");
+		addonStorageGB = getconfigattrvalue(line._parent_doc_number ,"addonStorageGB");
+		addonStorageGBQty = getconfigattrvalue(line._parent_doc_number ,"basePackageQuantity_bmClone_2");
+		applyGlobDisc = getconfigattrvalue(line._parent_doc_number ,"applyGlobalDiscount_IDS");
+		//CR# 107 PB - 9/13/2022 - hostingEnvironment will be used for IDS proposal 
+		hostingEnvironment = getconfigattrvalue(line._parent_doc_number ,"iBPPortalHostingEnvironment");
+		if(getconfigattrvalue(line._parent_doc_number ,"discount") <> ""){
+			discountPct = atof(getconfigattrvalue(line._parent_doc_number ,"discount"));
+		}
+		hybridModelFlag = getconfigattrvalue(line._parent_doc_number ,"hybridModelFlag");
+		
+		if(line._line_item_comment == "IBP Core" OR line._line_item_comment == "IBP Additional User" OR line._line_item_comment == "IBP Additional Capacity"){
+			hostingPrice = hostingPrice + line.extNetPrice_l;
+		}
+		
+		if(partNumber == "FIPSBPS5170"){
+			priceFIPSBPS5170 = priceFIPSBPS5170 + line.unitNetPrice_l;
+		}
+		
+		if(partNumber == "FIPSBPS5109"  AND line._line_item_comment == "IDS Mandatory"){
+			projMgmtQty = line._price_quantity;
+		}
+		
+		if(partNumber == "FIPSIBP5180"){
+			qtyFIPSIBP5180 = line._price_quantity;
+		}
+		
+		if(line._line_item_comment == "IDS Mandatory" OR line._line_item_comment == "IDS Mandatory Image"){
+			perDocPricePart1 = perDocPricePart1 + line.extNetPrice_l;
+		}
+		
+		if(findinarray(pkgTypeValues,line._line_item_comment) <> -1){
+			totalIDSPrice = totalIDSPrice + line.extNetPrice_l;
+			if(NOT(isnull(discountPct)) AND lockPrice == "No" AND applyGlobDisc == "true"){
+				if(discountPct == 0.0){
+					returnString = returnString + line._document_number + "~discounttype_l~|";
+					returnString = returnString + line._document_number + "~discountAmountt_l~0.0|";
+				}else{
+					returnString = returnString + line._document_number + "~discounttype_l~Percent|";
+					returnString = returnString + line._document_number + "~discountAmountt_l~" + String(discountPct) + "|";
+				}
+			}
+			returnString = returnString + line._document_number + "~configCommentsNew_l~" + line._line_item_comment + "|";
+		}
+		
+		if(line._line_item_comment == "IDS One-Time Implementation Fees"){
+			oneTimeSetup = oneTimeSetup + line.extNetPrice_l;
+		}
+		
+		if(line._line_item_comment == "IDS Mandatory Image"){
+			imgOveragePrice = imgOveragePrice + line.unitNetPrice_l;
+			
+			if(partNumber == "FIPSBPS5171"){
+				qtyFIPSBPS5171 = qtyFIPSBPS5171 + line._price_quantity;
+			}
+		}
+		if(partNumber == "FIPSBPS5109"){
+			DMPMgmt = true;
+		}
+		if(partNumber == "FIPSBPS5543"){
+			FileShredding = true;
+		}
+		if(partNumber == "FIPSBPS5109"){
+			DMProjMgmt = DMProjMgmt + line._price_quantity;
+		}
+		if(ISNUMBER(noOfCoreUsers)){
+			ttlConcurentUsers = atoi(noOfCoreUsers);
+		}
+		if(ISNUMBER(addonUsers)){
+			addonttlConcurentUsers = atoi(addonUsers);
+		}
+		if(ISNUMBER(storageGB)){
+			GB_count = atoi(storageGB);
+		}
+		if(ISNUMBER(addonStorageGB)){
+			Addon_GB_count = atoi(addonStorageGB);
+		}
+	}
+	
+/************Commented for defect-15149****************/
+
+	/*if(containskey(StandardCostCalcDict, line._part_number)){
+		if(listPrice <> 0.0){
+			unitStdCost = (listPrice/2) * validFieldQty;
+			returnString = returnString + line._document_number + "~unitCost_l~" + String(unitStdCost) + "|";
+		}
+	}*/
+
+
+
+}
+
+if(docQuantity <> 0.0){
+	perDocPriceTotal = round((perDocPricePart1 / docQuantity),2);
+}
+
+if(hybridModelFlag == "No"){
+	monthlyBasePay = monthlyBasePay + 5000 + hostingPrice;
+}elif(hybridModelFlag == "Yes"){
+	monthlyBasePay = monthlyBasePay + 2500 + hostingPrice;
+}
+
+if(hybridModelFlag == "No" AND perDocPriceTotal <> 0.0){
+	docsPerMonth = integer(ceil(5000 / perDocPriceTotal));
+}elif(hybridModelFlag == "Yes" AND perDocPriceTotal <> 0.0){
+	docsPerMonth = integer(ceil(2500 / perDocPriceTotal));
+}
+
+docsPerMonthEstMthBill = docsPerMonth;
+
+if(docQty > docsPerMonth){
+	docsPerMonthEstMthBill = docQty;
+}
+
+estMonthlyBillPart1 = (perDocPriceTotal * docQuantity) + hostingPrice;
+estMonthlyBillPart2 = monthlyBasePay;
+if(estMonthlyBillPart1 > estMonthlyBillPart2){
+	estMonthlyBillPart = estMonthlyBillPart1;
+}else{
+	estMonthlyBillPart = monthlyBasePay;
+}
+
+if(ISNUMBER(addonUsersQty)) {
+	addonttlConcurentUsers = addonttlConcurentUsers * atoi(addonUsersQty);
+}
+
+ttlConcurentUsers = ttlConcurentUsers + addonttlConcurentUsers;
+
+if(ttlConcurentUsers <> 0) {
+	registered_users = ttlConcurentUsers * 50;
+}
+
+if(ISNUMBER(addonStorageGBQty)) {
+	Addon_GB_count = Addon_GB_count * atoi(addonStorageGBQty);
+}
+
+Total_GB_count = GB_count + Addon_GB_count;
+
+
+if(DMPMgmt){
+	imgOveragePrice = imgOveragePrice + 0.0015;
+}
+
+if(FileShredding){
+	imgOveragePrice = imgOveragePrice + 0.0020;
+}	
+if(substring(String(imgOveragePrice), 4,5) <> "" AND NOT ISNULL(imgOveragePrice) AND isnumber(substring(String(imgOveragePrice), 4,5))){
+	subStrimgOveragePrice =  atoi(substring(String(imgOveragePrice), 4,5));
+	if(len(String(imgOveragePrice)) > 4 AND subStrimgOveragePrice < 5){
+	    imgOveragePrice = round(imgOveragePrice,2);
+	    imgOveragePrice = imgOveragePrice + 0.01;
+	}else{
+	    imgOveragePrice = round(imgOveragePrice,2);
+	}
+}
+if(docQuantity <> 0.0 AND hybridModelFlag == "No"){
+	image_qty = (docQuantity *3) + qtyFIPSBPS5171;
+	image_qty_Final = round((image_qty / docQuantity),2);
+}elif(hybridModelFlag == "Yes"){
+	image_qty_Final = qtyFIPSIBP5180/docQuantity;
+}
+
+
+returnString = returnString + "1~monthlyHostingFee_t~" + String(hostingPrice) + "|1~perDocPrice_IBP_t~" + String(perDocPriceTotal) + "|1~oneTimeSetup_t~" + String(oneTimeSetup) + "|1~perImageOverAvg_t~" + String(imgOveragePrice) + "|1~qtyFIPSBPS5109_t~" + String(projMgmtQty) + "|1~validFieldQty_t~" + String(validFieldQty) + "|1~ttlConcurentUsers_t~" + String(ttlConcurentUsers) + "|1~registered_users_t~" + String(registered_users) + "|1~GB_count_t~" + String(Total_GB_count) + "|1~monthlyBasePayment_t~" + String(monthlyBasePay) + "|1~docsPerMonth_t~" + String(docsPerMonth) + "|1~estMonthlyBilling_t~" + String(estMonthlyBillPart) + "|1~image_qtyFlaot_t~" + String(image_qty_Final) + "|1~docQuantity_t~" + String(docQty) + "|" + "1~image_qty_t~" + String(docsPerMonthEstMthBill) + "|1~hostingEnvironment_t~" + hostingEnvironment + "|";
+return returnString;

@@ -1,0 +1,11 @@
+{
+  "name" : "IDS Pricing approval",
+  "variableName" : "iDSPricingApproval",
+  "description" : "",
+  "libraryFunctions" : [ "util.getMutliplteCustomFieldValuesForselectedParts", "util.getProcessGroup" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "contractedUnitPrice_l", "_price_quantity", "_part_number", "_parent_doc_number", "unitNetPrice_l", "unitSellingPrice_l", "extNetPrice_l" ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

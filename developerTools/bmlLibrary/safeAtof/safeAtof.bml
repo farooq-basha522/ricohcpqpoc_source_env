@@ -1,0 +1,8 @@
+retVal = fallbackVal;
+
+if(isnumber(strToConvert)){
+	retVal = atof(strToConvert);
+}
+
+
+return retVal;

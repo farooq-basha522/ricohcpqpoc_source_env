@@ -1,0 +1,11 @@
+{
+  "name" : "Update Pricing Approvers",
+  "variableName" : "updatePricingApprovers",
+  "description" : "",
+  "libraryFunctions" : [ "commerce.getMStotalDealMargin" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "mSTotalDealSectionArray_t", "mSTotalDealMarginArrayRow_t" ],
+  "systemAttributes" : [ ]
+}

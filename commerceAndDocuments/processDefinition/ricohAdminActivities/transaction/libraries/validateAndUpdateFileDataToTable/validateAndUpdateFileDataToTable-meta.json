@@ -1,0 +1,11 @@
+{
+  "name" : "Validate And Update File data to Table",
+  "variableName" : "validateAndUpdateFileDataToTable",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "eDPDataFile" ],
+  "systemAttributes" : [ "_system_company_name" ]
+}

@@ -1,0 +1,23 @@
+{
+  "name" : "FetchApprovers",
+  "variableName" : "fetchApprovers",
+  "description" : "",
+  "libraryFunctions" : [ "commerce.generateSAApproversString" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "Level",
+    "type" : "String"
+  }, {
+    "name" : "Type",
+    "type" : "String"
+  }, {
+    "name" : "Location",
+    "type" : "String"
+  }, {
+    "name" : "ArrIndex",
+    "type" : "Integer"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ "_system_supplier_company_name" ]
+}

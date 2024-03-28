@@ -1,0 +1,60 @@
+//FunctionName: abo_processDeltaXA
+//    Input: oldLine(Json), newLine(Json)
+//    output: bChanged(boolean)
+// Description:
+//    This utility function  has ABO core delta logic to compare BOM attribute. This is invoked from abo_processDeltaItem.
+// Details:
+//   Return value is used to decide whether line action code needs to be changed.
+ACTION =  "actionCode";
+ADD =  "ADD";
+DELETE =  "DELETE";
+UPDATE = "UPDATE";
+NO_OP  = "NO_UPDATE";
+VALUE =  "value";
+DISPLAY_VALUE =  "displayValue";
+LABEL =  "label";
+TRANSLATIONS ="translations";
+ORIGINAL =  "Original";
+ATTRIBUTES = "attributes";
+
+
+bChanged =  false;
+xaJsoninOldLine =  jsonget(oldLine, ATTRIBUTES, "json", json());
+xaJsoninNewLine =  jsonget(newLine, ATTRIBUTES, "json", json());
+
+xaListinNewLine =  jsonkeys(xaJsoninNewLine);
+
+for oneAttr in xaListinNewLine {
+   oneXAinNewLine  =  jsonget(xaJsoninNewLine, oneAttr, "json");
+   valueofXAinNewJson =jsonget(oneXAinNewLine, VALUE, "string", "");
+   //if one XA does not exist in oldLine, mark for 'ADD'. 
+   if(util.abo_isjsonnull(xaJsoninOldLine, oneAttr)){
+        jsonput(oneXAinNewLine, ACTION, ADD);
+        bChanged =  true;
+        continue;
+   }
+   //We are here because XA exist in oldline XA Json
+   oneXAinOldLine = jsonget(xaJsoninOldLine, oneAttr, "json", json()); 
+   jsonremove(xaJsoninOldLine, oneAttr);
+   
+  //No-Op/Update case: Compare only Language Independent Code (LIC) for update. 
+   valueofXAinOldJson =jsonget(oneXAinOldLine, VALUE, "string", "");
+   if(valueofXAinOldJson == valueofXAinNewJson){
+       jsonput( oneXAinNewLine, ACTION, NO_OP);    
+       continue;       
+   }   
+   //Only Update case
+   jsonput(oneXAinNewLine, ACTION, UPDATE);    
+   jsonput(oneXainNewLine, ORIGINAL, oneXAinOldLine);   
+   bChanged =  true;   
+}
+//Only deleted nodes remain in OldLine Json.
+xaListinOldJson = jsonkeys(xaJsoninOldLine);
+for oneAttr in xaListinOldJson{
+  
+     oneXafromOldline =  jsonget(xaJsoninOldLine, oneAttr, "json");
+     jsonput(oneXafromOldLine, ACTION, DELETE);
+     jsonput(xaJsoninNewLine, oneAttr, oneXafromOldline);
+     bChanged =  true;    
+}
+return bChanged;

@@ -1,0 +1,30 @@
+//************************************************************************************************************
+//** Function:    Determine Next eSignature Step (determineNextESignatureStep)
+//** Type:        Utility Library Function   
+//**
+//** Description: Helper function to determine the next step to transition from pending for approval to approved.
+//**              This helper function was created in order to have one place to store this logic, as it is
+//**              refenced in both step transitions and on the Quote Step attribute's modify.
+//** 
+//** Param:       actionVarName 	- FUTURE USE: variable name of the action that was called.
+//**              eSignatureActionStatus- Current Status from the eSignature action set
+//**              eSignatureRecipients	- FUTURE USE: delmited string of recipients still requiring signature
+//**
+//** Return type: String - Next Step Variable Name
+//**
+//** History:     Date     Author       Comment 
+//**              INITIAL  RConaghan    Initial Creation 
+//************************************************************************************************************
+
+if(eSignatureActionStatus == "Signed"){
+	return "signed";
+}
+elif(eSignatureActionStatus == "Declined" or
+eSignatureActionStatus == "Voided" or
+eSignatureActionStatus == "Rejected" or
+eSignatureActionStatus == "Cancelled"){
+	return "approved";
+}
+else{
+	return "waitingForSignature";
+}

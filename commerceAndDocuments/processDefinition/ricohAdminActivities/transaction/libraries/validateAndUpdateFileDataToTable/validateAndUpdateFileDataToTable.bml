@@ -1,0 +1,738 @@
+startAttr =getcurrenttimeinmillis();
+hasCreateRows =false;
+hasDeleteRows =false;
+
+comments = stringbuilder();
+commentsCSV = stringbuilder();
+delComments = stringbuilder();
+requestBody = json();
+documents = json();
+//Dictionaries/arrays  used 
+edpCodesDict=dict("string[]");
+itemTypes =string[];
+itemMapDetailsDict  = dict("dict<string>");
+bomItemMapVarNames = string[];
+uniqueRowsDict= dict("string");
+deleteRowsDict = dict("string");
+delEDPCodes = string[];
+AttrMapRowsDict = dict("string[]");
+AttrMapRowsDelDict =dict("string[]");
+//Json Arrays for each table 
+itemsJsonArr = jsonarray();
+itemMapJsonArr = jsonarray();
+MSitemMasterJsonArr = jsonarray();
+vehicleJsonArr = jsonarray();
+TRACJsonArr = jsonarray();
+passThroughJsonArr = jsonarray();
+mailRoomJsonArr = jsonarray();
+AttrMapJsonArr=jsonarray();
+
+validEdpCodes =string[];
+edpCodesArr = string[];
+ItemDefVarNames = string[];
+ItemMapVarNames = string[];
+ItemMasterVarNames = string[];
+//Read File contents
+inputData = getattachmentdata(eDPDataFile);
+fileContentStr = "";
+if(containskey(inputData,"filecontent")){
+	fileContentStr = decodebase64(get(inputData,"filecontent","string"));
+	
+}
+fileContentArr = split(fileContentStr ,"\n");
+index = -1;
+/**********************Process Each Row of CSV file to validate rows*********************/
+
+for each in fileContentArr {
+	index = index +1;
+	//Skip the first row of the CSV since it is headers 
+	if(index == 0){
+		continue;
+	}
+	
+	columns = split(each,",");
+	//Break the loop if end of file has been reached. 
+	if(columns[1] == "" OR isnull(columns[1])){
+		break;
+	}
+	//append(edpCodesArr,columns[2]);
+	/************************Group Rows based on ACTION******************************/
+	itemTypeArr = string[];
+	currentItemType = columns[3];
+	if(currentItemType  == "MS" OR currentItemType =="TASS" OR currentItemType =="MPS" OR currentItemType =="ITS"){
+		currentItemType = currentItemType  + " Labor";
+		}
+	/*if(containsKey(edpCodesDict,currentItemType )){
+		itemTypeArr= get(edpCodesDict,currentItemType );
+	}
+	append(itemTypeArr,columns[2]);
+	put(edpCodesDict,currentItemType ,itemTypeArr);*/
+	if(lower(columns[0])=="create" AND containskey(uniqueRowsDict,columns[1])==false){
+	hasCreateRows = true;
+		if(findinarray(itemTypes,currentItemType )==-1){
+			append(itemTypes,currentItemType );
+		}
+		put(uniqueRowsDict,columns[1],each);
+	}
+	elif(lower(columns[0])=="delete" AND containskey(deleteRowsDict,columns[1]+"~"+currentItemType )==false){
+		hasDeleteRows = true;
+		put(deleteRowsDict,columns[1]+"~"+currentItemType ,each);
+		append(delEDPCodes,columns[1]);
+	}
+	elif(lower(columns[0])== "" ){
+		sbappend(commentsCSV,"Invalid Action Specified for this EDP code - ", columns[1],"\n");
+	}
+	else{
+		sbappend(commentsCSV,"Duplicate EDP Code Rows In File. Only first occuring row uploaded - ", columns[1],"\n");
+	}
+}
+/***************************CREATE ROWS*************************************/
+sbappend(commentsCSV,"[CREATE ROWS VALIDATIONS]","\n");
+if(hasCreateRows){
+	/*******Get BOM Tables Details based on Item Type******************/
+bomQuery = bmql("SELECT ID.VariableName,ID.ItemType,ID.ParentVariableName,ID.RootVariableName,IM.ConfigAttrVarName,IM.ParentBomMapVarName FROM Oracle_BOMItemMap IM INNER JOIN Oracle_BOMItemDef2 ID ON IM.BomItemVarName = ID.VariableName WHERE ID.ItemType IN $ItemTypes ORDER BY ID.ItemType");
+//print bomQuery ;
+for rec in bomQuery{
+	itemType = get(rec,"ItemType");
+	if(NOT(containskey(itemMapDetailsDict,itemType))){
+		tempDict =dict("string");
+		append(bomItemMapVarNames,get(rec,"VariableName"));
+		put(tempDict,"refVarName", get(rec,"VariableName")); //Used to query Attribute Mapping table.
+		put(tempDict,"parentVarName", get(rec,"ParentVariableName"));
+		put(tempDict,"rootVarName",get(rec,"RootVariableName"));
+		put(tempDict,"ConfigAttrName",get(rec,"ConfigAttrVarName"));
+		put(tempDict,"bomRuleName",get(rec,"ParentBomMapVarName"));
+		put(itemMapDetailsDict,itemType,tempDict);
+	}
+}
+//print itemMapDetailsDict;
+AttrMapQuery = bmql("SELECT ID.ItemType,AM.ConfigAttrVarName,AM.TargetType,AM.TargetVariableName,AM.SourceType,AM.StaticEntry,AM.ConfigAttrValue FROM Oracle_BomAttrMap AM INNER JOIN Oracle_BomItemMap IM ON AM.BomItemMapVarName = IM.VariableName INNER JOIN Oracle_BOMItemDef2 ID ON IM.BomItemVarName = ID.VariableName WHERE AM.BomItemMapVarName IN $bomItemMapVarNames");
+
+for rec in AttrMapQuery{
+	itemType = get(rec,"ItemType");
+	targetType = get(rec,"TargetType");
+	targetVarName= get(rec,"TargetVariableName");
+	sourceType=get(rec,"SourceType");
+	static= get(rec,"StaticEntry");
+	configAttrName = get(rec,"ConfigAttrVarName");
+	configAttrVal = get(rec,"ConfigAttrValue");
+	
+	AttrMapArr=string[];
+	attrMapStr = targetType +"~"+targetVarName+"~"+sourceType+"~"+static+"~"+configAttrName +"~"+configAttrVal ;
+	if(containsKey(AttrMapRowsDict,itemType )){
+		AttrMapArr = get(AttrMapRowsDict,itemType );
+	}
+	append(AttrMapArr,attrMapStr);
+	put(AttrMapRowsDict,itemType ,AttrMapArr);
+}
+	/*******************NATURAL KEY VALIDATION QUERIES FOR EACH TABLE**********************/
+edpCodesArr = keys(uniqueRowsDict);
+itemDefRecs = bmql("Select VariableName FROM Oracle_BomItemDef2 WHERE VariableName in $edpCodesArr");
+for record in itemDefRecs{
+	varName = get(record,"VariableName");
+	append(ItemDefVarNames,varName);
+}
+
+itemMapRecs = bmql("Select VariableName FROM Oracle_BomItemMap WHERE VariableName in $edpCodesArr");
+for record in itemMapRecs{
+	varName = get(record,"VariableName");
+	append(ItemMapVarNames,varName);
+}
+
+itemMasterRecs = bmql("Select ItemCode FROM MS_ItemMaster WHERE ItemCode in $edpCodesArr");
+for record in itemMasterRecs {
+	varName = get(record,"ItemCode");
+	append(ItemMasterVarNames,varName);
+}
+
+partsData = bmql("select part_number from _parts WHERE part_number in $edpCodesArr");
+for record in partsData{
+	partNo= get(record,"part_number");
+	append(validEdpCodes,partNo);
+}
+
+	/******************Process each unique row of CSV file to build JSON*************************/
+uniqueRows = values(uniqueRowsDict);
+//print uniqueRowsDict;
+for each in uniqueRows {
+	//Seperate Row Json for each table
+	ItemDefrowJson = json();
+	itemMapRowJson = json();
+	AttrMaprowJson = json();
+	MSitemMasterRowJson = json();
+	vehicleRowJson = json();
+	tracRowJson = json();
+	passThroughRowJson = json();
+	mailRoomRowJson = json();
+	
+	columns = split(each,",");
+	edpCode = columns[1];
+	seqNo = 0;
+	itemType =columns[3];
+	if(itemType == "MS" OR itemType  == "MPS" OR itemType  == "ITS" OR itemType =="TASS"){
+	itemType =itemType +" Labor";
+	}
+	//Validate if part exists and has status= active in Part Master ;
+	if(findinarray(validEdpCodes,edpCode)<>-1){
+	
+	if((findinarray(itemDefVarNames,edpCode)== -1)){
+	//GET BOM details from ItemMapDetailsDict If Item Type is Valid
+	if(containskey(ItemMapDetailsDict,itemType)){
+	itemDetails = get(ItemMapDetailsDict,itemType);
+		refVarName = get(itemDetails ,"refVarName"); //Used to query Attribute Mapping table.
+		parentVarName = get(itemDetails ,"parentVarName");
+		rootVarName = get(itemDetails ,"rootVarName");
+		configAttrName = get(itemDetails ,"ConfigAttrName");
+		bomRuleName = get(itemDetails ,"bomRuleName");
+	//Add to request Body for  itemDefTable 
+	jsonput(itemDefrowJson,"VariableName",edpCode);
+	jsonput(itemDefrowJson,"SequenceNum",seqNo);
+	jsonput(itemDefrowJson,"ItemId",edpCode);
+	jsonput(itemDefrowJson,"Name",edpCode);
+	jsonput(itemDefrowJson,"ItemType",itemType );
+	jsonput(itemDefrowJson,"PartNumber",edpCode);
+	jsonput(itemDefrowJson,"SalesItem","Y");
+	jsonput(itemDefrowJson,"ParentVariableName",parentVarName );
+	jsonput(itemDefrowJson,"RootVariableName",rootVarName );
+	jsonput(itemDefrowJson,"ManufacturingItem","Y");
+	jsonput(itemDefrowJson,"DefaultQuantity",1.0);
+	jsonput(itemDefrowJson,"_sync_action","create");
+	jsonarrayappend(itemsJsonArr,itemDefrowJson);
+	
+	//Add to request Body for ItemMapTable
+	if((findinarray(itemMapVarNames,edpCode)== -1)){
+	jsonput(itemMaprowJson,"VariableName",edpCode);
+	jsonput(itemMaprowJson,"BomItemVarName",edpCode);
+	jsonput(itemMaprowJson,"ConfigAttrVarName",configAttrName);
+	jsonput(itemMaprowJson,"ConfigAttrValue",edpCode);
+	jsonput(itemMaprowJson,"ParentBomMapVarName",bomRuleName);
+	jsonput(itemMaprowJson,"_sync_action","create");
+	jsonarrayappend(itemMapJsonArr,itemMaprowJson);
+	
+	//Add to request Body for AttrMapTable
+	if(containskey(AttrMapRowsDict,itemType)){
+		attrMapRows = get(AttrMapRowsDict,itemType);
+		for row in attrMapRows {
+			attrMapCols = split(row,"~");
+			jsonput(AttrMaprowJson,"VariableName",edpCode+"_"+attrMapCols[1]);
+			jsonput(AttrMaprowJson,"TargetType",attrMapCols[0]);
+			jsonput(AttrMaprowJson,"TargetVariableName",attrMapCols[1]);
+			jsonput(AttrMaprowJson,"SourceType",attrMapCols[2]);
+			jsonput(AttrMaprowJson,"StaticEntry",attrMapCols[3]);
+			jsonput(AttrMaprowJson,"ConfigAttrVarName",attrMapCols[4]);
+			jsonput(AttrMaprowJson,"ConfigAttrValue",attrMapCols[5]);
+			jsonput(AttrMaprowJson,"BomItemMapVarName",edpCode);
+			jsonput(AttrMaprowJson,"RootBomMapVarName",bomRuleName);
+			jsonput(AttrMaprowJson,"_sync_action","create");
+			jsonarrayappend(AttrMapJsonArr,AttrMaprowJson);
+		}
+	}
+	}
+	else{
+	sbappend(commentsCSV, "Variable Name/EDP Code already Defined In Item Map Table - ", edpCode,"\n");
+	}
+	
+	//MS-Item Master Table 
+	if(columns[3] == "MS" OR columns[3] == "MPS" OR columns[3] == "ITS" OR columns[3]=="TASS"){
+	if((findinarray(itemMasterVarNames,edpCode)== -1)){
+	jsonput(MSitemMasterRowJson,"LaborType",columns[3]);
+	jsonput(MSitemMasterRowJson,"ItemCode",columns[1]);
+	jsonput(MSitemMasterRowJson,"ItemDescription",columns[2]);
+	jsonput(MSitemMasterRowJson,"_sync_action","create");
+	jsonarrayappend(MSitemMasterJsonArr,MSitemMasterRowJson);
+	}
+	else{
+		sbappend(commentsCSV, "EDP Code already Defined In MS_ItemMaster Table - ", edpCode,"\n");
+	}
+	}
+	
+	//RAC_Vehicle
+	if(columns[5] <> "" AND columns[6]<> "" AND columns[7]<>"" AND columns[8]<>""){
+	
+	jsonput(vehicleRowJson ,"VehicleType",columns[2]);
+	jsonput(vehicleRowJson ,"EDPCode",columns[1]);
+	jsonput(vehicleRowJson ,"EDPCodeDescription",columns[4]);
+	jsonput(vehicleRowJson ,"Lease",atof(columns[5]));
+	jsonput(vehicleRowJson ,"Insurance",atof(columns[6]));
+	jsonput(vehicleRowJson ,"MPG",atof(columns[7]));
+	jsonput(vehicleRowJson ,"MaintProgram",atof(columns[8]));
+	jsonput(vehicleRowJson ,"_sync_action","create");
+	jsonarrayappend(vehicleJsonArr,vehicleRowJson );
+	}
+	
+	//RAC_TRAC
+	if(columns[9]<> "" AND columns[10]<>"" AND columns[11]<>"" AND columns[12] <> ""){
+	
+	jsonput(tracRowJson  ,"ProductDescription",columns[2]);
+	jsonput(tracRowJson  ,"EDPCode",columns[1]);
+	jsonput(tracRowJson  ,"EDPCodeDesc",columns[4]);
+	jsonput(tracRowJson  ,"OneTimeCost",atof(columns[9]));
+	jsonput(tracRowJson  ,"MonthlyCost",atof(columns[10]));
+	jsonput(tracRowJson  ,"Quoted",columns[11]);
+	jsonput(tracRowJson  ,"Renewal",columns[12]);
+	jsonput(tracRowJson  ,"_sync_action","create");
+	jsonarrayappend(TRACJsonArr,tracRowJson  );
+	}
+	
+	//RAC_passthrough
+	if(columns[14] <> "" AND columns[13]<>""){
+	prodDesc = columns[2];
+	expenseType =columns[14];
+	passThroughRecs =bmql("select * from RAC_PassThrough WHERE ProductDescription=$prodDesc AND ExpenseType=$expenseType");
+	countRec=0;
+	for rec in passThroughRecs{	
+		countRec= countRec+1;
+	}
+	if(countRec == 0){
+	jsonput(passThroughRowJson ,"ProductDescription",prodDesc );
+	jsonput(passThroughRowJson ,"EDPCode",columns[1]);
+	jsonput(passThroughRowJson ,"EDPCodeDescription",columns[4]);
+	jsonput(passThroughRowJson ,"PassThrough",columns[13]);
+	jsonput(passThroughRowJson ,"ExpenseType",expenseType );
+	jsonput(passThroughRowJson ,"_sync_action","create");
+	jsonarrayappend(passThroughJsonArr,passThroughRowJson );
+	}
+	else{
+		sbappend(commentsCSV, "This Product Description and Expense Type already Defined In RAC_PassThrough Table - ", edpCode,"\n");
+	}
+	}
+	//RAC_MailRoomEquip
+	if(columns[15] <> "" AND columns[14] <> ""){
+	
+	jsonput(mailRoomRowJson ,"ProductDescription",columns[2]);
+	jsonput(mailRoomRowJson ,"EDPCode",columns[1]);
+	jsonput(mailRoomRowJson ,"EDPCodeDesc",columns[4]);
+	jsonput(mailRoomRowJson ,"ExpenseType",columns[14]);
+	jsonput(mailRoomRowJson ,"Vendor",columns[15]);
+	jsonput(mailRoomRowJson ,"ItemType",columns[3]);
+	jsonput(mailRoomRowJson ,"_sync_action","create");
+	jsonarrayappend(mailRoomJsonArr,mailRoomRowJson );
+	}
+	}
+	else{
+	 sbappend(commentsCSV, "Item type Not Found in BOM - ", edpCode,"\n");
+	}
+	}
+	else{
+	sbappend(commentsCSV, "EDP Code already Defined In Tables.No Tables updated for this row  - ", edpCode,"\n");
+	}
+	}
+	else{
+		sbappend(commentsCSV,"EDP Code Does Not Exist In System.No Tables updated for this row - ", edpCode,"\n");
+	}
+}
+	/****************************ROW INSERTIONS APIs TO BOM TABLES**********************************/
+sbappend(comments,"[BOM TABLE INTERTION LOGS]","\n");
+headers = dict("string");
+put(headers,"Content-Type","application/json");
+
+//ROW INSERTION TO BOM TABLES 
+if(jsonarraysize(itemsJsonArr)>0){
+jsonput(documents,"items",itemsJsonArr);
+jsonput(requestBody,"documents",documents);
+requestStr = jsontostr(requestBody);
+//print requestBody;
+tableName = "Oracle_BomItemDef2";
+urlEndpoint = "https://"+_system_company_name  +".bigmachines.com" + "/rest/v14/adminCustom" + tableName + "/actions/synchronize";
+response = urldatabypost( urlEndpoint,requestStr ,"UploadFailed",headers,true);
+//print response;
+
+if(find(response,"ERROR")==-1){
+ sbappend(comments,"Oracle_BomItemDef2 - Successfully Uploaded ", string(jsonarraysize(itemsJsonArr))," Rows \n");
+//ItemMapTable
+itemMapresponse ="";
+if(jsonarraysize(itemMapJsonArr)>0){
+jsonput(documents,"items",itemMapJsonArr);
+jsonput(requestBody,"documents",documents);
+requestStr = jsontostr(requestBody);
+//print requestBody;
+tableName = "Oracle_BomItemMap";
+urlEndpoint = "https://"+_system_company_name  +".bigmachines.com" + "/rest/v14/adminCustom" + tableName + "/actions/synchronize";
+itemMapresponse = urldatabypost( urlEndpoint,requestStr ,"UploadFailed",headers,true);
+//print itemMapresponse ;
+
+//AttrMapTable
+if(find(itemMapresponse ,"ERROR")==-1){
+sbappend(comments,"Oracle_BomItemMap - Successfully Uploaded ", string(jsonarraysize(itemMapJsonArr))," Rows \n");
+if(jsonarraysize(AttrMapJsonArr)>0){
+jsonput(documents,"items",AttrMapJsonArr);
+jsonput(requestBody,"documents",documents);
+requestStr = jsontostr(requestBody);
+//print requestBody;
+tableName = "Oracle_BomAttrMap"; 
+urlEndpoint = "https://"+_system_company_name  +".bigmachines.com" + "/rest/v14/adminCustom" + tableName + "/actions/synchronize";
+Attrresponse = urldatabypost( urlEndpoint,requestStr ,"UploadFailed",headers,true);
+
+//print Attrresponse ;
+	if(find(Attrresponse,"ERROR")==-1){
+	sbappend(comments,"Oracle_BomAttrMap - Successfully Uploaded ", string(jsonarraysize(AttrMapJsonArr))," Rows \n");
+	}
+	else{
+	sbappend(comments,"Oracle_BomAttrMap - REST API ERROR. Unable to Upload -", string(jsonarraysize(AttrMapJsonArr))," Rows. \n");
+	}
+}
+}
+else{
+	sbappend(comments,"Oracle_BomItemMap - REST API ERROR. Unable to Upload -", string(jsonarraysize(itemMapJsonArr))," Rows \n");
+	}
+}
+}
+else{
+	sbappend(comments,"Oracle_BomItemDef2 - REST API ERROR. Unable to Upload -", string(jsonarraysize(itemsJsonArr))," Rows \n");
+}
+}
+}
+/************************DELETE ROWS******************************/
+if(hasDeleteRows){
+
+deleteRows = values(deleteRowsDict);
+//delEdpCodes = keys(deleteRowsDict);
+itemRowsToDelDict = dict("string[]");
+AttrRowsToDelDict = dict("string[]");
+bomItemMapVarNames = string[];
+
+AttrMapDelJsonArr = jsonarray();
+itemDefDelJsonArr = jsonarray();
+itemMapDelJsonArr = jsonarray();
+
+
+//Query BOM Tables to get Attr Mapping and Other Variable Names
+bomItemQuery = bmql("SELECT ID.VariableName,ID.PartNumber,ID.ItemType,IM.VariableName as ItemMapVarName FROM Oracle_BOMItemMap IM INNER JOIN Oracle_BOMItemDef2 ID ON IM.BomItemVarName = ID.VariableName WHERE ID.PartNumber IN $delEdpCodes ");
+for eachRec in bomItemQuery {
+	part = get(eachRec,"PartNumber");
+	IDVarName = get(eachRec,"VariableName");
+	IMVarName = get(eachRec,"ItemMapVarName");
+	itemType =get(eachRec,"ItemType");
+	append(bomItemMapVarNames,IMVarName);
+	//Store EDP Code Var names in same dict in array
+	VarNameArr=string[];
+	partKey = part + "~"+itemType ;
+	if(containsKey(itemRowsToDelDict ,partKey )==false){
+		append(VarNameArr,IDVarName);
+		append(VarNameArr,IMVarName);
+		put(itemRowsToDelDict ,partKey ,VarNameArr);
+	}
+}
+bomAttrQry = bmql("SELECT VariableName,BomItemMapVarName  FROM Oracle_BomAttrMap WHERE BomItemMapVarName IN $bomItemMapVarNames");
+for attrRec in bomAttrQry{
+	attrVarName = get(attrRec ,"VariableName");
+	bomItemName = get(attrRec ,"BomItemMapVarName");
+	AttrMapDelArr =string[];
+	if(containsKey(AttrRowsToDelDict,bomItemName )){
+		AttrMapDelArr = get(AttrRowsToDelDict,bomItemName );
+	}
+	append(AttrMapDelArr,attrVarName );
+	put(AttrRowsToDelDict,bomItemName ,AttrMapDelArr);
+}
+
+
+//For Item Master Table run query outside loop since it only depends on edpCode
+itemMasterDelCodes = string[];
+checkItemMaster = bmql("Select ItemCode FROM MS_ItemMaster WHERE ItemCode in $delEdpCodes");
+for record in checkItemMaster {
+	edpCode = get(record,"ItemCode");
+	append(itemMasterDelCodes,edpCode);
+}
+/**************************Process Each row of Deletion from File********************/
+
+for each in deleteRows {
+	itemDefrowJson = json();
+	itemMaprowJson = json();
+	
+	MSitemMasterRowJson = json();
+	vehicleRowJson = json();
+	tracRowJson = json();
+	passThroughRowJson = json();
+	mailRoomRowJson = json();
+	
+	columns = split(each,",");
+	edpCode = columns[1];
+	prodDesc = columns[2];
+	itemType =columns[3];
+	expenseType = columns[14];
+	syncAction ="delete";
+	
+	//Get Item Map and Item Def Variable Names for this EDP Code
+	partKey = edpCode + "~"+itemType ;
+	if(itemType  == "MS" OR itemType =="TASS" OR itemType =="MPS" OR itemType =="ITS"){
+		partKey = partKey + " Labor";
+	}
+	if(containskey(itemRowsToDelDict ,partKey )){
+		varNameArr = get(itemRowsToDelDict ,partKey );
+		IDVarName =varNameArr[0];
+		IMVarName = varNameArr[1];
+		//Check if attribute mapping exists for this edpCode
+		//Attribute Mapping Table
+		if(containskey(AttrRowsToDelDict,IMVarName)){
+			attrMapRows = get(AttrRowsToDelDict,IMVarName );
+			for attrVarName in attrMapRows {
+				AttrMaprowJson = json();
+				jsonput(AttrMaprowJson,"VariableName",attrVarName );
+				jsonput(AttrMaprowJson,"_sync_action",syncAction );
+				jsonarrayappend(AttrMapDelJsonArr,AttrMaprowJson);
+			}	
+		}
+		else{
+			sbappend(delComments ,"No Attribute Mapping found for this EDP Code and Item Type : ",edpCode," - ", itemType,"\n" );
+		}
+		//Fetch edpCode_ItemVarName and add to ItemDefJson
+			jsonput(itemDefrowJson,"VariableName",IDVarName );
+			jsonput(itemDefrowJson,"_sync_action",syncAction );
+			jsonarrayappend(itemDefDelJsonArr,itemDefrowJson);
+		//Fetch edpCode_BomMapVarName and add to ItemMapJson
+			jsonput(itemMaprowJson,"VariableName",IMVarName );
+			jsonput(itemMaprowJson,"_sync_action",syncAction );
+			jsonarrayappend(itemMapDelJsonArr,itemMaprowJson);
+	}
+	else{
+			sbappend(delComments ,"No BOM Item Definition and Mapping found for this EDP Code : ",edpCode,"\n" );
+	}
+	//Check if EDP code exists in Custom table, Add to that json 
+	//Item Master table
+	if(itemType == "MS" OR itemType  == "MPS" OR itemType  == "ITS" OR itemType =="TASS"){	
+		if((findinarray(itemMasterDelCodes,edpCode)<> -1)){
+			jsonput(MSitemMasterRowJson,"ItemCode",edpCode);
+			jsonput(MSitemMasterRowJson,"_sync_action",syncAction );
+			jsonarrayappend(MSitemMasterJsonArr,MSitemMasterRowJson);
+		}
+		else{
+			sbappend(delComments , "EDP Code Does Not Exist In MS_ItemMaster Table - ", edpCode,"\n");
+		}
+	}
+	//RAC_Vehicle
+	if(lower(itemType) == "vehicle"){
+		rowExists = false;
+		checkVehicleQry = bmql("select VehicleType,EDPCode FROM RAC_Vehicle WHERE VehicleType= $prodDesc AND EDPCode= $edpCode");
+		for rec in checkVehicleQry {
+		rowExists = true;
+		jsonput(vehicleRowJson ,"VehicleType",columns[2]);
+		jsonput(vehicleRowJson ,"EDPCode",columns[1]);
+		jsonput(vehicleRowJson ,"_sync_action",syncAction);
+		jsonarrayappend(vehicleJsonArr,vehicleRowJson );
+		}
+		if(NOT(rowExists)){
+			sbappend(delComments , "vehicle Type and EDP Code Does Not Exist In RAC_VEHICLE Table - ", edpCode,"\n");
+		}
+	}
+	//RAC_TRAC
+	if(lower(itemType) == "trac"){
+		rowExists =false;
+		checkTracQry = bmql("select ProductDescription,EDPCode FROM RAC_TRAC WHERE ProductDescription= $prodDesc AND EDPCode= $edpCode");
+		for rec in checkTracQry {
+		rowExists = true;
+		jsonput(tracRowJson  ,"ProductDescription",prodDesc);
+		jsonput(tracRowJson  ,"EDPCode",edpCode);
+		jsonput(tracRowJson  ,"_sync_action",syncAction);
+		jsonarrayappend(TRACJsonArr,tracRowJson);
+		}
+		if(NOT(rowExists)){
+			sbappend(delComments , "Product Description And EDP Code Does Not Exist In RAC_TRAC Table - ", edpCode,"\n");
+		}
+	}
+	//RAC_PassThrough 
+	if(lower(itemType) == "passthrough"){
+		if(expenseType <>""){
+		rowExists =false;
+		passThroughRecs =bmql("select * from RAC_PassThrough WHERE ProductDescription=$prodDesc AND ExpenseType=$expenseType");
+		for rec in passThroughRecs{	
+		rowExists = true;
+		jsonput(passThroughRowJson ,"ProductDescription",prodDesc );
+		jsonput(passThroughRowJson ,"EDPCode",edpCode );
+		jsonput(passThroughRowJson ,"ExpenseType",expenseType );
+		jsonput(passThroughRowJson ,"_sync_action",syncAction);
+		jsonarrayappend(passThroughJsonArr,passThroughRowJson );
+		}
+		if(NOT(rowExists)){
+		sbappend(delComments, "This Product Description and Expense Type Does Not Exist In RAC_PassThrough Table - ", edpCode,"\n");
+		}
+	}
+	else{
+		sbappend(delComments, "No Expense Type Specified in File - ", edpCode,"\n");
+	}
+	}
+	//RAC_MAilRoomEquip
+	if(lower(itemType) == "mailroom solutions"){
+		rowExists =false;
+		checkTracQry = bmql("select ProductDescription,EDPCode FROM RAC_MailRoomEquip WHERE ProductDescription= $prodDesc AND EDPCode= $edpCode");
+		for rec in checkTracQry {
+		rowExists = true;
+		jsonput(mailRoomRowJson ,"ProductDescription",prodDesc);
+		jsonput(mailRoomRowJson ,"EDPCode",edpCode);
+		jsonput(mailRoomRowJson ,"_sync_action",syncAction);
+		jsonarrayappend(mailRoomJsonArr,mailRoomRowJson );
+		}
+		if(NOT(rowExists)){
+			sbappend(delComments , "Product Description and EDP Code Does Not Exist In RAC_MailRoomEquip Table - ", edpCode,"\n");
+		}
+	}
+}
+/*******************ROW DELETION APIs FOR BOM TABLES*******************************/
+print itemDefDelJsonArr;
+print itemMapDelJsonArr;
+print AttrMapDelJsonArr;
+
+sbappend(comments,"[BOM TABLE DELETION LOGS]","\n");
+headers = dict("string");
+put(headers,"Content-Type","application/json");
+
+Attrresponse = "";
+itemMapresponse = "";
+
+if(jsonarraysize(AttrMapDelJsonArr)>0){
+jsonput(documents,"items",AttrMapDelJsonArr);
+jsonput(requestBody,"documents",documents);
+requestStr = jsontostr(requestBody);
+//print requestBody;
+tableName = "Oracle_BomAttrMap"; 
+urlEndpoint = "https://"+_system_company_name  +".bigmachines.com" + "/rest/v14/adminCustom" + tableName + "/actions/synchronize";
+Attrresponse = urldatabypost( urlEndpoint,requestStr ,"UploadFailed",headers,true);
+}
+//print Attrresponse ;
+if(find(Attrresponse,"ERROR")==-1){
+	if(Attrresponse<>""){
+		sbappend(comments,"Oracle_BomAttrMap - Successfully Deleted ", string(jsonarraysize(AttrMapDelJsonArr))," Rows \n");
+	}
+	if(jsonarraysize(itemMapDelJsonArr)>0){
+		jsonput(documents,"items",itemMapDelJsonArr);
+		jsonput(requestBody,"documents",documents);
+		requestStr = jsontostr(requestBody);
+		//print requestBody;
+		tableName = "Oracle_BomItemMap";
+		urlEndpoint = "https://"+_system_company_name  +".bigmachines.com" + "/rest/v14/adminCustom" + tableName + "/actions/synchronize";
+		itemMapresponse = urldatabypost( urlEndpoint,requestStr ,"UploadFailed",headers,true);
+	}
+	if(find(itemMapresponse ,"ERROR")==-1){
+		if(itemMapresponse <>""){
+			sbappend(comments,"Oracle_BomItemMap - Successfully Deleted ", string(jsonarraysize(itemMapDelJsonArr))," Rows \n");
+		}
+		if(jsonarraysize(itemDefDelJsonArr)>0){
+			jsonput(documents,"items",itemDefDelJsonArr);
+			jsonput(requestBody,"documents",documents);
+			requestStr = jsontostr(requestBody);
+			//print requestBody;
+			tableName = "Oracle_BomItemDef2";
+			urlEndpoint = "https://"+_system_company_name  +".bigmachines.com" + "/rest/v14/adminCustom" + tableName + "/actions/synchronize";
+			response = urldatabypost( urlEndpoint,requestStr ,"UploadFailed",headers,true);
+			if(find(response,"ERROR")==-1){
+ 				sbappend(comments,"Oracle_BomItemDef2 - Successfully Deleted ", string(jsonarraysize(itemDefDelJsonArr))," Rows \n");
+ 			}
+ 			else{
+				sbappend(comments,"Oracle_BomItemDef2 - REST API ERROR. Unable to Delete-", string(jsonarraysize(itemDefDelJsonArr))," Rows \n");
+			}
+		}
+	}
+	else{
+		sbappend(comments,"Oracle_BomItemMap - REST API ERROR. Unable to Delete-", string(jsonarraysize(itemMapDelJsonArr))," Rows \n");
+	}
+}
+else{
+	sbappend(comments,"Oracle_BomAttrMap - REST API ERROR. Unable to Delete-", string(jsonarraysize(AttrMapDelJsonArr))," Rows. \n");
+}
+
+} //END OF DELETE ROWS LOGIC
+
+//********************Building URL request For Custom Data tables ***********************************/
+sbappend(comments,"[CUSTOM TABLE UPLOAD LOGS]","\n");
+headers = dict("string");
+put(headers,"Content-Type","application/json");
+
+//ROW INSERTION TO BOM TABLES 
+
+// ItemDefTable
+response = "";
+
+//MS-ItemMaster
+if(jsonarraysize(MSitemMasterJsonArr)>0){
+jsonput(documents,"items",MSitemMasterJsonArr);
+jsonput(requestBody,"documents",documents);
+requestStr = jsontostr(requestBody);
+//print requestBody;
+tableName = "MS_ItemMaster";
+urlEndpoint = "https://"+_system_company_name  +".bigmachines.com" + "/rest/v14/adminCustom" + tableName + "/actions/synchronize";
+response = urldatabypost( urlEndpoint,requestStr ,"UploadFailed",headers,true);
+//print response;
+if(find(response ,"ERROR")==-1){
+	sbappend(comments,tableName," - Successfully Uploaded ", string(jsonarraysize(MSitemMasterJsonArr))," Rows \n");
+	}
+	else{
+	sbappend(comments,tableName," - REST API ERROR. Unable to Upload -", string(jsonarraysize(MSitemMasterJsonArr)),"Rows \n");
+	}
+}
+
+//RAC_Vehicle
+if(jsonarraysize(vehicleJsonArr)>0){
+jsonput(documents,"items",vehicleJsonArr);
+jsonput(requestBody,"documents",documents);
+requestStr = jsontostr(requestBody);
+//print requestBody;
+tableName = "RAC_Vehicle";
+urlEndpoint = "https://"+_system_company_name  +".bigmachines.com" + "/rest/v14/adminCustom" + tableName + "/actions/synchronize";
+response = urldatabypost( urlEndpoint,requestStr ,"UploadFailed "+tableName,headers,true);
+//print response;
+	if(find(response ,"ERROR")==-1){
+	sbappend(comments,tableName," - Successfully Uploaded ", string(jsonarraysize(vehicleJsonArr))," Rows \n");
+	}
+	else{
+	sbappend(comments,tableName," - REST API ERROR. Unable to Upload -", string(jsonarraysize(vehicleJsonArr))," Rows \n");
+	}
+}
+
+
+//RAC_TRAC
+
+if(jsonarraysize(TRACJsonArr)>0){
+jsonput(documents,"items",TRACJsonArr);
+jsonput(requestBody,"documents",documents);
+requestStr = jsontostr(requestBody);
+//print requestBody;
+tableName = "RAC_TRAC";
+urlEndpoint = "https://"+_system_company_name  +".bigmachines.com" + "/rest/v14/adminCustom" + tableName + "/actions/synchronize";
+response = urldatabypost( urlEndpoint,requestStr ,"UploadFailed "+tableName,headers,true);
+	if(find(response ,"ERROR")==-1){
+	sbappend(comments,tableName," - Successfully Uploaded ", string(jsonarraysize(TRACJsonArr))," Rows \n");
+	}
+	else{
+	sbappend(comments,tableName," - REST API ERROR. Unable to Upload -", string(jsonarraysize(TRACJsonArr))," Rows \n");
+	}
+}
+
+//RAC_Passthrough
+if(jsonarraysize(passThroughJsonArr)>0){
+jsonput(documents,"items",passThroughJsonArr);
+jsonput(requestBody,"documents",documents);
+requestStr = jsontostr(requestBody);
+//print requestBody;
+tableName = "RAC_PassThrough";
+urlEndpoint = "https://"+_system_company_name  +".bigmachines.com" + "/rest/v14/adminCustom" + tableName + "/actions/synchronize";
+response = urldatabypost( urlEndpoint,requestStr ,"UploadFailed "+tableName,headers,true);
+	if(find(response ,"ERROR")==-1){
+	sbappend(comments,tableName," - Successfully Uploaded ", string(jsonarraysize(passThroughJsonArr))," Rows \n");
+	}
+	else{
+	sbappend(comments,tableName," - REST API ERROR. Unable to Upload -", string(jsonarraysize(passThroughJsonArr))," Rows \n");
+	}
+}
+
+////RAC_MailroomEquip
+if(jsonarraysize(mailRoomJsonArr)>0){
+jsonput(documents,"items",mailRoomJsonArr);
+jsonput(requestBody,"documents",documents);
+requestStr = jsontostr(requestBody);
+//print requestBody;
+tableName = "RAC_MailRoomEquip";
+urlEndpoint = "https://"+_system_company_name  +".bigmachines.com" + "/rest/v14/adminCustom" + tableName + "/actions/synchronize";
+response = urldatabypost( urlEndpoint,requestStr ,"UploadFailed "+tableName,headers,true);
+//print response;
+	if(find(response ,"ERROR")==-1){
+	sbappend(comments,tableName," - Successfully Uploaded ", string(jsonarraysize(mailRoomJsonArr))," Rows \n");
+	}
+	else{
+	sbappend(comments,tableName," - REST API ERROR. Unable to Upload -", string(jsonarraysize(mailRoomJsonArr))," Rows \n");
+	}
+}
+//print response ;
+sbappend(commentsCSV,"\n [DELETE ROWS VALIDATIONS] \n",delComments);
+sbappend(comments,"\n [CSV FILE VALIDATIONS] \n",commentsCSV);
+endAttr =getcurrenttimeinmillis();
+print endAttr -startAttr;
+return sbtostring(comments);

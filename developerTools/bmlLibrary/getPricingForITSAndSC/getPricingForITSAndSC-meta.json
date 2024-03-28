@@ -1,0 +1,21 @@
+{
+  "name" : "Get Pricing for ITS and SC",
+  "variableName" : "getPricingForITSAndSC",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "retStringDict",
+    "type" : "String Dictionary"
+  }, {
+    "name" : "retIntegerDict",
+    "type" : "Integer Dictionary"
+  }, {
+    "name" : "retFloatDict",
+    "type" : "Float Dictionary"
+  }, {
+    "name" : "retBooleanDict",
+    "type" : "Boolean Dictionary"
+  } ],
+  "attributes" : [ ]
+}

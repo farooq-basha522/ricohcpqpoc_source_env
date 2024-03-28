@@ -1,0 +1,20 @@
+{
+  "name" : "custom_calculations_endMainDoc",
+  "variableName" : "custom_calculations_endMainDoc",
+  "description" : "This function is invoked at the end of all system processing. It can overridden to add any logic as needed at this point in the system processing.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "quoteData",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "mainDocDict",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "extraParams",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

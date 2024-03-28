@@ -1,0 +1,97 @@
+retVal = "";
+isDebug = false;
+rowDelim = "@$@";
+index = 1;
+inputs = dict("anytype");
+yearApproverDict = dict("string");
+yearApproverArr = String [];
+put(inputs, "ApporvalType", "Deal");
+put(inputs, "Location", "Name");
+if(isDebug){
+	print mSTotalDealSectionArray_t;
+}
+
+arraysize = range(5);// get Approval names for 5 Years 
+for each in arraysize {
+	yearParam = "year"+string(index);
+	put(inputs, "Year", yearParam);
+	if(isDebug){print inputs;}
+	apporver = commerce.getMSApprovers(inputs);
+	if(apporver  <> ""){
+		put(yearApproverDict, yearParam, apporver);
+	}
+	index = index + 1;
+}
+yearApproverArr = keys(yearApproverDict);
+
+retVal = retVal + "<html><body><table>";
+index = 1;
+arraysize = range(5);
+for each in arraysize {
+	dealValue = "";
+	yearParam = "year"+string(index);
+	approverDetailStr = get(yearApproverDict, yearParam);
+	if(NOT isnull(approverDetailStr ) ){//AND approverDetailStr[0] <> ""){//@$@false@$@false@$@false@$@false
+		approverDetailArr = split(approverDetailStr, rowDelim);
+		if(approverDetailArr[0] <> "" AND (approverDetailArr[1] <> "true" OR approverDetailArr[2] <> "true" OR approverDetailArr[3] <> "true" OR approverDetailArr[4] <> "true")){
+			retVal = retVal + "<tr><td>This Quote Requires Pricing Approval(s)</td> </tr>";
+			retVal = retVal + "<tr><td><ul>Approval Details based on Total Deal Margin";
+			retVal = retVal + "<ul>Year "+ string(index) + ": Total Deal Margin is ";
+			arraySize = range(jsonarraysize(mSTotalDealSectionArray_t));
+			for each1 in arraySize {
+				yearParam1 = "year"+string(index)+"_MSTotalArraySet";
+				if(NOT isnull(jsonget(json(jsonarrayget(mSTotalDealSectionArray_t, each1)),yearParam1))){
+					dealValue = jsonget(json(jsonarrayget(mSTotalDealSectionArray_t, each1)),yearParam1);
+					break;
+				}
+			}
+			retVal = retVal + dealValue + " -- Requires Pricing Approval from ";
+			retVal = retVal + approverDetailArr[0] +"<ul>";
+			if(approverDetailArr[1] == "false"){
+				retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT ACTIVE User </li>";
+			}
+			if(approverDetailArr[2] == "false"){
+				retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT Exists in Pricing Group</li>";
+			}
+			if(approverDetailArr[4] == "false"){
+				retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT Exists in HRMS</li>";
+			}elif(approverDetailArr[3] == "false"){
+				retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT ACTIVE in HRMS</li>";
+			}
+			retVal = retVal +"</ul></ul></ul></td></tr>";
+		}
+	}
+	index = index + 1;
+}
+if(annualRevenueEscalation_t > 0){
+	inputs = dict("anytype");
+	put(inputs, "ApporvalType", "Escalation");
+	put(inputs, "Location", "Name");
+	approverDetailStr = commerce.getMSApprovers(inputs);
+	
+	if(NOT isnull(approverDetailStr )){// AND approverDetailStr <> "@$@false@$@false@$@false@$@false"){
+		approverDetailArr = split(approverDetailStr, rowDelim);
+		if(approverDetailArr[0] <> "" AND (approverDetailArr[1] <> "true" OR approverDetailArr[2] <> "true" OR approverDetailArr[3] <> "true" OR approverDetailArr[4] <> "true")){
+			if(len(retVal) < 20){retVal = retVal + "<tr><td>This Quote Requires Pricing Approval(s)</td> </tr>";}
+			retVal = retVal + "<tr><td><ul>Approval Details based on Annual Escalation";
+			retVal = retVal + "<ul>Total Annual Escalation is "+string(annualRevenueEscalation_t);
+			retVal = retVal + " -- Requires Pricing Approval from ";
+			retVal = retVal + approverDetailArr[0] +"<ul>";
+			if(approverDetailArr[1] == "false"){
+				retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT ACTIVE User </li>";
+			}
+			if(approverDetailArr[2] == "false"){
+				retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT Exists in Pricing Group</li>";
+			}
+			if(approverDetailArr[4] == "false"){
+				retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT Exists in HRMS</li>";
+			}elif(approverDetailArr[3] == "false"){
+				retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT ACTIVE in HRMS</li>";
+			}
+			retVal = retVal +"</ul></ul></ul></td></tr>";
+		}	
+	}
+	
+}
+retVal = retVal + " </table></body></html>";
+return retVal;

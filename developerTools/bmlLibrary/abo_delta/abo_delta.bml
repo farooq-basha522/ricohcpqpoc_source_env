@@ -1,0 +1,115 @@
+//Function name: abo_delta
+//  input: configBom(json),commerceProcess(String), inputBom(json) 
+//  output : flatConfigBom(json)
+// Description:
+//   This utility function has ABO core delta logic, it is invoked from configurator save event. 
+//   It will compare the final configuration BOM with the previously calculated PAC(projected asset cache) BOM 
+//   to decide the delta change and produce a delta BOM to be used to save to commerce.
+// Details: 
+//  The comparison will be done for each BOM item on id(aka assetkey).
+//  This also is responsible for generating the assetkey if it is not in assetkey format and
+//  populate the concatenated BOM attribute summary string on BOM item even if the PAC BOM is empty.
+
+//Couple of key assumptions:
+//  The action on the line will solely be based on the line and its BOM attribute.
+//  The action code on the subline will not affect parent line's action code.
+//  We use the same id field in BOM as assetKey, the BOM will be loaded, processed and returned in flat form
+
+abocontext = util.abo_initializeContext(commerceProcess);
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true);
+
+
+callContext="delta";
+if(not bDiagnosisOff)//logging the input
+{
+   dummy=util.abo_addDiagnosticInfo(callContext+"_input_inputBom", inputBom,"addToSummary");
+   dummy=util.abo_addDiagnosticInfo(callContext+"_input_configBom",configBom,"addToSummary");
+   dummy=util.abo_addDiagnosticInfo(callContext+"_input_commerceProcess"+commerceProcess,json(),"addToSummary");   
+}
+
+if (sizeofarray(jsonKeys(abocontext)) == 0){//Context is empty
+   dummy=util.abo_addDiagnosticInfo(callContext+": return original configBom because context is empty",json(),"");
+   return configBom;
+}
+if(isnull(configBom)){
+   dummy=util.abo_addDiagnosticInfo(callContext+": return original configBom because configBom is empty",json(),"");
+   return configBom;
+}
+
+
+pacPreImageJson =  usersessionget("bm_abo_pac_root_json","json");
+// We will not remove PAC BOM from userSession in case the delta fails and the user will go back to configurator and start over again.
+if (isnull(pacPreImageJson )){//sometimes when null json is passing down the child function, it doesn't behave correctly.
+   pacPreImageJson =  json();
+}
+if(not bDiagnosisOff)//logging the input
+{
+   dummy=util.abo_addDiagnosticInfo(callContext+"_input_pacBom", pacPreImageJson,"addToSummary");
+}
+
+flatConfigBom = configBom;
+//Check for change of BOM for existing line
+partNumfromInputBom = jsonget(inputBom, "partNumber", "string", "");
+partNumfromConfigBom = jsonget(configBom, "partNumber", "string", "");
+if(partNumfromInputBom <> "" AND partNumfromInputBom<> partNumfromConfigBom){
+   msg="You can not change the BOM for an existing product instance";
+   if(not bDiagnosisOff)   {
+        msg = msg+"====="+callContext+"partNumFromInputBom=("+partNumfromInputBom
+                 +"),partNumfromConfigBom=("+partNumfromConfigBom+").";
+        dummy=util.abo_addDiagnosticInfo(msg, json(),"");
+   } 
+   throwerror(msg);
+}
+// The function will be invoked by non-ABO case as well to populate assetKey. 
+// so it should be optimized to return quickly when PAC is emtpy.
+if(isnull(pacPreImageJson) OR sizeofarray(jsonkeys(pacPreImageJson))==0){
+    
+    deltajson = util.abo_updateLineIdandFields(flatConfigBom, inputBom);
+    if(not bDiagnosisOff)   {
+       dummy=util.abo_addDiagnosticInfo(callContext+":pac is empty, directly update id/fields", json(),"");
+       dummy=util.abo_addDiagnosticInfo(callContext+"_outputBom", deltaJson,"addToSummary");
+    }
+    return deltaJson;
+}
+  
+//We are here because pacPreImageJson is not empty
+pacRootId = jsonget(pacPreImageJson, "id", "string", "");
+inputBomId = jsonget(inputBom, "id", "string", "");
+if (isnull(inputbom)   OR (isnull(inputbom) <> true AND pacRootId <> inputBomId))
+{
+      if(not bDiagnosisOff)   {
+          dummy=util.abo_addDiagnosticInfo(callContext+":pacBom has differnet id("+pacRootid
+              +") from inputBom id"+inputBomId+"), reset/ingore pacBom.", json(),"");
+      }    
+      usersessionremove("bm_abo_pac_root_json"); 
+      pacPreImageJson = json();
+      pacRootId = "";               
+}
+
+configBomRootId = jsonget(flatConfigBom, "id", "string");
+if (pacRootId == ""){
+    deltajson = util.abo_updateLineIdandFields(flatConfigBom, inputBom);
+    if(not bDiagnosisOff)   {
+        dummy=util.abo_addDiagnosticInfo(callContext+":pacBom is empty, directly update configBom", json(),"");
+        dummy=util.abo_addDiagnosticInfo(callContext+"_outputBom", deltaJson,"addToSummary");        
+    }    
+    return deltaJson;
+}
+if (pacRootId <> configBomRootId)
+{
+   errMsg="Failed to update product instance, product instance key has been changed in configuration.";
+   if(not bDiagnosisOff)   {
+     errMsg=errMsg+"==== pacRootId="+pacRootId+", configBomRootId="+configBomRootId;
+   }
+   throwerror(errMsg);
+}
+//caculate the delta
+flatConfigBom  = util.abo_processDeltaBom(pacPreImageJson, flatConfigBom);
+
+flatConfigBom = util.abo_updateLineIdandFields(flatConfigBom, inputBom);
+
+if(not bDiagnosisOff)   {
+    dummy=util.abo_addDiagnosticInfo(callContext+":normal processing case", json(),"");
+    dummy=util.abo_addDiagnosticInfo(callContext+"_outputBom", flatConfigBom,"addToSummary");        
+}    
+return flatConfigBom;

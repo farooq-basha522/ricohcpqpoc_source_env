@@ -1,0 +1,11 @@
+{
+  "name" : "Update MS Pricing Approval Fields",
+  "variableName" : "updateMSPricingApprovalFields",
+  "description" : "",
+  "libraryFunctions" : [ "commerce.getMStotalDealMargin" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "annualRevenueEscalation_t", "mSTotalDealSectionArray_t", "termMonths_t", "contractTermMonthsNumeric_t", "contractOtherTerm_t" ],
+  "systemAttributes" : [ ]
+}

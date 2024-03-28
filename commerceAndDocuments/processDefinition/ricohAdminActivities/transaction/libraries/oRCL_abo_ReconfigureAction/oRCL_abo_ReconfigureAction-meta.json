@@ -1,0 +1,14 @@
+{
+  "name" : "ABO Reconfigure Action",
+  "variableName" : "oRCL_abo_ReconfigureAction",
+  "description" : "ABO implementation of the reconfigure and reconfigure line action script respectively.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "isMainDoc",
+    "type" : "Boolean"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,63 @@
+//**************************************************************************************************************
+//** Function:    Create Single Select Menu (createSingleSelectMenu)                                                 
+//** Type:        Utility Library Function                                                                    
+//**                                                                                                          
+//** Description: Converts an HTML Attribute into a menu, and stores the selection into a (hidden) text field.
+//**
+//**              Inputs: menuVarName -     String - Variable Name of the target non-html attribute that stores the selected val.
+//**                      menuOptionLabelsArr - String[]    - Dict containing Keys of selection LABELS, and Values of the actual System Values.
+//**                      menuOptionValuesArr - String[] - Value currently selected - needed so the selection isn't wiped on update.
+//**                        Note that if blanks are desired in the menu, they must be added to the menu label and value arrays.
+//**                      currentSelectedVal - String
+//**                      autoUpdate - Boolean - If true, will cause attribute to be auto-update.
+//**						CURRENTLY DOES NOT WORK.
+//**					  callingProcess - String - COMMERCE or CONFIG
+//**						CURRENTLY DOES NOTHING - HARDCODED FOR COMMERCE
+//**                                                                                              
+//** History:     Date     Author       Comment   
+//**			01.17.17	RConaghan	Initial                                                            
+//**************************************************************************************************************
+
+retVal = "";
+
+autoUpdateStr = "";
+if(autoUpdate){
+	autoUpdateStr = " auto-run-rule-trigger ";
+}
+
+retVal = retVal 		+ "<div class=\"form-element field-wrapper\" id=\"field_wrapper_1_"+menuVarName+"\">"
+				+ "    <div class=\"menu-attr-wrapper field\" message=\"\">"
+				+ "        <div class=\"menu-attr\">"
+				+ "            <select class=\" form-input  cm-attr-value " + autoUpdateStr + "\" style=\"width: 100%;max-width: 100%;\" name=\""+menuVarName+"\">"
+				;
+
+index = 0;
+for menuOptionLabel in menuOptionLabelsArr{
+	label = menuOptionLabel;
+	value = "";
+	if(isnull(menuOptionValuesArr[index])){ //Error handling. Display error message if arrays are mismatched in size.
+		label = "ERROR: No value found for " + menuOptionLabel;
+	}
+	else{
+		value = menuOptionValuesArr[index];
+	}
+	
+	if(value == currentSelectedVal) {
+		retVal = retVal +"                <option value=\""+value+"\" selected=\"true\">"+label+"</option>";
+	} else {
+		retVal = retVal +"                <option value=\""+value+"\">"+label+"</option>";
+	}
+	index = index + 1;
+}
+
+retVal = retVal   + "            </select>"
+		  + "        </div>"
+		  + "    </div>"
+		  + "    <div id=\"msg_1_"+menuVarName+"\" class=\"error-hover\" data-action-message=\"\" message=\"\"></div>"
+		  + "</div>"
+		  ;
+
+
+
+
+return retVal;

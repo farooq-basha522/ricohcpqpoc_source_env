@@ -1,0 +1,31 @@
+//FunctionName: adf_BuildAdfURL
+// Input: layoutCode(string), layoutParams(String-Dictionary), buysideLayout(Boolean)
+// Output: URL to navigate to specific layout (String)
+//Description: 
+//  This utility function is to build URL to access the ADF Runtime page for any Layout with appropriate URL encoding
+
+result = "";
+if (buysideLayout == true) {
+    result = "/buyside/layout?";
+    }
+else {
+    result = "/admin/layout?";
+    }
+    
+
+result = result + "layoutCode=" + layoutCode + "&";
+result = result + "layoutParams=";
+paramKeys = keys(layoutParams);
+size = range(sizeofarray(paramKeys));
+for key in size {
+    //Encode layout param value
+    parameter = get(layoutParams, paramKeys[key]);
+    value = util.adf_EncodeURIComponent(parameter);
+    value = paramKeys[key]+"="+value+"&";
+    //Encode layout param key-value pair again
+    value = util.adf_EncodeURIComponent(value);
+    result = result + value;
+}
+//Remove additional encoded & at the end
+result = substring(result,0,len(result)-3);
+return result;

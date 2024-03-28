@@ -1,0 +1,89 @@
+//************************************************************************************************************
+//** Function:    Get OSC Ref ID (getOSCRefID)
+//** Type:        Commerce Library Function   
+//**
+//** Description: Takes a dictionary of string dictionaries input param and creates item master for new parts
+//** 
+//** Param:       dictionariesDict
+//**
+//** History:     Date     Author       Comment 
+//**              INITIAL  SLewis       Initial Build  
+//************************************************************************************************************
+x=getcurrenttimeinmillis();
+partNumberDict = dict("string");
+oscRefIDDict = dict("string");
+
+for line in transactionLine {
+	if(line._part_number <> "" /*AND line._partner_entity_id == "" AND line.oscRefID_l == ""*/) {
+		put(partNumberDict, line._document_number, line._part_number);
+	}
+}
+partNumberKeys = keys(partNumberDict);
+
+soapBodyMiddle = "";
+
+sessionIDResult = util.getAPIUserSessionID();
+if(ISNULL(sessionIDResult) OR sessionIDResult=="") {
+	sessionIDResult = _system_user_session_id;	
+}
+//sessionIDResult = "daf46d9b6ff44a788af5be62462d42894bd1b1dbffcfbd23a4f4";
+
+companyName = _system_company_name;
+//companyName = "ricohusamsintdev";
+
+for partNumberKey in partNumberKeys {
+	soapHeader  = "<?xml version='1.0' encoding='UTF-8'?><soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'>"
+	                + "<soapenv:Header>"
+	                + "<bm:userInfo xmlns:bm='urn:soap.bigmachines.com'>"
+	                + "<bm:sessionId>" + sessionIDResult + "</bm:sessionId>"
+	                + "</bm:userInfo>"
+	                + "<bm:category xmlns:bm='urn:soap.bigmachines.com'>Parts</bm:category>"
+	                + "<bm:xsdInfo xmlns:bm='urn:soap.bigmachines.com'>"
+	                + "<bm:schemaLocation>https://" + companyName + ".bigmachines.com/bmfsweb/" + companyName + "/schema/v1_0/parts/Parts.xsd</bm:schemaLocation>"				
+	                + "</bm:xsdInfo>"
+	                + "</soapenv:Header>"
+	                ;                
+	soapBody	  = "<soapenv:Body>"
+				+ "<bm:getParts xmlns:bm='urn:soap.bigmachines.com'>"
+				+ "<bm:Parts>";
+					docNumber = partNumberKey;  					         
+					partNumber = get(partNumberDict, partNumberKey);
+	soapBodyMiddle = soapBodyMiddle
+					+ "<bm:criteria>"
+					+ "<bm:field>part_number</bm:field>"
+					+ "<bm:value>"+ partNumber + "</bm:value>"
+					+ "<bm:comparator>=</bm:comparator>"
+		            		+ "</bm:criteria>"
+	                		;
+	soapBody = soapBody + soapBodyMiddle
+					+ "</bm:Parts>"
+					+ "</bm:getParts>"
+		      			+ "</soapenv:Body>"
+					+ "</soapenv:Envelope>"
+		            		;
+				
+	soapXml  = soapHeader + soapBody;
+	soapURL = "https://" + companyName + ".bigmachines.com/v1_0/receiver";
+
+	header = dict("string");
+	postResponse = urldatabypost(soapURL, soapXML, "", header, true);
+	
+	oscRefIDStart = find(postResponse, "<bm:partner_part_id>");
+	oscRefIDEnd = find(postResponse, "</bm:partner_part_id>");
+	oscRefID = substring(postResponse, oscRefIDStart + len("<bm:partner_part_id>"), oscRefIDEnd);
+	oscRefIDBlank = oscRefIDEnd - oscRefIDStart;
+
+	if(oscRefIDBlank <> 0 AND find(postResponse, "code: -1") == -1) {
+		put(oscRefIDDict, docNumber, oscRefID);
+	}
+}
+result = "";
+oscRefIDKeys = keys(oscRefIDDict);
+for key in oscRefIDKeys {
+	oscRefID = get(oscRefIDDict, key);
+	result = result + key + "~oscRefID_l~" + oscRefID + "|";
+}
+
+y=getcurrenttimeinmillis();
+z=y-x;
+return result;

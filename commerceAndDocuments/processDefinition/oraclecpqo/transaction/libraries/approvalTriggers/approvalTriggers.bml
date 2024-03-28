@@ -1,0 +1,169 @@
+x=getcurrenttimeinmillis();
+result="";
+returnDict = dict("string");
+itemTypeDict = dict("string");
+vPartarray = quoteWorkbench_VQt;
+arraysize = range(jsonarraysize(vPartarray));
+processGroupStr = "SC";
+itemTypeStr = "ALL";
+approvalRequiredFor = "";
+fastTrackApprovalTriggered = false;
+marketApprovalProcess = false;
+itemCreationRequired = false;
+
+itemTypeArray = string[];
+validVendorArray = string[];
+uniqueVendorNameArray = string[];
+validRicohEDPCOdeArray = string[];
+ricohEDPCOdeArray = string[];
+vendorNameArray = string[];
+approvalTypeArray = string[];
+itemCreationRequiredArray = string[];
+partNumberArray=string[];
+
+if(containskey(inputDict,"approvalRequiredFor")){
+	approvalRequiredFor = get(inputDict,"approvalRequiredFor");
+}
+
+if(approvalRequiredFor == "SC"){
+	for arr in arraysize{
+		searchResultRow = jsonarrayget(vPartarray,arr);
+		searchResultJson = json(searchResultRow);
+		vendorName_QuoteWorkbench_t = jsonget(searchResultJson,"vendorName_QuoteWorkbench_t");
+		ricohEDPCode_QuoteWorkbench_t = jsonget(searchResultJson,"ricohEDPCode_QuoteWorkbench_t");
+		itemType_QuoteWorkbench_t = jsonget(searchResultJson,"itemType_QuoteWorkbench_t");
+		
+		append(itemTypeArray,itemType_QuoteWorkbench_t);
+		append(ricohEDPCOdeArray,ricohEDPCode_QuoteWorkbench_t);
+		if(ricohEDPCode_QuoteWorkbench_t <> "EDP NOT AVAILABLE"){
+			append(validRicohEDPCOdeArray,ricohEDPCode_QuoteWorkbench_t);
+		}
+		append(vendorNameArray,vendorName_QuoteWorkbench_t);
+		if(findinarray(uniqueVendorNameArray,vendorName_QuoteWorkbench_t) == -1){
+			append(uniqueVendorNameArray,vendorName_QuoteWorkbench_t);
+		}
+		
+		//put(returnDict,itemType_QuoteWorkbench_t + "$$" + vendorNameArray + "$$" + ricohEDPCode_QuoteWorkbench_t + "ItemType",itemType_QuoteWorkbench_t);
+		//put(returnDict,itemType_QuoteWorkbench_t + "$$" + vendorNameArray + "$$" + ricohEDPCode_QuoteWorkbench_t + "VendorName",vendorName_QuoteWorkbench_t);
+	}
+	//Get Process Group from Item Type
+	if(sizeofarray(itemTypeArray) > 0){
+		itemTypeDict = util.getProcessGroup(itemTypeArray);
+	}
+	//Get Valid Vendors
+	vendorRecordSet = bmql("select VendorID from ValidVendors where Active = 'Yes' AND ProcessGroup = $processGroupStr AND VendorID in $uniqueVendorNameArray");
+	for eachVendor in vendorRecordSet{
+		append(validVendorArray,get(eachVendor,"VendorID"));
+	}
+	customFieldVarName = "_part_custom_field24";
+
+	portfolioFlagDict = util.getCustomfieldValueForPartNumber(validRicohEDPCOdeArray,customFieldVarName);
+	index = 0;
+	for eachItemType in itemTypeArray{
+		lineofBusinessStr = "";
+		itemCodeExistsStr = "Yes";
+		approvedVendorStr = "No";
+		portfolioFlag = "NO";
+		if(containskey(itemTypeDict,eachItemType)){
+			lineofBusiness = get(itemTypeDict,eachItemType);
+		}
+		if(ricohEDPCOdeArray[index] == "EDP NOT AVAILABLE"){
+			itemCodeExistsStr = "No";
+		}
+		if(findinarray(validVendorArray,vendorNameArray[index]) <> -1){
+			approvedVendorStr = "Yes";
+		}
+		if(containskey(portfolioFlagDict,ricohEDPCOdeArray[index])){
+			portfolioFlag = get(portfolioFlagDict,ricohEDPCOdeArray[index]);
+		}
+		
+		whereClause = "ItemType = '"+itemTypeStr+"' AND LineOfBusiness = '"+lineofBusinessStr+"' AND ApprovedVendor = '"+approvedVendorStr+"' AND PortfolioFlag = '"+portfolioFlag+"' AND ItemCodeExists = '"+itemCodeExistsStr+"'";
+		recordSet = bmql("select ApprovalType from MarketingApproval where $whereClause");
+		for eachRecord in recordSet{
+			approvalTypeStr = get(eachRecord,"ApprovalType");
+			append(approvalTypeArray,approvalTypeStr);
+		}
+		index = index + 1;
+	}
+}
+itemTypeDict = util.getProcessGroup(itemTypeArray);
+if(approvalRequiredFor == "ITS"){
+	for each in transactionLine{
+		if(each._price_calculation_info == ""){ //START 06_11_2023 Added if condition for MPS Pricing - below code should not run for MPS #CHG0085215 by Vasundhara
+			partNumber = each._part_number;
+			itemType = each.type_l;
+			lineofBusinessStr = "";
+			if(containskey(itemTypeDict,itemType)){
+				lineofBusinessStr = get(itemTypeDict,itemType);
+			}
+			if(lineofBusinessStr == "ITS"){
+				//portfolioFlag = each._part_custom_field24;
+			append(partNumberArray,partNumber);
+			
+			portfolioFlag ="";
+					  partCustomFieldDict=util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+					 portfolioFlag = "";
+					 if(containskey(partCustomFieldDict,partNumber+"custom_field24")) {
+					 portfolioFlag = get(partCustomFieldDict,partNumber+"custom_field24");
+				   }
+			
+			if(portfolioFlag == ""){
+				portfolioFlag = "NO";
+			}
+				vendorName = "";
+				commentStr = each._line_item_comment;
+				commentStrArr = split(commentStr,"##");
+				if(sizeofarray(commentStrArr) > 6){
+					vendorName = commentStrArr[6];
+				}
+				//Get Valid Vendors
+				approvedVendorStr = "No";
+				vendorRecordSet = bmql("select VendorID from ValidVendors where Active = 'Yes' AND ProcessGroup = $lineofBusinessStr AND VendorID = $vendorName");
+				for eachVendor in vendorRecordSet{
+					approvedVendorStr = "Yes";
+				}
+				itemCodeExistsStr = "No";
+				partNumArray = string[];
+				if(partNumber <> "MAP-GENERIC"){
+					append(partNumArray,partNumber);
+					itemCodeExistsDict = util.getPartExists(partNumArray);
+					if(containskey(itemCodeExistsDict,partNumber)){
+						itemCodeExistsStr = get(itemCodeExistsDict,partNumber);
+					}
+				}
+				whereClause = "ItemType = '"+itemTypeStr+"' AND LineofBusiness = '"+lineofBusinessStr+"' AND ApprovedVendor = '"+approvedVendorStr+"' AND PortfolioFlag = '"+portfolioFlag+"' AND ItemCodeExists = '"+itemCodeExistsStr+"'";
+				recordSet = bmql("select ApprovalType,ItemCreationFlag from Marketing_Approval where $whereClause");
+				approvalTypeStr = "";
+				itemCreationFlag = "";
+				for eachRecord in recordSet{
+					approvalTypeStr = get(eachRecord,"ApprovalType");
+					itemCreationFlag = get(eachRecord,"ItemCreationFlag");
+					if(approvalTypeStr == "Auto Approval" AND itemCreationFlag == "Y"){
+						append(itemCreationRequiredArray,approvalTypeStr);
+					}
+					/* if(approvalTypeStr == "FastTrack Approval" OR approvalTypeStr == "Market Activation process"){
+						approvalRequired = true;
+					} */
+					append(approvalTypeArray,approvalTypeStr);
+				}
+				result = result + each._document_number + "~approvalType_l~" + approvalTypeStr + "|";
+				result = result + each._document_number + "~itemCreationFlag_l~" + itemCreationFlag + "|";
+			}
+		}
+	}	
+}
+if(findinarray(approvalTypeArray,"FastTrack Approval") <> -1){
+	fastTrackApprovalTriggered = true;
+}
+if(findinarray(approvalTypeArray,"Market Activation process") <> -1){
+	marketApprovalProcess = true;
+}
+if(findinarray(itemCreationRequiredArray,"Auto Approval") <> -1){
+	itemCreationRequired = true;
+}
+result =  result + "1~fastTrackApprovalTriggered_t~" + string(fastTrackApprovalTriggered) + "|";
+result =  result + "1~marketActivationApprovalTriggered_t~" + string(marketApprovalProcess) + "|";
+result =  result + "1~autoApprovalItemCreationRequired_t~" + string(itemCreationRequired) + "|";
+y=getcurrenttimeinmillis();
+z=y-x;
+return result;

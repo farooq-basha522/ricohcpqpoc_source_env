@@ -1,0 +1,130 @@
+/* Commerce Library Function 
+Name: updateFulfillmentLineStatus
+Main Document Attribute	-	
+	Bs_id
+	fulfillmentStatusForUpdateAsset_t
+Sub Document Attribute	-
+	_document_number
+	_parent_doc_number
+	_part_number
+	_part_custom_field9
+	rootAssetkey_l
+	status_l
+	fulfillmentStatus_l
+	itemInstanceId_l
+*/
+print bs_id;
+//--- Define Status constants
+// Status constants for fulfillmentStatus_l attribute
+FULFILLED = "FULFILLED"; // fulfilled status for fulfillmentStatus_l
+AWAIT_ASSET_CREATION = "AWAIT_ASSET_CREATION";
+BEING_FULFILLED = "BEING_FULFILLED";
+
+triggerStatuses = split(triggerUpdateAssetForLineStatus_t, "~");
+
+//--- Define variables
+result = ""; // to return the concatenated string of final status attributes
+rootLineNo = ""; // keeps track of root Line
+rootAssetKey = ""; // stores root's rootAssetKey_l to identify its children
+isCurrRootFulfilled = false; // indicates if curr root is fulfilled i.e. asset created.
+rootStatus = ""; // stores root's status_l
+totalChildren = 0;
+childFulfilled = 0;
+for line in transactionLine {
+	if(line.itemInstanceId_l == ""){
+		continue; // skip non-abo lines;	
+	}
+	if (line._parent_doc_number == "") {
+		// root or standard item
+		if (line._part_number <>"") {
+			if (line.fulfillmentStatus_l == FULFILLED OR line.fulfillmentStatus_l == AWAIT_ASSET_CREATION) {
+				// skip this line if already fulfilled
+				continue;
+			}
+			if (findinarray(triggerStatuses, line.status_l) <>-1) {
+				// if the status_l is one of the trigger for asset creation, mark line as AWAIT_ASSET_CREATION
+				result = result + line._document_number + "~fulfillmentStatus_l~" + AWAIT_ASSET_CREATION + "|";
+				continue;
+			}
+		} else {
+			// model root;
+			if (rootLineNo <>"") { // skip 1st root
+				if (totalChildren == 0) {
+					// If it is just a root (with no child items), 
+					// then mark root as AWAIT_ASSET_CREATION if that line's status_l was trigger status for asset creation
+					if (findinarray(triggerStatuses, rootStatus) <>-1 AND NOT(isCurrRootFulfilled)) {
+						result = result + rootLineNo + "~fulfillmentStatus_l~" + AWAIT_ASSET_CREATION + "|";
+						// reset values for next root
+						childFulfilled = 0;
+						totalChildren = 0;
+					}
+				} else {
+					// If this root has child items, then mark root as AWAIT_ASSET_CREATION if all child items are fulfilled
+					if (childFulfilled > 0) {
+						if (totalChildren == childFulfilled) {
+							// If previous root's all child items were fulfilled,
+							// move previous root to AWAIT_ASSET_CREATION status so that update asset logic can pick it up for asset creation
+							result = result + rootLineNo + "~fulfillmentStatus_l~" + AWAIT_ASSET_CREATION + "|";
+							// reset values for next root
+							childFulfilled = 0;
+							totalChildren = 0;
+						}
+					}
+				}
+			}
+			if (line.fulfillmentStatus_l == FULFILLED OR line.fulfillmentStatus_l == AWAIT_ASSET_CREATION) {
+				isCurrRootFulfilled = true;
+				continue;
+			}
+			if (findinarray(triggerStatuses, line.status_l) <>-1) {
+				// If this root is fulfilled, then no need to process its children. Mark this line as Await_asset_creation
+				result = result + line._document_number + "~fulfillmentStatus_l~" + AWAIT_ASSET_CREATION + "|";
+				isCurrRootFulfilled = true;
+				continue;
+			}
+			// reset values for next root
+			rootLineNo = line._document_number;
+			rootAssetKey = line.rootAssetKey_l;
+			rootStatus = line.status_l;
+			isCurrRootFulfilled = false;
+			childFulfilled = 0;
+			totalChildren = 0;
+		}
+		continue;
+	} else {
+		// child items
+		if (isCurrRootFulfilled) {
+			// If this line's parent root was fulfilled, it means that all chil iteams were also fulfilled.
+			// Hence we are going to skip the lines in fulfilled root's hierarchy.
+			continue;
+		}
+		if (line.rootAssetKey_l == rootAssetKey) {
+			// Child line found
+			totalChildren = totalChildren + 1;
+			if (findinarray(triggerStatuses, line.status_l) <>-1) {
+				childFulfilled = childFulfilled + 1;
+			}
+		}
+	}
+}
+// Since all lines come in sequentially according to document number, we get root first. Hence we process the root once we have been through all the child lines.
+// In this process, last hierarchy's root is not processed but we do the overall status of child lines of last heirarchy,
+// hence we can update the last root here.
+if (rootLineNo <>"") {
+	if (totalChildren == 0) {
+		if (findinarray(triggerStatuses, rootStatus) <>-1) {
+			result = result + rootLineNo + "~fulfillmentStatus_l~" + AWAIT_ASSET_CREATION + "|";
+		}
+	} else {
+		if (childFulfilled > 0) {
+			if (totalChildren == childFulfilled) {
+				// If last root's all child items were fulfilled,
+				// move root to AWAIT_ASSET_CREATION status so that update asset logic can pick it up for asset creation
+				result = result + rootLineNo + "~fulfillmentStatus_l~" + AWAIT_ASSET_CREATION + "|";
+			}
+		}
+	}
+}
+print "Lines Proccessed for Asset Creation: ";
+print result;
+return result;

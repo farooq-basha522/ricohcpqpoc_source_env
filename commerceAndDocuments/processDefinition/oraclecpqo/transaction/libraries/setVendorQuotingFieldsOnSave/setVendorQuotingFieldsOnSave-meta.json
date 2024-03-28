@@ -1,0 +1,11 @@
+{
+  "name" : "Set Vendor Quoting fields on Save",
+  "variableName" : "setVendorQuotingFieldsOnSave",
+  "description" : "",
+  "libraryFunctions" : [ "util.getCustomfieldValueForPartNumber" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "quoteWorkbench_VQt", "selectedItemsArray", "transactionID_t" ],
+  "systemAttributes" : [ "_system_user_name" ]
+}

@@ -1,0 +1,15 @@
+{
+  "name" : "Etilize Third Party Search API Call",
+  "variableName" : "etilizeThirdPartySearchAPICall",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "keywordSearch",
+    "type" : "String"
+  }, {
+    "name" : "customerBillingAuthority",
+    "type" : "String"
+  } ],
+  "attributes" : [ "_site_url" ]
+}

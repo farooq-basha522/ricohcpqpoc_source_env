@@ -1,0 +1,120 @@
+htmlTable = "";
+selectedELArr = String[];
+qtyELArr = String[];
+descELArr = String[];
+partNameELArr = String[];
+mfgPartNumELArr = String[];
+vendorPartNumELArr = String[];
+costELArr = String[];
+pointsELArr = String[];
+priceELArr = String[];
+vendorIDELArr = String[];
+vendorNameELArr = String[];
+vendorDisplayNameELArr = String[];
+sourceELArr = String[];
+mfgNameELArr = String[];
+availQtyELArr = String[];
+backOrderedQtyELArr = String[];
+
+
+			configAttrArr = split(configAttrInfo, "|^|"); // Config_attr_data only found on model line
+			for each in configAttrArr{
+				eachAttrValArr = split(each, "~");
+				attrVarName = eachAttrValArr[0];
+				attrVal = eachAttrValArr[2];
+				//htmlTable = htmlTable + "<tr>";
+				if (attrVarName == "qtyEquipPart_thirdParty") {
+					qtyELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "descEquipPart_thirdParty") {
+					descELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "partNameEquipPart_thirdParty") {
+					partNameELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "manufacturerPartNumEquipPart_thirdParty" ) {
+					mfgPartNumELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "vendorPartNumEquipPart_thirdParty") {
+					vendorPartNumELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "costEquipPart_thirdParty") {
+					costELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "pointsEquipPart_thirdParty") {
+					pointsELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "priceEquipPart_thirdParty") {
+					priceELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "availableQtyEquipPart_thirdParty") {
+					availQtyELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "backorderedQuantityEquipPart_thirdParty") {
+					backOrderedQtyELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "sourceEquipPart_thirdParty") {
+					sourceELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "vendorDisplayNameEquipPart_thirdParty") {
+					vendorDisplayNameELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "vendorIDEquipPart_thirdParty") {
+					vendorIDELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "vendorNameEquipPart_thirdParty") {
+					vendorNameELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "manufacturerNameEquipPart_thirdParty") {
+					mfgNameELArr = split(attrVal, "$,$");
+				}
+				elif (attrVarName == "selectEquipPart_thirdParty") {
+					selectedELArr = split(attrVal, "$,$");
+				}
+				//htmlTable = htmlTable + "</tr>";
+			}
+			//html headers
+			htmlTable = "<table border=\"1\" style=\"width:100%;text-align:left;border-collapse:collapse;padding:10px\"><tr>";
+			htmlTable = htmlTable + "<th>Selected</th>";
+			htmlTable = htmlTable + "<th>Qty</th>";
+			htmlTable = htmlTable + "<th>Description</th>";
+			htmlTable = htmlTable + "<th>Part Name</th>";
+			htmlTable = htmlTable + "<th>Manufacturer</th>";
+			htmlTable = htmlTable + "<th>Manufacturer<br>Part Number</th>";
+			htmlTable = htmlTable + "<th>Vendor<br>Display Name</th>";
+			htmlTable = htmlTable + "<th>Etilize<br>Vendor Name</th>";
+			htmlTable = htmlTable + "<th>Vendor<br>Part Number</th>";
+			htmlTable = htmlTable + "<th>Cost</th>";
+			htmlTable = htmlTable + "<th>Price</th>";
+			htmlTable = htmlTable + "<th>Points</th>";
+			htmlTable = htmlTable + "<th>Avail<br>Qty</th>";
+			htmlTable = htmlTable + "<th>Back-<br>ordered<br>Qty</th>";
+			htmlTable = htmlTable + "<th>Vendor ID</th>";
+			htmlTable = htmlTable + "<th>Source</th>";
+			htmlTable = htmlTable + "</tr>";
+			
+			//loop through array created above and generate the table rows
+			i = 0;
+			for qty in qtyELArr {
+				htmlTable = htmlTable + "<tr>";
+				htmlTable = htmlTable + "<td>" + selectedELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>" + qtyELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td style=\"max-width:150px;white-space:normal\">" + descELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>" + partNameELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>" + mfgNameELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>" + mfgPartNumELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>" + vendorDisplayNameELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>" + vendorNameELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>" + vendorPartNumELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>$" + costELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>$" + priceELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>" + pointsELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>" + availQtyELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>" + backOrderedQtyELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>" + vendorIDELArr[i] + "</td>";
+				htmlTable = htmlTable + "<td>" + sourceELArr[i] + "</td>";
+				htmlTable = htmlTable + "</tr>";
+				i = i+1;
+			}
+			htmlTable = htmlTable + "</table>";
+			return htmlTable;

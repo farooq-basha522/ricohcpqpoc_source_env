@@ -1,0 +1,24 @@
+{
+  "name" : "Get MPS Pricing",
+  "variableName" : "getMPSPricing",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "InputType",
+    "type" : "String"
+  }, {
+    "name" : "retStringDict",
+    "type" : "String Dictionary"
+  }, {
+    "name" : "retFloatDict",
+    "type" : "Float Dictionary"
+  }, {
+    "name" : "retIntegerDict",
+    "type" : "Integer Dictionary"
+  }, {
+    "name" : "retBooleanDict",
+    "type" : "Boolean Dictionary"
+  } ],
+  "attributes" : [ ]
+}

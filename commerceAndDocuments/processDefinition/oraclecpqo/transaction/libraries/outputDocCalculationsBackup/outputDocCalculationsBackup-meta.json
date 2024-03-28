@@ -1,0 +1,11 @@
+{
+  "name" : "Output Doc Calculations Backup",
+  "variableName" : "outputDocCalculationsBackup",
+  "description" : "Used for generate SOW T&C proposal and other calculations on Doc Designer. Does NOT handle line item sequencing.",
+  "libraryFunctions" : [ "util.safeGetString" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_part_custom_field18", "_part_number", "_model_name", "_parent_doc_number" ],
+  "mainDocAttributes" : [ "customerSolutionImage1_t", "customerSolutionImage2_t", "contractTermMonthsNumeric_t", "NinetyDayOut_t", "monthsFree_quote" ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,15 @@
+{
+  "name" : "abo_processDeltaXA",
+  "variableName" : "abo_processDeltaXA",
+  "description" : "This utility function  has ABO core delta logic to compare BOM attribute. This is invoked from abo_processDeltaItem.",
+  "libraryFunctions" : [ "util.abo_isjsonnull" ],
+  "returnType" : "Boolean",
+  "parameters" : [ {
+    "name" : "oldLine",
+    "type" : "Json"
+  }, {
+    "name" : "newLine",
+    "type" : "Json"
+  } ],
+  "attributes" : [ ]
+}

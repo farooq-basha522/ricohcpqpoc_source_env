@@ -1,0 +1,29 @@
+{
+  "name" : "Configure API",
+  "variableName" : "configureAPI",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "configData",
+    "type" : "String"
+  }, {
+    "name" : "inputAttributeVarName",
+    "type" : "String[]"
+  }, {
+    "name" : "inputAttributeValue",
+    "type" : "String[]"
+  }, {
+    "name" : "authentication",
+    "type" : "String"
+  }, {
+    "name" : "reconfigureFlag",
+    "type" : "Boolean"
+  }, {
+    "name" : "doc_number",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "bs_id" ],
+  "systemAttributes" : [ ]
+}

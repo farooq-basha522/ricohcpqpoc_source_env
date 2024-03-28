@@ -1,0 +1,11 @@
+{
+  "name" : "ITS Pricing - Retro Fitment",
+  "variableName" : "iTSPricingRetroFitment",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_group_sequence_number", "_model_name", "_part_number", "partName_l", "partDescriptionOnProposal_l", "_price_quantity", "finalListUnitPrice_l", "finalListUnitPriceNRR_l", "contractedPriceFound_l", "contractedPriceFoundNRR_l", "unitCost_l", "contractedUnitPrice_l", "contractedUnitPriceNRR_l", "customDiscountType_l", "customDiscountValue_l", "netPrice_l", "netPriceNRR_l", "locationName_l", "manufacturer_l", "manufacturerPartNum_l", "vendorName_l", "vendorPartNumber_t", "preparedBy_l", "selectTemplate_l", "type_l", "UOM_l", "unitSRP_l", "extSRP_l", "unitSalesCost_l", "discounttype_l", "discountAmountt_l", "unitNetPrice_l", "extNetPrice_l", "shipToAddress_l", "_part_custom_field9", "netAmount_l", "netAmountNRR_l", "_document_number", "_part_custom_field8" ],
+  "mainDocAttributes" : [ "transactionName_t", "_transaction_customer_t_company_name", "_transaction_customer_t_first_name", "_transaction_customer_t_last_name", "_transaction_customer_t_address", "_transaction_customer_t_city", "_transaction_customer_t_state", "_transaction_customer_t_zip", "_transaction_customer_t_country", "_transaction_customer_t_phone", "_transaction_customer_t_email", "owner_t", "createdDate_t", "lastUpdatedBy_t", "lastUpdatedDate_t", "totalContractValue_t", "transactionDescription_t", "customerContactName_t", "quoteCreatedBy_t", "quoteCreationDate_t", "quoteLastUpdatedBy_t", "lastModifiedDate_t", "quotePrice_t", "shippingAddress_t", "customerName_t", "customerEmail_t", "quoteStep_t", "migratedQuoteStep_t", "leaseTerm_t", "monthsFree_quote", "pricingSummary_t" ],
+  "systemAttributes" : [ ]
+}

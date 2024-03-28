@@ -1,0 +1,52 @@
+// Max depth of line item hierarchical tree.
+// Adjust if 50 depths are still not enough for your site.
+maxDepth = 50;
+if (containsKey(extraParams, "maxDepthDelta")) {
+   maxDepth = get(extraParams, "maxDepthDelta", "integer");
+}
+
+parentDocNumberMap = get(quoteData, "parentDocNumberMap", "dict<string>");
+rollupDeltaPriceMap = get(quoteData, "rollupDeltaPriceMap", "dict<anytype>");
+deltaPriceMap = get(quoteData, "deltaPriceMap", "dict<anytype>");
+
+its = range(integer(maxDepth));
+
+v__parent_doc_number = get(lineDict, "_parent_doc_number", "string");
+v__document_number = get(lineDict, "_document_number", "string");
+v_oRCL_ABO_ActionCode_l = get(lineDict, "oRCL_ABO_ActionCode_l", "string");
+
+    if ((v__parent_doc_number == "" AND v_oRCL_ABO_ActionCode_l <> "ADD" AND v_oRCL_ABO_ActionCode_l <> "")
+        OR containskey(parentDocNumberMap, v__parent_doc_number)) {
+        put(parentDocNumberMap, v__document_number, v__parent_doc_number);
+        if (v__parent_doc_number == "") {
+            put(rollupDeltaPriceMap, v__document_number, get(lineDict, "_rollup_delta_price", "float"));
+        }
+        v__delta_price = get(lineDict, "_delta_price", "float");
+        deltaPrice = get(lineDict, "netAmount_l", "float") - get(lineDict, "_prior_price", "float");
+        deltaChange = deltaPrice - v__delta_price;
+        //Print delta price as 0 for blank values.
+        if (fabs(deltaChange) > 0.00001 or fabs(v__delta_price) < 0.00001) {
+            put(deltaPriceMap, v__document_number, deltaPrice);
+            //str = str + v__document_number + "~_delta_price~" + string(deltaPrice) + "|";  
+        }
+        // roll up the delta price change when needed
+        if (fabs(deltaChange) > 0.00001) {
+            // find the root documenet number by going up the line item hierarchy
+            docNumber = v__document_number;
+            for it in its {
+                parentDocNumber = get(parentDocNumberMap, docNumber);
+                if (parentDocNumber == "" or isnull(parentDocNumber)) {
+                    break;  
+                }
+                docNumber= parentDocNumber;
+            } 
+            // add the change to the root item
+            if (containskey(rollupDeltaPriceMap, docNumber)) {
+                price = deltaChange + get(rollupDeltaPriceMap, docNumber, "float");
+                put(rollupDeltaPriceMap, docNumber, price);
+            }
+        }
+    }// end if (fabs(deltaChange) > 0.00001)
+  
+
+return "";

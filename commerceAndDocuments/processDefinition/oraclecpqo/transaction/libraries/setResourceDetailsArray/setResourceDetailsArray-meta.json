@@ -1,0 +1,11 @@
+{
+  "name" : "Set Resource Details Array",
+  "variableName" : "setResourceDetailsArray",
+  "description" : "Created these library to append Design Lead to Resource Details. \nScope has been changes and we are no longer using these library any more.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "designLead_t", "selectedDRTeamMemberArraySet_t" ],
+  "systemAttributes" : [ ]
+}

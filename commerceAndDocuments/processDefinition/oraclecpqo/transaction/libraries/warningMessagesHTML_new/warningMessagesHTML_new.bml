@@ -1,0 +1,130 @@
+/******************************************************************************************************/
+//Author: Neha T: June 10-2022
+
+//Functionality: To show HTML Warning Messages
+
+/******************************************************************************************************/
+
+partNumberArray = string[];
+itemTypeArray = string[];
+message = string[];
+docNumberArray = string[];
+partDict = dict("string");
+recordDict = dict("string");
+processGroupDict = dict("string");
+for line in transactionLine{
+	cpqLineID = line._group_sequence_number;
+	itemType = line.type_l;
+	partnumber = line._part_number;	
+	docNum = line._document_number;
+	
+	if(partnumber <> ""){
+		append(partNumberArray,partnumber);
+		append(itemTypeArray,itemType);
+		append(docNumberArray,docNum);
+		variableItem = "";
+		partCustomFieldDict = util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+		if(containskey(partCustomFieldDict,partNumber+"custom_field27")) {
+			variableItem = get(partCustomFieldDict,partNumber+"custom_field27");
+		}
+		put(partDict,docNum + "-partnumber",partnumber);
+		put(partDict,docNum + "-itemType",itemType);
+		put(partDict,docNum + "-cpqLineID",cpqLineID);
+		put(partDict,docNum + "-variableItem",variableItem);
+		put(partDict,docNum + "-unitSellingPrice_l",string(line.unitSellingPrice_l));
+		put(partDict,docNum + "-unitSalesCost_l",string(line.unitSalesCost_l));
+	}
+	//put(partDict,partnumber + "-itemType",itemType);
+
+	/* if (line._parent_doc_number == "") {
+		itemType = line.type_l;
+		itemTypeRecordSet = bmql("SELECT ItemType FROM RAC_ITEM_TYPE WHERE ItemType = $itemType");
+		for eachItemType in itemTypeRecordSet {
+			itemTypedata = get(eachItemType, "ItemType");
+			if (quoteStep_t == "pending_process"  AND line.linkedItem_l == "" AND (itemTypedata == "SOLUTIONS-SUPPORT" OR itemTypedata == "SOLUTIONS-SUPPORT REQ LIC KEY")){
+				append(message,"<div>" + "<span style='font-size: medium; color: red; text-aliagn: left;'>" + "Line#" + " " + cpqLineID  + " - " + "Quote contains unlinked Maint/Support item. Please update Linked Item with the applicable product line number(s)." + "</span>" + "</div>");	 
+			}
+		}
+	}*/ 
+	//Commented as warning messages are no longer needed and validation will be trigerred as part of defect 14736
+
+	if(quoteStep_t == "pending_process" OR quoteStep_t == "pendingFnFApproval" OR quoteStep_t == "approvedFnF" OR quoteStep_t == "waitingForInternalApproval"){
+		if(line.discounttype_l == "Override" AND line.discountAmountt_l < line.unitSalesCost_l){
+			append(message,"<div>" + "<span style='font-size: medium; color: black; text-aliagn: left;'>" + "Line#" + " " + cpqLineID  + " - " + "Entering a Selling Price below Sales Cost may require an approval." + "</span>" + "</div>");
+		}elif(line.discounttype_l == "Amount" AND (line.contractedUnitPrice_l - line.discountAmountt_l) < line.unitSalesCost_l){
+			append(message,"<div>" + "<span style='font-size: medium; color: black; text-aliagn: left;'>" + "Line#" + " " + cpqLineID  + " - " + "Entering a Selling Price below Sales Cost may require an approval." + "</span>" + "</div>");
+		}elif(line.discounttype_l == "Percent" AND (line.contractedUnitPrice_l *(1 - (line.discountAmountt_l/100))) < line.unitSalesCost_l){
+			append(message,"<div>" + "<span style='font-size: medium; color: black; text-aliagn: left;'>" + "Line#" + " " + cpqLineID  + " - " + "Entering a Selling Price below Sales Cost may require an approval." + "</span>" + "</div>");
+		}
+		//CHG0080949 starts - Added to get the warning message for VP codes when the price is zero
+		variableItem = line._part_custom_field27;
+		if(variableItem == "VP" AND line.unitSellingPrice_l == 0.0 AND line.unitSalesCost_l == 0.0 ){
+			append(message,"<div>" + "<span style='font-size: medium; color: black; text-aliagn: left;'>" + "Line#" + " " + cpqLineID  + " - " + "Variably Priced Item Set at $0 – Please Revise if Pricing is not Correct." + "</span>" + "</div>");
+		}
+		//CHG0078656: Added by Nupur 4/18/2023 - CR 29
+		lockPrice = line._part_custom_field16;
+		if(lockPrice == "Yes" AND line.discounttype_l == ""){
+			append(message,"<div>" + "<span style='font-size: medium; color: black; text-aliagn: left;'>" + "Line#" + " " + cpqLineID  + " - " + "This Line item is not eligible for Discount." + "</span>" + "</div>");
+		}			
+		//CHG0080949 end
+	}
+}
+
+Pricelist = "";
+if(rAC_Pricelist_RISE <> "" OR priceList_t <> "") {
+	if(rAC_Pricelist_RISE <>"") {
+		Pricelist = rAC_Pricelist_RISE; 
+	}else{
+		Pricelist = priceList_t ;
+	}
+}
+if(quoteStep_t == "pending_process" OR quoteStep_t == "pendingFnFApproval" OR quoteStep_t == "approvedFnF" OR quoteStep_t == "waitingForInternalApproval"){
+	if(Pricelist <> ""){
+		processGroupDict = util.getProcessGroup(itemTypeArray);
+		priceDataTable = bmql("SELECT ContractPriceOption, EDPCode FROM RAC_PL_CASH WHERE EDPCode in $partNumberArray AND PriceListName = $Pricelist");
+		for each in priceDataTable {
+			EDPCode = get(each,"EDPCode");
+			contractPriceRecord = get(each,"ContractPriceOption");
+			put(recordDict,EDPCode,contractPriceRecord);
+		}
+	}
+	for eachDoc in docNumberArray{
+		unitSellingPrice = 0.0;
+		unitSalesCost = 0.0;
+		contractPriceRecord = "";
+		processGroup = "";
+		variableItem = "";
+		partNumber = "";
+		cpqLineID = "";
+		itemType = "";
+		if(containskey(partDict,eachDoc+"-unitSellingPrice_l") and isnumber(get(partDict,eachDoc+"-unitSellingPrice_l"))){
+			unitSellingPrice = atof(get(partDict,eachDoc+"-unitSellingPrice_l"));
+		}
+		if(containskey(partDict,eachDoc+"-unitSalesCost_l") and isnumber(get(partDict,eachDoc+"-unitSalesCost_l"))){
+			unitSalesCost = atof(get(partDict,eachDoc+"-unitSalesCost_l"));
+		}
+		if(containskey(partDict,eachDoc+"-partnumber") and NOT isnull(get(partDict,eachDoc+"-partnumber"))){
+			partNumber = get(partDict,eachDoc+"-partnumber");
+		}
+		if(containskey(partDict,eachDoc+"-variableItem") and NOT isnull(get(partDict,eachDoc+"-variableItem"))){
+			variableItem = get(partDict,eachDoc+"-variableItem");
+		}
+		if(containskey(partDict,eachDoc+"-cpqLineID") and NOT isnull(get(partDict,eachDoc+"-cpqLineID"))){
+			cpqLineID = get(partDict,eachDoc+"-cpqLineID");
+		}
+		if(containskey(partDict,eachDoc+"-itemType") and NOT isnull(get(partDict,eachDoc+"-itemType"))){
+			itemType = get(partDict,eachDoc+"-itemType");
+		}
+		if(containskey(recordDict,partNumber) and NOT isnull(get(recordDict,partNumber))){
+			contractPriceRecord = get(recordDict,partNumber);
+		}
+		if(containskey(processGroupDict,itemType) and NOT isnull(get(processGroupDict,itemType))){
+			processGroup = get(processGroupDict,itemType);
+		}
+		if(variableItem <> "VP" AND unitSellingPrice > 0 AND unitSalesCost > 0 AND unitSellingPrice < unitSalesCost AND (contractPriceRecord == "Firm" OR contractPriceRecord == "Fixed" OR contractPriceRecord == "Variable Down") AND (ProcessGroup <> "SC" AND variableItem <> "Yes")){//02_08_2023 Added condition to exclude Process Group = SC and Variable Item = Yes as it doesnt require below warning to run for PS_Pricing by Vasundhara
+			append(message,"<div>" + "<span style='font-size: medium; color: black; text-aliagn: left;'>" + "Line#" + " " + cpqLineID  + " - " + "This is a  Fixed or Variable Down Pricelist. Entering a Selling Price below Sales Cost may require approval." + "</span>" + "</div>");
+		}
+	}
+}
+
+return message;

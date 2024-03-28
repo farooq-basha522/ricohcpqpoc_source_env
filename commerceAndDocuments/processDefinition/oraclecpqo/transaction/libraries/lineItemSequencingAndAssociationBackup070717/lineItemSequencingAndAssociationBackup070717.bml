@@ -1,0 +1,312 @@
+//*****************************************************************************************************
+//** Function:    Line Item Sequencing and Association
+//** Type:        Function called on configuration, reconfiguration, and generate output doc
+//**
+//** Description: Sequences Line Items and adds additional flags as necessary for output doc headers.
+//**                                                                                               
+//** History:	Date		Author     	Comment
+//**			01.24.17	RConaghan	Initial Implementation
+//*****************************************************************************************************
+
+//----Declaration
+ret			= "";
+partNum 		= ""; 
+lineCommentNameValDelim = "@@";
+lineCommentPairDelim = "##";
+lineItemOrderMethod = lineItemOrdering_t;
+approvalGroup = "";
+//Doc Designer pritntout
+modelLocationDict = dict("string"); //Dictionary of key = location ID and value = highest document number found for that location.
+modelHasMRRPartsDict = dict("boolean"); //boolean dict with key of model doc num and value of true/false
+modelHasINSTALLPartsDict = dict("boolean"); //boolean dict with key of model doc num and value of true/false
+modelHasEQUIPPartsDict = dict("boolean"); //boolean dict with key of model doc num and value of true/false
+modelHasPROSERVPartsDict = dict("boolean"); //boolean dict with key of model doc num and value of true/false
+modelHasOTHERPartsDict = dict("boolean"); //boolean dict with key of model doc num and value of true/false
+firstModelWithMRRDict = dict("string"); //string dict with key of location id and value of model doc number
+firstModelWithINSTALLDict = dict("string"); //string dict with key of location id and value of model doc number
+firstModelWithEQUIPDict = dict("string"); //string dict with key of location id and value of model doc number
+firstModelWithPROSERVDict = dict("string"); //string dict with key of location id and value of model doc number
+firstModelWithOTHERDict = dict("string"); //string dict with key of location id and value of model doc number
+customSeqFirstSeqOnLocAndTypeDict = dict("string"); //key = "prefix" with location id rather than name (for dupe purposes). Value = doc num
+customSeqLastSeqOnLocAndTypeDict = dict("string"); //key = "prefix" with location id rather than name (for dupe purposes). Value = doc num
+
+mrrModelDocNumList 	= string[]; //Array of models that have at least one part
+sequenceNumInc		= 0;
+sequenceNumArr		= string[];
+uniqueLocArray = string[]; //string array of locations, used to group parts by location
+uniqueGroupArray = string[]; //string array of unique Product Groups found on the quote
+docNumToSeqNumDict = dict("string"); //key = document number. value = sequence number
+modelLastSeqNumDict = dict("string"); //key = model/standalone part doc num. value = final doc num under that model.
+docNumToPrefixDict = dict("string"); //key = document number, value = "prefix" portion of custom sequencing
+docNumToSuffixDict = dict("string"); //key = document number, value = "suffix" portion of custom sequencing
+parentChildSuffixDict = dict("integer"); //key = the "parentId" of a parent part. Value is that part's custom sequence suffix
+extraInputsDict = dict("string"); //Dictionary passed into decodeNameValuePairs util.
+	put(extraInputsDict, "nameValDelim", lineCommentNameValDelim);
+	put(extraInputsDict, "pairDelim", lineCommentPairDelim);
+	
+//----End of Declaration
+
+//Initialize and Populate Part Type Sorting Dictionary for sequencing
+partTypeNumDict = dict("string");
+put(partTypeNumDict, "MRR", "01");
+put(partTypeNumDict, "EQUIP", "02");
+put(partTypeNumDict, "PROSERV", "03");
+put(partTypeNumDict, "INSTALL", "04");
+
+//Initialize and Populate Product GROUP sorting dict for custom sequencing
+partGroupNumDict = dict("integer");
+if(lineItemOrderMethod == "CUSTOM"){
+	groupSet = bmql("SELECT Prod_Group, Order FROM Prod_Group_Ordering");
+	for group in groupSet{
+		put(partGroupNumDict, get(group, "Prod_Group"), getint(group, "Order"));
+	}
+}
+
+//Re-Write here to make sense
+sequenceIndex = 0;
+for line in transactionLine{
+	docNum = line._document_number;
+	parentDocNum = line._parent_doc_number;
+	locId = line.locationID_l;
+	locName = line.locationName_l;
+	partType = line._part_custom_field9;
+	partGroup = line._part_custom_field18;
+	partNum = line._part_number;
+	unitMRR = line.finalListUnitPrice_l;
+	unitNRR = line.finalListUnitPriceNRR_l;
+	netMRR = line.netPrice_l;
+	netNRR = line.netPriceNRR_l;
+	normalizedParentDocNum3 = util.normalizeStringToXDigits(parentDocNum, 3, "0", "PREPEND"); //normalized to length=3
+	normalizedDocNum3 = util.normalizeStringToXDigits(docNum, 3, "0", "PREPEND"); //normalized to length=3
+	sequenceNum = "";
+	customSeqPrefixDisplay = ""; //actual display of the prefix on the UI
+	customSeqSuffix = line.customSequenceSuffix_l;
+	isChildPart = false;
+	locCountStr = "99"; //used in sequencing - Default, if location is null
+	partTypeNum = "00"; //used in sequencing - Default - models get this
+	parentId = "";
+	lineId = "";
+	groupCountNum = 0; //used to help sort out product groups that are not in, or not ordered in the Prod_Group_Ordering table
+
+	// *************BEGIN PARENT-CHILD LOGIC************ //
+		//USAGE IN THIS IF: Get Parent & Line ID if applicable by parsing through LIC
+	if(partNum <> "" AND line._line_item_comment <> "" AND lower(line._line_item_comment) <> "system recommended item"){
+		commentDict = util.decodeNameValuePairs(line._line_item_comment, extraInputsDict);
+		parentId = util.safeGetString(commentDict, "ParentId"); //IDs for all lines will be parent document number (normalized to 3 places) + id from LIC
+		
+		if(parentId <> ""){
+			parentId = util.normalizeStringToXDigits(parentId, 3, "0", "PREPEND"); //normalized to length=3
+			parentId = normalizedParentDocNum3 + parentId; //NOTE - this is not the sequence-ready number
+		}
+		lineIdFromCfg = util.safeGetString(commentDict, "ID");
+		normalizedLineIdFromCfg = util.normalizeStringToXDigits(lineIdFromCfg, 3, "0", "PREPEND"); //normalized to length=3
+		lineId = normalizedParentDocNum3 + normalizedLineIdFromCfg; //NOTE - this is not the sequence-ready number
+		
+		if(parentId <> "" AND (lineIdFromCfg == "" OR normalizedLineIdFromCfg == parentId)){ //if parent part
+			put(parentChildSuffixDict, parentId, customSeqSuffix);
+		}
+		if(parentId <> "" AND parentId <> lineId){
+			isChildPart = true;
+		}
+	}
+	
+	//Write to output where possible
+	ret = ret
+	+ docNum + "~lineNumber_l~" + lineId + "|"
+	+ docNum + "~parentLineNumber_l~" + parentId + "|"
+	;
+	// *************END PARENT-CHILD LOGIC************ //
+	// *********BEGIN SEQUENCING LOGIC**************** //	
+		//Location Count
+	if(locId <> ""){
+		locCount = findinarray(uniqueLocArray, locId);
+		if(locCount == -1){
+				locCount = append(uniqueLocArray, locId) - 1;
+		}
+
+		locCountStr = util.normalizeStringToXDigits(string(locCount), 2, "0", "PREPEND");
+	}
+	if(partGroup <> ""){
+		tmp = findinarray(uniqueGroupArray, partGroup) + 1;
+		if(tmp == 0){
+			tmp = append(uniqueGroupArray, partGroup);
+		}
+		groupCountNum = tmp;
+	}
+		
+		//Part Type Map
+	if(partNum <> ""){ 	
+		partTypeNum = util.safeGetString(partTypeNumDict, partType);
+		if(partTypeNum == ""){
+			partTypeNum = "99";
+		}
+	}
+		//Normalize parentId and Id to length = 9
+	normalizedParentId6 = util.normalizeStringToXDigits(parentId, 6, "0", "PREPEND");	
+	normalizedLineId6 = "000000"; //default, if parent id == line id
+	if(parentId <> lineId){
+		normalizedLineId9 = util.normalizeStringToXDigits(lineId, 6, "0", "PREPEND");
+	}
+	
+	if(lineItemOrderMethod == "CUSTOM"){
+		normalizedGroupOrderNum = "99";
+		if(containskey(partGroupNumDict, partGroup)){
+			groupOrderNum = string(get(partGroupNumDict, partGroup));
+			normalizedGroupOrderNum = util.normalizeStringToXDigits(groupOrderNum, 2, "0", "PREPEND");
+		}
+		normalizedGroupOrderNum = util.normalizeStringToXDigits(normalizedGroupOrderNum + string(groupCountNum), 3, "0", "PREPEND");
+		
+		if(isChildPart AND containskey(parentChildSuffixDict, parentId)){ //child parts get same suffix # as parent
+			customSeqSuffix = get(parentChildSuffixDict, parentId);
+		}
+		normalizedCustomSeqSuffix = util.normalizeStringToXDigits(string(customSeqSuffix), 3, "0", "PREPEND");
+		
+		sequenceNum = locCountStr + partTypeNum + normalizedGroupOrderNum + normalizedCustomSeqSuffix + normalizedParentId6 + normalizedLineId6 + normalizedDocNum3;
+		customSeqPrefixDisplay = substring(locName, 0, 3) + "_" + partType + "_" + partGroup;
+		customSeqLocAndType = locId + "_" + partType;
+		
+		curLowestSeqNum = util.safeGetString(customSeqFirstSeqOnLocAndTypeDict, customSeqLocAndType);
+		curHighestSeqNum = util.safeGetString(customSeqLastSeqOnLocAndTypeDict, customSeqLocAndType);
+		/*Shouldn't need all this as alpha should also be fine with < or >
+		curLowestSeqNum = 0;
+		curHighestSeqNum = 0;
+		if(isnumber(curLowestSeqStr)){
+			curLowestSeqNum = atof(curLowestSeqStr);
+		}
+		if(isnumber(curHighestSeqNum)){
+			curHighestSeqNum = atof(curHighestSeqNum);
+		}
+		*/
+		if(curLowestSeqNum == "" OR sequenceNum < curLowestSeqNum){
+			put(customSeqFirstSeqOnLocAndTypeDict, customSeqLocAndType, sequenceNum);
+		}
+		if(curHighestSeqNum == "" OR sequenceNum > curHighestSeqNum){
+			put(customSeqLastSeqOnLocAndTypeDict, customSeqLocAndType, sequenceNum);
+		}
+	}
+	else{ //lineItemOrderMethod == "STANDARD" OR lineItemOrderMethod == ""
+		sequenceNum = locCountStr + normalizedParentDocNum3 + partTypeNum + normalizedParentId6 + normalizedLineId6 + normalizedDocNum3;
+	}
+	
+	sequenceIndex = append(sequenceNumArr, sequenceNum);
+	put(docNumToSeqNumDict, docNum, sequenceNum);
+		
+	//Write to output where possible
+	ret = ret + docNum + "~sequenceNumberLine_l~" + sequenceNum + "|"
+			  + docNum + "~customSequencePrefix_l~" + customSeqPrefixDisplay + "|"
+			  ;
+	// *********END SEQUENCING LOGIC**************** //
+
+	// *********BEGIN OUTPUT DOC LOGIC: Model Has X Type / Model is first of X Type pt 1********* //
+	//Consideration - how does this interact with sequencing?
+		//Answer: Safe to use parentDocNum for comparison as parentDocNum carries more weight than non-location fields in sequence logic
+	if(partNum <> ""){
+		
+		if(partType == "MRR" AND (unitMRR <> 0 OR netMRR <> 0)){
+			put(modelHasMRRPartsDict, parentDocNum, true); //Flag model as having this category
+			if(NOT containskey(firstModelWithMRRDict, locId)){ //check if a model has already been seen for this location-category combo
+				put(firstModelWithMRRDict, locId, parentDocNum);
+			}
+		}
+		elif(partType == "INSTALL" AND (unitNRR <> 0 OR netNRR <> 0)){
+			put(modelHasINSTALLPartsDict, parentDocNum, true); //Flag model as having this category
+			if(NOT containskey(firstModelWithINSTALLDict, locId)){ //check if a model has already been seen for this location-category combo
+				put(firstModelWithINSTALLDict, locId, parentDocNum);
+			}
+		}
+		elif(partType == "EQUIP" AND (unitNRR <> 0 OR netNRR <> 0)){
+			put(modelHasEQUIPPartsDict, parentDocNum, true); //Flag model as having this category
+			if(NOT containskey(firstModelWithEQUIPDict, locId)){ //check if a model has already been seen for this location-category combo
+				put(firstModelWithEQUIPDict, locId, parentDocNum);
+			}
+		}
+		elif(partType == "PROSERV" AND (unitNRR <> 0 OR netNRR <> 0)){
+			put(modelHasPROSERVPartsDict, parentDocNum, true); //Flag model as having this category
+			if(NOT containskey(firstModelWithPROSERVDict, locId)){ //check if a model has already been seen for this location-category combo
+				put(firstModelWithPROSERVDict, locId, parentDocNum);
+			}
+		}
+		elif((unitMRR <> 0 OR netMRR <> 0) OR (unitNRR <> 0 OR netNRR <> 0)){ //"Other" part categories
+			partType = "OTHER";
+			put(modelHasOTHERPartsDict, parentDocNum, true); //Flag model as having this category
+			if(NOT containskey(firstModelWithOTHERDict, locId)){ //check if a model has already been seen for this location-category combo
+				put(firstModelWithOTHERDict, locId, parentDocNum);
+			}		
+		}
+	}
+	// *********END OUTPUT DOC LOGIC: Model Has X Type / Model is first of X Type pt 1********* //
+	// *********BEGIN OUTPUT DOC LOGIC: Last Doc Num for Model pt 1*************** //
+	if(partNum <> ""){
+		curLastSequenceNum = util.safeGetString(modelLastSeqNumDict, parentDocNum + "-" + partType);
+				
+		if(curLastSequenceNum == "" OR atof(sequenceNum) > atof(curLastSequenceNum)){
+			put(modelLastSeqNumDict, parentDocNum + "-" + partType, docNum);
+		}
+	}
+	// *********END OUTPUT DOC LOGIC: Last Doc Num for Model pt 1*************** //
+}
+
+//Loop 2 rewritten
+sort(sequenceNumArr);
+for line in transactionLine {
+	docNum = line._document_number;
+	locationId = line.locationID_l;
+	parentDocNum = line._parent_doc_number;
+	partType = line._part_custom_field9;
+	partNum = line._part_number;
+	
+	//approvalGroup = line._part_custom_field30;
+	
+	
+	sequenceNum = get(docNumToSeqNumDict, docNum);
+	
+	firstSeqNumArr = values(customSeqFirstSeqOnLocAndTypeDict); //For custom sorting. Doc Nums to be flagged as first sequence for a prefix
+	lastSeqNumArr = values(customSeqLastSeqOnLocAndTypeDict); //For custom sorting. Doc Nums to be flagged as last sequence for a prefix
+	lineIsFirstSeqNumForLocAndType = (findinarray(firstSeqNumArr, sequenceNum) <> -1);
+	lineIsLastSeqNumForLocAndType = (findinarray(lastSeqNumArr, sequenceNum) <> -1);
+	ret = ret 
+				+ docNum + "~customSequenceShowHeader_l~" + string(lineIsFirstSeqNumForLocAndType) + "|"
+				+ docNum + "~customSequenceShowTotals_l~" + string(lineIsLastSeqNumForLocAndType) + "|"
+				//+ docNum + "~approvalGroup_l~" + approvalGroup + "|"
+				;
+				
+	// *********BEGIN OUTPUT DOC LOGIC: Model Has X Type / Model is first of X Type pt 2********* //
+	if(parentDocNum == ""){ //model or free-standing part)
+		modelHasMRRPart = containskey(modelHasMRRPartsDict, docNum); //will always be true if it exists
+		modelHasINSTALLPart = containskey(modelHasINSTALLPartsDict, docNum); //will always be true if it exists
+		modelHasEQUIPPart = containskey(modelHasEQUIPPartsDict, docNum); //will always be true if it exists
+		modelHasPROSERVPart = containskey(modelHasPROSERVPartsDict, docNum); //will always be true if it exists
+		modelHasOTHERPart = containskey(modelHasOTHERPartsDict, docNum); //will always be true if it existswww
+		firstModelMRRLocation = (util.safeGetString(firstModelWithMRRDict, locationId) == docNum);
+		firstModelINSTALLLocation = (util.safeGetString(firstModelWithINSTALLDict, locationId) == docNum);
+		firstModelEQUIPLocation = (util.safeGetString(firstModelWithEQUIPDict, locationId) == docNum);
+		firstModelPROSERVLocation = (util.safeGetString(firstModelWithPROSERVDict, locationId) == docNum);
+		firstModelOTHERLocation = (util.safeGetString(firstModelWithOTHERDict, locationId) == docNum);
+		
+		ret = ret 
+				+ docNum + "~modelHasMRRCategoryParts_l~" + string(modelHasMRRPart) + "|"
+				+ docNum + "~modelHasINSTALLCategoryParts_l~" + string(modelHasINSTALLPart) + "|"
+				+ docNum + "~modelHasEQUIPCategoryParts_l~" + string(modelHasEQUIPPart) + "|"
+				+ docNum + "~modelHasPROSERVCategoryParts_l~" + string(modelHasPROSERVPart) + "|"
+				+ docNum + "~modelHasUncategorizedParts_l~" + string(modelHasOTHERPart) + "|"
+				+ docNum + "~firstModelWithMRRCategory_l~" + string(firstModelINSTALLLocation) + "|"
+				+ docNum + "~firstModelWithINSTALLCategory_l~" + string(firstModelINSTALLLocation) + "|"
+				+ docNum + "~firstModelWithEQUIPCategory_l~" + string(firstModelEQUIPLocation) + "|"
+				+ docNum + "~firstModelWithPROSERVCategory_l~" + string(firstModelPROSERVLocation) + "|"
+				+ docNum + "~firstModelWithUncategorizedParts_l~" + string(firstModelOTHERLocation) + "|"
+				;
+				
+	}
+	// *********END OUTPUT DOC LOGIC: Model Has X Type / Model is first of X Type pt 2********* //
+	// *********BEGIN OUTPUT DOC LOGIC: Last Doc Num for Model pt 2*************** //
+	if(parentDocNum <> ""){ //Part on model
+		lastDocNumOnModelBySequence = util.safeGetString(modelLastSeqNumDict, parentDocNum + "-" + partType);
+		lastSequenceNumForModel = (docNum == lastDocNumOnModelBySequence);
+		ret = ret + docNum + "~lastSequenceModel_l~" + string(lastSequenceNumForModel) + "|";
+	}
+	// *********END OUTPUT DOC LOGIC: Last Doc Num for Model pt 2*************** //
+}
+	
+//----End of Loop through update Sequence Number
+	
+return ret;

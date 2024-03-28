@@ -1,0 +1,10 @@
+retDict = dict("string");
+if(containskey(inputDict,"FirstNameLastName")){
+	userName = _user_first_name + " " + _user_last_name;
+	put(retDict,"FirstNameLastName",userName);
+}
+if(containskey(inputDict,"LastNameFirstName")){
+	userName = _user_last_name + " " + _user_first_name;
+	put(retDict,"LastNameFirstName",userName);
+}
+return retDict;

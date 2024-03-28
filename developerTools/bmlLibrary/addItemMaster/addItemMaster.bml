@@ -1,0 +1,141 @@
+//************************************************************************************************************
+//** Function:    Add Item Master (addItemMaster)
+//** Type:        Utility Library Function   
+//**
+//** Description: Takes a dictionary of string dictionaries input param and creates item master for new parts
+//** 
+//** Param:       dictionariesDict
+//**
+//** History:     Date     Author       Comment 
+//**              INITIAL  SLewis       Initial Build  
+//************************************************************************************************************
+
+partNumberdict				= get(dictionariesDict, "partNumberDict");
+descEquipPartDict			= get(dictionariesDict, "descEquipPartDict");
+partDisplayNumberDict			= get(dictionariesDict, "partDisplayNumberDict");
+//priceEquipPartDict			= get(dictionariesDict, "priceEquipPartDict");
+costEquipPartDict			= get(dictionariesDict, "costEquipPartDict");
+categoryTypeEquipPartDict		= get(dictionariesDict, "categoryTypeEquipPartDict");
+vendorNameEquipPartDict			= get(dictionariesDict, "vendorNameEquipPartDict");
+vendorPartNumberEquipPartDict		= get(dictionariesDict, "vendorPartNumberEquipPartDict");
+manufacturerNameEquipPartDict		= get(dictionariesDict, "manufacturerNameEquipPartDict");
+manufacturerPartNumEquipPartDict	= get(dictionariesDict, "manufacturerPartNumEquipPartDict");
+
+partNumberKeys = keys(partNumberDict);
+soapBodyMiddle = "";
+
+sessionIDResult = util.getAPIUserSessionID();
+if(ISNULL(sessionIDResult) OR sessionIDResult=="") {
+	sessionIDResult = _user_session_id;	
+}
+
+//sessionIDResult = "78c277515c2e462f8145406a0827a9ef49969c4d75af65ba5c9c";
+
+companyName = _company_name;
+//companyName = "ricohusamsintdev";
+
+
+soapHeader  = "<?xml version='1.0' encoding='UTF-8'?><soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'>"
+                + "<soapenv:Header>"
+                + "<bm:userInfo xmlns:bm='urn:soap.bigmachines.com'>"
+                + "<bm:sessionId>" + sessionIDResult + "</bm:sessionId>"
+                + "</bm:userInfo>"
+                + "<bm:category xmlns:bm='urn:soap.bigmachines.com'>Parts</bm:category>"
+                + "<bm:xsdInfo xmlns:bm='urn:soap.bigmachines.com'>"
+                + "<bm:schemaLocation>https://" + companyName + ".bigmachines.com/bmfsweb/" + companyName + "/schema/v1_0/parts/Parts.xsd</bm:schemaLocation>"				
+                + "</bm:xsdInfo>"
+                + "</soapenv:Header>"
+                ;  
+soapBody	  = "<soapenv:Body>"
+			+ "<bm:addParts xmlns:bm='urn:soap.bigmachines.com'>"
+			+ "<bm:Parts>";
+			for partNumberKey in partNumberKeys {   					         
+				partNumber = get(partNumberDict, partNumberKey);
+				descEquipPart = get(descEquipPartDict, partNumberKey);				
+				partDisplayNumber = get(partDisplayNumberDict, partNumberKey);
+				//priceEquipPart = get(priceEquipPartDict, partNumberKey);
+				costEquipPart  = get(costEquipPartDict, partNumberKey);
+				categoryTypeEquipPart  = get(categoryTypeEquipPartDict, partNumberKey);
+				itemType = upper(categoryTypeEquipPart);
+				vendorNameEquipPart  = get(vendorNameEquipPartDict, partNumberKey);
+				vendorPartNumberEquipPart  = get(vendorPartNumberEquipPartDict, partNumberKey);
+				manufacturerNameEquipPart  = get(manufacturerNameEquipPartDict, partNumberKey);
+				manufacturerPartNumEquipPart  = get(manufacturerPartNumEquipPartDict, partNumberKey);
+				soapBodyMiddle = soapBodyMiddle
+				+ "<bm:each_record>"
+				+ "<bm:company_associations/>"
+				+ "<bm:part_number>" + partNumber + "</bm:part_number>"
+				+ "<bm:direct_buy>1</bm:direct_buy>"                
+				+ "<bm:description>"
+	            		+	"<bm:en>" + descEquipPart + "</bm:en>"
+	            		+ "</bm:description>"
+                		+ "<bm:part_display_number>" + partDisplayNumber + "</bm:part_display_number>"
+				+ "<bm:units>Each</bm:units>"
+				//+ "<bm:file_one/>"
+				//+ "<bm:file_two/>"
+				//+ "<bm:file_three/>"
+				//+ "<bm:file_four/>"
+				//+ "<bm:lead_time/>"
+				+ "<bm:_part_custom_field1>Active</bm:_part_custom_field1>"
+				+ "<bm:_part_custom_field2>ca57dfdedbbea2006d7070e21f9619b3</bm:_part_custom_field2>"
+				+ "<bm:_part_custom_field3>mS Equipment</bm:_part_custom_field3>"
+				+ "<bm:_part_custom_field4/>"
+				//+ "<bm:_part_custom_field5>" + priceEquipPart + "</bm:_part_custom_field5>" //REQUIRED
+				+ "<bm:_part_custom_field6>" + costEquipPart + "</bm:_part_custom_field6>" //REQUIRED
+				+ "<bm:_part_custom_field5>0.00</bm:_part_custom_field5>" //REQUIRED
+				//+ "<bm:_part_custom_field6>0.00</bm:_part_custom_field6>" //REQUIRED				
+				//+ "<bm:_part_custom_field7/>"
+				+ "<bm:_part_custom_field8>One Time</bm:_part_custom_field8>"
+				//+ "<bm:_part_custom_field9>" + categoryTypeEquipPart + "</bm:_part_custom_field9>" //REQUIRED
+				+ "<bm:_part_custom_field9>EQUIP</bm:_part_custom_field9>" //REQUIRED
+                		+ "<bm:_part_custom_field10>" + vendorNameEquipPart + "</bm:_part_custom_field10>"
+				+ "<bm:_part_custom_field11>a7f453dedbbea2006d7070e21f961989</bm:_part_custom_field11>"
+				+ "<bm:_part_custom_field12>EQUIPMENT</bm:_part_custom_field12>"
+				+ "<bm:_part_custom_field13>" + vendorPartNumberEquipPart + "</bm:_part_custom_field13>"
+				+ "<bm:_part_custom_field14>RICOH_INV_ORG</bm:_part_custom_field14>" //REQUIRED
+				+ "<bm:_part_custom_field15>PER UNIT</bm:_part_custom_field15>"
+				//+ "<bm:_part_custom_field16/>"
+				//+ "<bm:_part_custom_field17/>"
+				+ "<bm:_part_custom_field18>Equipment</bm:_part_custom_field18>"
+                		+ "<bm:_part_custom_field19>" + manufacturerNameEquipPart + "</bm:_part_custom_field19>"
+				+ "<bm:_part_custom_field20>" + manufacturerPartNumEquipPart + "</bm:_part_custom_field20>"
+				//+ "<bm:_part_custom_field21/>"
+				+ "<bm:_part_custom_field22>" + categoryTypeEquipPart + "</bm:_part_custom_field22>"								
+				+ "<bm:_part_custom_field23>" + itemType + "</bm:_part_custom_field23>"
+				//+ "<bm:_part_custom_field24/>"
+				//+ "<bm:_part_custom_field25/>"
+				//+ "<bm:_part_custom_field25/>"
+				//+ "<bm:_part_custom_field26/>"
+				//+ "<bm:_part_custom_field27/>"
+				//+ "<bm:_part_custom_field28/>"
+				//+ "<bm:_part_custom_field29/>"
+				//+ "<bm:_part_custom_field30/>"
+				//+ "<bm:partner_part_id/>"
+				//+ "<bm:partner_std_pbook_entry_id/>"
+				//+ "<bm:partner_organization_id/>"
+				//+ "<bm:price>"
+	            		//  + "<bm:USD>" + price + "</bm:USD>"
+	            		//+ "</bm:price>"
+	            		+ "</bm:each_record>"
+                		;
+			}
+soapBody = soapBody + soapBodyMiddle
+			+ "</bm:Parts>"
+			+ "</bm:addParts>"
+      			+ "</soapenv:Body>"
+			+ "</soapenv:Envelope>"
+            		;
+			
+soapXml  = soapHeader + soapBody;
+soapURL = "https://" + companyName + ".bigmachines.com/v1_0/receiver";
+
+
+headers=dict("string");
+postResponse = urldata( soapURL, "POST", headers, soapXML );
+
+messageBody = "";
+if(containsKey(postResponse,"Message-Body")){
+  messageBody= get(postResponse,"Message-Body");
+}
+
+return messageBody;

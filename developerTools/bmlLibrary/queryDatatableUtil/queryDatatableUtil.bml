@@ -1,0 +1,563 @@
+itemsjson  = json();
+DEBUG_FLAG = false;
+priceList = "";
+considerListPrice = true;
+priceListStr = "";
+sMAStr = "";
+rebatePercentageStr = "";
+customerSegment = "";
+priceUpliftCategory = "ACCESSORY.MFP";
+segmentLevel = "";
+marketPlace = "";
+fyCustomerStartType = "";
+fYStartProductionZBA = "";
+CostOfMoney = 0.0;
+termMonthInNumber = 0;
+upliftDict = dict("string");
+containsCustomerSegment = false;
+uniqueUpliftArray = string[];
+//Get values 
+if(containskey(retStringDict,"priceList"))
+{
+	priceList = get(retStringDict,"priceList");
+}
+if(containskey(retStringDict,"customerSegment")){
+	customerSegment = get(retStringDict,"customerSegment");
+}
+if(containskey(retStringDict,"segmentLevel")){
+	segmentLevel = get(retStringDict,"segmentLevel");
+}
+if(containskey(retStringDict,"marketPlace")){
+	marketPlace = get(retStringDict,"marketPlace");
+}
+if(containskey(retStringDict,"fyCustomerStartType")){
+	fyCustomerStartType = get(retStringDict,"fyCustomerStartType");
+}
+if(containskey(retStringDict,"fYStartProductionZBA")){
+	fYStartProductionZBA = get(retStringDict,"fYStartProductionZBA");
+}
+if(containskey(msInputDict,"termMonthInNumber") AND isnumber(get(msInputDict,"termMonthInNumber"))){
+
+termMonthInNumber = atof(get(msInputDict,"termMonthInNumber"));
+}
+/*********Query RAC_PL_CASH Data table**********/
+
+currentDatewithTimeStamp = getstrdate();
+//currentDate = getstrdate();
+currentDateStrArr = split(currentDatewithTimeStamp," ");
+currentDate = strtojavadate(datetostr(strtojavadate(currentDateStrArr[0],"MM/dd/yyyy"),"MM-dd-yyyy"),"MM-dd-yyyy");
+if(tableName == "RAC_PL_CASH"){
+	priceListRecordSet1 = bmql("select CashPrice,SMA, ActiveStartDate, ActiveEndDate, EDPCode,FPLAFlag from RAC_PL_CASH where PriceListName = $priceList AND EDPCode in $strArray AND ActiveFlag = 'Y'");
+	for eachRow in priceListRecordSet1{
+		activeStartDateInNumber = 0;
+		activeStartDateInStr = "";
+		activeStartDate = getdate();
+		activeStartDatewithTimeStamp = get(eachRow,"ActiveStartDate");
+		EDPCode = get(eachRow,"EDPCode");
+		if(activeStartDatewithTimeStamp <> ""){
+			activeStartDateStrArr = split(activeStartDatewithTimeStamp," ");
+			activeStartDateInStr = activeStartDateStrArr[0];
+			activeStartDate = strtojavadate(activeStartDateInStr, "MM-dd-yyyy");
+		}
+		activeEndDateInNumber = 0;
+		activeEndDateInStr = "";
+		activeEndDate = getdate();
+		activeEndDatewithTimeStamp = get(eachRow,"ActiveEndDate");
+		if(activeEndDatewithTimeStamp <> ""){
+			activeEndDateStrArr = split(activeEndDatewithTimeStamp," ");
+			activeEndDateInStr = activeEndDateStrArr[0];
+			activeEndDate = strtojavadate(activeEndDateInStr, "MM-dd-yyyy");
+		}
+		compareStartAndCurrentDate = comparedates(activeStartDate,currentDate);
+		compareCurrentAndEndDate = comparedates(currentDate,activeEndDate);
+		pickThisRecord = false;
+
+		if(activeStartDateInStr <> "" AND activeEndDateInStr <> "" AND (compareStartAndCurrentDate == 1 OR compareStartAndCurrentDate == 0) AND (compareCurrentAndEndDate == 1 OR compareCurrentAndEndDate == 0)){
+			pickThisRecord = true;
+		}elif(activeStartDateInStr <> "" AND activeEndDateInStr == "" AND (compareStartAndCurrentDate == -1 OR compareStartAndCurrentDate == 0)){
+			pickThisRecord = true;
+		}
+		if(pickThisRecord){
+			priceListStr = get(eachRow,"CashPrice");
+			sMAStr = get(eachRow,"SMA");
+			FPLA_Flag = get(eachRow,"FPLAFlag");
+			
+			priceListPrice = 0.0;
+			if(isnumber(priceListStr) AND considerListPrice){
+				priceListPrice = atof(priceListStr);
+			}
+			sMA = 0.0;
+			if(isnumber(sMAStr)){
+				sMA = atof(sMAStr);
+			}
+			partsJson = json();
+			jsonput(partsJson, EDPCode + "-" + "priceListPrice",priceListPrice);
+			jsonput(partsJson, EDPCode + "-" + "sMA",sMA);
+			jsonput(partsJson, EDPCode + "-" + "FPLA_Flag",FPLA_Flag);
+			jsonput(itemsjson ,EDPCode, partsJson);
+		}
+	/*********Query RAC_PL_CASH Data table**********/
+	}
+	//Added below code for Defect-18915 PS_PRICING where we need to pass this flag for Pricelist for calculation in Pricing main before formulas
+	priceListRecordSet1 = bmql("select CashPrice, SMA, ActiveStartDate, ActiveEndDate, EDPCode, FPLAFlag from RAC_PL_CASH where PriceListName = $priceList");
+	for eachRow in priceListRecordSet1{
+		FPLA_Flag = get(eachRow,"FPLAFlag");
+		//jsonput(itemsjson, "codePresent", string(codePresent));
+		jsonput(itemsjson, "FPLA_Flag", FPLA_Flag);
+		break;
+	}
+	//Added above code for Defect-18915 PS_PRICING where we need to pass this flag for Pricelist for calculation in Pricing main before formulas
+}
+
+//Added below code for Defect-18915 PS_PRICING where we need to throw error only when code Not present and FPLA flag = N
+/*********Query RAC_PL_CASH for validation rule************/
+codePresent = false; //Intialized for Defect-18915 by Vasundhara 08_30_2023
+currentDatewithTimeStamp = getstrdate();
+//currentDate = getstrdate();
+currentDateStrArr = split(currentDatewithTimeStamp," ");
+currentDate = strtojavadate(datetostr(strtojavadate(currentDateStrArr[0],"MM/dd/yyyy"),"MM-dd-yyyy"),"MM-dd-yyyy");
+if(tableName == "RAC_PL_CASH_Validation"){
+	priceListRecordSet1 = bmql("select CashPrice,SMA, ActiveStartDate, ActiveEndDate, EDPCode,FPLAFlag from RAC_PL_CASH where PriceListName = $priceList AND EDPCode in $strArray AND ActiveFlag = 'Y'");
+	for eachRow in priceListRecordSet1{
+		codePresent = true; //Intialized for Defect-18915 by Vasundhara 08_30_2023
+		activeStartDateInNumber = 0;
+		activeStartDateInStr = "";
+		activeStartDate = getdate();
+		activeStartDatewithTimeStamp = get(eachRow,"ActiveStartDate");
+		EDPCode = get(eachRow,"EDPCode");
+		if(activeStartDatewithTimeStamp <> ""){
+			activeStartDateStrArr = split(activeStartDatewithTimeStamp," ");
+			activeStartDateInStr = activeStartDateStrArr[0];
+			activeStartDate = strtojavadate(activeStartDateInStr, "MM-dd-yyyy");
+		}
+		activeEndDateInNumber = 0;
+		activeEndDateInStr = "";
+		activeEndDate = getdate();
+		activeEndDatewithTimeStamp = get(eachRow,"ActiveEndDate");
+		if(activeEndDatewithTimeStamp <> ""){
+			activeEndDateStrArr = split(activeEndDatewithTimeStamp," ");
+			activeEndDateInStr = activeEndDateStrArr[0];
+			activeEndDate = strtojavadate(activeEndDateInStr, "MM-dd-yyyy");
+		}
+		compareStartAndCurrentDate = comparedates(activeStartDate,currentDate);
+		compareCurrentAndEndDate = comparedates(currentDate,activeEndDate);
+		pickThisRecord = false;
+
+		if(activeStartDateInStr <> "" AND activeEndDateInStr <> "" AND (compareStartAndCurrentDate == 1 OR compareStartAndCurrentDate == 0) AND (compareCurrentAndEndDate == 1 OR compareCurrentAndEndDate == 0)){
+			pickThisRecord = true;
+		}elif(activeStartDateInStr <> "" AND activeEndDateInStr == "" AND (compareStartAndCurrentDate == -1 OR compareStartAndCurrentDate == 0)){
+			pickThisRecord = true;
+		}
+		if(pickThisRecord){
+			priceListStr = get(eachRow,"CashPrice");
+			sMAStr = get(eachRow,"SMA");
+			FPLA_Flag = get(eachRow,"FPLAFlag");
+			
+			priceListPrice = 0.0;
+			if(isnumber(priceListStr) AND considerListPrice){
+				priceListPrice = atof(priceListStr);
+			}
+			sMA = 0.0;
+			if(isnumber(sMAStr)){
+				sMA = atof(sMAStr);
+			}
+			jsonput(itemsjson, "codePresent", string(codePresent));
+			jsonput(itemsjson, "FPLA_Flag", FPLA_Flag);
+		}
+	/*********Query RAC_PL_CASH Data table**********/
+	}
+	//If code not present for that price list then need to check for pricelist, if price list present then get the first record FPLA flag value
+	if(codePresent == false){
+		priceListRecordSet1 = bmql("select CashPrice, SMA, ActiveStartDate, ActiveEndDate, EDPCode, FPLAFlag from RAC_PL_CASH where PriceListName = $priceList");
+		for eachRow in priceListRecordSet1{
+			FPLA_Flag = get(eachRow,"FPLAFlag");
+			jsonput(itemsjson, "codePresent", string(codePresent));
+			jsonput(itemsjson, "FPLA_Flag", FPLA_Flag);
+			break;
+		}
+	}
+}
+//Added above code for Defect-18915 PS_PRICING where we need to throw error only when code Not present and FPLA flag = N
+
+/*********Query RAC_PL_ATTRIBUTES Data table****/
+if(tableName == "RAC_PL_ATTRIBUTES"){
+priceListRecordSet2 = bmql("select RebatePercentage from RAC_PL_ATTRIBUTES where PriceListName = $priceList AND ActiveFlag = 'Y'");
+	for eachRow in priceListRecordSet2{
+		rebatePercentageStr = get(eachRow,"RebatePercentage");
+
+		rebatePercentage = 0.0;
+		if(isnumber(rebatePercentageStr)){
+			rebatePercentage = atof(rebatePercentageStr);
+		}
+		jsonput(itemsjson,"rebatePercentage",rebatePercentage);
+				
+	/*********Query RAC_PL_ATTRIBUTES Data table****/
+	}
+}
+
+/*********Query RAC_UPLIFT Data table****/
+if(tableName == "RAC_UPLIFT"){
+	if(customerSegment == "" OR isnull(customerSegment) OR customerSegment == "NA" OR customerSegment == "N/A"){
+		customerSegment = "Targeted";
+	}
+	//whereClauseCondition1 = "CustomerSegment = '"+customerSegment+"' AND ProductCategory4 = '"+priceUpliftCategory+"'";
+	upliftRecordSet = bmql("select SegmentLevel,ProductCategory4,PsMinGp,ProductFloor,SgaSegment,HwTargetPrice,MarketPlace,FyStartCustomerType,FyStartProductionZba,CustomerSegment,ProductCategory4,ActiveStartDate,ActiveEndDate,AccountCoverage from RAC_UPLIFT");
+
+	minGPPercentageQueryStr = "";
+	for eachRow in upliftRecordSet{
+		CustomerSegmentFromTable = get(eachRow,"CustomerSegment");
+		ProductCategory4FromTable = get(eachRow,"ProductCategory4");
+		
+		//START - Active Start Date and End Date
+		activeStartDateInNumber = 0;
+		activeStartDateInStr = "";
+		activeStartDate = getdate();
+		activeStartDatewithTimeStamp = get(eachRow,"ActiveStartDate");
+		if(activeStartDatewithTimeStamp <> ""){
+			activeStartDateStrArr = split(activeStartDatewithTimeStamp," ");
+			activeStartDateInStr = activeStartDateStrArr[0];
+			activeStartDate = strtojavadate(activeStartDateInStr, "MM-dd-yyyy");
+		}
+		activeEndDateInNumber = 0;
+		activeEndDateInStr = "";
+		activeEndDate = getdate();
+		activeEndDatewithTimeStamp = get(eachRow,"ActiveEndDate");
+		if(activeEndDatewithTimeStamp <> ""){
+			activeEndDateStrArr = split(activeEndDatewithTimeStamp," ");
+			activeEndDateInStr = activeEndDateStrArr[0];
+			activeEndDate = strtojavadate(activeEndDateInStr, "MM-dd-yyyy");
+		}
+		compareStartAndCurrentDate = comparedates(activeStartDate,currentDate);
+		compareCurrentAndEndDate = comparedates(currentDate,activeEndDate);
+		pickThisRecord = false;
+
+		if(activeStartDateInStr <> "" AND activeEndDateInStr <> "" AND (compareStartAndCurrentDate == 1 OR compareStartAndCurrentDate == 0) AND (compareCurrentAndEndDate == 1 OR compareCurrentAndEndDate == 0)){
+			pickThisRecord = true;
+		}elif(activeStartDateInStr <> "" AND activeEndDateInStr == "" AND (compareStartAndCurrentDate == -1 OR compareStartAndCurrentDate == 0)){
+			pickThisRecord = true;
+		}
+		//END - Active Start Date and End Date
+		productCategory4Str = get(eachRow,"ProductCategory4");
+		productCategory4Str = lower(productCategory4Str);
+		productCategory4Str = replace(productCategory4Str,".","_");
+		productCategory4Str = replace(productCategory4Str," ","_");
+		priceUpliftCategory = "";
+		if(containskey(retStringDict,productCategory4Str)){
+			priceUpliftCategory = get(retStringDict,productCategory4Str);
+			//print priceUpliftCategory;
+		}
+		
+		if(pickThisRecord){
+			segmentLevelStr = get(eachRow,"SegmentLevel");
+			minGPPercentageQueryStr = get(eachRow,"PsMinGp");
+			productFloorQueryStr = get(eachRow,"ProductFloor");
+			sgaSegmentQueryStr = get(eachRow,"SgaSegment");
+			hardwareTargetPriceQueryStr = get(eachRow,"HwTargetPrice");
+			marketPlaceStr = get(eachRow,"MarketPlace");
+			fyCustomerStartTypeStr = get(eachRow,"FyStartCustomerType");
+			fyCustomerStartTypeZBAStr = get(eachRow,"FyStartProductionZba");
+			if(fyCustomerStartTypeStr == "" OR isnull(fyCustomerStartTypeStr)){
+				fyCustomerStartTypeStr = "N";
+			}
+			if(fyCustomerStartTypeZBAStr == "" OR isnull(fyCustomerStartTypeZBAStr)){
+				fyCustomerStartTypeZBAStr = "N";
+			}
+			if(lower(CustomerSegmentFromTable) == lower(customerSegment) AND productCategory4Str == priceUpliftCategory AND fyCustomerStartTypeStr == fyCustomerStartType AND fyCustomerStartTypeZBAStr == fYStartProductionZBA){
+				containsCustomerSegment = true;
+				segmentLevelCondition = false;
+				priceUpliftCategoryCondition = false;
+				marketPlaceCondition = false;
+				fyCustomerStartTypeCondition = false;
+				fyCustomerStartTypeZBACondition = false;
+				
+				if(findinarray(strArray,priceUpliftCategory) <> -1 AND findinarray(uniqueUpliftArray,priceUpliftCategory) == -1){
+					//put(upliftDict,priceUpliftCategory,conditonStr);
+					partsJson = json(); 
+					jsonput(partsJson, "minGPPercentage",minGPPercentageQueryStr);
+					jsonput(partsJson, "productFloor",productFloorQueryStr);
+					jsonput(partsJson, "sgaSegement",sgaSegmentQueryStr);
+					jsonput(partsJson, "hardwareTargetPrice",hardwareTargetPriceQueryStr);
+					jsonput(itemsjson ,priceUpliftCategory, partsJson);
+					
+					append(uniqueUpliftArray,priceUpliftCategory);
+				}
+				if(DEBUG_FLAG){
+					print "AccountCoverage";
+					print get(eachRow,"AccountCoverage");
+					print "lower(CustomerSegmentFromTable)";
+					print lower(CustomerSegmentFromTable);
+					print "lower(customerSegment)";
+					print lower(customerSegment);
+					print "productCategory4Str";
+					print productCategory4Str;
+					print "priceUpliftCategory";
+					print priceUpliftCategory;
+					print "fyCustomerStartTypeStr";
+					print fyCustomerStartTypeStr;
+					print "fyCustomerStartType";
+					print fyCustomerStartType;
+					print "fyCustomerStartTypeZBAStr";
+					print fyCustomerStartTypeZBAStr;
+					print "fYStartProductionZBA";
+					print fYStartProductionZBA;
+					print "segmentLevelStr";
+					print segmentLevelStr;
+					print "segmentLevel";
+					print segmentLevel;
+					print "marketPlaceStr";
+					print marketPlaceStr;
+					print "marketPlace";
+					print marketPlace;
+					print "productFloorQueryStr";
+					print productFloorQueryStr;
+				}
+			}
+			//print itemsjson;
+		}
+	/*********Query RAC_UPLIFT Data table****/
+	}
+	/*********Query RAC_UPLIFT Data table****/
+	if(containsCustomerSegment == false){
+		customerSegment = "Targeted";
+		//whereClauseCondition1 = "CustomerSegment = '"+customerSegment+"' AND ProductCategory4 = '"+priceUpliftCategory+"'";
+		upliftRecordSet = bmql("select SegmentLevel,ProductCategory4,PsMinGp,ProductFloor,SgaSegment,HwTargetPrice,MarketPlace,FyStartCustomerType,FyStartProductionZba,CustomerSegment,ProductCategory4,ActiveStartDate,ActiveEndDate from RAC_UPLIFT where CustomerSegment = 'Targeted' AND ProductCategory4 ='PS.SERVICE'");
+		//print upliftRecordSet;
+		for eachRow in upliftRecordSet{
+			CustomerSegmentFromTable = get(eachRow,"CustomerSegment");
+			ProductCategory4FromTable = get(eachRow,"ProductCategory4");
+			
+			//START - Active Start Date and End Date
+			activeStartDateInNumber = 0;
+			activeStartDateInStr = "";
+			activeStartDate = getdate();
+			activeStartDatewithTimeStamp = get(eachRow,"ActiveStartDate");
+			if(activeStartDatewithTimeStamp <> ""){
+				activeStartDateStrArr = split(activeStartDatewithTimeStamp," ");
+				activeStartDateInStr = activeStartDateStrArr[0];
+				activeStartDate = strtojavadate(activeStartDateInStr, "MM-dd-yyyy");
+			}
+			activeEndDateInNumber = 0;
+			activeEndDateInStr = "";
+			activeEndDate = getdate();
+			activeEndDatewithTimeStamp = get(eachRow,"ActiveEndDate");
+			if(activeEndDatewithTimeStamp <> ""){
+				activeEndDateStrArr = split(activeEndDatewithTimeStamp," ");
+				activeEndDateInStr = activeEndDateStrArr[0];
+				activeEndDate = strtojavadate(activeEndDateInStr, "MM-dd-yyyy");
+			}
+			compareStartAndCurrentDate = comparedates(activeStartDate,currentDate);
+			compareCurrentAndEndDate = comparedates(currentDate,activeEndDate);
+			pickThisRecord = false;
+
+			if(activeStartDateInStr <> "" AND activeEndDateInStr <> "" AND (compareStartAndCurrentDate == 1 OR compareStartAndCurrentDate == 0) AND (compareCurrentAndEndDate == 1 OR compareCurrentAndEndDate == 0)){
+				pickThisRecord = true;
+			}elif(activeStartDateInStr <> "" AND activeEndDateInStr == "" AND (compareStartAndCurrentDate == -1 OR compareStartAndCurrentDate == 0)){
+				pickThisRecord = true;
+			}
+			//END - Active Start Date and End Date
+			productCategory4Str = get(eachRow,"ProductCategory4");
+			productCategory4Str = lower(productCategory4Str);
+			productCategory4Str = replace(productCategory4Str,".","_");
+			productCategory4Str = replace(productCategory4Str," ","_");
+			priceUpliftCategory = "";
+			if(containskey(retStringDict,productCategory4Str)){
+				priceUpliftCategory = get(retStringDict,productCategory4Str);
+				//print priceUpliftCategory;
+			}
+			if(pickThisRecord){
+			
+				segmentLevelStr = get(eachRow,"SegmentLevel");
+				minGPPercentageQueryStr = get(eachRow,"PsMinGp");
+				productFloorQueryStr = get(eachRow,"ProductFloor");
+				sgaSegmentQueryStr = get(eachRow,"SgaSegment");
+				hardwareTargetPriceQueryStr = get(eachRow,"HwTargetPrice");
+				marketPlaceStr = get(eachRow,"MarketPlace");
+				fyCustomerStartTypeStr = get(eachRow,"FyStartCustomerType");
+				fyCustomerStartTypeZBAStr = get(eachRow,"FyStartProductionZba");
+				if(fyCustomerStartTypeStr == "" OR isnull(fyCustomerStartTypeStr)){
+					fyCustomerStartTypeStr = "N";
+				}
+				if(fyCustomerStartTypeZBAStr == "" OR isnull(fyCustomerStartTypeZBAStr)){
+					fyCustomerStartTypeZBAStr = "N";
+				}
+				if(lower(CustomerSegmentFromTable) == lower(customerSegment) AND productCategory4Str == priceUpliftCategory AND fyCustomerStartTypeStr == fyCustomerStartType AND fyCustomerStartTypeZBAStr == fYStartProductionZBA){
+					containsCustomerSegment = true;
+					segmentLevelCondition = false;
+					priceUpliftCategoryCondition = false;
+					marketPlaceCondition = false;
+					fyCustomerStartTypeCondition = false;
+					fyCustomerStartTypeZBACondition = false;
+					
+					if(findinarray(strArray,priceUpliftCategory) <> -1 AND findinarray(uniqueUpliftArray,priceUpliftCategory) == -1){
+						//put(upliftDict,priceUpliftCategory,conditonStr);
+						partsJson = json();
+						jsonput(partsJson, "minGPPercentage",minGPPercentageQueryStr);
+						jsonput(partsJson, "productFloor",productFloorQueryStr);
+						jsonput(partsJson, "sgaSegement",sgaSegmentQueryStr);
+						jsonput(partsJson, "hardwareTargetPrice",hardwareTargetPriceQueryStr);
+						jsonput(itemsjson ,priceUpliftCategory, partsJson);
+						
+						append(uniqueUpliftArray,priceUpliftCategory);
+					}
+					if(DEBUG_FLAG){
+						print "AccountCoverage";
+						print get(eachRow,"AccountCoverage");
+						print "lower(CustomerSegmentFromTable)";
+						print lower(CustomerSegmentFromTable);
+						print "lower(customerSegment)";
+						print lower(customerSegment);
+						print "productCategory4Str";
+						print productCategory4Str;
+						print "priceUpliftCategory";
+						print priceUpliftCategory;
+						print "fyCustomerStartTypeStr";
+						print fyCustomerStartTypeStr;
+						print "fyCustomerStartType";
+						print fyCustomerStartType;
+						print "fyCustomerStartTypeZBAStr";
+						print fyCustomerStartTypeZBAStr;
+						print "fYStartProductionZBA";
+						print fYStartProductionZBA;
+						print "segmentLevelStr";
+						print segmentLevelStr;
+						print "segmentLevel";
+						print segmentLevel;
+						print "marketPlaceStr";
+						print marketPlaceStr;
+						print "marketPlace";
+						print marketPlace;
+						print "productFloorQueryStr";
+						print productFloorQueryStr;
+					}
+				}
+			}
+			//print itemsjson;
+		}
+	}
+}
+/*********RAC_CostOfMoney Data table****/
+if(tableName == "RAC_CostOfMoney"){
+	CostFactorRecordSet = bmql("SELECT TermMonths, CostOfMoney FROM RAC_CostOfMoney WHERE TermMonths = $termMonthInNumber");
+	for each in CostFactorRecordSet{
+		CostOfMoneyStr = get(each,"CostOfMoney");
+		CostOfMoney = 0.0;
+		if(isnumber(CostOfMoneyStr)){
+			CostOfMoney = atof(CostOfMoneyStr);
+		}  
+		jsonput(itemsjson, string(termMonthInNumber) + "-" + "CostOfMoney",CostOfMoney);
+	/*********RAC_CostOfMoney Data table****/
+	}
+}
+/*********RAC_MS_UPLIFT Data table****/
+if(tableName == "RAC_MS_UPLIFT"){
+	msUpliftRecordSet = bmql("SELECT Category_Name, Category_Value, Category_ValueType FROM RAC_MS_UPLIFT");
+	for each in msUpliftRecordSet{
+		categoryName = get(each,"Category_Name");
+		categoryValueType = get(each,"Category_ValueType");
+		categoryValue = getfloat(each,"Category_Value");
+		if(lower(categoryValueType) == "percentage"){
+			categoryValue = categoryValue/100;
+		}
+		jsonput(itemsjson,categoryName + "-" + "categoryValue",categoryValue);
+	/*********RAC_MS_UPLIFT Data table****/	
+	}
+}
+/*********RAC_TurnoverRate Data table******/
+if(tableName == "RAC_TurnoverRate"){
+	turnOverRatioRecordSet = bmql("select Month_1, Month_2, Month_3, Month_4, Month_5, Month_6, NationalAverageRate, City, State from RAC_TurnoverRate");
+
+	for eachRec in turnOverRatioRecordSet{
+		month_1 = getfloat(eachRec,"Month_1");
+		month_2 = getfloat(eachRec,"Month_2");
+		month_3 = getfloat(eachRec,"Month_3");
+		month_4 = getfloat(eachRec,"Month_4");
+		month_5 = getfloat(eachRec,"Month_5");
+		month_6 = getfloat(eachRec,"Month_6");
+		nationalAverageRate = getfloat(eachRec,"NationalAverageRate");
+		city = get(eachRec,"City");
+		state = get(eachRec,"State");
+		
+		monthsArray = float[]{month_1, month_2, month_3, month_4, month_5, month_6};
+		maxTurnOverRatio = max(monthsArray);
+		
+		jsonput(itemsjson,upper(city) + "$$" + state + "-" + "$$maxTurnOverRatio",maxTurnOverRatio);
+		jsonput(itemsjson,upper(city) + "$$" + state + "-" + "$$NationalAverageRate",nationalAverageRate);
+		
+	/*********RAC_TurnoverRate Data table******/
+	}	
+}
+/*********RAC_Midpoint Data table*********/
+if(tableName == "RAC_Midpoint"){
+	priceRecordSet = bmql("SELECT Zone_A, Zone_B, Zone_C, Zone_D, Zone_E, Zone_F, Zone_G, Grade from RAC_Midpoint");
+	for eachRec in priceRecordSet{
+		grade = get(eachRec, "Grade");
+		priceBasedOnGradeAndGeoZone_A = getfloat(eachRec,"Zone_A");
+		priceBasedOnGradeAndGeoZone_B = getfloat(eachRec,"Zone_B");
+		priceBasedOnGradeAndGeoZone_C = getfloat(eachRec,"Zone_C");
+		priceBasedOnGradeAndGeoZone_D = getfloat(eachRec,"Zone_D");
+		priceBasedOnGradeAndGeoZone_E = getfloat(eachRec,"Zone_E");
+		priceBasedOnGradeAndGeoZone_F = getfloat(eachRec,"Zone_F");
+		priceBasedOnGradeAndGeoZone_G = getfloat(eachRec,"Zone_G");
+
+		jsonput(itemsjson,"A" + "_" + grade,priceBasedOnGradeAndGeoZone_A);
+		jsonput(itemsjson,"B" + "_" + grade,priceBasedOnGradeAndGeoZone_B);
+		jsonput(itemsjson,"C" + "_" + grade,priceBasedOnGradeAndGeoZone_C);
+		jsonput(itemsjson,"D" + "_" + grade,priceBasedOnGradeAndGeoZone_D);
+		jsonput(itemsjson,"E" + "_" + grade,priceBasedOnGradeAndGeoZone_E);
+		jsonput(itemsjson,"F" + "_" + grade,priceBasedOnGradeAndGeoZone_F);
+		jsonput(itemsjson,"G" + "_" + grade,priceBasedOnGradeAndGeoZone_G);
+
+	/*********RAC_Midpoint Data table*********/
+	}
+}
+/*********RAC_AncillaryCosts Data table*****/
+if(tableName == "RAC_AncillaryCosts"){
+	recordSet =bmql("select Item,EDPCode,CostPerMonth from RAC_AncillaryCosts");
+	for record in recordSet{
+		eDPCode = get(record,"EDPCode");
+		item = get(record,"Item");
+		costPerMonth = getfloat(record,"CostPerMonth");//Get standard cost
+		
+		jsonput(itemsjson,item + "_" + "eDPCode",eDPCode);
+		jsonput(itemsjson,item + "_" + "costPerMonth",string(costPerMonth));
+		jsonput(itemsjson,eDPCode + "_" + "costPerMonth",string(costPerMonth));
+		
+	/*********RAC_AncillaryCosts Data table*****/
+	}
+}
+/*********RAC_JobTitle Data table**********/
+if(tableName == "RAC_JobTitle"){
+	jobTitleRecordSet = bmql("SELECT STI, JobTitles, LaborType, FlatRate, Zone_A, Zone_B, Zone_C, Zone_D, Zone_E, Zone_F, Zone_G, LaborCost, Remote from RAC_JobTitle");
+	for eachRec in jobTitleRecordSet{
+		jobTitles = get(eachRec, "JobTitles");
+		sTI = get(eachRec, "STI");
+		laborType = get(eachRec, "LaborType");
+		costForAPAC_EMEA = get(eachRec, "LaborCost");//NeedToConfirm
+		flatRate = get(eachRec, "FlatRate");
+		remote = get(eachRec, "Remote"); //CR85_POSTMVP_AddedByVasundhara_07-12-2023
+
+		zone_A = get(eachRec,"Zone_A");
+		zone_B = get(eachRec,"Zone_B");
+		zone_C = get(eachRec,"Zone_C");
+		zone_D = get(eachRec,"Zone_D");
+		zone_E = get(eachRec,"Zone_E");
+		zone_F = get(eachRec,"Zone_F");
+		zone_G = get(eachRec,"Zone_G");
+
+		jsonput(itemsjson,jobTitles + " - A",zone_A);
+		jsonput(itemsjson,jobTitles + " - B",zone_B);
+		jsonput(itemsjson,jobTitles + " - C",zone_C);
+		jsonput(itemsjson,jobTitles + " - D",zone_D);
+		jsonput(itemsjson,jobTitles + " - E",zone_E);
+		jsonput(itemsjson,jobTitles + " - F",zone_F);
+		jsonput(itemsjson,jobTitles + " - G",zone_G);
+		jsonput(itemsjson,jobTitles + "-STI",sTI);
+		jsonput(itemsjson,jobTitles + "-LaborType",LaborType);
+		jsonput(itemsjson,jobTitles + "-" + laborType + "-Cost",costForAPAC_EMEA);
+		jsonput(itemsjson,jobTitles + "-FlatRate",flatRate);
+		jsonput(itemsjson,jobTitles + "-" + laborType + "-Remote",remote); 
+
+	/*********RAC_JobTitle Data table**********/
+	}
+}
+return itemsjson;

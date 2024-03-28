@@ -1,0 +1,11 @@
+{
+  "name" : "update sales api",
+  "variableName" : "updateSalesApi",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "status_t", "opportunityID_t", "transactionID_t", "bs_id", "currency_t", "totalContractValue_t" ],
+  "systemAttributes" : [ ]
+}

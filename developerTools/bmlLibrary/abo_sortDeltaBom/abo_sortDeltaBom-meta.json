@@ -1,0 +1,12 @@
+{
+  "name" : "abo_sortDeltaBom",
+  "variableName" : "abo_sortDeltaBom",
+  "description" : "This utility BML is used to sort Update Asset's deltaBom so that parents appear before children for non-delete lines, and children appear before parents for delete lines.",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_getContext" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "deltaBom",
+    "type" : "Json"
+  } ],
+  "attributes" : [ ]
+}

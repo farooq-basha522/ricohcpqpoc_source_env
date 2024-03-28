@@ -1,0 +1,23 @@
+{
+  "name" : "custom_calculations_endSubDoc",
+  "variableName" : "custom_calculations_endSubDoc",
+  "description" : "This function is invoked at the end of every line item processing. It can overridden to add any logic as needed at this point in the system processing.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "mainDocDict",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "lineDict",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "lineCount",
+    "type" : "Integer"
+  }, {
+    "name" : "extraParams",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

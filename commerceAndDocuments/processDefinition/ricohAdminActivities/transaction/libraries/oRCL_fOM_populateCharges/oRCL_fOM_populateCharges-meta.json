@@ -1,0 +1,20 @@
+{
+  "name" : "Populate Charges",
+  "variableName" : "oRCL_fOM_populateCharges",
+  "description" : "Populates the charges of an item",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "quoteData",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "lineDict",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "extraParams",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

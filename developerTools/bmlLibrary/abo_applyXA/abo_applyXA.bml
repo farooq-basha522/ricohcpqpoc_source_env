@@ -1,0 +1,70 @@
+//Utility Function: abo_applyXA
+//Input: baseBomItem(json), applyBomItem(json)
+//output: bChanged(boolean)
+//Description: 
+//   This is sub function used by abo_apply logic to apply the change of mapped BOM attributes(XA) for a given BOM item.
+//Purpose:
+//    Apply mapped BOM attributes (XA) changes.
+//
+ATTRIBUTES = "attributes";
+ADD = "ADD";
+DELETE = "DELETE";
+UPDATE = "UPDATE";
+NO_OP  = "NO_UPDATE";
+ACTION =  "actionCode";
+ORIGINAL =  "Original";
+XASUMMARY = "oRCL_ABO_ComponentAttributes_l";
+
+abocontext = util.abo_getContext();
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true); 
+
+callContext="applyXA";
+
+//Since attribute exists check is done in caller, this can be read from input directly
+applyBomItemAttrJson =  jsonget(applyBomItem, ATTRIBUTES, "json", json());
+baseBomAttrJson = jsonget(baseBomItem, ATTRIBUTES, "json", json());
+if(isnull(baseBomAttrJson ))
+{
+    baseBomAttrJson=jsonput(baseBomItem, ATTRIBUTES, baseBomAttrJson);
+}
+
+applyBomItemattrLst =  jsonkeys(applyBomItemAttrJson);
+
+
+for oneAttr in applyBomItemattrLst{
+   oneApplyItemAttrJson = jsonget(applyBomItemAttrJson, oneAttr, "json", json());   
+   applyXAContext=callContext+"["+oneAttr+"]";
+      
+   actionCode =  jsonget(oneApplyItemAttrJson, ACTION, "string",NO_OP);
+
+   if(actionCode==NO_OP) {
+     continue;//Even if the attribute doesn't exist in baseBom , we don't apply as user did not make the change
+   }
+ 
+   if(actionCode == DELETE){
+      jsonremove(baseBomAttrJson, oneAttr);
+      continue;
+   } 
+
+   oneBaseBomAtrrJson = jsonget(baseBomAttrJson, oneAttr, "json", json());
+   if(isnull(oneBaseBomAtrrJson) AND (actionCode<>ADD)){
+         if(not bDiagnosisOff){
+             msg= applyXAContext+":skipping attribute with action "+actionCode+" ignored since it does not exists in basebom";
+             dummy=util.abo_addDiagnosticInfo(msg, oneBaseBomAtrrJson,"");
+         }
+         continue; //Update/no-op on non-existing attribute will be ignored 
+   }
+   
+   //Different from line.action==ADD which is error condition.
+   // for XA, the user might independently add XA in prior order as well, 
+   // we will just take the value from latest order.
+   
+   jsonremove(oneApplyItemAttrJson, ACTION);
+   jsonremove(oneApplyItemAttrJson, ORIGINAL);//This should remove old BOM attribute json
+   //Put latest attribute info into base for update/add/no-op case
+   jsonput(baseBomAttrJson, oneAttr, oneApplyItemAttrJson);
+}
+
+jsonremove(baseBomItem, XASUMMARY);
+
+return baseBomItem;

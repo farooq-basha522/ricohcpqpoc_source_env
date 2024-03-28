@@ -1,0 +1,94 @@
+/******************************************************************************************************/
+//Author: 		Chakri 12/11/2021
+//Functionality: To show HTML Warning Messages
+/******************************************************************************************************/
+
+validatedDict = dict("string");
+partNumberArray=string[];
+
+for line in transactionLine {
+cpqLineID = line._group_sequence_number;
+
+    if (line._parent_doc_number == "") {
+        itemType = line.type_l;
+        itemTypeRecordSet = bmql("SELECT ItemType FROM RAC_ITEM_TYPE WHERE ItemType = $itemType");
+        
+        for eachItemType in itemTypeRecordSet {
+            itemTypedata = get(eachItemType, "ItemType");
+
+        
+        if (quoteStep_t == "pending_process"  AND line.linkedItem_l == "" AND (itemTypedata == "SOLUTIONS-SUPPORT" OR itemTypedata == "SOLUTIONS-SUPPORT REQ LIC KEY")) {
+             put(validatedDict, cpqLineID + "linkedItem_l",  "<div>" + "<span style='font-size: medium; color: red; text-aliagn: left;'>" + "Line#" + " " + cpqLineID  + " - " + "Quote contains unlinked Maint/Support item. Please update Linked Item with the applicable product line number(s)." + "</span>" + "</div>");
+			 
+        	
+        	}
+       	    }
+        }
+	if(quoteStep_t == "pending_process" OR quoteStep_t == "pendingFnFApproval" OR quoteStep_t == "approvedFnF" OR quoteStep_t == "waitingForInternalApproval") {
+	
+	if (line.discounttype_l == "Override" AND line.discountAmountt_l < line.unitSalesCost_l) {
+             put(validatedDict, cpqLineID + "discountAmountt_l", "<div>" + "<span style='font-size: medium; color: black; text-aliagn: left;'>" + "Line#" + " " + cpqLineID  + " - " + "Entering a Selling Price below Sales Cost may require an approval." + "</span>" + "</div>");
+             }
+
+        if (line.discounttype_l == "Amount" AND (line.contractedUnitPrice_l - line.discountAmountt_l) < line.unitSalesCost_l) {
+             put(validatedDict, cpqLineID + "discountAmountt_l", "<div>" + "<span style='font-size: medium; color: black; text-aliagn: left;'>" + "Line#" + " " + cpqLineID  + " - " + "Entering a Selling Price below Sales Cost may require an approval." + "</span>" + "</div>");
+             }
+        
+        if (line.discounttype_l == "Percent" AND (line.contractedUnitPrice_l *(1 - (line.discountAmountt_l/100))) < line.unitSalesCost_l) {
+             put(validatedDict, cpqLineID + "discountAmountt_l", "<div>" + "<span style='font-size: medium; color: black; text-aliagn: left;'>" + "Line#" + " " + cpqLineID  + " - " + "Entering a Selling Price below Sales Cost may require an approval." + "</span>" + "</div>");
+             }
+	}
+}
+
+Pricelist = "";
+if(rAC_Pricelist_RISE <> "" OR priceList_t <> "") {
+
+if(rAC_Pricelist_RISE <>"") {
+	Pricelist = rAC_Pricelist_RISE; 
+	}
+	else {
+	Pricelist = priceList_t ;
+	}
+		
+for line in transactionLine {
+	processGroup = "";
+        itemType = line.type_l;
+	partnumber = line._part_number;	
+	cpqLineID = line._group_sequence_number;
+		append(partNumberArray,partNumber);
+		//Get all Parts Custom field Data
+		partCustomFieldDict=util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+		variableItem = "";
+		if(containskey(partCustomFieldDict,partNumber+"custom_field27")) {
+		variableItem = get(partCustomFieldDict,partNumber+"custom_field27");
+		}
+        itemTypeRecordSet = bmql("SELECT ItemType, ProcessGroup FROM RAC_ITEM_TYPE WHERE ItemType = $itemType");
+        
+	for eachItemType in itemTypeRecordSet {
+            processGroup = get(eachItemType, "ProcessGroup");
+		}
+
+        if(processGroup <> "SA") {
+		priceDataTable = bmql("SELECT PriceListName, ContractPriceOption, EDPCode FROM RAC_PL_CASH WHERE EDPCode = $partnumber AND PriceListName = $Pricelist");
+		
+		for each in priceDataTable {
+		contractPriceRecord = get(each,"ContractPriceOption");
+		priceListNameRecord = get(each,"PriceListName");
+		
+		if(quoteStep_t == "pending_process" OR quoteStep_t == "pendingFnFApproval" OR quoteStep_t == "approvedFnF" OR quoteStep_t == "waitingForInternalApproval") {
+		
+			if(not isnull(line.unitSellingPrice_l) AND line.unitSellingPrice_l > 0) {
+		
+				if (variableItem <> "VP" AND line.unitSellingPrice_l > 0 AND line.unitSalesCost_l > 0 AND line.unitSellingPrice_l < line.unitSalesCost_l AND (contractPriceRecord == "Firm" OR contractPriceRecord == "Fixed" OR contractPriceRecord == "Variable Down")) {
+					put(validatedDict, cpqLineID + "unitSellingPrice_l", "<div>" + "<span style='font-size: medium; color: black; text-aliagn: left;'>" + "Line#" + " " + cpqLineID  + " - " + "This is a  Fixed or Variable Down Pricelist. Entering a Selling Price below Sales Cost may require approval." + "</span>" + "</div>");
+             				}
+				}
+			}
+				
+    		}
+    	}
+}
+
+}
+
+return validatedDict;

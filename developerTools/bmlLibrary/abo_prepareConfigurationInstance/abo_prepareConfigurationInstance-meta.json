@@ -1,0 +1,18 @@
+{
+  "name" : "abo_prepareConfigurationInstance",
+  "variableName" : "abo_prepareConfigurationInstance",
+  "description" : "This is entry BML for ABO Follow on order flow. Also common logic used by ABO Modify & follow on order flow are in this BML. \nIt will calculate the projected state for a specified product instance as of requested date and store that into user session cache.",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_generatePAC", "util.abo_getContext", "util.abo_getProductModelInfo", "util.abo_isjsonnull" ],
+  "returnType" : "String Dictionary",
+  "parameters" : [ {
+    "name" : "assetKey",
+    "type" : "String"
+  }, {
+    "name" : "transactionDate",
+    "type" : "Date"
+  }, {
+    "name" : "transactionId",
+    "type" : "Integer"
+  } ],
+  "attributes" : [ ]
+}

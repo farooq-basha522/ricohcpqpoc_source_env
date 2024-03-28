@@ -1,0 +1,12 @@
+{
+  "name" : "Add Item Master",
+  "variableName" : "addItemMaster",
+  "description" : "",
+  "libraryFunctions" : [ "util.getAPIUserSessionID" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "dictionariesDict",
+    "type" : "Dictionary of String Dictionaries"
+  } ],
+  "attributes" : [ "_user_session_id", "_company_name" ]
+}

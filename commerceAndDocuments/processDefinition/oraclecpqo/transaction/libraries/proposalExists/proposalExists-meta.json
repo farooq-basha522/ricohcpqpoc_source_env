@@ -1,0 +1,11 @@
+{
+  "name" : "Proposal Exists",
+  "variableName" : "proposalExists",
+  "description" : "Determines if the proposal document exists for a transaction.",
+  "libraryFunctions" : [ ],
+  "returnType" : "Boolean",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "oRCL_OSC_FileAttachment_t" ],
+  "systemAttributes" : [ ]
+}

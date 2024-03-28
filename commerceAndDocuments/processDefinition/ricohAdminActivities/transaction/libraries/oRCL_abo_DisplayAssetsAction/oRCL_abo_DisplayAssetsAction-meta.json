@@ -1,0 +1,11 @@
+{
+  "name" : "ABO Display Asset Action",
+  "variableName" : "oRCL_abo_DisplayAssetsAction",
+  "description" : "ABO implementation of the Customer Assets action script.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

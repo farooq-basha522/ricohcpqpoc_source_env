@@ -1,0 +1,47 @@
+returnString = "";
+totalContractPrice = 0.0;
+totalUnitSellingPrice = 0.0;
+totalUnitNetPrice =0.0;
+percentageCondition = 0;
+lockPrice = "";
+for line in transactionLine{
+	partNumber = line._part_number;
+	partNumberArray=string[];
+	append(partNumberArray,partNumber);
+	partCustomFieldDict= util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+	itemType = "";
+	itemTypeArray = string[];
+	if(containskey(partCustomFieldDict,partNumber+"custom_field23")) {
+		itemType = get(partCustomFieldDict,partNumber+"custom_field23");
+	}
+	if(containskey(partCustomFieldDict,partNumber+"custom_field16")) {
+		lockPrice = get(partCustomFieldDict,partNumber+"custom_field16");
+	}
+	if(containskey(partCustomFieldDict,partNumber+"custom_field7")) {
+		if(get(partCustomFieldDict,partNumber+"custom_field7") <> ""){
+			listPrice = atof(get(partCustomFieldDict,partNumber+"custom_field7"));
+		}
+	}
+	processGroup = "";
+	processGroupDict = util.getProcessGroup(itemTypeArray);
+	if(containskey(processGroupDict,itemType)){
+		processGroup = get(processGroupDict,itemType);
+	}
+	if(line._parent_doc_number <> "" AND processGroup == "SC" AND startswith(line._part_number, "FIPS") AND lockPrice == "No"){
+		//totalUnitSellingPrice = totalUnitSellingPrice + line.unitSellingPrice_l;
+		totalUnitNetPrice = totalUnitNetPrice + line.unitNetPrice_l;
+		totalContractPrice = totalContractPrice + line.contractedUnitPrice_l;
+	}
+}
+
+
+//percentageCondition = ((totalUnitNetPrice - totalContractPrice) / totalContractPrice) * 100;
+if(totalContractPrice<>0.0){
+	if(NOT ISNULL(((totalContractPrice - totalUnitNetPrice )/ totalContractPrice)*100)){
+		percentageCondition = ((totalContractPrice - totalUnitNetPrice ) / totalContractPrice)*100 ;
+	}
+}
+if((percentageCondition) > 10){
+	returnString = String(percentageCondition);
+}
+return returnString;

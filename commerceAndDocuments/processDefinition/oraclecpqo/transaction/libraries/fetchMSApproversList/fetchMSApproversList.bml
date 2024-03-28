@@ -1,0 +1,200 @@
+/***************************************************************************************
+Created By : Prashanth S
+Date : 1/19/2023
+PROCESS GROUP : MANAGED SERVICES
+PARAMETER: 
+DEBUGG - returns complete message for debugging
+BUYSIDE_MESSAGE - return message when quote-level Margin Threshold / Annual Escalation being breached
+BUYSIDE_VALIDATION - returns VALIDATION_FAILED along with message
+************************************************************************************** */
+
+retVal = "";
+isDebug = false;
+rowDelim = "@$@";
+colDelim = "#$#";
+index = 1;
+inputs = dict("anytype");
+forDebugging = false;
+isQuoteMarginBreached = false;
+isAnnualEscBreached = false;
+yearApproverDict = dict("string");
+yearApproverArr = String [];
+put(inputs, "ApporvalType", "Deal");
+put(inputs, "Location", "Name");
+put(inputs, "Level", mSPricingApproverLevel_t);
+if(isDebug){
+	print mSTotalDealSectionArray_t;
+}
+if(namesFor == "DEBUGG"){
+	forDebugging = true;
+}
+
+dealApproverValidationDict = dict("string");
+escalationApproverValidationDict = dict("string");
+
+if(mSPricingApproverYearsBreached_t <> ""){
+	approverYearsBreachedArr = split(mSPricingApproverYearsBreached_t, colDelim);
+	for yearsBreached in approverYearsBreachedArr {
+		yearBreached = split(yearsBreached, rowDelim);
+		put(inputs, "Year", lower(yearBreached[0]));
+		if(isDebug){print inputs;}
+		apporver = commerce.getMSApprovers(inputs);
+		if(apporver  <> ""){
+			put(yearApproverDict, lower(yearBreached[0]), apporver);
+		}
+	}
+}
+
+/*
+arraysize = range(7);// get Approval names for 5 Years 
+for each in arraysize {
+	yearParam = "year"+string(index);
+	put(inputs, "Year", yearParam);
+	if(isDebug){print inputs;}
+	apporver = commerce.getMSApprovers(inputs);
+	if(apporver  <> ""){
+		put(yearApproverDict, yearParam, apporver);
+	}
+	index = index + 1;
+}*/
+yearApproverArr = keys(yearApproverDict);
+
+retVal = retVal + "<html><body><table>";
+index = 1;
+arraysize = range(jsonarraysize(mSTotalDealSectionArray_t));
+for each in arraysize {
+	dealValue = "";
+	yearParam = "year"+string(index);
+	approverDetailStr = get(yearApproverDict, yearParam);
+	if(NOT isnull(approverDetailStr ) ){
+		approverDetailArr = split(approverDetailStr, rowDelim);
+		if((forDebugging) OR (approverDetailArr[0] <> "" AND (approverDetailArr[1] <> "true" OR approverDetailArr[2] <> "true" OR approverDetailArr[3] <> "true" OR approverDetailArr[4] <> "true"))){
+			isQuoteMarginBreached = true;
+			if(index == 1){
+				retVal = retVal + "<tr><td>This Quote Requires Pricing Approval(s)</td> </tr>";
+				retVal = retVal + "<tr><td><ul>Approval Details based on Total Deal Margin</ul></td> </tr>";
+			}
+			retVal = retVal + "<tr><td><ul>";
+			retVal = retVal + "<ul>Year "+ string(index) + ": Total Deal Margin is ";
+			arraySize = range(jsonarraysize(mSTotalDealSectionArray_t));
+			for each1 in arraySize {
+				yearParam1 = "year"+string(index)+"_MSTotalArraySet";
+				if(NOT isnull(jsonget(json(jsonarrayget(mSTotalDealSectionArray_t, each1)),yearParam1))){
+					dealValue = jsonget(json(jsonarrayget(mSTotalDealSectionArray_t, each1)),yearParam1);
+						if(dealValue <> ""){
+							tempVal = round(atof(dealValue),2);
+							dealValue = string(tempVal); 
+						}
+				}
+			}
+			retVal = retVal + dealValue;
+			if(approverDetailArr[0] <> ""){
+				retVal = retVal + " -- Requires Pricing Approval from ";
+				retVal = retVal + approverDetailArr[0] +"<ul>";
+				if(approverDetailArr[1] == "false"){
+					retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT ACTIVE CPQ User </li>";
+					put(dealApproverValidationDict, approverDetailArr[0] + " is NOT ACTIVE CPQ User", "<li>"+ approverDetailArr[0] + " is NOT ACTIVE CPQ User </li>");
+				}
+				if(approverDetailArr[2] == "false"){
+					retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT EXISTS in Pricing Approval Group</li>";
+					put(dealApproverValidationDict, approverDetailArr[0] + " is NOT EXISTS in Pricing Approval Group", "<li>"+ approverDetailArr[0] + " is NOT EXISTS in Pricing Approval Group</li>");
+				}
+				if(approverDetailArr[4] == "false"){
+					retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT EXISTS in HRMS</li>";
+					put(dealApproverValidationDict, approverDetailArr[0] + " is NOT EXISTS in HRMS", "<li>"+ approverDetailArr[0] + " is NOT EXISTS in HRMS</li>");  
+				}elif(approverDetailArr[3] == "false"){
+					retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT ACTIVE in HRMS</li>";
+					put(dealApproverValidationDict, approverDetailArr[0] + " is NOT EXISTS in HRMS", "<li>"+ approverDetailArr[0] + " is NOT EXISTS in HRMS</li>");
+				}
+				retVal = retVal +"</ul></ul></ul></td></tr>";
+			}
+		}
+	}
+	index = index + 1;
+}
+if(mSPricingApproverEscalationLevel_t <> ""){
+	inputs = dict("anytype");
+	put(inputs, "ApporvalType", "Escalation");
+	put(inputs, "Location", "Name");
+	put(inputs, "Level", mSPricingApproverEscalationLevel_t);
+	approverDetailStr = commerce.getMSApprovers(inputs);
+	if(NOT isnull(approverDetailStr )){
+		approverDetailArr = split(approverDetailStr, rowDelim);
+		if((forDebugging) OR (approverDetailArr[0] <> "" AND (approverDetailArr[1] <> "true" OR approverDetailArr[2] <> "true" OR approverDetailArr[3] <> "true" OR approverDetailArr[4] <> "true"))){
+			isAnnualEscBreached = true;
+			if(len(retVal) < 20){retVal = retVal + "<tr><td>This Quote Requires Pricing Approval(s)</td> </tr>";}
+			retVal = retVal + "<tr><td><ul>Approval Details based on Annual Escalation";
+			retVal = retVal + "<ul>Total Annual Escalation is "+string(annualRevenueEscalation_t);
+			retVal = retVal + " -- Requires Pricing Approval from ";
+			retVal = retVal + approverDetailArr[0] +"<ul>";
+			if(approverDetailArr[1] == "false"){
+				retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT ACTIVE CPQ User </li>";
+				put(escalationApproverValidationDict, approverDetailArr[0] + " is NOT ACTIVE CPQ User", "<li>"+ approverDetailArr[0] + " is NOT ACTIVE CPQ User </li>");
+			}
+			if(approverDetailArr[2] == "false"){
+				retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT EXISTS in Pricing Approval Group</li>";
+				put(escalationApproverValidationDict, approverDetailArr[0] + " is NOT EXISTS in Pricing Approval Group", "<li>"+ approverDetailArr[0] + " is NOT EXISTS in Pricing Approval Group</li>");
+			}
+			if(approverDetailArr[4] == "false"){
+				retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT EXISTS in HRMS</li>";
+				put(escalationApproverValidationDict, approverDetailArr[0] + " is NOT EXISTS in HRMS", "<li>"+ approverDetailArr[0] + " is NOT EXISTS in HRMS</li>");
+			}elif(approverDetailArr[3] == "false"){
+				retVal = retVal + "<li>"+ approverDetailArr[0] + " is NOT ACTIVE in HRMS</li>";
+				put(escalationApproverValidationDict, approverDetailArr[0] + " is NOT EXISTS in HRMS", "<li>"+ approverDetailArr[0] + " is NOT EXISTS in HRMS</li>");
+			}
+			retVal = retVal +"</ul></ul></ul></td></tr>";
+		}	
+	}
+	
+}
+if(namesFor == "BUYSIDE_VALIDATION"){
+	if(find (retVal , "NOT ACTIVE") > -1 OR find (retVal , "NOT EXISTS") > -1){
+		//------ temporary fix for changing format ---------
+		retVal = replace(retVal, "<html>", "");
+		retVal = replace(retVal, "<body>", "");
+		retVal = replace(retVal, "<table>", "");
+		retVal = replace(retVal, "<tr>", "");
+		retVal = replace(retVal, "<td>", "");
+		retVal = replace(retVal, "</td>", "");
+		retVal = replace(retVal, "<ul>", "\n");
+		retVal = replace(retVal, "</ul>", "");
+		retVal = replace(retVal, "<li>", "");
+		retVal = replace(retVal, "</li>", "");
+		retVal = replace(retVal, "</tr>", "\n");
+		retVal = replace(retVal, "\n\n\n", "\n");
+		//retVal = "VALIDATION_FAILED\n"+retVal+"\n";
+		
+		dealValidationPrefix = "This Quote Requires Margin based Pricing Approval(s), but";
+		dealValidationMessagesArray = keys(dealApproverValidationDict);
+		
+		dealValidationMessage = "";
+		if(sizeofarray(dealValidationMessagesArray) > 0){
+			dealValidationMessage = dealValidationPrefix + "\n" + join(dealValidationMessagesArray, "\n");	
+		}
+		
+		escalationApproverValidationPrefix = "This Quote Requires Annual Escalation based Pricing Approval(s), but";
+		escalationApproverValidationArray = keys(escalationApproverValidationDict);
+		
+		escalationValidationMessage = "";
+		if(sizeofarray(escalationApproverValidationArray) > 0){
+			escalationValidationMessage = escalationApproverValidationPrefix + "\n" + join(escalationApproverValidationArray, "\n");	
+		}
+		retVal = "VALIDATION_FAILED\n" + dealValidationMessage + "\n\n" + escalationValidationMessage +"\n";
+	}
+}elif(namesFor == "BUYSIDE_MESSAGE"){
+	retVal = "<html><body><table>";	
+	if(mSPricingApproverYearsBreached_t <>""){
+		retVal = retVal + "<tr><td><ul>This Quote Requires Pricing Approval(s) due to quote-level Margin Threshold(s) being breached.</ul></td> </tr>";
+	}
+	if(mSPricingApproverEscalationLevel_t <> ""){
+		retVal = retVal + "<tr><td><ul>This Quote Requires Annual Escalation Approval due to quote level Annual Escalation value threshold being breached.</ul></td> </tr>";
+	}
+	retVal = retVal + " </table></body></html>";
+}else{
+	retVal = retVal + " </table></body></html>";
+}
+//empty the string in case of no valid message. description by Namrata
+if(endswith(retval , "<html><body><table>")){
+retval  = "";
+}
+return retVal;

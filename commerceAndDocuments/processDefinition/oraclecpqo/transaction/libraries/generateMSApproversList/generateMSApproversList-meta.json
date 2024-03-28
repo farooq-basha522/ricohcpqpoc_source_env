@@ -1,0 +1,20 @@
+{
+  "name" : "Generate MS Approvers List",
+  "variableName" : "generateMSApproversList",
+  "description" : "",
+  "libraryFunctions" : [ "commerce.isUserActive", "commerce.isUserExistsinGroup" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "ApprovalLevel",
+    "type" : "String"
+  }, {
+    "name" : "TransactionType",
+    "type" : "String"
+  }, {
+    "name" : "ApprovalType",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "customerAccountResult_t", "pricingApproverEmailfromRISE_t", "pricingApproverEmail_t", "mSTransactionType_t", "isThisAnEnterpriseAccountEdit_t", "areaIndicator_t", "managinDirectorNameFromRISE_t" ],
+  "systemAttributes" : [ ]
+}

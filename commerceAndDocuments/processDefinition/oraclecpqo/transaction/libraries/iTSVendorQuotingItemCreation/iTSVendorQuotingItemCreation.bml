@@ -1,0 +1,214 @@
+/******************************************************************************************************/
+//Author: 		Chakri 12/11/2021
+//Updated: 		Vasundhara
+//Updated: 		Gowtham Pentakota 03/14/22
+//Functionality: To show HTML Warning Messages
+/******************************************************************************************************/
+
+retVal = "";
+processGroupValue = "";
+lineIDData = "";
+vendorUnitCostData = 0.0;
+statusData = "Sent for Item Creation";
+instructionsData = "NA";
+MarketingJson = json();
+mainjson = json();
+MarketingArray = jsonarray();
+VendorReferenceNo = "";
+itemCatalog = "NA";
+category = "";
+requestedPartNumber = "";
+partNumberArray=string[];
+
+
+TransactionDate = strtodate(_system_date, "yyyy-MM-dd");
+systemDate = datetostr(TransactionDate, "yyyy-MM-dd");
+systemDate = systemDate + "T00:00:00Z";
+
+// Category ID addition
+EntServDomainValue = "";
+EntServPortfolioValue = "";
+EntServOfferingValue = "";
+EntServProductFamilyValue = "";
+CommissionCategoryValue = "";
+
+//systemDate = replace(_system_date, " ", "T") + "Z";
+
+//if(marketActivationApprovalStatus_t == "Approved for Market Approval"){
+for line in transactionLine {
+
+   	itemTypeLine = line.type_l;
+	equipmentCategoryIdLine = line.equipmentCategoryId_l;
+    vendorPartNumberLine = line.vendorPartNumberLIG_l;
+	vendorNameLine = line.vendorName_l;
+	itemCodeLine = line._part_number;
+	totalItemDescription =  upper(line.partDescriptionOnProposal_l);
+	itemDescription = totalItemDescription;
+	itemDescription1 = "";
+	//START - Added by Vasundhara - Updated and added below conditions for INC#INC2238708
+	if(len(totalItemDescription) > 250 OR len(totalItemDescription) == 250){
+		itemDescription = substring(totalItemDescription,0,250);
+	}
+	if(len(totalItemDescription) > 250 ){
+		itemDescription1 = substring(totalItemDescription,250,499);
+	}
+	//END - Added by Vasundhara - Updated and added above conditions for INC#INC2238708
+	/* itemDescription1 = "";
+	if(len(totalItemDescription) > 148){
+		itemDescription = substring(totalItemDescription,0,149);
+		itemDescription1 = substring(totalItemDescription,150,len(totalItemDescription));
+	} */
+	//partCustomFieldLine = line._part_custom_field23;
+	manufactureLIGLine = line.manufacturerLIG_l;
+	manufacturePartLIGLine = line.manufacturerPartNumberLIG_l;
+	//partCustomFieldLine1 = line._part_custom_field24;
+	partCustomFieldLine1 = "";
+	partCustomFieldLine = "";
+	quantityLine = line._price_quantity;
+	lineCommentsLine = line._line_item_comment;
+	unitPriceLine = line.unitSRP_l;
+	supportTerm = line.supportTerm_l;
+	append(partNumberArray,itemCodeLine);
+	partCustomFieldDict=util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+	if(supportTerm == "0"){
+		supportTerm =" ";
+	}
+	if(containskey(partCustomFieldDict,itemCodeLine+"custom_field23")) {
+		partCustomFieldLine1 = get(partCustomFieldDict,itemCodeLine+"custom_field22");
+		}
+	if(containskey(partCustomFieldDict,itemCodeLine+"custom_field24")) {
+		partCustomFieldLine = get(partCustomFieldDict,itemCodeLine+"custom_field22");
+		}
+	 if (lineCommentsLine <> "") {
+		commentArr = split(lineCommentsLine, "##");
+		if(sizeofarray(commentArr) > 9){
+			requestedPartNumber = upper(commentArr[9]);
+			if (isNumber(commentArr[5])) {
+				vendorUnitCostData = atof(commentArr[5]);
+			}
+		}
+		if(sizeofarray(commentArr) > 11){
+			itemTypeLine = commentArr[11];
+		}
+	}
+	if(itemTypeLine == "IT SERVICES-HARDWARE"){
+		category = "Hardware";
+	}elif(itemTypeLine == "IT SERVICES-SOFTWARE"){
+		category = "Software";
+	}elif(itemTypeLine == "IT SERVICES-SUPPORT"){
+		category = "Support";
+	}
+	
+   	itemTypeRecordSet = bmql("SELECT ItemType, ProcessGroup FROM RAC_ITEM_TYPE WHERE ItemType = $itemTypeLine");
+	
+    for eachItemType in itemTypeRecordSet {
+        processGroupValue = get(eachItemType, "ProcessGroup");
+    }
+  
+	
+		
+	// Category ID addition		
+	if(equipmentCategoryIdLine <> ""){
+	
+		entServRecordSet = bmql("SELECT EntServDomain,EntServPortfolio,EntServOffering,EntServProductFamily,CommissionCategory FROM EtilizeCategories WHERE CategoryID = $equipmentCategoryIdLine");
+		
+		for eachEntServ in entServRecordSet {        
+			EntServDomainValue = get(eachEntServ, "EntServDomain");
+			EntServPortfolioValue = get(eachEntServ, "EntServPortfolio");
+			EntServOfferingValue = get(eachEntServ, "EntServOffering");
+			EntServProductFamilyValue = get(eachEntServ, "EntServProductFamily");
+			CommissionCategoryValue = get(eachEntServ, "CommissionCategory");
+		}
+	
+	}
+  
+    lineIDData = processGroupValue + "-" + transactionID_t + "-" + line._document_number;
+	
+	RequestorNameStr = _system_user_first_name + " " + _system_user_last_name;
+	RISEAccountNoStr = RISEAccountNumber_t;
+	RISEAccountNameStr = customerCompanyName_t;
+	RISEOpportunityIdStr = opportunityNumber_t;
+	RISEOpportunityNameStr = opportunityName_t;
+	RISEOpportunityLinkStr = rISEOpportunityLink_t;
+	
+    if (processGroupValue == "ITS" AND line._parent_doc_number <> "" AND line._part_number == "MAP-GENERIC") {
+       results = bmql("insert into Marketing_Mapping (LineId,VendorQuoteNumber,VendorPartNum,VendorName,ProcessGroup,ItemCode,ItemDescription,ItemDescription1,ItemType,ManufacturerName,ManufacturerPartNum,PortfolioFlag,Quantity,VendorUnitCost,Status,Instructions,RequestorEmailId,ItemRequestedDate,UnitPrice,Category,ItemCatalog,RequestedPartNumber,SupportTerm,RequestorName,RISEAccountNo,RISEAccountName,RISEOpportunityId,RISEOpportunityName,RISEOpportunityLink,ProductGroup,EntServDomain,EntServPortfolio,EntServOffering,EntServProductFamily,CommissionCategory,CategoryId) values ($lineIDData,$transactionID_t,$vendorPartNumberLine,$vendorNameLine,$processGroupValue,$itemCodeLine,$itemDescription,$itemDescription1,$itemTypeLine,$manufactureLIGLine,$manufacturePartLIGLine,$partCustomFieldLine1,$quantityLine,$vendorUnitCostData,$statusData,$instructionsData,$_system_user_email,$systemDate,$unitPriceLine,$category,$itemCatalog,$requestedPartNumber,$supportTerm,$RequestorNameStr,$RISEAccountNoStr,$RISEAccountNameStr,$RISEOpportunityIdStr,$RISEOpportunityNameStr,$RISEOpportunityLinkStr,'Equipment',$EntServDomainValue,$EntServPortfolioValue,$EntServOfferingValue,$EntServProductFamilyValue,$CommissionCategoryValue,$equipmentCategoryIdLine)");	
+        
+        for result in results {
+            
+            insert_count_integer = get(result, "records_inserted");
+            records_error_string = get(result, "records_error");
+        }
+    }
+}
+
+Marketdata = BMQL("select * from Marketing_Mapping where VendorQuoteNumber = $transactionID_t");
+
+for Marketingdata in Marketdata 
+{
+VendorReferenceNo=get(Marketingdata ,"LineId");
+VendorPartNumber=get(Marketingdata ,"VendorPartNum");
+VendorName=get(Marketingdata ,"VendorName");
+ItemNumber=get(Marketingdata ,"ItemCode");
+ItemDescription=get(Marketingdata ,"ItemDescription");
+ManufacturerPartNumber=get(Marketingdata ,"ManufacturerPartNum");
+ManufacturerName=get(Marketingdata ,"ManufacturerName");
+ProductGroup=get(Marketingdata ,"ProductGroup"); // ProcessGroup
+ItemType=get(Marketingdata ,"ItemType");
+ItemRequestedDate=get(Marketingdata ,"ItemRequestedDate");
+CPQVendorCost=get(Marketingdata ,"VendorUnitCost");
+UnitPrice=get(Marketingdata ,"UnitPrice");
+Category=get(Marketingdata ,"Category");
+ItemCatalog=get(Marketingdata ,"ItemCatalog");
+RequestedPartNumber=get(Marketingdata ,"RequestedPartNumber");
+SupportTermstr=get(Marketingdata ,"SupportTerm");
+EntServDomainstr=get(Marketingdata ,"EntServDomain");
+EntServPortfoliostr=get(Marketingdata ,"EntServPortfolio");
+EntServOfferingstr=get(Marketingdata ,"EntServOffering");
+EntServProductFamilystr=get(Marketingdata ,"EntServProductFamily");
+CommissionCategorystr=get(Marketingdata ,"CommissionCategory");
+
+jsonput(MarketingJson ,"LineId",VendorReferenceNo);
+jsonput(MarketingJson ,"VendorPartNumber",VendorPartNumber);
+jsonput(MarketingJson ,"VendorName",VendorName);
+jsonput(MarketingJson ,"ItemNumber",RequestedPartNumber);
+jsonput(MarketingJson ,"ItemDescription",ItemDescription);
+jsonput(MarketingJson ,"ManufacturerPartNumber",ManufacturerPartNumber);
+jsonput(MarketingJson ,"ManufacturerName",ManufacturerName);
+jsonput(MarketingJson ,"ProductGroup",ProductGroup);
+jsonput(MarketingJson ,"ItemType",ItemType);
+jsonput(MarketingJson ,"Category",Category);
+jsonput(MarketingJson ,"ItemCatalog",ItemCatalog);
+jsonput(MarketingJson ,"ItemRequestedDate",ItemRequestedDate);
+jsonput(MarketingJson ,"CPQVendorCost",CPQVendorCost);
+jsonput(MarketingJson ,"UnitPrice",UnitPrice);
+jsonput(MarketingJson ,"SupportGroup","SUPPORT/MAINT");
+jsonput(MarketingJson ,"SupportTerm",SupportTermstr);
+jsonput(MarketingJson ,"SupportTermFactor","V");
+//jsonput(MarketingJson ,"RequestedPartNumber",ItemNumber);
+jsonput(MarketingJson ,"EnterpriseServiceCategory_Domain",EntServDomainstr);
+jsonput(MarketingJson ,"EnterpriseServiceCategory_Portfolio",EntServPortfoliostr);
+jsonput(MarketingJson ,"EnterpriseServiceCategory_Offering",EntServOfferingstr);
+jsonput(MarketingJson ,"EnterpriseServiceCategory_ProductFamily",EntServProductFamilystr);
+jsonput(MarketingJson ,"Commission_Category",CommissionCategorystr);
+jsonarrayappend(MarketingArray,MarketingJson );
+}
+jsonput(mainjson,"CPQLineItems",MarketingArray);
+
+valStr = jsontostr(mainjson);
+
+External_URL = BMQL("SELECT OICInstance,OICUserName,OICPassword FROM RAC_External_URL WHERE CPQInstance = $_system_company_name");
+OICURL = "";
+OICUserName  = "";
+OICPassword  = "";
+for each in External_URL{
+	OICURL = get(each, "OICInstance");
+	OICUserName = get(each, "OICUserName");
+	OICPassword = get(each, "OICPassword");
+}
+headerDict = dict("string");
+put(headerDict, "Content-Type", "application/json");
+put(headerDict, "Authorization", "Basic "+encodebase64(OICUserName+":"+ OICPassword));
+postdata = urldatabypost(OICURL, jsontostr(mainjson), "", headerDict, true);
+retVal = retVal  + "1~iTSVendorQuotingItemCreationProcessPayload_t~" + jsontostr(mainjson) + postdata  + "|";
+return retVal;

@@ -1,0 +1,54 @@
+//Function Name: abo_terminate
+//    input : pacBom(Json), txnDate(Date)
+//    output : pacBom(json)
+// Description:
+//   This utility function has terminate flow specific logic. This is invoked from abo_copyRootToTransaction bml
+// Details:
+//   This will add the TERMINATE action code to the root, and the DELETE action code to all children.
+
+//Constant declaration
+TERMINATE ="TERMINATE";
+DELETE ="DELETE";
+ACTION= "oRCL_ABO_ActionCode_l";
+TRANSACTIONDATE = "requestDate_l";
+CHILDREN =  "children";
+CREATED =  "CREATED";
+STATUS = "fulfillmentStatus_l";
+
+//Read children if exist 
+childArray =  jsonpathgetsingle(pacBom , "$."+CHILDREN, "jsonarray", jsonarray());
+sizeofchildArray =  jsonarraysize(childArray);   
+dummyArr =  string[sizeofchildArray+1];
+index = -1;
+
+//Loop and set action for all nodes 
+for item in dummyArr{
+    oneNode = json();
+   if (index == -1){
+       oneNode = pacBom;
+   }
+   else{
+       oneNode =  jsonarrayget(childArray, index, "json");
+   }
+   index = index + 1;
+   
+   fields = json();
+   if(util.abo_isjsonnull(oneNode, "fields")<>true){
+      fields =  jsonget(oneNode, "fields", "json");
+   }else{
+      fields= jsonput(oneNode,"fields", fields);
+   }
+   //copy id to "itemInstanceId_l" field
+    id =  jsonget(oneNode, "id", "string");
+    jsonput(fields, "itemInstanceId_l", id);
+    if(index == 0){
+      //root node action code is already set as "TERMINATE"
+      jsonput(fields, ACTION, TERMINATE);
+      jsonput(fields, STATUS, CREATED);  
+   }else{
+      //All child node action code is set to 'DELETE'
+      jsonput(fields, ACTION, DELETE);   
+   } 
+   
+ }
+return pacbom;

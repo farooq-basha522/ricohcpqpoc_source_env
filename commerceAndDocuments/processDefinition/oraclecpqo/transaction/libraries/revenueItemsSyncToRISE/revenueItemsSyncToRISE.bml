@@ -1,0 +1,175 @@
+/********************************************************************************************************************************************
+Library - Revenue Items Sync To RISE              Date:17-05-2022
+Author: Shaik Farooq Basha
+Functionality-To create or update or delete the CPQ Lines to RISE.
+********************************************************************************************************************************************/
+
+resultData ="";
+revLineIdResult="";
+revLineIdPatch= dict("string");
+endPointURLPost="";
+endPointURLPatch="";
+endPointURLDelete="";
+revLineId_RISE="";
+revLineIdRiseArray=string[];
+revId=string[];
+revLinerequestJson =json();
+headerJson = json();
+headerDict = dict("string");
+/*Added quote attributes request json into */
+jsonput(revLinerequestJson ,"OptyId",opportunityID_t);
+
+
+
+deleteRevIDString="";
+resultDataDelete=dict("string");
+count=0;
+iBPItemsArray = string[];
+IBPHostQuery = BMQL("SELECT ItemNumber FROM IBP_Hosting_Data");
+for eachRow in IBPHostQuery{
+	append(iBPItemsArray, get(eachRow, "ItemNumber"));
+	
+}
+endpointURL = "";
+enCodeFormat = "";
+recordSet = bmql("select ENDPOINTURL,LOGIN,PASSWORD from RISE_INTEGRATION where INSTANCE = $_system_supplier_company_name");
+for each in recordSet{
+	enCodeFormat = get(each,"LOGIN")+":"+get(each,"PASSWORD");
+	endpointURL = get(each,"ENDPOINTURL");
+}
+/*************************Endpoint Call to create Revenue Lines****************************/
+endPointURLPost=endpointURL+"/crmRestApi/resources/11.13.18.05/opportunities/"+opportunityNumber_t+"/child/ChildRevenue";
+//Authentication and Headers Parse//
+put(headerDict, "Content-Type", "application/json");
+put(headerDict, "Authorization", "Basic "+encodebase64(enCodeFormat));
+	for line in transactionLine{
+		endPointURLPatch= endPointURLPost+"/"+line._revenueId_l;
+			//Forming the request payload//
+			if(line._part_number<>"" AND findinarray(iBPItemsArray,line._part_number) == -1 AND line._part_number<>"MAP-GENERIC"){
+				jsonput(revLinerequestJson ,"ItemNumber",line._part_number);
+				jsonput(revLinerequestJson ,"UnitPrice",line.listPrice_l);
+				jsonput(revLinerequestJson ,"Quantity",line.requestedQuantity_l);	
+	            jsonput(revLinerequestJson ,"RevnAmount",line.extNetPrice_l);
+				jsonput(revLinerequestJson ,"RevnAmountCurcyCode","USD");
+				jsonput(revLinerequestJson ,"InventoryItemId",line.oscRefID_l);
+				//jsonput(revLinerequestJson ,"ResourcePartyId",line.oRCL_OSC_OwnerResourcePartyID_t);
+				//jsonput(revLinerequestJson ,"AddressName_c",line.locationName_l);
+				//jsonput(revLinerequestJson ,"LocationID_c",line.locationID_l);
+				//jsonput(revLinerequestJson ,"Recurrence_c",line._part_custom_field9);
+				jsonput(revLinerequestJson ,"ChildLineNumber_c",line.lineNumber_l);
+				jsonput(revLinerequestJson ,"ParentLineNumber_c",line.parentLineNumber_l);
+				//jsonput(revLinerequestJson ,"ManufacturerName_c",line.manufacturer_l);
+				//jsonput(revLinerequestJson ,"ManufacturerPartNumber_c",line.manufacturerPartNum_l);
+				//jsonput(revLinerequestJson ,"VendorName_c",line.vendorName_l);
+				//jsonput(revLinerequestJson ,"VendorPartNumber_c",line.vendorPartNumber_t);
+				jsonput(revLinerequestJson ,"CostAmount",line.costAmount_l);
+				//jsonput(revLinerequestJson ,"QWQuoteNumber_l_c",line.qwQuoteNum_l);
+				//jsonput(revLinerequestJson ,"EDPCode_c",line.EDPCode_l);
+				jsonput(revLinerequestJson ,"SRP_c",line.unitSRP_l);
+				//jsonput(revLinerequestJson ,"ExtSRP",line.extSRP_l);
+				jsonput(revLinerequestJson ,"SalesCost_c",line.unitSalesCost_l);
+				jsonput(revLinerequestJson ,"NonStandardTerm_c",line.nonStandardTerm_l);
+				jsonput(revLinerequestJson ,"SubscriptionTerm_c",line._part_custom_field26);
+				jsonput(revLinerequestJson ,"SubscriptionBillingFrequency_c",line.subscriptionBillingFrequency_l);
+				jsonput(revLinerequestJson ,"ShiptoAddress_c",line.shipToAddress_l);
+				jsonput(revLinerequestJson ,"SourceRefID_c",line.cPQLineID_l);
+				jsonput(revLinerequestJson ,"CPQLineIdentifier_c",true);
+				jsonput(revLinerequestJson ,"ExtendedSupportTerm_c",line.extendedSupportTerm_l);
+				/*if(line.customDescription_l <> ""){
+				jsonput(revLinerequestJson ,"PartDescriptionOnProposal_l_c",line.customDescription_l);
+				}elif(line.partDescriptionOnProposal_l <> ""){
+				jsonput(revLinerequestJson ,"PartDescriptionOnProposal_l_c",line.partDescriptionOnProposal_l);	
+				}*/
+				//jsonput(revLinerequestJson ,"PartName_l_c",line.partName_l);
+				//jsonput(revLinerequestJson ,"ContractID_c",transactionID_t);
+				
+				
+				
+				
+				//jsonput(revLinerequestJson ,"BundleName_c",line._parent_line_item);
+				//jsonput(revLinerequestJson ,"LinkedItem_c",line.linkedItem);
+				//jsonput(revLinerequestJson ,"SubscriptionTerm_c",line.subscriptionTerm_l);
+				//jsonput(revLinerequestJson ,"BundleParent_c",line.parent_bundle);
+				//jsonput(revLinerequestJson ,"CPQLineIdentifier_c",true);
+				//jsonput(revLinerequestJson ,"SourceRefID_c",transactionName_t);
+				
+			//}
+			
+			
+/****************************Call to create the Revenue Lines when the line item is created in CPQ and synced back to RISE--START***********************/
+			if(line._revenueId_l=="" ){
+				resultData = urldatabypost(endPointURLPost, jsontostr(revLinerequestJson), "", headerDict, true);
+
+			//To retrieve the Revenue Line Id//
+				if(resultData <> "" AND (find(resultData,"ERROR")==-1) AND NOT ISNULL(resultData)){
+					revLineJson= json(resultData);
+						if(isjsonnull(revLineJson,"RevnId")==false){
+							revLineId_RISE=jsonget(revLineJson,"RevnId");
+							revLineIdResult= revLineIdResult+ line._document_number + "~_revenueId_l~" + revLineId_RISE+ "|";
+							append(revLineIdRiseArray,revLineId_RISE);
+							revLinerange=range(sizeofarray(revLineIdRiseArray));
+						}
+					
+				}
+	}
+/****************************Call to create the Revenue Lines when the line item is created in CPQ and synced back to RISE--END***********************/
+else{
+/****************************Call to update the Revenue Lines when the line item is updated in CPQ and synced back to RISE--START***********************/
+		revLineIdPatch= urldata(endPointURLPatch, "PATCH",headerDict,jsontostr(revLinerequestJson));
+
+}
+/****************************Call to update the Revenue Lines when the line item is updated in CPQ and synced back to RISE--START***********************/
+append(revLineIdRiseArray,line._revenueId_l);
+	}
+}
+if(NOT deleteRevenueSyncControl_quote){
+revLineIdResult= revLineIdResult + "1~selectedRevenueLineIds_t~" + join(revLineIdRiseArray,"#@#")+ "|";
+}
+
+/****************************Call to delete the Revenue Lines in RISE when lines deleted in CPQ--START*************************/
+//splitting the values setup in the Selected and Deleted Revenue Line Id attributes//
+
+delRevId = deletedRevLineId_t;
+deleteId = split(delRevId,"*@*");
+selectedId = split(selectedRevenueLineIds_t,"#@#");
+	if(NOT ISNULL(deleteId) AND NOT ISNULL(selectedId)){
+		for eachId in selectedId{
+			if(findinarray(deleteId,eachId) == -1){
+				deleteRevIDString = eachId;
+					if(deletedRevLineId_t<>"" AND NOT ISNULL(deletedRevLineId_t)){
+						endPointURLDelete= endPointURLPost+"/"+deleteRevIDString;
+
+						resultDataDelete= urldata(endPointURLDelete, "DELETE",headerDict,"");
+					}
+			}
+			count=count+1;
+		}
+	}
+/****************************Call to delete the Revenue Lines in RISE when lines deleted in CPQ--END*************************/
+/******************************************Call to Opportunity Header **************************************************/
+
+
+/* Header Level Attribute Update*/
+jsonput(headerJson ,"CPQQuoteNumber_c",transactionID_t);
+jsonput(headerJson ,"CPQQuoteStatus_c",quoteStep_t);
+jsonput(headerJson ,"CPQTransactionID_c",bs_id);
+jsonput(headerJson ,"AcquisitionType_c",acquisitionType_t);
+jsonput(headerJson ,"TermMonths_c",termMonths_t);
+if(find(acquisitionType_t,"Lease")<>-1 AND leaseTerm_t <> "selectOne" AND leaseTerm_t <> "Other Terms" AND leaseTerm_t <> ""){
+jsonput(headerJson ,"Lease_Term_c",leaseTerm_t);
+}
+if(find(acquisitionType_t,"Lease")<>-1 AND leaseTerm_t <> "selectOne" AND leaseTerm_t == "Other Terms" AND leaseTerm_t <> ""){
+jsonput(headerJson ,"LeaseOtherTerms_c",otherTerm_t);
+}
+
+if(find(quoteStep_t,"ordered")<>-1){
+jsonput(headerJson ,"ContractTerm_c",oscContractTerm_t);
+jsonput(headerJson ,"CPQQuoteNumber_c",transactionID_t);
+}
+
+
+//https://cbha-dev3.fa.us2.oraclecloud.com/crmRestApi/resources/latest/opportunities/O-0000144523?onlyData=true
+headerURL = endpointURL+"/crmRestApi/resources/latest/opportunities/"+opportunityNumber_t;
+headerResultData = urldata(headerURL, "PATCH",headerDict,jsontostr(headerJson));
+
+return revLineIdResult;

@@ -1,0 +1,154 @@
+rollupStr = stringbuilder();
+groupSeqDict= get(quoteData, "groupSeqDict", "dict<string>");
+recurRevDict=    get(quoteData, "recurRevDict", "dict<anytype>");
+nonRecurRevDict=    get(quoteData, "nonRecurRevDict", "dict<anytype>");
+usageRevDict=    get(quoteData, "usageRevDict", "dict<anytype>");
+contractValDict=    get(quoteData, "contractValDict", "dict<anytype>");
+monthlyRecurRevDict=    get(quoteData, "monthlyRecurRevDict", "dict<anytype>");
+monthlyUsageRevDict=    get(quoteData, "monthlyUsageRevDict", "dict<anytype>");
+priceTypeDict=    get(quoteData, "priceTypeDict", "dict<string>");
+pricePeriodDict=    get(quoteData, "pricePeriodDict", "dict<string>");
+contractPeriodsDict=    get(quoteData, "contractPeriodsDict", "dict<anytype>");
+docGrpSeqDict=    get(quoteData, "docGrpSeqDict", "dict<string>");
+contractListValDict=    get(quoteData, "contractListValDict", "dict<anytype>");
+quantityDict=    get(quoteData, "quantityDict", "dict<anytype>");
+rootPriceTypeDict=    get(quoteData, "rootPriceTypeDict", "dict<string>");
+rootPricePeriodDict=    get(quoteData, "rootPricePeriodDict", "dict<string>");
+rootContractPeriodsDict=    get(quoteData, "rootContractPeriodsDict", "dict<anytype>");
+rootRevenueCatDict=    get(quoteData, "rootRevenueCatDict", "dict<string>");
+
+// populate charge rollups
+docNum = get(lineDict, "_document_number", "string");
+hasCharges = false;
+contractStartDate = get(lineDict, "contractStartDate_l", "string");
+contractEndDate = get(lineDict, "contractEndDate_l", "string");
+chargeArraySetStr = get(lineDict, "_chargeSet", "string");
+if(isnull(chargeArraySetStr) <> true) { // Assign values to all rollup attributes of lines having charges
+    chargeArraySet = jsonarray(chargeArraySetStr);
+    chargesSize = jsonarraysize(chargeArraySet);
+    hasCharges = chargesSize > 0;
+    
+    if(hasCharges AND get(lineDict, "_parent_doc_number", "string") <> "") {
+    	sbappend(rollupStr, docNum, "~priceTypeRollup_l~", get(lineDict, "priceTypeRollup_l", "string"), "|");
+    	sbappend(rollupStr, docNum, "~contractValueRollup_l~", string(get(lineDict, "contractValueRollup_l", "float")), "|");
+    	sbappend(rollupStr, docNum, "~netPriceRollup_l~", string(get(lineDict, "netPriceRollup_l", "float")), "|");
+    	sbappend(rollupStr, docNum, "~netAmountRollup_l~", string(get(lineDict, "netAmountRollup_l", "float")), "|");
+    	sbappend(rollupStr, docNum, "~contractedPeriodsRollup_l~", string(get(lineDict, "contractedPeriodsRollup_l", "integer")), "|");
+        sbappend(rollupStr, docNum, "~contractListValueRollup_l~", string(get(lineDict, "contractListValueRollup_l", "float")), "|");
+        sbappend(rollupStr, docNum, "~listPriceRollup_l~", string(get(lineDict, "listPriceRollup_l", "float")), "|");
+        sbappend(rollupStr, docNum, "~discountPercentRollup_l~", string(get(lineDict, "discountPercentRollup_l", "float")), "|");
+        sbappend(rollupStr, docNum, "~nonRecurRevRollup_l~", string(get(lineDict, "nonRecurRevRollup_l", "float")), "|");
+        sbappend(rollupStr, docNum, "~recurRevRollup_l~", string(get(lineDict, "recurRevRollup_l", "float")), "|");
+        sbappend(rollupStr, docNum, "~usageRevRollup_l~", string(get(lineDict, "usageRevRollup_l", "float")), "|");
+	sbappend(rollupStr, docNum, "~monthlyRecurRevRollup_l~", string(get(lineDict, "monthlyRecurRevRollup_l", "float")), "|");
+	sbappend(rollupStr, docNum, "~monthlyUsageRevRollup_l~", string(get(lineDict, "monthlyUsageRevRollup_l", "float")), "|");
+	sbappend(rollupStr, docNum, "~priceRecurFrequencyRollup_l~", get(lineDict, "priceRecurFrequencyRollup_l", "string"), "|");
+    }
+}
+
+groupSeqArray = split(get(lineDict, "_group_sequence_number", "string"),  ".");
+groupSeqLine = groupSeqArray[0];
+    if(get(lineDict, "_parent_doc_number", "string") == "")
+    {  
+        rootDocNum = get(lineDict, "_document_number", "string") ;
+        if(hasCharges) {
+        	put(recurRevDict, rootDocNum, get(lineDict, "recurRevRollup_l", "float"));
+	        put(nonRecurRevDict, rootDocNum, get(lineDict, "nonRecurRevRollup_l", "float"));
+	        put(usageRevDict, rootDocNum, get(lineDict, "usageRevRollup_l", "float"));
+        	put(contractValDict, rootDocNum, get(lineDict, "contractValueRollup_l", "float"));
+      	        put(contractListValDict, rootDocNum, get(lineDict, "contractListValueRollup_l", "float"));
+      	        put(monthlyRecurRevDict, rootDocNum, get(lineDict, "monthlyRecurRevRollup_l", "float"));
+        	put(monthlyUsageRevDict, rootDocNum, get(lineDict, "monthlyUsageRevRollup_l", "float"));
+        	put(rootPriceTypeDict, rootDocNum, get(lineDict, "priceTypeRollup_l", "string"));
+       	        put(rootContractPeriodsDict, rootDocNum, get(lineDict, "contractedPeriodsRollup_l", "integer"));
+       	        put(rootPricePeriodDict, rootDocNum, get(lineDict, "priceRecurFrequencyRollup_l", "string"));
+        } else {
+	        put(recurRevDict, rootDocNum, get(lineDict, "recurringRevSummable_l", "float"));
+	        put(nonRecurRevDict, rootDocNum, get(lineDict, "nonRecurRevSummable_l", "float"));
+	        put(usageRevDict, rootDocNum, get(lineDict, "usageRevSummable_l", "float"));
+        	put(contractValDict, rootDocNum, get(lineDict, "contractValue_l", "float"));
+     	      	put(contractListValDict, rootDocNum, get(lineDict, "contractListValue_l", "float"));
+     	      	put(monthlyRecurRevDict, rootDocNum, get(lineDict, "monthlyRecurRevSummable_l", "float"));
+        	put(monthlyUsageRevDict, rootDocNum, get(lineDict, "monthlyUsageRevSummable_l", "float"));
+        	put(rootPriceTypeDict, rootDocNum, get(lineDict, "priceType_l", "string"));
+       	        put(rootContractPeriodsDict, rootDocNum, get(lineDict, "contractedPeriods_l", "integer"));
+       	        put(rootPricePeriodDict, rootDocNum, get(lineDict, "priceRecurFrequency_l", "string"));
+        }
+        put(quantityDict, rootDocNum, get(lineDict, "_price_quantity", "integer"));
+        put(groupSeqDict, groupSeqLine, rootDocNum);    
+        put(docGrpSeqDict, rootDocNum, groupSeqLine);   
+        
+        v__revenueCategory_l = get(lineDict, "_revenueCategory_l", "string");
+        put(rootRevenueCatDict, v__revenueCategory_l, v__revenueCategory_l);
+    } else {
+        if(containskey(groupSeqDict, groupSeqLine)) {
+            lineDocNum = get(groupSeqDict, groupSeqLine);
+            if(hasCharges == true) {
+            	put(recurRevDict, lineDocNum, get(recurRevDict, lineDocNum, "float") + get(lineDict, "recurRevRollup_l", "float"));
+            	put(nonRecurRevDict, lineDocNum, get(nonRecurRevDict, lineDocNum, "float") + get(lineDict, "nonRecurRevRollup_l", "float"));
+           	put(usageRevDict, lineDocNum, get(usageRevDict, lineDocNum, "float") + get(lineDict, "usageRevRollup_l", "float"));
+            	put(contractValDict, lineDocNum,  get(contractValDict, lineDocNum, "float") + get(lineDict, "contractValueRollup_l", "float"));
+  	        put(contractListValDict, lineDocNum,  get(contractListValDict, lineDocNum, "float") + get(lineDict, "contractListValueRollup_l", "float"));
+            	put(monthlyRecurRevDict, lineDocNum, get(monthlyRecurRevDict, lineDocNum, "float") + get(lineDict, "monthlyRecurRevRollup_l", "float"));
+            	put(monthlyUsageRevDict, lineDocNum, get(monthlyUsageRevDict, lineDocNum, "float") +  get(lineDict, "monthlyUsageRevSummable_l", "float"));
+            } else {
+            	put(recurRevDict, lineDocNum, get(recurRevDict, lineDocNum, "float") + get(lineDict, "recurringRevSummable_l", "float"));
+            	put(nonRecurRevDict, lineDocNum, get(nonRecurRevDict, lineDocNum, "float") + get(lineDict, "nonRecurRevSummable_l", "float"));
+            	put(usageRevDict, lineDocNum, get(usageRevDict, lineDocNum, "float") + get(lineDict, "usageRevSummable_l", "float"));
+            	put(contractValDict, lineDocNum,  get(contractValDict, lineDocNum, "float") + get(lineDict, "contractValue_l", "float"));
+           	put(contractListValDict, lineDocNum,  get(contractListValDict, lineDocNum, "float") + get(lineDict, "contractListValue_l", "float"));
+           	put(monthlyRecurRevDict, lineDocNum, get(monthlyRecurRevDict, lineDocNum, "float") + get(lineDict, "monthlyRecurRevSummable_l", "float"));
+            	put(monthlyUsageRevDict, lineDocNum, get(monthlyUsageRevDict, lineDocNum, "float") +  get(lineDict, "monthlyUsageRevSummable_l", "float"));
+            } 
+        }
+    }
+    if(get(lineDict, "lineType_l", "string") <> "MODEL" or get(lineDict, "listPrice_l", "float") <> 0){ //ignore no price models
+        if(containskey(priceTypeDict, groupSeqLine)) {
+            priceType = get(priceTypeDict, groupSeqLine);
+            pricePeriod = get(pricePeriodDict, groupSeqLine);
+            contractPeriods = get(contractPeriodsDict, groupSeqLine, "integer");
+            linePriceType = get(lineDict, "priceType_l", "string");
+            if(hasCharges) {
+            	linePriceType = get(lineDict, "priceTypeRollup_l", "string");
+            }
+            if(linePriceType <> priceType)
+            {
+                put(priceTypeDict, groupSeqLine, "Mixed");             
+            }
+            v_priceRecurFrequency_l = get(lineDict, "priceRecurFrequency_l", "string");
+            if(hasCharges) {
+            	v_priceRecurFrequency_l = get(lineDict, "priceRecurFrequencyRollup_l", "string");
+            }
+            if(v_priceRecurFrequency_l <> pricePeriod)
+            {
+                granular = ""; // keep the granular one.
+                if(v_priceRecurFrequency_l == "MONTHLY" or pricePeriod == "MONTHLY" ) {
+                    granular = "MONTHLY";
+                } else {
+                    if(v_priceRecurFrequency_l == "YEARLY" or pricePeriod == "YEARLY" ){
+                        granular = "YEARLY";
+                    }
+                }
+                put(pricePeriodDict, groupSeqLine, granular);
+            }        
+            v_contractedPeriods_l = get(lineDict, "contractedPeriods_l", "integer");
+            if(hasCharges) {
+            	v_contractedPeriods_l = get(lineDict, "contractedPeriodsRollup_l", "integer");
+            }
+            if(v_contractedPeriods_l > contractPeriods){ //keep largest
+                put(contractPeriodsDict, groupSeqLine, v_contractedPeriods_l);
+            }                                      
+        } else {
+            if(hasCharges) {
+		put(priceTypeDict, groupSeqLine, get(lineDict, "priceTypeRollup_l", "string"));
+            	put(contractPeriodsDict, groupSeqLine, get(lineDict, "contractedPeriodsRollup_l", "integer"));
+            	put(pricePeriodDict, groupSeqLine, get(lineDict, "priceRecurFrequencyRollup_l", "string"));
+            } else {
+		put(priceTypeDict, groupSeqLine, get(lineDict, "priceType_l", "string"));
+            	put(contractPeriodsDict, groupSeqLine, get(lineDict, "contractedPeriods_l", "integer"));
+            	put(pricePeriodDict, groupSeqLine, get(lineDict, "priceRecurFrequency_l", "string"));
+            }                     
+        }  
+    }
+
+return sbtostring(rollupStr);

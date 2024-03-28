@@ -1,0 +1,14 @@
+{
+  "name" : "SRD Summary Table Validations",
+  "variableName" : "sRDSummaryTableValidations",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "inputDict",
+    "type" : "String Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "selectedItemsArray", "selectedItemsBasedOnVendorQuoteNumberArray", "vendorQuoteRequestNumberField_VQt", "sRDTableEditValidationItemArray_t", "sRDTableEditValidationVQArray_t" ],
+  "systemAttributes" : [ ]
+}

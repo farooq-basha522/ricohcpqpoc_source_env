@@ -1,0 +1,17 @@
+{
+  "name" : "Vendor Quoting CPQ API Calls",
+  "variableName" : "vendorQuotingCPQAPICalls",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "attrDict",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "actionName",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "bs_id" ],
+  "systemAttributes" : [ "_system_company_name" ]
+}

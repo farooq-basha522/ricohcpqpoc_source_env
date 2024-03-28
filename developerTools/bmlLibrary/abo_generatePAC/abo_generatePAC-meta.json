@@ -1,0 +1,24 @@
+{
+  "name" : "abo_generatePAC",
+  "variableName" : "abo_generatePAC",
+  "description" : "This utility function is for generating \"projected asset cache(PAC) BOM. it loads asset and open order lines  to the specified date and apply open order changes to asset to calculate a projected state of the asset as of requested date.",
+  "libraryFunctions" : [ "util.abo_apply", "util.abo_getQuoteBoms", "util.abo_isjsonnull", "util.abo_loadAsset" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "assetKey",
+    "type" : "String"
+  }, {
+    "name" : "transactionDate",
+    "type" : "Date"
+  }, {
+    "name" : "transactionId",
+    "type" : "Integer"
+  }, {
+    "name" : "lineNum_to_exclude",
+    "type" : "Integer"
+  }, {
+    "name" : "requestAction",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

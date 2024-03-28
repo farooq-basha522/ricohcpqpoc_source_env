@@ -1,0 +1,122 @@
+/*
+    @name                   :    Library Function to fetch the linkage(association between parent part- sequence number/child -sequence number)
+    @author                 :    Supriya
+    @created                :    28-Aug-2022
+   
+    This function will return the mapping in terms of sequence number in Linked item column
+     @return   		        :	[String]
+*/
+result = "";
+partNumber="";itemId ="";parentSeqNum="";parentPartSeqNum="";
+partParentdNumber="";groupSequenceNumber ="";itemChildId ="";partChildNumber="";docNum="";
+linkedItemArrayJson= jsonarray();
+linkedItemJson= json();linkedItemPartsJson=json();psLinkedJSON  =json(); psLinkedDocNumJSON=json();
+linkedItemJson1= json();
+linkageParentJson=json();
+seqNum=1;
+packageName="";
+addonpackageName="";
+bundleNameArray=string[];
+print linkageParentJson;
+/*Logic to fetch the group sequence numer for harwdare/software parts and store it in JSON-linkedItemJson*/
+for each in transactionLine{
+ if(each.bundleName_l=="RWA"){
+	 packageName="RWA-PACKAGE-1";
+ }
+if(each.bundleName_l=="RWA Safe"){
+	packageName="RWASAFE-PACKAGE-1";
+}
+if(each.bundleName_l=="RWA Safe Plus"){
+	packageName="RWASAFEPLUS-PACKAGE-1";
+}
+if(each.bundleName_l=="Desktop Anywhere+"){
+	addonpackageName="ADDON-BUNDLE-3";
+}
+ if(each.bundleName_l=="RPAP Basic"){
+	 packageName="RPAPBASICBUNDLE-1";
+ }
+ if(each.bundleName_l=="RPAP Standard"){
+	 packageName="RPAPSTDBUNDLE-1";
+ }
+  if(each.bundleName_l=="RPAP Premium"){
+	 packageName="RPAPPREMIUMBUNDLE-1";
+ }
+append(bundleNameArray,packageName);
+append(bundleNameArray,addonpackageName);
+print bundleNameArray;
+psBomItemRecord = bmql("Select SequenceNum,PartNumber from Oracle_BomItemDef2 where ItemType in $BundleNameArray and ParentSequenceNum= $seqNum");
+for eachRecord in psBomItemRecord {
+print eachRecord ;
+	 partNumber=get(eachRecord,"PartNumber");
+	 seqNumber=get(eachRecord,"SequenceNum");
+	 jsonput(linkageParentJson,PartNumber+"PART",partNumber);
+     jsonPut(linkageParentJson,PartNumber+"SEQ",seqNumber);
+}
+ 
+        partNumberChild = each._part_number;
+	    itemIdChild=each.ItemId_l;
+		 if(NOT ISNULL(each._document_number)) {
+	    docNum= each._document_number;
+	   }
+	   jsonput(psLinkedDocNumJSON,partNumberChild,docNum);
+   if((NOT ISNULL(each._parent_doc_number)) AND(each._parent_doc_number <>"") ){
+       
+      partNum=each._part_number+"PART";
+	  seqNo=each._part_number+"SEQ";
+	    
+	  partNo=jsonget(linkageParentJson,partNum);
+	  childSeqNum=jsonget(linkageParentJson,seqNo);
+	  if(each.bundleName_l<>"Desktop Anywhere"){
+	  if(each._part_number==partNo AND childSeqNum<>""){
+	 
+	     groupSequenceNumber=each._group_sequence_number;
+	     psBomItemRecord = bmql("Select ItemId,PartNumber from Oracle_BomItemDef2 where ParentSequenceNum= $childSeqNum");
+        for eachRec in psBomItemRecord {
+       PRINT eachRec;
+	     partNumber=get(eachRec ,"PartNumber");
+	    //  PRINT partNumber;
+	     itemNum=get(eachRec ,"ItemId");
+	     jsonput(linkedItemJson,partNumber,groupSequenceNumber);
+	     
+	   }
+	    }	
+	  }
+       
+        
+}
+}
+
+print linkedItemJson;
+/* Logic to fetch the sequence number set in  Oracle_BomItemDef2 for parent part to associate the linkage*/	 
+jsonarrayappend(linkedItemArrayJson,linkedItemJson);
+
+myArr = range(jsonarraysize(linkedItemArrayJson));
+for eachArr in myArr {
+psLinkedJSON  = jsonarrayget(linkedItemArrayJson, eachArr , "json");
+ } 
+//print psLinkedJSON;
+keys= jsonkeys(psLinkedJSON);
+ for key in keys{
+    linkedItemVal=jsonget(psLinkedJSON,key);
+    if(NOT ISNULL(jsonget(psLinkedDocNumJSON,key))){
+    
+    docNum=jsonget(psLinkedDocNumJSON,key);
+   
+    }
+    result = result  + docNum + "~linkedItem_l~" + linkedItemVal+  "|";
+     }
+for each in transactionLine{
+if(NOT ISNULL(each._document_number)){
+	    docNum= each._document_number;
+	   }
+if((NOT ISNULL(each._parent_doc_number)) AND(each._parent_doc_number <>"")){
+ 
+     keys= jsonkeys(psLinkedJSON);
+     for key in keys{
+     linkedItemVal=jsonget(psLinkedJSON,key);
+   
+  } 
+ } 
+ } 
+
+return result;

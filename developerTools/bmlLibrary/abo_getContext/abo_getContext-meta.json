@@ -1,0 +1,9 @@
+{
+  "name" : "abo_getContext",
+  "variableName" : "abo_getContext",
+  "description" : "This utilty BML is used to retreive the context for current process from session",
+  "libraryFunctions" : [ "util.abo_isjsonnull" ],
+  "returnType" : "Json",
+  "parameters" : [ ],
+  "attributes" : [ ]
+}

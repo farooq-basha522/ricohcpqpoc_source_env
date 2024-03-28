@@ -1,0 +1,39 @@
+//Name : PostDefaultOnLineItemFOM
+//Variable Name : oRCL_fOM_postDefaultOnLineItem
+//Description:This BML is used for populating root asset Key and charges for lines. 
+//Invoked from sub doc ->Advanced Default->After formula
+//Imported Sub doc attributes : _part_number, _document_number,oRCL_pRC_useUsageLock, _price_calculation_info
+//Input Parameters:
+//      "lineHierInfo" - dict("anytype"); result of AboBuildLineItemHierarchy execution
+// Output: String
+// Dependency : None
+
+returnString = "";
+docNumToRootDocNum = get(lineHierInfo, "DocNumToRootDocNum", "dict<string>");
+docNumToAttrs = get(lineHierInfo, "DocNumToAttrs", "dict<anytype>");
+sequenceNumber = 0;
+for line in transactionLine {
+   
+	//populate rootAssetKey_l
+	rootAssetKey="";	
+	if(containskey(docNumToRootDocNum , line._document_number)){
+	    rootDocNumber = get(docNumToRootDocNum, line._document_number);	   
+	    lineAttrMap = get(docNumToAttrs, rootDocNumber ,"dict<string>");
+	   
+	    rootAssetKey =  get(lineAttrMap, "itemInstanceId_l");	
+	    
+	}
+	if(isnull(rootAssetKey) OR rootAssetKey == ""){	
+	  //Simple product case
+	  if ( len(line._model_variable_name) < 1 AND len(line._parent_doc_number) < 1 AND 
+             len(line._line_bom_id) > 1  ){            
+             lineAttrMap = get(docNumToAttrs, line._document_number ,"dict<string>");                      
+             rootAssetKey =  get(lineAttrMap, "itemInstanceId_l" );         
+          }
+	}
+        	  
+	returnString = returnString +"|"+ line._document_number+"~rootAssetKey_l~"+rootAssetKey;
+}
+
+
+return returnString;

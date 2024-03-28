@@ -1,0 +1,11 @@
+{
+  "name" : "Quote Summary Build",
+  "variableName" : "quoteSummaryBuild",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_parent_doc_number", "_model_variable_name", "_model_name", "chargeType_l", "unitSRP_l", "unitSalesCost_l", "discountAmountt_l", "contractedUnitPrice_l", "promotionValue_l", "unitSellingPrice_l", "marginPercentagesalescost_l", "marginPercentagestdscost_l", "type_l", "_part_number", "extNetPrice_l", "extSellingPrice_l", "unitCost_l" ],
+  "mainDocAttributes" : [ "_transaction_document_number", "termMonths_t", "contractOtherTerm_t" ],
+  "systemAttributes" : [ ]
+}

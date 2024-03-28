@@ -1,0 +1,66 @@
+retArr = String[];
+
+tableName = "QuoteTemplates";
+templateName = templateDisplayName;
+//whereClause = "TemplateDisplayName = $templateName";
+whereClause = "TemplateDisplayName = '" + templateName + "'";
+if (startswith(templateDisplayName, "Custom@@")) {
+	tableName = "CustomTemplates";
+	templateName = substring(templateDisplayName, 8, len(templateDisplayName));
+	whereClause = "TemplateDisplayName = '" + templateName + "' AND Owner = '" + _user_login + "'";
+	//whereClause = whereClause + " AND Owner = $_user_login";
+}
+
+
+
+if(configAttribute == "PartDescription"){
+	tempResults = bmql("SELECT PartDescription, PartDesc2, PartDesc3, PartDesc4, PartDesc5, PartDesc6, PartDesc7, PartDesc8 FROM $tableName WHERE $whereClause");
+	for temp in tempResults {
+		partDesc = get(temp, "PartDescription");
+		partDesc2 = get(temp, "PartDesc2");
+		partDesc3 = get(temp, "PartDesc3");
+		partDesc4 = get(temp, "PartDesc4");
+		partDesc5 = get(temp, "PartDesc5");
+		partDesc6 = get(temp, "PartDesc6");
+		partDesc7 = get(temp, "PartDesc7");
+		partDesc8 = get(temp, "PartDesc8");
+		
+		tempDesc = partDesc + " " + partDesc2 + " " + partDesc3 + " " + partDesc4 + " " + partDesc5 + " " + partDesc6 + " " + partDesc7 + " " + partDesc8;		
+		formattedDesc = replace(tempDesc, "<<CRLF>>", "\r\n");
+		append(retArr, formattedDesc);
+	}
+
+
+}
+else{	//make bmql call with templateDisplayName in WHERE clause
+	//and return the column that corresponds to the configAttribute parameter
+	//loop through the results, get each value from the table and append to the retArr
+	tempResults = bmql("SELECT $configAttribute FROM $tableName WHERE $whereClause");
+	for temp in tempResults {
+		value = get(temp, configAttribute);
+		if (configAttribute == "CategoryType") {
+			if (upper(value) == "HARDWARE") {
+				value = "Hardware";
+			}
+			elif (upper(value) == "SOFTWARE") {
+				value = "Software";
+			}
+			elif (upper(value) == "SUPPORT") {
+				value = "Support";
+			}
+			elif (upper(value) == "IT SERVICES-HARDWARE" OR upper(value) == "IT SERVICES-SOFTWARE" OR upper(value) == "IT SERVICES-SUPPORT") {
+				value = upper(value);
+			}
+			else {
+				value = "NOT FOUND";
+			}
+		}
+		append(retArr, value);
+	}
+
+}
+
+
+
+
+return retArr;

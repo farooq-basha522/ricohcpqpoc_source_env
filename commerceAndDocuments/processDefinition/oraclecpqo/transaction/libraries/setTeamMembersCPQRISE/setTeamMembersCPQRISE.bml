@@ -1,0 +1,373 @@
+/******************************************************************************************************/
+//Author:                             Subha   12/8/2021
+//Functionality: To fetch the team members from RE Case team members from RISE
+//code added by Rohit Ranjan for CHG0086925 to show LDE manager name for F&F approval.
+//code added by Rohit Ranjan for CHG0087471 to get updated manager data from HRMS.
+/******************************************************************************************************/
+
+returnString = "";
+recaseId = "";
+reCaseIdendpointURL = "";
+reCaseendpointURL = "";
+bcEndpointURL = "";
+otherRelevantInforURL = "";
+firstName = "";
+lastName = "";
+Id = "";
+job = "";
+title = "";
+role = "";
+designEmail = "";
+designResource = "";
+emailAddress = "";
+reCaseURL = "";
+apiService = "";
+links = "";
+primarDesignLeadEmailFromTeamMembersTable = "";
+primarDesignLeadNameFromTeamMembersTable = "";
+supervisorEmailForPDLfromTeamMembersTable = "";
+supervisorNameForPDLfromTeamMembersTable = "";
+teamMemberArray = selectedDRTeamMemberArraySet_t;
+//Below variable initialize for CHG0086925
+supervisorEmailForLDEfromTeamMembersTable="";
+
+jsonObjs = json();
+recaseIdObj = json();
+reCaseIdjson =json();
+teamArrJson = json();
+reCaseArray = jsonarray();
+jsonArrObj1 = jsonarray();
+teamMemArray = jsonarray();
+jobRoleDict = dict("string");
+headerDict = dict("string");
+enCodeFormat = "";
+
+/**********************Authorization Query*************************************/
+recordSet = bmql("select ENDPOINTURL,LOGIN,PASSWORD from RISE_INTEGRATION where INSTANCE = $_system_supplier_company_name");
+for each in recordSet {
+	enCodeFormat = get(each,"LOGIN")+":"+get(each,"PASSWORD");
+        endpointURL = get(each,"ENDPOINTURL");
+	}
+
+put(headerDict, "Content-Type", "json/xml");
+put(headerDict, "Authorization", "Basic "+encodebase64(enCodeFormat));
+/**********************Authorization Query*************************************/
+
+/********************** RE Case Id from the Opportunity *************************************/
+reCaseURLquery= BMQL("select Endpoint_URL,API_Service from RAC_EndpointURL where CPQ_SysCompName= $_system_company_name");
+for eachURL in reCaseURLquery {
+	reCaseURL= get(eachURL, "Endpoint_URL");
+        apiService= get(eachURL, "API_Service");
+        if(apiService=="RECase_Id"){
+        	reCaseIdendpointURL = reCaseURL+opportunityID_t;
+        	}              
+	}
+reCaseIdresponse= urldatabyget(reCaseIdendpointURL,"","error",1000000, headerDict);
+
+//START - Added by Vasundhara - Added If condition for C009 - Dealer type of quotes to set team member array with Primary Design Lead as Current user
+emailIdForDealerPDL  = _system_user_email;
+firstNameForDealerPDL = "";
+lastNameForDealerPDL = "";
+jobNameForDealerPDL = "";
+jobCodeForDealerPDL = "";
+userNameForDealerPDL = "";
+roleForDealerPDL = "";
+supervisorEmailForPDL = "";
+supervisorNameForPDL = "";
+emailIdForDealer_PDL = "";
+leadDesignEngineerFlagForDealerPDL = "false";
+primaryDesignLeadFlagForDealerPDL = "true";
+
+hrmsRecordSet = bmql("select FirstName, LastName, JobName, JobCode, SupervisorEmail, SupervisorName, EmailAddress from RAC_HRMS");
+for eachRecord in hrmsRecordSet {
+	//firstNameForDealerPDL = get(eachRecord,"FirstName");
+	//lastNameForDealerPDL = get(eachRecord,"LastName");
+	//jobNameForDealerPDL = get(eachRecord,"JobName");
+        //jobCodeForDealerPDL = get(eachRecord,"JobCode");
+        //supervisorEmailForPDL = get(eachRecord,"SupervisorEmail");
+        //supervisorNameForPDL = get(eachRecord,"SupervisorName");
+        emailIdForDealer_PDL = get(eachRecord,"EmailAddress");
+        
+        put(jobRoleDict, emailIdForDealer_PDL+"firstName" , get(eachRecord,"FirstName"));
+        put(jobRoleDict, emailIdForDealer_PDL+"lastName" , get(eachRecord,"LastName"));
+        put(jobRoleDict, emailIdForDealer_PDL+"JobName" , get(eachRecord,"JobName"));
+        put(jobRoleDict, emailIdForDealer_PDL+"JobCode" , get(eachRecord,"JobCode"));
+        put(jobRoleDict, emailIdForDealer_PDL+"SupervisorEmail" ,get(eachRecord,"SupervisorEmail"));
+        put(jobRoleDict, emailIdForDealer_PDL+"SupervisorName" , get(eachRecord,"SupervisorName"));
+        put(jobRoleDict, emailIdForDealer_PDL+"EmailAddress" , get(eachRecord,"EmailAddress"));
+	}
+
+if(containskey(jobRoleDict,emailIdForDealerPDL+"JobCode")){
+	jobCodeForDealerPDL= get(jobRoleDict,emailIdForDealerPDL+"JobCode");
+		roleRecordSet = bmql("SELECT Role FROM RAC_TeamMembers WHERE JobCode = $jobCodeForDealerPDL");
+					for eachRecord in roleRecordSet {
+						roleForDealerPDL = get(eachRecord, "Role");
+					}
+	}
+
+if(acquisitionType_t == "Dealer" AND teamMembers_RECase_Flag == false){
+	teamMembersJson = json();
+        if(containskey(jobRoleDict,emailIdForDealerPDL+"firstName")){
+        	firstNameForDealerPDL = get(jobRoleDict,emailIdForDealerPDL+"firstName");
+        }
+        
+        if(containskey(jobRoleDict,emailIdForDealerPDL+"lastName")){
+        	lastNameForDealerPDL = get(jobRoleDict,emailIdForDealerPDL+"lastName");
+		}
+                
+        userNameForDealerPDL = firstNameForDealerPDL + " " + lastNameForDealerPDL;
+        jsonput(teamMembersJson,"selectedName_DRTeamMemberArray_t",userNameForDealerPDL);
+		if(containskey(jobRoleDict,emailIdForDealerPDL+"EmailAddress")){
+			jsonput(teamMembersJson,"selectedEmail_DRTeamMemberArray_t",get(jobRoleDict,emailIdForDealerPDL+"EmailAddress"));
+			primarDesignLeadEmailFromTeamMembersTable = get(jobRoleDict,emailIdForDealerPDL+"EmailAddress");
+		}
+		if(containskey(jobRoleDict,emailIdForDealerPDL+"JobName")){
+			jsonput(teamMembersJson,"title_DRTeamMemberAarray_t",get(jobRoleDict,emailIdForDealerPDL+"JobName"));
+		}
+		
+		if(containskey(jobRoleDict,emailIdForDealerPDL+"SupervisorEmail")){
+			jsonput(teamMembersJson,"manager_DRTeamMemberAarray_t",get(jobRoleDict,emailIdForDealerPDL+"SupervisorEmail"));
+			supervisorEmailForPDLfromTeamMembersTable = get(jobRoleDict,emailIdForDealerPDL+"SupervisorEmail");
+
+		}
+		if(containskey(jobRoleDict,emailIdForDealerPDL+"SupervisorName")){
+			//jsonput(teamMembersJson,"manager_DRTeamMemberAarray_t",get(jobRoleDict,emailIdForDealerPDL+"SupervisorName"));
+			supervisorNameForPDLfromTeamMembersTable= get(jobRoleDict,emailIdForDealerPDL+"SupervisorName");
+
+		}
+		jsonput(teamMembersJson,"selectedRole_DRTeamMemberAarray_t",roleForDealerPDL);
+		jsonput(teamMembersJson,"leadDesignEngineer_DRTeamMemberAarray_t",leadDesignEngineerFlagForDealerPDL);
+		jsonput(teamMembersJson,"primaryDesignLead_DRTeamMemberAarray_t",primaryDesignLeadFlagForDealerPDL);
+
+		jsonarrayappend(teamMemberArray,teamMembersJson);
+			primarDesignLeadNameFromTeamMembersTable = userNameForDealerPDL;
+			returnString = returnString + "1~teamMembers_RECase_Flag~" + string(true) +"|";
+
+}
+
+elif(acquisitionType_t <> "Dealer" AND teamMembers_RECase_Flag == false){    
+	//END - Added by Vasundhara - Added elif condition for C009 with AND condition so it runs only for CASH and LEASE quote coming from RISE and not for Dealer quotes.
+        if(reCaseIdresponse<> "" AND reCaseIdresponse<> "error" AND ISNULL(reCaseIdresponse)==false AND find(reCaseIdresponse,"<title>")==-1){
+        	recaseIdObj = json(reCaseIdresponse);
+                reCasearrVal= jsonget(recaseIdObj,"items");
+                reCaseArray = jsonarray(reCasearrVal);
+                reCasearraysize = range(jsonarraysize(reCaseArray));
+                for reCaseval in reCasearraysize {
+                	valReCase = jsonarrayget(reCaseArray ,reCaseval );
+                        reCaseIdjson= json(valReCase);
+                        if(not isnull(jsonget(reCaseIdjson,"Id")) AND jsonget(reCaseIdjson,"Id") <> ""){
+                        	recaseId= jsonget(reCaseIdjson,"Id");
+                                }
+                        }
+                }
+                
+	if(recaseId<>"" AND NOT ISNULL(recaseId)){
+        	for eachURL in reCaseURLquery{
+                	reCaseURL= get(eachURL, "Endpoint_URL");
+                        apiService= get(eachURL, "API_Service");
+                        if(apiService=="Team_Members"){
+                        	reCaseendpointURL= reCaseURL+recaseId+"/child/TeamCollection_c";
+                                }
+                       }
+                       
+                //To loop in the response and append the data in the team members array set
+                response = urldatabyget(reCaseendpointURL,"","error",50000, headerDict);
+                if(response <> "" AND response <> "error" AND find(response,"<title>")==-1){
+                	returnString = returnString + "1~teamMembers_RECase_Flag~"+"true"+"|";
+                        jsonObjs = json(response);
+                        str = jsonget(jsonObjs,"items");
+                        jsonArrObj1 = jsonarray(str);
+                        arrSize = jsonarraysize(jsonArrObj1);
+                        iterate = range(arrSize);
+                        for each in iterate{
+                        	count = 0;
+                                job = "";
+                                title = "";
+                                role = "";
+                                managerEmail = "";
+                                managerName = "";
+                               	valStr1 = jsonarrayget(jsonArrObj1,each);
+                                jsonObj = json(valStr1);
+                                                                
+                                if(not isnull(jsonget(jsonObj,"DesignResource_c")) AND jsonget(jsonObj,"DesignResource_c") <> "null" AND jsonget(jsonObj,"DesignResource_c") <> ""){
+                                	designResource= jsonget(jsonObj,"DesignResource_c");
+                                        jsonput(teamArrJson,"selectedName_DRTeamMemberArray_t",designResource);
+                                         }
+                                                                
+                               	primaryFlag = "";
+                                if(not isnull(jsonget(jsonObj,"Primary_c")) AND jsonget(jsonObj,"Primary_c") <> "null" AND jsonget(jsonObj,"Primary_c") <> ""){
+                                	primaryFlag= jsonget(jsonObj,"Primary_c");
+                                        jsonput(teamArrJson,"primaryDesignLead_DRTeamMemberAarray_t",primaryFlag);
+										jsonput(teamArrJson,"primaryDesignFlagAsText_t","Yes");							
+                                        }
+                                                
+                                if(not isnull(jsonget(jsonObj,"SolutionServicesCategory_c")) AND jsonget(jsonObj,"SolutionServicesCategory_c") <> "null" AND jsonget(jsonObj,"SolutionServicesCategory_c") <> ""){
+                                	solutionCat= jsonget(jsonObj,"SolutionServicesCategory_c");
+                                        jsonput(teamArrJson,"solutionServicesCategory_DRTeamMemberArray_t",solutionCat);
+                                        }
+                                                
+                                if(not isnull(jsonget(jsonObj,"DesignResource_c")) AND jsonget(jsonObj,"DesignResource_c") <> "null" AND jsonget(jsonObj,"DesignResource_c") <> ""){
+                                        designEmail = lower(jsonget(jsonObj,"Email_c"));
+										jsonput(teamArrJson,"selectedEmail_DRTeamMemberArray_t",designEmail );
+                                        //To query the Title, Role, SupervisorEmail for the team members added from the RISE
+					if((containskey(jobRoleDict,designEmail+"EmailAddress"))){
+	                                        if(lower(get(jobRoleDict,designEmail+"EmailAddress")) == lower(designEmail)){
+							if(containskey(jobRoleDict,designEmail+"JobCode")){
+								jobCodeForDealerPDL= get(jobRoleDict,designEmail+"JobCode");
+								job = jobCodeForDealerPDL;
+							}
+							if(containskey(jobRoleDict,designEmail+"JobName")){
+								jobNameForDealerPDL= get(jobRoleDict,designEmail+"JobName");
+								title = jobNameForDealerPDL;
+								jsonput(teamArrJson,"title_DRTeamMemberAarray_t",title);
+							}
+							if(containskey(jobRoleDict,designEmail+"SupervisorEmail")){
+								supervisorEmailForPDL= get(jobRoleDict,designEmail+"SupervisorEmail");
+	                                                	managerEmail = supervisorEmailForPDL;
+														jsonput(teamArrJson,"manager_DRTeamMemberAarray_t",managerEmail);
+							}
+							if(containskey(jobRoleDict,designEmail+"SupervisorName")){
+								supervisorNameForPDL= get(jobRoleDict,designEmail+"SupervisorName");
+	                                                	managerName = supervisorNameForPDL;
+												}
+	                                               if(containskey(jobRoleDict,designEmail+"JobCode")){
+								jobCodeForDealerPDL= get(jobRoleDict,designEmail+"JobCode");
+									roleRecordSet = bmql("SELECT Role FROM RAC_TeamMembers WHERE JobCode = $jobCodeForDealerPDL");
+										for eachRecord in roleRecordSet {
+											roleForDealerPDL = get(eachRecord, "Role");
+											role = roleForDealerPDL;
+											 jsonput(teamArrJson,"selectedRole_DRTeamMemberAarray_t",role);
+										}
+							}
+						}
+					}
+                                           /*jsonput(teamArrJson,"selectedEmail_DRTeamMemberArray_t",designEmail );
+                                           jsonput(teamArrJson,"manager_DRTeamMemberAarray_t",managerEmail);
+                                           jsonput(teamArrJson,"selectedRole_DRTeamMemberAarray_t",role);
+                                           jsonput(teamArrJson,"title_DRTeamMemberAarray_t",title);*/
+
+                                           teamMemArraysize = jsonarraysize(teamMemberArray);               
+                                           teamMemArrayrange = range(teamMemArraysize)          ;
+                                           for  teammem  in teamMemArrayrange{
+                                           	existingemail = jsonget(json(jsonarrayget(teamMemberArray , teammem)),"selectedEmail_DRTeamMemberArray_t");
+                                                if(designEmail==existingemail){
+                                                	count = 1;
+                                                         }
+                                                }
+                                                
+                                           //START - Added by Vasundhara - For C031 Added if condition to capture PDL for quote -  while coming from RISE
+                                           if(primaryFlag == "true"){
+                                           	primarDesignLeadEmailFromTeamMembersTable = designEmail;
+                                                supervisorEmailForPDLfromTeamMembersTable = managerEmail;
+                                                supervisorNameForPDLfromTeamMembersTable = managerName;
+                                                primarDesignLeadNameFromTeamMembersTable = designResource;
+                                                }
+                                            //END - Added by Vasundhara - For C031 Added if condition to capture PDL for quote - while coming from RISE
+                                            if(count == 0){
+                                            	jsonarrayappend(teamMemberArray ,teamArrJson);
+                                                }
+                                   	}
+                                }
+                       	}
+                }
+	}
+
+//START - Added by Vasundhara - For C031 Added if condition to capture PDL for quote - When Changing PDL
+       //Below line of code commented and added by Rohit Ranjan for CHG0087471	
+//teamMembersJsonArray = selectedDRTeamMemberArraySet_t;
+teamMembersJsonArray = teamMemberArray;
+arraysize = range(jsonarraysize(teamMembersJsonArray));
+selectedItemsJsonArray=jsonarray();
+for arr in arraysize{
+	selectedItemsRow = jsonarrayget(teamMembersJsonArray,arr);
+        selectedItemsJson = json(selectedItemsRow);
+        primaryDesignLead_DRTeamMemberAarray_t = jsonget(selectedItemsJson,"primaryDesignLead_DRTeamMemberAarray_t");
+        selectedEmail_DRTeamMemberArray_t = jsonget(selectedItemsJson,"selectedEmail_DRTeamMemberArray_t");
+        //Below line initialize for CHG0086925
+        leadDesignEngineer_DRTeamMemberAarray_t=jsonget(selectedItemsJson,"leadDesignEngineer_DRTeamMemberAarray_t");
+        manager_DRTeamMemberAarray_t = "";
+        if(jsonpathcheck(selectedItemsJson, "$.manager_DRTeamMemberAarray_t")){
+        	manager_DRTeamMemberAarray_t = jsonget(selectedItemsJson,"manager_DRTeamMemberAarray_t");
+        	//Below line of code added by Rohit Ranjan for CHG0087471	
+                jsonput(selectedItemsJson,"manager_DRTeamMemberAarray_t",get(jobRoleDict,selectedEmail_DRTeamMemberArray_t+"SupervisorEmail"));
+                }
+        selectedName_DRTeamMemberArray_t = jsonget(selectedItemsJson,"selectedName_DRTeamMemberArray_t");
+
+        if(primaryDesignLead_DRTeamMemberAarray_t == "true"){
+        	primarDesignLeadEmailFromTeamMembersTable = selectedEmail_DRTeamMemberArray_t;
+        	 //Below line of code commented and added by Rohit Ranjan for CHG0087471	
+                //supervisorEmailForPDLfromTeamMembersTable = manager_DRTeamMemberAarray_t;             
+               supervisorEmailForPDLfromTeamMembersTable = get(jobRoleDict,selectedEmail_DRTeamMemberArray_t+"SupervisorEmail");
+                primarDesignLeadNameFromTeamMembersTable = selectedName_DRTeamMemberArray_t;
+                //Below query code needs to be moved on Search
+                supervisorNameForPDL = "";
+                if(lower(supervisorEmailForPDL) == lower(manager_DRTeamMemberAarray_t)) {
+                	supervisorNameForPDL = supervisorNameForPDL;
+                        firstName = supervisorNameForPDL;
+                        LastName = lastNameForDealerPDL;
+                        supervisorNameForPDL = firstName+" "+LastName;
+                        }
+                supervisorNameForPDLfromTeamMembersTable = supervisorNameForPDL;
+                }
+                    //Below if condition added for CHG0086925            
+                if(leadDesignEngineer_DRTeamMemberAarray_t == "true"){
+        	primarLeadDesignerEmailFromTeamMembersTable = selectedEmail_DRTeamMemberArray_t;
+                supervisorEmailForLDEfromTeamMembersTable = manager_DRTeamMemberAarray_t;
+                primarDesignLeadFromTeamMemberTable = selectedName_DRTeamMemberArray_t;
+                }
+                            //Below line of code added by Rohit Ranjan for CHG0087471	
+	                jsonarrayappend(selectedItemsJsonArray ,selectedItemsJson);
+	                
+	}
+//END - Added by Vasundhara - For C031 Added if condition to capture PDL for quote - When Changing PDL
+
+//added for RITM1254093
+//START_CR129 - CPQ Phase 1 - RE Case Primary Design Lead_by_Shaik //CHG0081532 : CPQ MS- CPQ Changes deployment
+reCaseIDPatch = "";
+if(reCaseIdresponse<> "" AND reCaseIdresponse<> "error" AND ISNULL(reCaseIdresponse)==false AND find(reCaseIdresponse,"<title>")==-1){
+	recaseIdObj = json(reCaseIdresponse);
+        reCasearrVal= jsonget(recaseIdObj,"items");
+        reCaseArray = jsonarray(reCasearrVal);
+        reCasearraysize = range(jsonarraysize(reCaseArray));
+        for reCaseval in reCasearraysize {
+        	valReCase = jsonarrayget(reCaseArray ,reCaseval );
+                reCaseIdjson= json(valReCase);
+                if(not isnull(jsonget(reCaseIdjson,"Id")) AND jsonget(reCaseIdjson,"Id") <> ""){
+                	reCaseIDPatch = jsonget(reCaseIdjson,"Id");
+                        }
+                }
+	}
+        patchRequestJson = json();
+        jsonput(patchRequestJson,"Resource_Email_Address_c",primarDesignLeadEmailFromTeamMembersTable);
+        jsonput(patchRequestJson,"Resource_Name_c",primarDesignLeadNameFromTeamMembersTable);	
+
+	if(reCaseIDPatch <> ""){
+		resourcePatchUrl = substring(reCaseIdendpointURL,0,find(reCaseIdendpointURL,"ResourceEngagementCase_c/"));
+		resourcePatchUrl = resourcePatchUrl+"ResourceEngagementCase_c/"+reCaseIDPatch;
+		put(headerDict, "Content-Type", "application/json");
+		revLineIdPatch= urldata(resourcePatchUrl, "PATCH",headerDict,jsontostr(patchRequestJson));
+               }
+//end here for RITM1254093
+//END_CR129 - CPQ Phase 1 - RE Case Primary Design Lead_by_Shaik end here for RITM1254093/CHG0081532
+
+//Below line of code commented and added by Rohit Ranjan for CHG0087471	
+//returnString = returnString + "1~selectedDRTeamMemberArraySet_t~"+jsonarraytostr(teamMemberArray)+"|";
+returnString = returnString + "1~selectedDRTeamMemberArraySet_t~"+jsonarraytostr(selectedItemsJsonArray)+"|";
+
+if(acquisitionType_t == "Dealer" AND teamMembers_RECase_Flag == false){
+	returnString = returnString + "1~primaryDesignLeadName_t~" + firstNameForDealerPDL + " " + lastNameForDealerPDL +"|";
+	returnString = returnString + "1~designLead_t~" + firstNameForDealerPDL + " " + lastNameForDealerPDL +"|";
+	}
+	
+returnString = returnString + "1~primaryDesignLeadName_t~" + primarDesignLeadNameFromTeamMembersTable +"|";
+returnString = returnString + "1~designLead_t~" + primarDesignLeadNameFromTeamMembersTable +"|";
+
+returnString = returnString + "1~primaryDesignLeadFromTeamMembersTable_t~" + primarDesignLeadEmailFromTeamMembersTable + "|";
+returnString = returnString + "1~designEmailId_t~" + primarDesignLeadEmailFromTeamMembersTable + "|";
+
+returnString = returnString + "1~managerOfDesignEmail~" + supervisorEmailForPDLfromTeamMembersTable + "|";
+returnString = returnString + "1~managerOfDesignName~" + supervisorNameForPDLfromTeamMembersTable + "|";
+//Setting the value for CHG0086925            
+returnString = returnString + "1~managerOfLDE_c~" + supervisorEmailForLDEfromTeamMembersTable + "|";
+
+return returnString ;

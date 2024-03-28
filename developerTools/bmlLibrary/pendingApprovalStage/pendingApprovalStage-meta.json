@@ -1,0 +1,27 @@
+{
+  "name" : "Pending Approval Stage",
+  "variableName" : "pendingApprovalStage",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Boolean",
+  "parameters" : [ {
+    "name" : "actionVarName",
+    "type" : "String"
+  }, {
+    "name" : "approvalStatusSubmit",
+    "type" : "String[][]"
+  }, {
+    "name" : "salesDirectorDPSE",
+    "type" : "String"
+  }, {
+    "name" : "totalMonthlyDiscountPct",
+    "type" : "Float"
+  }, {
+    "name" : "totalOneTimeDiscountPctLessInstall",
+    "type" : "Float"
+  }, {
+    "name" : "lineApprovalsRequired",
+    "type" : "Boolean"
+  } ],
+  "attributes" : [ ]
+}

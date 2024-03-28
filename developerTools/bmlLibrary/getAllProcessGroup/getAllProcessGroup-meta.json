@@ -1,0 +1,12 @@
+{
+  "name" : "Get All Process Group",
+  "variableName" : "getAllProcessGroup",
+  "description" : "//CHG0078656 : CPQ MS- CPQ Changes deployment//",
+  "libraryFunctions" : [ ],
+  "returnType" : "String[]",
+  "parameters" : [ {
+    "name" : "itemTypeArray",
+    "type" : "String[]"
+  } ],
+  "attributes" : [ ]
+}

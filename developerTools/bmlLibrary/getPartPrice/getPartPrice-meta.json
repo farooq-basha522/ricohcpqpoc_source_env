@@ -1,0 +1,15 @@
+{
+  "name" : "Get Part Price",
+  "variableName" : "getPartPrice",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Float",
+  "parameters" : [ {
+    "name" : "PriceAttr",
+    "type" : "String"
+  }, {
+    "name" : "PartNum",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

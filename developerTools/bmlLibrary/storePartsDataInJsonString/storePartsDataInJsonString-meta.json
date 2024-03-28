@@ -1,0 +1,12 @@
+{
+  "name" : "Store parts data in json string",
+  "variableName" : "storePartsDataInJsonString",
+  "description" : "//CHG0078656 : CPQ MS- CPQ Changes deployment//",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "partNumberArray",
+    "type" : "String[]"
+  } ],
+  "attributes" : [ ]
+}

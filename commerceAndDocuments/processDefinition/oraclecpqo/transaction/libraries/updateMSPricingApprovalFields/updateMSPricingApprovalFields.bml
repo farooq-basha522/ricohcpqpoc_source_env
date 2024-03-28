@@ -1,0 +1,172 @@
+retVal = "";
+MARGIN_ROW = "";
+mSPricingApproverLevel = "";
+
+//mSTotalDealMarginArrayRow_t
+recordSet = bmql("select Item from RAC_MS_PIMA where SectionName = 'MS Pricing approval Driver'");
+for each in recordSet{
+	MARGIN_ROW = get(each,"Item");//"Sales Cost Margin%";
+	retval = retval + "1~mSTotalDealMarginArrayRow_t~" + get(each,"Item") + "|";
+}
+//mSPricingApproverEscalationLevel_t
+marginFactor = annualRevenueEscalation_t;
+approverTable = BMQL("SELECT PricingApprovalLevel, LowerMargin, UpperMargin FROM MS_ApprovalMrg where ApprovalType = 'Escalation'");
+for eachRow in approverTable {
+	level = get(eachRow, "PricingApprovalLevel");
+	lowerMargin = get(eachRow, "LowerMargin");
+	upperMargin = get(eachRow, "UpperMargin");
+	if(lowerMargin <> "" AND lowerMargin <>""){
+		if(marginFactor > atof(lowerMargin) AND marginFactor <= atof(upperMargin)){
+			//retval = retval + "1~mSPricingApproverEscalationLevel_t~" + level + "|";
+			break;
+		}
+	}
+}
+//mSPricingApproverLevel_t
+retTempVal = "";
+isDebug = false;
+marginQuoteSummary = "";
+marginFactor  = 0.0;
+index = 1;
+lowerMargin = "";
+upperMargin = "";
+levelArr = String[];
+salesCostMarginDict = dict("string");
+
+mSTotalDealSectionArraySet = json("{\"MSTotalDealRows\":"+jsonarraytostr(mSTotalDealSectionArray_t)+"}");
+mSSalesCostMarginArraySet = jsonpathgetmultiple(mSTotalDealSectionArraySet,"$..MSTotalDealRows[?(@.mSTotalDealRows_ArraySet == '"+MARGIN_ROW+"')]");
+if(jsonarraysize(mSSalesCostMarginArraySet)>0){
+	arraysize = range(jsonarraysize(mSTotalDealSectionArray_t));
+	for each in arraysize {
+		if(NOT isnull(jsonget(json(jsonarrayget(mSSalesCostMarginArraySet , 0)),"year"+string(each+1)+"_MSTotalArraySet"))){
+			put(salesCostMarginDict, "year"+string(each+1), jsonget(json(jsonarrayget(mSSalesCostMarginArraySet , 0)),"year"+string(each+1)+"_MSTotalArraySet"));
+		}
+	}
+	if(isDebug){print salesCostMarginDict;}
+	salesCostMarginArr = keys(salesCostMarginDict);
+	for each in salesCostMarginArr {
+		marginQuoteSummary = get(salesCostMarginDict,each);
+		if(marginQuoteSummary <> ""){
+			marginFactor = atof(marginQuoteSummary);
+			marginFactor = round(marginFactor , 2);
+		}
+		approverTable = BMQL("SELECT PricingApprovalLevel, LowerMargin, UpperMargin FROM MS_ApprovalMrg where ApprovalType = 'Deal'");
+		if(isDebug){
+			Print each + " "+string(marginFactor) ;
+		}
+		for eachRow in approverTable {
+			level = get(eachRow, "PricingApprovalLevel");
+			lowerMargin = get(eachRow, "LowerMargin");
+			upperMargin = get(eachRow, "UpperMargin");
+			if(lowerMargin <> "" AND lowerMargin <>""){
+				if(marginFactor > atof(lowerMargin) AND marginFactor <= atof(upperMargin)){
+					append(levelArr, level);//put(yearDict, "Year"+string(index),marginFactor);
+					break;
+				}
+			}
+		}
+	}
+
+	if(findinarray(levelArr, "Level 3") > -1){
+		retTempVal = "Level 3";
+	}elif(findinarray(levelArr, "Level 2") > -1){
+		retTempVal = "Level 2";
+	}elif(findinarray(levelArr, "Level 1") > -1){
+		retTempVal = "Level 1";
+	}
+	mSPricingApproverLevel = retTempVal;
+
+}
+//retval = retval + "1~mSPricingApproverLevel_t~" + retTempVal + "|";
+
+
+//mSPricingApproverYearsBreached_t
+retTempVal = "";
+rowDelim = "@$@";
+colDelim = "#$#";
+marginFactor  = 0.0;
+index = 1;
+lowerMargin = "";
+upperMargin = "";
+yearDict = dict("float");
+arraysize = range(jsonarraysize(mSTotalDealSectionArray_t));
+
+//-------------------- Find Level Factor based on year deal---------------
+approverTable = BMQL("SELECT ApprovalType, LowerMargin, UpperMargin FROM MS_ApprovalMrg where PricingApprovalLevel = $mSPricingApproverLevel AND ApprovalType = 'Deal'");
+//-------------------- Find Level Factor based on year deal---------------
+
+for each in arraysize {
+	marginFactor  = commerce.getMStotalDealMargin(string(each+1));
+	if(isDebug){print marginFactor  ;}
+	for eachRow in approverTable {
+		lowerMargin = get(eachRow, "LowerMargin");
+		upperMargin = get(eachRow, "UpperMargin");
+		if(lowerMargin <> "" AND lowerMargin <>""){
+			if(marginFactor > atof(lowerMargin) AND marginFactor <= atof(upperMargin)){
+				put(yearDict, "Year"+string(index),marginFactor);
+				break;
+			}
+		}
+	}
+	index = index + 1;
+}
+yearArray = keys(yearDict);
+for each in yearArray {
+	if(each <> ""){
+		retTempVal = retTempVal + each + rowDelim + string(get(yearDict, each)) + colDelim ;
+	}
+}
+//retval = retval + "1~mSPricingApproverYearsBreached_t~" + retTempVal + "|";
+
+//mSYearsBreachedForEmail_t
+retTempVal = "";
+marginFactor  = 0.0;
+index = 1;
+lowerMargin = "";
+upperMargin = "";
+yearDict = dict("float");
+//arraysize = range(jsonarraysize(mSTotalDealSectionArray_t));
+if(termMonths_t <> "Other"){
+	contractTerms = contractTermMonthsNumeric_t;
+}else{
+	contractTerms = contractOtherTerm_t;
+}
+arraysize = range(contractTerms/12);
+
+//-------------------- Find Level Factor based on year deal---------------
+approverTable = BMQL("SELECT ApprovalType, LowerMargin, UpperMargin FROM MS_ApprovalMrg where PricingApprovalLevel = $mSPricingApproverLevel AND ApprovalType = 'Deal'");
+
+//-------------------- Find Level Factor based on year deal---------------
+
+for each in arraysize {
+	marginFactor  = commerce.getMStotalDealMargin(string(each+1));
+	if(isDebug){print marginFactor  ;}
+	for eachRow in approverTable {
+		lowerMargin = get(eachRow, "LowerMargin");
+		upperMargin = get(eachRow, "UpperMargin");
+		if(lowerMargin <> "" AND lowerMargin <>""){
+			if(marginFactor > atof(lowerMargin) AND marginFactor <= atof(upperMargin)){
+				put(yearDict, "Year"+string(index),marginFactor);
+				break;
+			}
+		}
+	}
+	index = index + 1;
+}
+yearArray = keys(yearDict);
+for each in yearArray {
+	if(each <> ""){
+		retTempVal = retTempVal + each + "," ;
+	}
+}
+retval = retval + "1~mSYearsBreachedForEmail_t~" + substring(retTempVal, 0, len(retTempVal) - len(","))+ "|";
+
+retval = retval + "1~mSDealMarginYear1_t~" + string(commerce.getMStotalDealMargin("1")) + "|";
+retval = retval + "1~mSDealMarginYear2_t~" + string(commerce.getMStotalDealMargin("2")) + "|";
+retval = retval + "1~mSDealMarginYear3_t~" + string(commerce.getMStotalDealMargin("3"))+ "|";
+retval = retval + "1~mSDealMarginYear4_t~" + string(commerce.getMStotalDealMargin("4")) + "|";
+retval = retval + "1~mSDealMarginYear5_t~" + string(commerce.getMStotalDealMargin("5")) + "|";
+retval = retval + "1~mSDealMarginYear6_t~" + string(commerce.getMStotalDealMargin("6")) + "|";
+retval = retval + "1~mSDealMarginYear7_t~" + string(commerce.getMStotalDealMargin("7")) + "|";
+                        
+return retVal;

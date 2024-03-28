@@ -1,0 +1,18 @@
+/************************************************************************************************************
+	Description: This library function is used to hide reason for rejection field from users who are not approving/rejecting one-off request.
+	Return type: string
+	History:     Date          Author          		Comment 
+	 	    21/08/2023     Rohit Ranjan   	creted as  part of CHG0084002/INC2498450
+	************************************************************************************************************/
+//checking approval status OOTB field if it is not null
+if(NOT isnull(approval_status_submitQuoteToRicoh_t)){
+	approverData=approval_status_submitQuoteToRicoh_t[0][1]; //fetching approver data
+		if(NOT isnull(approverData)){
+			approverEmailSplit=split(approverData,"~"); //finding email id from approver
+			approvalEmailVal=approverEmailSplit[0];
+				if(_system_user_login==approvalEmailVal){    //comparing with system user if approver and this user same then dont hide the field
+					return false;
+					}
+			}
+	}
+return true;

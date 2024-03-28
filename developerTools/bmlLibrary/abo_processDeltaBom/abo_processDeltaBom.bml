@@ -1,0 +1,137 @@
+//Function Name : abo_processDeltaBom
+//   Inputs: pacBom(json), configBom(json)
+//   output : json
+//Description:
+//    This bml is invoked from abo_delta to compare pacBom & configBom and add actionCode
+//Details: 
+//    Compares pacBom & configBom and invoke abo_processDeltaItem for each line for adding actionCode
+//    Assumption is both pacBom & configBom are flat BOMs(2 level hierarachy BOMs)
+
+abocontext = util.abo_getContext();
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true);
+callContext="deltaBom";
+
+ACTION = "oRCL_ABO_ActionCode_l";
+XAACTION = "actionCode";
+DELETE = "DELETE";
+ATTRIBUTES = "attributes";
+
+if(not bDiagnosisOff){//log input
+     dummy=util.abo_addDiagnosticInfo(callContext+"_input_pacBom", pacBom,"addToSummary");
+     dummy=util.abo_addDiagnosticInfo(callContext+"_input_configBom", configBom,"addToSummary");
+}
+
+pacRootId = jsonget(pacBom, "id", "string", "");
+//Step 1: Get the children from the flattened original PAC BOM and generate a mapping of id to index
+mapPacId2Index = json();
+  
+//Step 1.1: Process root object of PAC BOM
+pacChildArray = jsonget(pacBom, "children", "jsonarray", jsonarray());
+dummyArr = string[jsonarraysize(pacChildArray)];
+index = 0;
+for item in dummyArr{
+    curNode = jsonarrayget(pacChildArray, index, "json");
+    id = jsonget(curNode, "id", "string");
+    //adding the id to mapPacId2Index which will be used later to determine if a node was deleted
+    jsonput(mapPacId2Index, id, index);
+    index = index+1;
+}        
+
+if(not bDiagnosisOff){
+  dummy=util.abo_addDiagnosticInfo(callContext+"_initial_mapPacId2Index", mapPacId2Index,"");
+}  
+mapConfigId2Index = dict("integer");          
+configBomRootId = jsonget(configBom, "id", "string");
+put(mapConfigId2Index, configBomRootId, -1);
+  
+  
+//Step 2: Get the children from the flattened config bom and generate a mapping of
+//id to index.  Also process the diff and generate action codes (processDelta) for
+//each node
+configChildArray = jsonget(configBom, "children", "jsonarray", jsonarray());
+   
+//process root of configurator BOM
+flatConfigBom = util.abo_processDeltaItem(pacBom, configBom);
+if(not bDiagnosisOff){
+  dummy=util.abo_addDiagnosticInfo(callContext+"_after processing root configBom=", configBom,"");
+}  
+
+deltaChildArray = jsonarray();
+dummyArr = string[jsonarraysize(configChildArray)];
+index =  0;
+ 
+for item in dummyArr{
+    curConfigNode = jsonarrayget(configChildArray, index, "json");
+    id = jsonget(curConfigNode, "id", "string");
+    bomitemContext=callContext+".child["+string(index)+"]";
+    if(not bDiagnosisOff){
+       dummy=util.abo_addDiagnosticInfo(bomitemContext+" processing:", curConfigNode,"");
+    }  
+
+    put(mapConfigId2Index, id, index);
+    oldNode = json();
+    if(isnull(jsonget(mapPacId2Index, id))<>true){
+        oldNode = jsonarrayget(pacChildArray, jsonget(mapPacId2Index, id, "integer"), "json");
+        jsonremove(mapPacId2Index, id);//because we can't remove from dict
+    }
+          
+    curConfigNode = util.abo_processDeltaItem(oldNode, curConfigNode);
+    jsonarrayappend(deltaChildArray, curConfigNode);
+     
+    index = index + 1;
+}
+deltaChildArray = jsonput(configBom, "children", deltaChildArray);
+
+if(not bDiagnosisOff){
+   dummy=util.abo_addDiagnosticInfo(callContext+" before adding deleted items, configbom=", configBom,"");
+}  
+       
+//Step 3: Nodes that exist only in PAC BOM are assumed to have been deleted so they are added to
+//delta BOM with 'DELETE' actionCode.
+keyArr = jsonkeys(mapPacId2Index);
+pendingMap =  json();//json is used instead of dict because removal is easy
+for key in keyArr{
+    pacIndex = jsonget(mapPacId2Index, key, "integer");
+    oneNode = jsonarrayget(pacChildArray, pacIndex, "json");
+    parPacId = jsonget(oneNode, "parentId", "string");
+    pacId = jsonget(oneNode, "id", "string");
+
+    if(containsKey(mapConfigId2Index, parPacId)<>true){
+       jsonput(pendingMap, parPacId, parPacId);
+     }
+      
+    jsonremove(pendingMap, pacId);
+     
+    fields =  json();
+    jsonput(fields, ACTION, DELETE);
+    jsonput(oneNode, "fields", fields);
+    //ExplodedQuantity is required field for save. Workaround is copy quantity to exploded quantity field
+    if(util.abo_isjsonnull(oneNode, "quantity")<>true){
+           quantity =  jsonget(oneNode, "quantity", "float");
+           jsonput(oneNode, "explodedQuantity", quantity);
+    }
+     //XA action code need to be updated for Delete as well
+     XAJson =  jsonget(oneNode, ATTRIBUTES, "json", json());
+     xaKeys = jsonkeys(XAJson);
+     for oneKey in xaKeys{
+        oneXa =  jsonget(XAJson, oneKey, "json", json());      
+        jsonput(oneXa, XAACTION, DELETE);        
+    }
+    put( mapConfigId2Index, pacId, jsonarraysize(deltaChildArray));
+    jsonarrayappend(deltaChildArray, oneNode);
+   
+}
+if(sizeofarray(jsonkeys(pendingMap))<>0){
+    errMsg="Dangling Parent Id found during delta processing.";
+    dummy=util.abo_addDiagnosticInfo(errMsg+"pendingMap=",pendingMap,"");
+    dummy=util.abo_addDiagnosticInfo(errMsg+"pacBom=",pacBom,"");    
+    dummy=util.abo_addDiagnosticInfo(errMsg+"mapConfigId2Index=checklog",json(),""); 
+    dummy=util.abo_addDiagnosticInfo(errMsg+"modified configBom=",configBom,"");  
+    errMsg=  errMsg+"pendingMap="+jsontostr(pendingMap)+",pacBom="+jsontostr(pacBom)
+                 +",modified configBom="+jsontostr(configBom);
+    throwerror(errMsg, bDiagnosisOff);
+} 
+if(not bDiagnosisOff){
+   dummy=util.abo_addDiagnosticInfo(callContext+"_outputBom", configBom,"addToSummary");
+}
+return configBom;

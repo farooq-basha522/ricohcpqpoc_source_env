@@ -1,0 +1,15 @@
+{
+  "name" : "Safe Atof",
+  "variableName" : "safeAtof",
+  "description" : "Safer version of the atof function. isnumber() check is factored in here. Returns value of \"default\" if not a number",
+  "libraryFunctions" : [ ],
+  "returnType" : "Float",
+  "parameters" : [ {
+    "name" : "strToConvert",
+    "type" : "String"
+  }, {
+    "name" : "fallbackVal",
+    "type" : "Float"
+  } ],
+  "attributes" : [ ]
+}

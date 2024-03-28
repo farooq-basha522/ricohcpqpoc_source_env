@@ -1,0 +1,54 @@
+returnValue = "";
+USERLOGIN = "";
+PASSWORD = "";
+loginCredsArray = split(authentication, "##");
+USERLOGIN = loginCredsArray[0];
+PASSWORD = loginCredsArray[1];
+configDataArray = split(configData, "##");
+CONFIGPATH = replace(configData, "##", "/");
+PRODUCTFAMILY = configDataArray[0];
+PRODUCTLINE = configDataArray[1];
+MODELNAME = configDataArray[2];
+PROCESSVARNAME = "oraclecpqo";
+DOCUMENTVARNAME = "transaction";
+transID = bs_id;
+commerceAttribute = "transactionType_t";
+requestXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"><soapenv:Header><wsse:Security xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\" xmlns:wsu=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\"><wsse:UsernameToken wsu:Id=\"UsernameToken-2\">";
+requestXML = requestXML + "<wsse:Username>" + USERLOGIN + "</wsse:Username>";
+requestXML = requestXML + "<wsse:Password Type=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText\">" + PASSWORD + "</wsse:Password>";
+requestXML = requestXML + "</wsse:UsernameToken></wsse:Security></soapenv:Header><soapenv:Body>";
+requestXML = requestXML + "<bm:configure xmlns:bm=\"http://xmlns.oracle.com/cpqcloud/configuration/" + CONFIGPATH + "\"><bm:item>";
+requestXML = requestXML + "<bm:segment>" + PRODUCTFAMILY + "</bm:segment>";
+requestXML = requestXML + "<bm:product_line>" + PRODUCTLINE + "</bm:product_line>";
+requestXML = requestXML + "<bm:model>" + MODELNAME + "</bm:model>";
+requestXML = requestXML + "</bm:item><bm:responseIncludes><bm:price>true</bm:price><bm:spare>true</bm:spare><bm:bom>true</bm:bom><bm:bomMapping>true</bm:bomMapping><bm:attributeLabel>false</bm:attributeLabel><bm:previousValue>false</bm:previousValue><bm:displayedValue>false</bm:displayedValue><bm:hideInTransactionAttributes>false</bm:hideInTransactionAttributes><bm:ruleDetails>true</bm:ruleDetails><bm:transaction>";
+requestXML = requestXML + "<bm:process_var_name>" + PROCESSVARNAME + "</bm:process_var_name>";
+requestXML = requestXML + "<bm:document_var_name>" + DOCUMENTVARNAME + "</bm:document_var_name>";
+requestXML = requestXML + "<bm:id>" + transID + "</bm:id>";
+if(reconfigureFlag){
+	requestXML = requestXML + "<bm:document_number>" + doc_number + "</bm:document_number>";
+}
+else{
+	requestXML = requestXML + "<bm:document_number/>";
+}
+requestXML = requestXML + "<bm:hide_transaction_response/><bm:return_specific_attributes><bm:documents><bm:document>";
+requestXML = requestXML + "<bm:var_name>" + DOCUMENTVARNAME + "</bm:var_name>";
+requestXML = requestXML + "<bm:attributes><bm:attribute>" + commerceAttribute + "</bm:attribute></bm:attributes>";
+requestXML = requestXML + "</bm:document></bm:documents></bm:return_specific_attributes></bm:transaction></bm:responseIncludes><bm:config_upgrade_name/>";
+count = 0;
+if(sizeofarray(inputAttributeVarName) > 0){
+	requestXML = requestXML + "<bm:attributes>";
+	for each in inputAttributeVarName{
+		requestXML = requestXML + "<bm:attribute bm:_variableName=\"" + each + "\">";
+		requestXML = requestXML + "<bm:value>" + inputAttributeValue[count] + "</bm:value></bm:attribute>";
+		count = count + 1;
+	}
+	requestXML = requestXML + "</bm:attributes></bm:configure></soapenv:Body></soapenv:Envelope>";
+}
+else{
+	requestXML = requestXML + "<bm:attributes/></bm:configure></soapenv:Body></soapenv:Envelope>";
+}
+EndpointURL = "https://ricohcpqpoc.bigmachines.com/v2_0/receiver/configuration/" + CONFIGPATH;
+responseXML = urldatabypost(EndpointURL, requestXML, "ERROR", dict("string"), true, 5000);
+returnValue = responseXML;
+return returnValue;

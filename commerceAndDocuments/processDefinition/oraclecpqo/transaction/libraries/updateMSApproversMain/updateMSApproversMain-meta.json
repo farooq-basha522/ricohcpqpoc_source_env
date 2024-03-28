@@ -1,0 +1,11 @@
+{
+  "name" : "Update MS Approvers Main",
+  "variableName" : "updateMSApproversMain",
+  "description" : "created by Namrata to update approvers in action",
+  "libraryFunctions" : [ "commerce.updateMSApprovers" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "mSPricingApproverLevel_t", "mSPricingApproverYearsBreached_t", "mSPricingApproverEscalationLevel_t", "mSEscalationApproverYearsBreached_t", "variableAnnualRevenueEscalation_t", "variableAnnualEscalationArraySet_t" ],
+  "systemAttributes" : [ ]
+}

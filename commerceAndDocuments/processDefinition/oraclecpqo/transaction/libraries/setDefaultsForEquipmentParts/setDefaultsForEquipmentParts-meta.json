@@ -1,0 +1,14 @@
+{
+  "name" : "Set Defaults for Equipment Parts",
+  "variableName" : "setDefaultsForEquipmentParts",
+  "description" : "",
+  "libraryFunctions" : [ "util.generateHTMLTableFromConfigEquipmentList", "util.storePartsDataInJsonString" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "retDict",
+    "type" : "String Dictionary"
+  } ],
+  "subDocAttributes" : [ "_config_attr_info", "_model_variable_name", "_line_item_comment", "_document_number", "_parent_doc_number", "_price_list_price_each", "_part_number", "_price_calculation_info" ],
+  "mainDocAttributes" : [ "exchangeRate_t", "partsDataText_t" ],
+  "systemAttributes" : [ ]
+}

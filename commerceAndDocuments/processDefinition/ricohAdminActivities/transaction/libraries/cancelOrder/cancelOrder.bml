@@ -1,0 +1,157 @@
+//Validation if the user has not selected any line item ,Throw an error
+
+if(_system_selected_document_number=="")
+{
+throwerror("Select at least one line item(s) to cancel.");
+}
+//Spited the selected line item system attribute to find the selected line items by user
+selectedLineArray=split(_system_selected_document_number, "~");
+//Create an array to add all the status that can not be canceled
+statusCanNotBeCanceled= String [10];
+statusCanNotBeCanceled[0] ="AWAIT_BILLING";
+statusCanNotBeCanceled[1] ="BILLED";
+statusCanNotBeCanceled[2] ="DELIVERED";
+statusCanNotBeCanceled[3] ="ACTIVATED";
+statusCanNotBeCanceled[4] ="FULFILLED";
+statusCanNotBeCanceled[5] ="DELETED";
+statusCanNotBeCanceled[6] ="AWAIT_ASSET_CREATION";
+statusCanNotBeCanceled[7] ="SHIPPED";
+statusCanNotBeCanceled[8] ="CLOSED";
+statusCanNotBeCanceled[9] ="CREATED";
+//Take string to add all the line number that can not be canceled
+invalidLineItemSelected="";
+index=0;
+//Boolean variable to check if current product's root item is selected
+isRootItemSelected=false;
+//String to collect child line which root item are not selected 
+LonelyChildLineNumber="";
+//Selected Cancelled line
+selectedCancelledLine="";
+// create the JSON array to add each line
+lineJsonline = jsonarray();
+for line in transactionLine{
+  //Increase the index for each line item
+  index=index+1;
+  //check if the user has selected the line
+  if(findinarray(selectedLineArray,line._document_number)>=0)
+  {
+   if (line._parent_doc_number == "") {
+     //current root item is selected
+     isRootItemSelected=true;
+     }elif(NOT(isRootItemSelected))
+     { if(LonelyChildLineNumber==""){
+          LonelyChildLineNumber=LonelyChildLineNumber+string(index);
+          }else{
+          LonelyChildLineNumber=LonelyChildLineNumber+","+string(index);
+         }
+     }
+  
+  /*Check if the line can be canceled based on line item status,if it can not be canceled add it
+  to invalid string or else add the document number to JSON array*/
+   
+   if(findinarray(statusCanNotBeCanceled, line.status_l)>-1)
+   {
+     if(invalidLineItemSelected=="")
+      {
+      invalidLineItemSelected=""+string(index);
+      }
+     else{
+      invalidLineItemSelected=invalidLineItemSelected+","+string(index);
+      }
+   } //Validate if the selected line item is already canceled 
+   elif( line.status_l=="CANCELED" OR line.status_l=="CANCEL_REQUESTED")
+   {
+     if(selectedCancelledLine=="")
+      {
+      selectedCancelledLine=""+string(index);
+      }
+     else{
+      selectedCancelledLine=selectedCancelledLine+","+string(index);
+      }
+   }
+  else{
+   jsonLineObject=json();
+   jsonput(jsonLineObject,"SourceTransactionLineId",line._document_number);
+   jsonput(jsonLineObject,"SourceTransactionScheduleId" ,line._document_number);
+   jsonput(jsonLineObject,"CanceledFlag" ,true);
+   jsonput(jsonLineObject,"CancelReasonCode" ,line.cancelReason_l);
+   jsonarrayappend(lineJsonline ,jsonLineObject);
+   }
+ }//Current root item is not selected
+ elif (line._parent_doc_number == "") {
+ isRootItemSelected=false;
+ }
+ 
+}
+
+if(invalidLineItemSelected<>"" AND LonelyChildLineNumber<>""){
+  throwerror("Below selected line item(s) can not be cancelled as one of more products are already shipped: \n Line Number:"+invalidLineItemSelected+"\n The selected line item(s) can not be cancelled. Only the root line item(s) can be cancelled. \n Line Number:"+LonelyChildLineNumber);
+}
+//If there is at least one line item selected that can not be canceled than throw error
+if(invalidLineItemSelected<>"")
+{
+  throwerror("Below selected line item(s) can not be cancelled as one of more products are already shipped: \n Line Number:"+invalidLineItemSelected);
+}
+
+if(LonelyChildLineNumber<>"")
+{
+  throwerror("The selected line item(s) can not be cancelled. Only the root line item(s) can be cancelled. \n Line Number:"+LonelyChildLineNumber);
+}
+//Create JSON payload and include the order key ,cancellation reason code
+jsonMainObject=json();
+jsonput(jsonMainObject,"OrderKey",orderKey_t);
+jsonput(jsonMainObject,"CancelReasonCode",cancelReason_t);
+//Check if the user has selected all line item than send canceled Flag true at header level to cancel whole order
+if(index==sizeofarray(selectedLineArray))
+{
+ jsonput(jsonMainObject,"CanceledFlag",true);
+}else{
+if(selectedCancelledLine<> "")
+{
+//Throw error message for canceled lines in case of partial cancellation
+ throwerror("The selected line item(s) are already cancelled/Cancellation Requested. \n Line Number:"+selectedCancelledLine);
+}
+//Else add the line json array to the json payload
+  jsonput(jsonMainObject,"lines",lineJsonline);
+}
+//convert the JSON payload to String
+payload=jsontostr(jsonMainObject);
+print payload;
+restResponse = dict("string");
+headers = dict("string");
+//Get connection details stored in Generic Integration - CancelSOFromCPQ
+connectionInfo = bmql("select username,password,requestUrl from integration.genericIntegration where name = 'CancelSOFromCPQ'");
+icsUrl = "";
+username = "";
+password = "";
+for info in connectionInfo{
+  username = get(info, "username");
+  password = get(info, "password");
+  icsUrl = get(info, "requestUrl");
+  }
+auth = encodebase64(username+":"+password);
+//create request headers
+headers = dict("string");
+put (headers , "Authorization", "Basic "+auth);
+put (headers , "Content-Type", "application/json");
+put (headers , "Accept", "application/json");
+// Call ICS Rest API
+restResponse = urldata(icsUrl, "POST",headers,payload, 120000);
+statusCode = get(restResponse,"Status-Code");
+if(statusCode <> "200"){
+if(statusCode =="-1"){
+throwerror("The request is taking longer than usual. Cancellation has been requested for selected line(s).");
+
+}else{
+throwerror("Some error occured");
+}
+}
+resp = get(restResponse, "Message-Body");
+ErrorString = commerce.parseResponse(resp, "error");
+//If there is an error in response throw error
+if( ErrorString <>"" )
+{
+  throwerror(ErrorString );
+}
+// Request was successful, hence get the formatted concatenated string from response and return it.
+return commerce.parseResponse(resp,"response");

@@ -1,0 +1,16 @@
+partDict = dict("string");
+vPart = BMQL("select part_number from _parts where part_number in $partNumberArray");
+for vpartdata in vPart{
+	partExists = "Yes";
+	vProdName = get(vpartdata ,"part_number");
+	put(partDict,vProdName,partExists);
+}
+existsPartsArray = keys(partDict);
+for each in partNumberArray{
+	partExists = "No";
+	if(findinarray(existsPartsArray,each) == -1){
+		put(partDict,each,partExists);
+	}
+}
+
+return partDict;

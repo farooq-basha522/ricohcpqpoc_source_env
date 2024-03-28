@@ -1,0 +1,11 @@
+{
+  "name" : "Address Validation API Call",
+  "variableName" : "addressValidationAPICall",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_parent_doc_number", "locationSiteID_l" ],
+  "mainDocAttributes" : [ "oracleAccountNumber_t" ],
+  "systemAttributes" : [ "_system_company_name" ]
+}

@@ -1,0 +1,20 @@
+{
+  "name" : "Contracted Pricing (Helper Function)",
+  "variableName" : "contractedPricing",
+  "description" : "Obtain data from Contracted_Pricing table and return string for contracted pricing",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "custId",
+    "type" : "String"
+  }, {
+    "name" : "partNumber",
+    "type" : "String"
+  }, {
+    "name" : "DatedPrice",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

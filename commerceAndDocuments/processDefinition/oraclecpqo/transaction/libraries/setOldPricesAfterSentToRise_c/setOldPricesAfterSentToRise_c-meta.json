@@ -1,0 +1,11 @@
+{
+  "name" : "Set old prices after Sent to Rise",
+  "variableName" : "setOldPricesAfterSentToRise_c",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_part_number", "_document_number", "_group_sequence_number" ],
+  "mainDocAttributes" : [ "mPSCostsBeforeRollup_t_c" ],
+  "systemAttributes" : [ ]
+}

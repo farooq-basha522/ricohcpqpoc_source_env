@@ -1,0 +1,19 @@
+email = "";
+resTable = BMQL("select Value from RAC_ITS_Setup WHERE Reference=$UserProfile and Status='Active'");
+
+i = 0;
+for eachRecord in resTable
+{
+	if(hasError(resTable)){
+		print (getMessage(resTable));
+	}else{
+		if(i==0){			
+			email = get(eachRecord, "Value");		
+		}else{
+			email = email + "," + get(eachRecord, "Value");
+		}
+	}	
+	i = i + 1;
+}
+
+return email;

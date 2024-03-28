@@ -1,0 +1,18 @@
+{
+  "name" : "abo_delta",
+  "variableName" : "abo_delta",
+  "description" : "This utility function has ABO core delta logic, it is invoked from configurator save event. It will compare the final configuration BOM with the previously calculated PAC(projected asset cache) BOM to decide the delta change and produce a delta BOM to be used to save to commerce.",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_initializeContext", "util.abo_processDeltaBom", "util.abo_updateLineIdandFields" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "configBom",
+    "type" : "Json"
+  }, {
+    "name" : "commerceProcess",
+    "type" : "String"
+  }, {
+    "name" : "inputBom",
+    "type" : "Json"
+  } ],
+  "attributes" : [ ]
+}

@@ -1,0 +1,14 @@
+{
+  "name" : "Generate Rate Card HTML",
+  "variableName" : "_s_generateRateCardHTML",
+  "description" : "Generates HTML for Rate card table from given Rate Card Structure.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "rateCardStructure",
+    "type" : "Json"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

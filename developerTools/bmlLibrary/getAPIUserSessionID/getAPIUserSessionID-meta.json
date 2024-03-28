@@ -1,0 +1,9 @@
+{
+  "name" : "Get API User Session ID",
+  "variableName" : "getAPIUserSessionID",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "attributes" : [ "_company_name" ]
+}

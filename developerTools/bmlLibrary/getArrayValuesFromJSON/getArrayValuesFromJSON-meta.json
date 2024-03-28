@@ -1,0 +1,15 @@
+{
+  "name" : "Get Vendor Search Array Values From JSON",
+  "variableName" : "getArrayValuesFromJSON",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String[]",
+  "parameters" : [ {
+    "name" : "productJSON",
+    "type" : "Json"
+  }, {
+    "name" : "attrName",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

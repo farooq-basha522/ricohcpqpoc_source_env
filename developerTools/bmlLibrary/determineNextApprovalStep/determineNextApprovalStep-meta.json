@@ -1,0 +1,15 @@
+{
+  "name" : "Determine Next Approval Step",
+  "variableName" : "determineNextApprovalStep",
+  "description" : "Called on the step transition rules when pending approval and in the Modify action on for the Quote Step attribute",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "actionVarName",
+    "type" : "String"
+  }, {
+    "name" : "approvalStatusSubmit",
+    "type" : "String[][]"
+  } ],
+  "attributes" : [ "_user_login" ]
+}

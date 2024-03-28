@@ -1,0 +1,100 @@
+//Function Name: abo_processDeltaItem
+//    inputs: oldNodeJson(json), newNodeJson(json)
+//    output : newNodeJson(json)
+//Description : 
+//    This is invoked from abo_processDeltaBom. Each line item's old and new json is passed for delta comparison and for adding actionCode
+//Details:
+//    processDeltaXA for each node will be invoked from here. This method can be enhanced based on requirement to 
+//    include additional criteria to decide on actionCode. This function is invoked from abo_processDeltaBom.
+//    action code set are "add", "update", "delete", '-' by default.
+
+ADD =  "ADD";
+UPDATE =  "UPDATE";
+DELETE = "DELETE";
+NO_OP = "NO_UPDATE";
+ATTRIBUTES = "attributes";
+ACTION ="oRCL_ABO_ActionCode_l";
+XAACTION = "actionCode";
+
+newParId = jsonget(newNodeJson, "parentId", "string");
+oldParId = jsonget(oldNodeJson, "parentId", "string");
+
+if(util.abo_isjsonnull(newNodeJson, "children")<> true){
+   jsonRemove(newNodeJson, "children");
+}
+
+//if oldNodeJson is empty, add action code 'ADD' and return newNodeJson
+if( util.abo_isjsonnull(oldNodeJson, "id")){
+
+   fields = jsonget(newNodeJson, "fields", "json", json());
+
+   jsonput(fields, ACTION, ADD);
+   jsonput(newNodeJson, "fields", fields);   
+    //Enable XA. Mark XA with action code 'ADD'
+   if(util.abo_isjsonnull(newNodeJson, ATTRIBUTES)<>true){ 
+      bchnge = util.abo_processDeltaXA(json(), newNodeJson);
+   }   
+   return newNodeJson;
+}
+
+//if newNodeJson is empty, add action code 'DELETE' and return oldNodeJson
+if(util.abo_isjsonnull(newNodeJson, "id")){
+  
+   keys = jsonkeys(oldNodeJson, true);
+   for key in keys {
+     if(key <> "children"){
+	   jsonput(newNodeJson, key, jsonget(oldNodeJson, key));
+   }
+}
+
+   fields = jsonget(newNodeJson, "fields", "json", json());
+   jsonput(fields, ACTION, DELETE);
+ 
+   jsonput(newNodeJson, "fields", fields);   
+   //Enable XA. Below call adds XA with action code 'DELETE'
+   if(util.abo_isjsonnull(newNodeJson, ATTRIBUTES)<>true){
+    bchnge=util.abo_processDeltaXA(newNodeJson, json());
+   }  
+   return newNodeJson;
+}
+//We are here because neither oldNodeJson nor newNodeJson is empty
+//Update case. Check if newParId is different from oldParId
+bChanged =  false;
+if(newParId <>oldParId){
+    bChanged =  true;
+}
+//PLACEHOLDER for including additional fields for comparison. As of now only partNum(string) and qunatity(float) are compared.
+//If there are additional commerce fields, need to ensure that the fields to compare will get loaded in pacBom during abo_getQuoteBom function. 
+//To get those extra fields into config BOM,  add preprocessing logic in beginning of abo_delta to populate them.
+if(bChanged == false){
+   partNumberinOldNode=jsonget(oldNodeJson, "partNumber", "string", "");
+   partNumberinNewNode=jsonget(newNodeJson, "partNumber", "string", "");
+   bChanged = partNumberinOldNode <> partNumberinNewNode;
+}
+if(bChanged == false){
+   quantityinOldNode = jsonget(oldNodeJson, "quantity", "float", 0.0);
+   quantityinNewNode = jsonget(newNodeJson, "quantity", "float", 0.0);
+   bChanged = quantityinOldNode <> quantityinNewNode;
+}
+// compare XA and mark XA action code. Note if XA changed, then set bChanged = true  
+//  Use newNodeJson as base.
+//  If XA does not exist in oldNodeJson, mark as ADD in newNodeJson.
+//  If XA exist in oldNodeJson with different value, Mark as changed along with old value.
+//  Loop again through the oldNodeJson. if any XA no longer in newNodeJson, mark as 'DELETE'.
+//  mark bChanged accordingly
+if(util.abo_isjsonnull(newNodeJson, ATTRIBUTES)<>true){
+  bXAChanged = util.abo_processDeltaXA(oldNodeJson, newNodeJson);
+  if(bXAChanged){
+     bChanged = true;
+  } 
+} 
+fields = jsonget(newNodeJson, "fields", "json", json());
+fields = jsonput(newNodeJson, "fields", fields);
+  
+if(bChanged){
+    jsonput(fields, ACTION, UPDATE);    
+}else{
+    jsonput(fields, ACTION, NO_OP);
+} 
+  
+return newNodeJson;

@@ -1,0 +1,21 @@
+{
+  "name" : "QueryDatatableUtil",
+  "variableName" : "queryDatatableUtil",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "tableName",
+    "type" : "String"
+  }, {
+    "name" : "strArray",
+    "type" : "String[]"
+  }, {
+    "name" : "retStringDict",
+    "type" : "String Dictionary"
+  }, {
+    "name" : "msInputDict",
+    "type" : "String Dictionary"
+  } ],
+  "attributes" : [ ]
+}

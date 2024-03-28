@@ -1,0 +1,15 @@
+{
+  "name" : "abo_terminate",
+  "variableName" : "abo_terminate",
+  "description" : "This utility function has terminate flow specific logic. This is invoked from abo_copyRootToTransaction bml",
+  "libraryFunctions" : [ "util.abo_isjsonnull" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "pacBom",
+    "type" : "Json"
+  }, {
+    "name" : "txnDate",
+    "type" : "Date"
+  } ],
+  "attributes" : [ ]
+}

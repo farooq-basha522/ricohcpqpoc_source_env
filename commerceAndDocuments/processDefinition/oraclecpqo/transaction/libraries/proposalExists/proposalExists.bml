@@ -1,0 +1,5 @@
+if(len(oRCL_OSC_FileAttachment_t) > 0)
+{
+	return true;
+}
+return false;

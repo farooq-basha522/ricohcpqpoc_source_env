@@ -1,0 +1,656 @@
+x=getcurrenttimeinmillis();
+returnValue = "";
+//SA Variables
+contractedValueOTSA = 0.0;
+TotalMRRContractValueTT = 0.0;
+TotalOneTimeContractValue = 0.0;
+TotalOneTimeContractValueSA = 0.0;
+TotalOneTimeContractValueITS = 0.0;
+TotalOneTimeContractValueMS = 0.0;
+TotalOneTimeContractValueSC = 0.0;
+TotalOneTimeContractValueTT = 0.0;
+unitSRPOTSA = 0.0;
+unitSRPRecSA = 0.0;
+unitSalesCostOTSA = 0.0;
+unitStdCostOTSA = 0.0;
+unitSalesCostRecSA = 0.0;
+unitStdCostRecSA = 0.0;
+contractedUnitPriceOTSA = 0.0;
+contractedUnitPriceSA = 0.0;
+contractedUnitPriceRecSA = 0.0;
+discountAmounttOTSA = 0.0;
+discountAmounttRecSA = 0.0;
+promotionValueOTSA = 0.0;
+promotionValueRecSA = 0.0;
+unitSellingPriceOTSA = 0.0;
+unitSellingPriceRecSA = 0.0;
+ContractPriceRecSA = 0.0;
+marginPercentagesalescostOTSA = 0.0;
+marginPercentagesalescostRecSA = 0.0;
+marginPercentagestdscostOTSA = 0.0;
+marginPercentagestdscostRecSA = 0.0;
+//ITS Variables
+contractedValueOTITS = 0.0;
+unitSRPOTITS = 0.0;
+unitSRPRecITS = 0.0;
+unitSalesCostOTITS = 0.0;
+unitStdCostOTITS = 0.0;
+unitSalesCostRecITS = 0.0;
+unitStdCostRecITS = 0.0;
+contractedUnitPriceOTITS = 0.0;
+contractedUnitPriceITS = 0.0;
+contractedUnitPriceRecITS = 0.0;
+discountAmounttOTITS = 0.0;
+discountAmounttRecITS = 0.0;
+promotionValueOTITS = 0.0;
+promotionValueRecITS = 0.0;
+unitSellingPriceOTITS = 0.0;
+unitSellingPriceRecITS = 0.0;
+ContractPriceRecITS = 0.0;
+marginPercentagesalescostOTITS = 0.0;
+marginPercentagesalescostRecITS = 0.0;
+marginPercentagestdscostOTITS = 0.0;
+marginPercentagestdscostRecITS = 0.0;
+//MS Variables
+contractedValueOTMS = 0.0;
+unitSRPOTMS = 0.0;
+unitSRPRecMS = 0.0;
+unitSalesCostOTMS = 0.0;
+unitStdCostOTMS = 0.0;
+unitSalesCostRecMS = 0.0;
+unitStdCostRecMS = 0.0;
+contractedUnitPriceOTMS = 0.0;
+contractedUnitPriceMS = 0.0;
+contractedUnitPriceRecMS = 0.0;
+discountAmounttOTMS = 0.0;
+discountAmounttRecMS = 0.0;
+promotionValueOTMS = 0.0;
+promotionValueRecMS = 0.0;
+unitSellingPriceOTMS = 0.0;
+unitSellingPriceRecMS = 0.0;
+ContractPriceRecMS = 0.0;
+marginPercentagesalescostOTMS = 0.0;
+marginPercentagesalescostRecMS = 0.0;
+marginPercentagestdscostOTMS = 0.0;
+marginPercentagestdscostRecMS = 0.0;
+//SC Variables
+contractedValueOTSC = 0.0;
+unitSRPOTSC = 0.0;
+unitSRPRecSC = 0.0;
+unitSalesCostOTSC = 0.0;
+unitStdCostOTSC = 0.0;
+unitSalesCostRecSC = 0.0;
+unitStdCostRecSC = 0.0;
+contractedUnitPriceOTSC = 0.0;
+contractedUnitPriceSC = 0.0;
+contractedUnitPriceRecSC = 0.0;
+discountAmounttOTSC = 0.0;
+discountAmounttRecSC = 0.0;
+promotionValueOTSC = 0.0;
+promotionValueRecSC = 0.0;
+unitSellingPriceOTSC = 0.0;
+unitSellingPriceRecSC = 0.0;
+ContractPriceRecSC = 0.0;
+marginPercentagesalescostOTSC = 0.0;
+marginPercentagesalescostRecSC = 0.0;
+marginPercentagestdscostOTSC = 0.0;
+marginPercentagestdscostRecSC = 0.0;
+//Total Deal Variables
+ttlUnitSRPOT = 0.0;
+ttlUnitSalesCostOT = 0.0;
+ttlUnitStdCostOT = 0.0;
+ttlContractedUnitPriceOT = 0.0;
+ttlContractedValue = 0.0;
+ttlDiscountAmounttOT = 0.0;
+ttlPromotionValueOT = 0.0;
+ttlUnitSellingPriceOT = 0.0;
+ttlMarginPercentagesalescostOT = 0.0;
+ttlMarginPercentagestdscostOT = 0.0;
+ttlUnitSRPRec = 0.0;
+ttlUnitSalesCostRec = 0.0;
+ttlUnitStdCostRec = 0.0;
+ttlContractedUnitPriceRec = 0.0;
+ttlDiscountAmounttRec = 0.0;
+ttlPromotionValueRec = 0.0;
+ttlUnitSellingPriceRec = 0.0;
+ttlContractPriceRec = 0.0;
+ttlMarginPercentagesalescostRec = 0.0;
+ttlMarginPercentagestdscostRec = 0.0;
+ttlContractedUnitPriceForTotalDeal = 0.0;
+quoteSummuryBuild = jsonArray();
+allModelJson = json();
+SAJson = json();
+SAOTJson = json();
+SARecJson = json();
+ITSOTJson = json();
+ITSRecJson = json();
+ITSJson = json();
+MSOTJson = json();
+MSRecJson = json();
+MSJson = json();
+SCOTJson = json();
+SCRecJson = json();
+SCJson = json();
+ttlDealOTJson = json();
+ttlDealRecJson = json();
+ttlJson = json();
+SALineCounterOT = 0;
+SALineCounterRec = 0;
+ITSLineCounterOT = 0;
+ITSLineCounterRec = 0;
+MSLineCounterOT = 0;
+MSLineCounterRec = 0;
+SCLineCounterOT = 0;
+SCLineCounterRec = 0;
+ttlLineCounterOT = 0;
+ttlLineCounterRec = 0;
+quotePrice = 0.0;
+
+//START - Added as a part of Defect ID - 12519
+termMonth = 1;
+if(isnumber(termMonths_t)){
+	termMonth= atoi(termMonths_t);
+}
+elif(termMonths_t == "12MonthRenewal"){
+	termMonth= 12;
+}
+elif(termMonths_t == "24MonthRenewal"){
+	termMonth= 24;
+}
+elif(termMonths_t == "36MonthRenewal"){
+	termMonth= 36;
+}
+elif(termMonths_t == "nonRecurring"){
+	termMonth= 1;
+}
+else{
+termMonth = contractOtherTerm_t;
+}
+//START - Added as a part of Defect ID - 12519
+
+for line in transactionLine{
+	if(line._part_number <> ""){ //Updated the conditon as a part of Defect ID -12495	
+		processGroup = "";
+		itemType = line.type_l;
+		//quotePrice = quotePrice + line.extNetPrice_l;
+		
+		itemTypeRecordSet = bmql("SELECT ItemType, ProcessGroup FROM RAC_ITEM_TYPE WHERE ItemType = $itemType");
+		for eachItemType in itemTypeRecordSet{
+			processGroup = get(eachItemType,"ProcessGroup");
+		}
+		//============================= Service Advanatge Code Start ==================================
+		if(line.chargeType_l == "One Time" AND processGroup == "SA"){
+			SALineCounterOT = SALineCounterOT + 1;
+			unitSRPOTSA = unitSRPOTSA + line.unitSRP_l;
+			unitSalesCostOTSA = unitSalesCostOTSA + line.unitSalesCost_l;
+			unitStdCostOTSA = unitStdCostOTSA + line.unitCost_l;
+			contractedUnitPriceOTSA = contractedUnitPriceOTSA + line.contractedUnitPrice_l;
+			contractedValueOTSA = contractedValueOTSA + line.extSellingPrice_l;
+			discountAmounttOTSA = discountAmounttOTSA + line.discountAmountt_l;
+			if(line.promotionValue_l <> ""){
+				promotionValueOTSA = promotionValueOTSA + atof(line.promotionValue_l);
+			}
+			unitSellingPriceOTSA = unitSellingPriceOTSA + line.unitSellingPrice_l;
+			marginPercentagesalescostOTSA = (marginPercentagesalescostOTSA + line.marginPercentagesalescost_l);
+			marginPercentagestdscostOTSA = (marginPercentagestdscostOTSA + line.marginPercentagestdscost_l);
+		}elif(line.chargeType_l == "Recurring" AND processGroup == "SA"){
+			SALineCounterRec = SALineCounterRec + 1;
+			unitSRPRecSA = unitSRPRecSA + line.unitSRP_l;
+			unitSalesCostRecSA = unitSalesCostRecSA + line.unitSalesCost_l;
+			unitStdCostRecSA = unitStdCostRecSA + line.unitCost_l;
+			contractedUnitPriceSA = contractedUnitPriceSA + line.extSellingPrice_l * termMonth;
+			contractedUnitPriceRecSA = line.extSellingPrice_l * termMonth;
+			discountAmounttRecSA = discountAmounttRecSA + line.discountAmountt_l;
+			if(line.promotionValue_l <> ""){
+				promotionValueRecSA = promotionValueRecSA +  atof(line.promotionValue_l);
+			}
+			unitSellingPriceRecSA = unitSellingPriceRecSA + line.unitSellingPrice_l;
+			ContractPriceRecSA = ContractPriceRecSA + contractedUnitPriceRecSA ;
+			marginPercentagesalescostRecSA = (marginPercentagesalescostRecSA + line.marginPercentagesalescost_l);
+			marginPercentagestdscostRecSA = (marginPercentagestdscostRecSA + line.marginPercentagestdscost_l);
+			
+		}
+
+		//============================= Service Advanatge Code End ==================================
+		//============================= ITS Code Start ==============================================
+		
+		if(line.chargeType_l == "One Time" AND processGroup == "ITS"){
+			ITSLineCounterOT = ITSLineCounterOT + 1;
+			unitSRPOTITS = unitSRPOTITS + line.unitSRP_l;
+			unitSalesCostOTITS = unitSalesCostOTITS + line.unitSalesCost_l;
+			unitStdCostOTITS = unitStdCostOTITS + line.unitCost_l;
+			contractedUnitPriceOTITS = contractedUnitPriceOTITS + line.contractedUnitPrice_l;
+			contractedValueOTITS = contractedValueOTITS + line.extSellingPrice_l;
+			discountAmounttOTITS = discountAmounttOTITS + line.discountAmountt_l;
+			if(line.promotionValue_l <> ""){
+				promotionValueOTITS = promotionValueOTITS + atof(line.promotionValue_l);
+			}
+			unitSellingPriceOTITS = unitSellingPriceOTITS + line.unitSellingPrice_l;
+			marginPercentagesalescostOTITS = (marginPercentagesalescostOTITS + line.marginPercentagesalescost_l);
+			marginPercentagestdscostOTITS = (marginPercentagestdscostOTITS + line.marginPercentagestdscost_l);
+			
+		}elif(line.chargeType_l == "Recurring" AND processGroup == "ITS"){
+			ITSLineCounterRec = ITSLineCounterRec + 1;
+			unitSRPRecITS = unitSRPRecITS + line.unitSRP_l;
+			unitSalesCostRecITS = unitSalesCostRecITS + line.unitSalesCost_l;
+			unitStdCostRecITS = unitStdCostRecITS + line.unitCost_l;
+			contractedUnitPriceITS = contractedUnitPriceITS + line.extSellingPrice_l * termMonth;
+			contractedUnitPriceRecITS = line.extSellingPrice_l * termMonth;
+			discountAmounttRecITS = discountAmounttRecITS + line.discountAmountt_l;
+			if(line.promotionValue_l <> ""){
+				promotionValueRecITS = promotionValueRecITS +  atof(line.promotionValue_l);
+			}
+			unitSellingPriceRecITS = unitSellingPriceRecITS + line.unitSellingPrice_l;
+			ContractPriceRecITS = ContractPriceRecITS + contractedUnitPriceRecITS;
+			marginPercentagesalescostRecITS = (marginPercentagesalescostRecITS + line.marginPercentagesalescost_l);
+			marginPercentagestdscostRecITS = (marginPercentagestdscostRecITS + line.marginPercentagestdscost_l);
+			
+		}
+		
+		//============================= ITS Code End ==============================================
+		//============================= MS Code Start ==============================================
+		if(line.chargeType_l == "One Time" AND processGroup == "MS"){
+			MSLineCounterOT = MSLineCounterOT + 1;
+			unitSRPOTMS = unitSRPOTMS + line.unitSRP_l;
+			unitSalesCostOTMS = unitSalesCostOTMS + line.unitSalesCost_l;
+			unitStdCostOTMS = unitStdCostOTMS + line.unitCost_l;
+			contractedUnitPriceOTMS = contractedUnitPriceOTMS + line.contractedUnitPrice_l;
+			contractedValueOTMS = contractedValueOTMS + line.extSellingPrice_l;
+			discountAmounttOTMS = discountAmounttOTMS + line.discountAmountt_l;
+			if(line.promotionValue_l <> ""){
+				promotionValueOTMS = promotionValueOTMS + atof(line.promotionValue_l);
+			}
+			unitSellingPriceOTMS = unitSellingPriceOTMS + line.unitSellingPrice_l;
+			marginPercentagesalescostOTMS = (marginPercentagesalescostOTMS + line.marginPercentagesalescost_l);
+			marginPercentagestdscostOTMS = (marginPercentagestdscostOTMS + line.marginPercentagestdscost_l);
+			
+		}elif(line.chargeType_l == "Recurring" AND processGroup == "MS"){
+			MSLineCounterRec = MSLineCounterRec + 1;
+			unitSRPRecMS = unitSRPRecMS + line.unitSRP_l;
+			unitSalesCostRecMS = unitSalesCostRecMS + line.unitSalesCost_l;
+			unitStdCostRecMS = unitStdCostRecMS + line.unitCost_l;
+			contractedUnitPriceMS = contractedUnitPriceMS + line.extSellingPrice_l * termMonth;
+			contractedUnitPriceRecMS = line.extSellingPrice_l * termMonth;
+			discountAmounttRecMS = discountAmounttRecMS + line.discountAmountt_l;
+			if(line.promotionValue_l <> ""){
+				promotionValueRecMS = promotionValueRecMS +  atof(line.promotionValue_l);
+			}
+			unitSellingPriceRecMS = unitSellingPriceRecMS + line.unitSellingPrice_l;
+			ContractPriceRecMS = ContractPriceRecMS + contractedUnitPriceRecMS ;
+			marginPercentagesalescostRecMS = (marginPercentagesalescostRecMS + line.marginPercentagesalescost_l);
+			marginPercentagestdscostRecMS = (marginPercentagestdscostRecMS + line.marginPercentagestdscost_l);
+			
+		}
+		//============================= MS Code End ==============================================
+		//============================= SC Code Start ==============================================
+		if(line.chargeType_l == "One Time" AND processGroup == "SC"){
+			SCLineCounterOT = SCLineCounterOT + 1;
+			unitSRPOTSC = unitSRPOTSC + line.unitSRP_l;
+			unitSalesCostOTSC = unitSalesCostOTSC + line.unitSalesCost_l;
+			unitStdCostOTSC = unitStdCostOTSC + line.unitCost_l;
+			contractedUnitPriceOTSC = contractedUnitPriceOTSC + line.contractedUnitPrice_l;
+			contractedValueOTSC = contractedValueOTSC + line.extSellingPrice_l;
+			discountAmounttOTSC = discountAmounttOTSC + line.discountAmountt_l;
+			if(line.promotionValue_l <> ""){
+				promotionValueOTSC = promotionValueOTSC + atof(line.promotionValue_l);
+			}
+			unitSellingPriceOTSC = unitSellingPriceOTSC + line.unitSellingPrice_l;
+			marginPercentagesalescostOTSC = (marginPercentagesalescostOTSC + line.marginPercentagesalescost_l);
+			marginPercentagestdscostOTSC = (marginPercentagestdscostOTSC + line.marginPercentagestdscost_l);
+			
+		}elif(line.chargeType_l == "Recurring" AND processGroup == "SC"){
+			SCLineCounterRec = SCLineCounterRec + 1;
+			unitSRPRecSC = unitSRPRecSC + line.unitSRP_l;
+			unitSalesCostRecSC = unitSalesCostRecSC + line.unitSalesCost_l;
+			unitStdCostRecSC = unitStdCostRecSC + line.unitCost_l;
+			contractedUnitPriceSC = contractedUnitPriceSC + line.extSellingPrice_l * termMonth;
+			contractedUnitPriceRecSC = line.extSellingPrice_l * termMonth;
+			
+			discountAmounttRecSC = discountAmounttRecSC + line.discountAmountt_l;
+			if(line.promotionValue_l <> ""){
+				promotionValueRecSC = promotionValueRecSC +  atof(line.promotionValue_l);
+			}
+			unitSellingPriceRecSC = unitSellingPriceRecSC + line.unitSellingPrice_l;
+			ContractPriceRecSC = ContractPriceRecSC + contractedUnitPriceRecSC;
+			marginPercentagesalescostRecSC = (marginPercentagesalescostRecSC + line.marginPercentagesalescost_l);
+			marginPercentagestdscostRecSC = (marginPercentagestdscostRecSC + line.marginPercentagestdscost_l);
+			
+		}
+		//============================= SC Code End ==============================================
+		//============================= Total Deal Code Start =====================================
+		
+		if(line.chargeType_l == "One Time"){
+			ttlLineCounterOT = ttlLineCounterOT +1;
+			ttlUnitSRPOT = ttlUnitSRPOT + line.unitSRP_l;
+			ttlUnitSalesCostOT = ttlUnitSalesCostOT + line.unitSalesCost_l;
+			ttlUnitStdCostOT = ttlUnitStdCostOT + line.unitCost_l;
+			ttlContractedUnitPriceOT = ttlContractedUnitPriceOT + line.contractedUnitPrice_l;
+			ttlContractedValue = ttlContractedValue + line.extSellingPrice_l;
+			ttlDiscountAmounttOT = ttlDiscountAmounttOT + line.discountAmountt_l;
+			if(line.promotionValue_l <> ""){
+				ttlPromotionValueOT = ttlPromotionValueOT + atof(line.promotionValue_l);
+			}
+			ttlUnitSellingPriceOT = ttlUnitSellingPriceOT + line.unitSellingPrice_l;
+			ttlMarginPercentagesalescostOT = (ttlMarginPercentagesalescostOT + line.marginPercentagesalescost_l);
+			ttlMarginPercentagestdscostOT = (ttlMarginPercentagestdscostOT + line.marginPercentagestdscost_l);
+			
+			
+		}elif(line.chargeType_l == "Recurring"){
+			ttlLineCounterRec = ttlLineCounterRec + 1;
+			ttlUnitSRPRec = ttlUnitSRPRec + line.unitSRP_l;
+			ttlUnitSalesCostRec = ttlUnitSalesCostRec + line.unitSalesCost_l;
+			ttlUnitStdCostRec = ttlUnitStdCostRec + line.unitCost_l ;
+			ttlContractedUnitPriceRec = line.extSellingPrice_l * termMonth;
+			ttlDiscountAmounttRec = ttlDiscountAmounttRec + line.discountAmountt_l;
+			if(line.promotionValue_l <> ""){
+				ttlPromotionValueRec = ttlPromotionValueRec + atof(line.promotionValue_l);
+			}
+			ttlUnitSellingPriceRec = ttlUnitSellingPriceRec + line.unitSellingPrice_l;
+			ttlContractPriceRec = ttlContractPriceRec + ttlContractedUnitPriceRec ;
+			ttlContractedUnitPriceForTotalDeal = ttlContractedUnitPriceForTotalDeal + line.contractedUnitPrice_l;
+			ttlMarginPercentagesalescostRec = (ttlMarginPercentagesalescostRec + line.marginPercentagesalescost_l);
+			ttlMarginPercentagestdscostRec = (ttlMarginPercentagestdscostRec + line.marginPercentagestdscost_l);
+			
+			
+		//============================= Total Deal Code End =====================================
+		}
+	}
+}
+//=======================================================
+//SA Json
+if(SALineCounterOT > 0){
+	jsonput(SAOTJson, "itemType_quoteSummary", "One-Time");
+	jsonput(SAOTJson, "sRP_quoteSummary", unitSRPOTSA);
+	jsonput(SAOTJson, "salesCost_quoteSummary", unitSalesCostOTSA);
+	jsonput(SAOTJson, "stdCost_quoteSummary", unitStdCostOTSA);
+	jsonput(SAOTJson, "contractTargetPrice_quoteSummary", contractedUnitPriceOTSA);
+	jsonput(SAOTJson, "discount_quoteSummary", discountAmounttOTSA);
+	jsonput(SAOTJson, "promotions_quoteSummary", promotionValueOTSA);
+	jsonput(SAOTJson, "sellingPrice_quoteSummary", unitSellingPriceOTSA);
+	jsonput(SAOTJson, "margin_quoteSummary", marginPercentagesalescostOTSA/SALineCounterOT);
+	jsonput(SAOTJson, "standardMargin_quoteSummary", marginPercentagestdscostOTSA/SALineCounterOT);
+	jsonput(SAOTJson, "totalContractPrice_quoteSummary", contractedValueOTSA);
+
+}
+
+if(SALineCounterRec > 0){
+	jsonput(SARecJson, "itemType_quoteSummary", "MRR");
+	jsonput(SARecJson, "sRP_quoteSummary", unitSRPRecSA);
+	jsonput(SARecJson, "salesCost_quoteSummary", unitSalesCostRecSA);
+	jsonput(SARecJson, "stdCost_quoteSummary", unitStdCostRecSA);
+	jsonput(SARecJson, "contractTargetPrice_quoteSummary", contractedUnitPriceSA);
+	jsonput(SARecJson, "discount_quoteSummary", discountAmounttRecSA);
+	jsonput(SARecJson, "promotions_quoteSummary", promotionValueRecSA);
+	jsonput(SARecJson, "sellingPrice_quoteSummary", unitSellingPriceRecSA);
+	jsonput(SARecJson, "totalContractPrice_quoteSummary", ContractPriceRecSA);
+	jsonput(SARecJson, "margin_quoteSummary", marginPercentagesalescostRecSA/SALineCounterRec);
+	jsonput(SARecJson, "standardMargin_quoteSummary", marginPercentagestdscostRecSA/SALineCounterRec);
+}
+
+//ITS Json
+if(ITSLineCounterOT > 0){
+	jsonput(ITSOTJson, "itemType_quoteSummary", "One-Time");
+	jsonput(ITSOTJson, "sRP_quoteSummary", unitSRPOTITS);
+	jsonput(ITSOTJson, "salesCost_quoteSummary", unitSalesCostOTITS);
+	jsonput(ITSOTJson, "stdCost_quoteSummary", unitStdCostOTITS);
+	jsonput(ITSOTJson, "contractTargetPrice_quoteSummary", contractedUnitPriceOTITS);
+	jsonput(ITSOTJson, "discount_quoteSummary", discountAmounttOTITS);
+	jsonput(ITSOTJson, "promotions_quoteSummary", promotionValueOTITS);
+	jsonput(ITSOTJson, "sellingPrice_quoteSummary", unitSellingPriceOTITS);
+	jsonput(ITSOTJson, "margin_quoteSummary", marginPercentagesalescostOTITS/ITSLineCounterOT);
+	jsonput(ITSOTJson, "standardMargin_quoteSummary", marginPercentagestdscostOTITS/ITSLineCounterOT);
+	jsonput(ITSOTJson, "totalContractPrice_quoteSummary", contractedValueOTITS);
+
+}
+if(ITSLineCounterRec > 0){
+	jsonput(ITSRecJson, "itemType_quoteSummary", "MRR");
+	jsonput(ITSRecJson, "sRP_quoteSummary", unitSRPRecITS);
+	jsonput(ITSRecJson, "salesCost_quoteSummary", unitSalesCostRecITS);
+	jsonput(ITSRecJson, "stdCost_quoteSummary", unitStdCostRecITS);
+	jsonput(ITSRecJson, "contractTargetPrice_quoteSummary", contractedUnitPriceITS);
+	jsonput(ITSRecJson, "discount_quoteSummary", discountAmounttRecITS);
+	jsonput(ITSRecJson, "promotions_quoteSummary", promotionValueRecITS);
+	jsonput(ITSRecJson, "sellingPrice_quoteSummary", unitSellingPriceRecITS);
+	jsonput(ITSRecJson, "totalContractPrice_quoteSummary", ContractPriceRecITS);
+	jsonput(ITSRecJson, "margin_quoteSummary", marginPercentagesalescostRecITS/ITSLineCounterRec);
+	jsonput(ITSRecJson, "standardMargin_quoteSummary", marginPercentagestdscostRecITS/ITSLineCounterRec);
+}
+
+//MS Json
+if(MSLineCounterOT >0){
+	jsonput(MSOTJson, "itemType_quoteSummary", "One-Time");
+	jsonput(MSOTJson, "sRP_quoteSummary", unitSRPOTMS);
+	jsonput(MSOTJson, "salesCost_quoteSummary", unitSalesCostOTMS);
+	jsonput(MSOTJson, "stdCost_quoteSummary", unitStdCostOTMS);
+	jsonput(MSOTJson, "contractTargetPrice_quoteSummary", contractedUnitPriceOTMS);
+	jsonput(MSOTJson, "discount_quoteSummary", discountAmounttOTMS);
+	jsonput(MSOTJson, "promotions_quoteSummary", promotionValueOTMS);
+	jsonput(MSOTJson, "sellingPrice_quoteSummary", unitSellingPriceOTMS);
+	jsonput(MSOTJson, "margin_quoteSummary", marginPercentagesalescostOTMS/MSLineCounterOT);
+	jsonput(MSOTJson, "standardMargin_quoteSummary", marginPercentagestdscostOTMS/MSLineCounterOT);
+	jsonput(MSOTJson, "totalContractPrice_quoteSummary", contractedValueOTMS);
+	
+	}
+
+if(MSLineCounterRec >0){
+	jsonput(MSRecJson, "itemType_quoteSummary", "MRR");
+	jsonput(MSRecJson, "sRP_quoteSummary", unitSRPRecMS);
+	jsonput(MSRecJson, "salesCost_quoteSummary", unitSalesCostRecMS);
+	jsonput(MSRecJson, "stdCost_quoteSummary", unitStdCostRecMS);
+	jsonput(MSRecJson, "contractTargetPrice_quoteSummary", contractedUnitPriceMS);
+	jsonput(MSRecJson, "discount_quoteSummary", discountAmounttRecMS);
+	jsonput(MSRecJson, "promotions_quoteSummary", promotionValueRecMS);
+	jsonput(MSRecJson, "sellingPrice_quoteSummary", unitSellingPriceRecMS);
+	jsonput(MSRecJson, "totalContractPrice_quoteSummary", ContractPriceRecMS);
+	jsonput(MSRecJson, "margin_quoteSummary", marginPercentagesalescostRecMS/MSLineCounterRec);
+	jsonput(MSRecJson, "standardMargin_quoteSummary", marginPercentagestdscostRecMS/MSLineCounterRec);
+}
+
+//SC Json
+if(SCLineCounterOT >0){
+	jsonput(SCOTJson, "itemType_quoteSummary", "One-Time");
+	jsonput(SCOTJson, "sRP_quoteSummary", unitSRPOTSC);
+	jsonput(SCOTJson, "salesCost_quoteSummary", unitSalesCostOTSC);
+	jsonput(SCOTJson, "stdCost_quoteSummary", unitStdCostOTSC);
+	jsonput(SCOTJson, "contractTargetPrice_quoteSummary", contractedUnitPriceOTSC);
+	jsonput(SCOTJson, "discount_quoteSummary", discountAmounttOTSC);
+	jsonput(SCOTJson, "promotions_quoteSummary", promotionValueOTSC);
+	jsonput(SCOTJson, "sellingPrice_quoteSummary", unitSellingPriceOTSC);
+	jsonput(SCOTJson, "margin_quoteSummary", marginPercentagesalescostOTSC/SCLineCounterOT);
+	jsonput(SCOTJson, "standardMargin_quoteSummary", marginPercentagestdscostOTSC/SCLineCounterOT);
+	jsonput(SCOTJson, "totalContractPrice_quoteSummary", contractedValueOTSC);
+	
+}
+if(SCLineCounterRec >0){
+	jsonput(SCRecJson, "itemType_quoteSummary", "MRR");
+	jsonput(SCRecJson, "sRP_quoteSummary", unitSRPRecSC);
+	jsonput(SCRecJson, "salesCost_quoteSummary", unitSalesCostRecSC);
+	jsonput(SCRecJson, "stdCost_quoteSummary", unitStdCostRecSC);
+	jsonput(SCRecJson, "contractTargetPrice_quoteSummary", contractedUnitPriceSC);
+	jsonput(SCRecJson, "discount_quoteSummary", discountAmounttRecSC);
+	jsonput(SCRecJson, "promotions_quoteSummary", promotionValueRecSC);
+	jsonput(SCRecJson, "sellingPrice_quoteSummary", unitSellingPriceRecSC);
+	jsonput(SCRecJson, "totalContractPrice_quoteSummary", ContractPriceRecSC);
+	jsonput(SCRecJson, "margin_quoteSummary", marginPercentagesalescostRecSC/SCLineCounterRec);
+	jsonput(SCRecJson, "standardMargin_quoteSummary", marginPercentagestdscostRecSC/SCLineCounterRec);
+}
+
+//Total Deal Json
+if(ttlLineCounterOT > 0){
+	jsonput(ttlDealOTJson, "itemType_quoteSummary", "One-Time");
+	jsonput(ttlDealOTJson, "sRP_quoteSummary", ttlUnitSRPOT);
+	jsonput(ttlDealOTJson, "salesCost_quoteSummary", ttlUnitSalesCostOT);
+	jsonput(ttlDealOTJson, "salesCost_quoteSummary", ttlUnitStdCostOT);
+	jsonput(ttlDealOTJson, "contractTargetPrice_quoteSummary", ttlContractedUnitPriceOT);
+	jsonput(ttlDealOTJson, "discount_quoteSummary", ttlDiscountAmounttOT);
+	jsonput(ttlDealOTJson, "promotions_quoteSummary", ttlPromotionValueOT);
+	jsonput(ttlDealOTJson, "sellingPrice_quoteSummary", ttlUnitSellingPriceOT);
+	jsonput(ttlDealOTJson, "margin_quoteSummary", ttlMarginPercentagesalescostOT/ttlLineCounterOT);
+	jsonput(ttlDealOTJson, "standardMargin_quoteSummary", ttlMarginPercentagestdscostOT/ttlLineCounterOT);
+	jsonput(ttlDealOTJson, "totalContractPrice_quoteSummary", ttlContractedValue);	
+	
+
+	
+}
+
+if(ttlLineCounterRec > 0){
+	jsonput(ttlDealRecJson, "itemType_quoteSummary", "MRR");
+	jsonput(ttlDealRecJson, "sRP_quoteSummary", ttlUnitSRPRec);
+	jsonput(ttlDealRecJson, "salesCost_quoteSummary", ttlUnitSalesCostRec);
+	jsonput(ttlDealRecJson, "stdCost_quoteSummary", ttlUnitStdCostRec);
+	jsonput(ttlDealRecJson, "contractTargetPrice_quoteSummary", ttlContractedUnitPriceForTotalDeal);
+	jsonput(ttlDealRecJson, "discount_quoteSummary", ttlDiscountAmounttRec);
+	jsonput(ttlDealRecJson, "promotions_quoteSummary", ttlPromotionValueRec);
+	jsonput(ttlDealRecJson, "sellingPrice_quoteSummary", ttlUnitSellingPriceRec);
+	jsonput(ttlDealRecJson, "totalContractPrice_quoteSummary", ttlContractPriceRec);
+	jsonput(ttlDealRecJson, "margin_quoteSummary", ttlMarginPercentagesalescostRec/ttlLineCounterRec);
+	jsonput(ttlDealRecJson, "standardMargin_quoteSummary", ttlMarginPercentagestdscostRec/ttlLineCounterRec);
+	
+}
+	TotalMRRContractValueTT = TotalMRRContractValueTT + ttlContractPriceRec ;
+	TotalOneTimeContractValueTT = TotalOneTimeContractValueTT + ttlContractedValue ;
+
+//========================================================
+	
+jsonput(SAJson, "One-Time", SAOTJson);
+jsonput(SAJson, "MRR", SARecJson);
+jsonput(ITSJson, "One-Time", ITSOTJson);
+jsonput(ITSJson, "MRR", ITSRecJson);
+jsonput(ttlJson, "One-Time", ttlDealOTJson);
+jsonput(ttlJson, "MRR", ttlDealRecJson);
+jsonput(MSJson, "One-Time", MSOTJson);
+jsonput(MSJson, "MRR", MSRecJson);
+jsonput(SCJson, "One-Time", SCOTJson);
+jsonput(SCJson, "MRR", SCRecJson);
+if(jsontostr(SAJson) <> "{\"One-Time\":{},\"MRR\":{}}"){
+	jsonput(allModelJson , "Service Advantage", SAJson);
+}
+if(jsontostr(ITSJson) <> "{\"One-Time\":{},\"MRR\":{}}"){
+	jsonput(allModelJson , "IT Services", ITSJson);
+}
+if(jsontostr(MSJson) <> "{\"One-Time\":{},\"MRR\":{}}"){
+	jsonput(allModelJson , "Managed Services", MSJson);
+}
+if(jsontostr(SCJson) <> "{\"One-Time\":{},\"MRR\":{}}"){
+	jsonput(allModelJson , "Solution Configuration", SCJson);
+}
+if(jsontostr(ttlJson) <> "{\"One-Time\":{},\"MRR\":{}}"){
+	jsonput(allModelJson , "Total Deal", ttlJson);
+}
+
+keys = jsonkeys(allModelJson);
+for eachKey in keys{
+	if(NOT(ISNULL(eachKey))){
+		allModelFinalJson = json();
+		SAJson1 = json();
+		SAOneTime = json();
+		SAMRR = json();
+		ITSJson1 = json();
+		ITSOneTime = json();
+		ITSMRR = json();
+		MSJson1 = json();
+		MSOneTime = json();
+		MSMRR = json();
+		SCJson1 = json();
+		SCOneTime = json();
+		SCMRR = json();
+		TTLJson1 = json();
+		TTLOneTime = json();
+		TTLMRR = json();
+		
+		if(eachKey == "Service Advantage"){
+			SAJson1 = json(jsonget(allModelJson,"Service Advantage"));
+			jsonput(allModelFinalJson , "itemType_quoteSummary", "Service Advantage");
+			jsonarrayappend(quoteSummuryBuild, allModelFinalJson);
+			if(NOT(ISNULL(jsonget(SAJson1, "One-Time"))) AND jsonget(SAJson1, "One-Time") <> "{}"){
+				SAOneTime = json(jsonget(SAJson1, "One-Time"));
+			}else{
+				jsonput(SAOneTime , "itemType_quoteSummary","One-Time");
+			}
+			if(NOT(ISNULL(jsonget(SAJson1, "MRR"))) AND jsonget(SAJson1, "MRR") <> "{}"){
+				SAMRR = json(jsonget(SAJson1, "MRR"));
+			}else{
+				jsonput(SAMRR , "itemType_quoteSummary","MRR");
+			}
+			jsonarrayappend(quoteSummuryBuild, SAOneTime);
+			jsonarrayappend(quoteSummuryBuild, SAMRR);
+		}
+		if(eachKey == "IT Services"){
+			ITSJson1 = json(jsonget(allModelJson,"IT Services"));
+			jsonput(allModelFinalJson , "itemType_quoteSummary", "IT Services");
+			jsonarrayappend(quoteSummuryBuild, allModelFinalJson);
+			if(NOT(ISNULL(jsonget(ITSJson1, "One-Time"))) AND jsonget(ITSJson1, "One-Time") <> "{}"){
+				ITSOneTime = json(jsonget(ITSJson1, "One-Time"));
+			}else{
+				jsonput(ITSOneTime , "itemType_quoteSummary","One-Time");
+			}
+			if(NOT(ISNULL(jsonget(ITSJson1, "MRR"))) AND jsonget(ITSJson1, "MRR") <> "{}"){
+				ITSMRR = json(jsonget(ITSJson1, "MRR"));
+			}else{
+				jsonput(ITSMRR , "itemType_quoteSummary","MRR");
+			}
+			jsonarrayappend(quoteSummuryBuild, ITSOneTime);
+			jsonarrayappend(quoteSummuryBuild, ITSMRR);
+		}
+		if(eachKey == "Managed Services"){
+			MSJson1 = json(jsonget(allModelJson,"Managed Services"));
+			jsonput(allModelFinalJson , "itemType_quoteSummary", "Managed Services");
+			jsonarrayappend(quoteSummuryBuild, allModelFinalJson);
+			if(NOT(ISNULL(jsonget(MSJson, "One-Time"))) AND jsonget(MSJson, "One-Time") <> "{}"){
+				MSOneTime = json(jsonget(MSJson, "One-Time"));
+			}else{
+				jsonput(MSOneTime , "itemType_quoteSummary","One-Time");
+			}
+			if(NOT(ISNULL(jsonget(MSJson, "MRR"))) AND jsonget(MSJson, "MRR") <> "{}"){
+				MSMRR = json(jsonget(MSJson, "MRR"));
+			}else{
+				jsonput(MSMRR , "itemType_quoteSummary","MRR");
+			}
+			jsonarrayappend(quoteSummuryBuild, MSOneTime);
+			jsonarrayappend(quoteSummuryBuild, MSMRR);
+		}
+		if(eachKey == "Solution Configuration"){
+			SCJson1 = json(jsonget(allModelJson,"Solution Configuration"));
+			jsonput(allModelFinalJson , "itemType_quoteSummary", "Solution Configuration");
+			jsonarrayappend(quoteSummuryBuild, allModelFinalJson);
+			if(NOT(ISNULL(jsonget(SCJson, "One-Time"))) AND jsonget(SCJson, "One-Time") <> "{}"){
+				SCOneTime = json(jsonget(SCJson, "One-Time"));
+			}else{
+				jsonput(SCOneTime , "itemType_quoteSummary","One-Time");
+			}
+			if(NOT(ISNULL(jsonget(SCJson, "MRR"))) AND jsonget(SCJson, "MRR") <> "{}"){
+				SCMRR = json(jsonget(SCJson, "MRR"));
+			}else{
+				jsonput(SCMRR , "itemType_quoteSummary","MRR");
+			}
+			jsonarrayappend(quoteSummuryBuild, SCOneTime);
+			jsonarrayappend(quoteSummuryBuild, SCMRR);
+		}
+		if(eachKey == "Total Deal"){
+			TTLJson1 = json(jsonget(allModelJson,"Total Deal"));
+			jsonput(allModelFinalJson , "itemType_quoteSummary", "Total Deal");
+			jsonarrayappend(quoteSummuryBuild, allModelFinalJson);
+			if(NOT(ISNULL(jsonget(TTLJson1, "One-Time"))) AND jsonget(TTLJson1, "One-Time") <> "{}"){
+				TTLOneTime = json(jsonget(TTLJson1, "One-Time"));
+			}else{
+				jsonput( TTLOneTime , "itemType_quoteSummary","One-Time");
+			}
+			if(NOT(ISNULL(jsonget(TTLJson1, "MRR"))) AND jsonget(TTLJson1, "MRR") <> "{}"){
+				TTLMRR = json(jsonget(TTLJson1, "MRR"));
+			}else{
+				jsonput(TTLMRR , "itemType_quoteSummary","MRR");
+			}
+			jsonarrayappend(quoteSummuryBuild, TTLOneTime);
+			jsonarrayappend(quoteSummuryBuild, TTLMRR);
+		}
+	}
+}
+returnValue = returnValue + "1~totalMRRContractValue_t~" + string(TotalMRRContractValueTT) +"|";
+returnValue = returnValue + "1~oneTimeTotalContractValue_t~" + string(TotalOneTimeContractValueTT) +"|";
+returnValue = returnValue + _transaction_document_number + "~quoteSummaryArraySet_t~" + jsonarrayrefid(quoteSummuryBuild) + "|"
+						  //+ _transaction_document_number + "~quotePrice_t~" + string(quotePrice) + "|"
+							;
+							
+y=getcurrenttimeinmillis();
+z=y-x;
+return returnValue;

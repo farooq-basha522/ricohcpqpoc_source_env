@@ -1,0 +1,233 @@
+/******************************************************************************************************/
+//Author: 		Subha	26/06/2022
+//Functionality: To fetch the Opportunity Sales Rep Details and RE Case questionnaires from RISE
+/******************************************************************************************************/
+returnString = "";
+jsonObjs = json();
+oppObj = json();
+oppOwnerjson=json();
+oppResArray= jsonarray();
+oppResourceendpointURL="";
+reCaseIdendpointURL ="";
+bcEndpointURL="";
+otherRelevantInforURL="";
+reCaseIdresponse="";
+oppOwnerFlag="";
+returnString="";
+recaseId="";
+recaseSolutionsSerCatNew="";
+headerDict = dict("string");
+enCodeFormat = "";
+
+/**********************Authorization Query*************************************/
+recordSet = bmql("select ENDPOINTURL,LOGIN,PASSWORD from RISE_INTEGRATION where INSTANCE = $_system_supplier_company_name");
+for each in recordSet{
+	enCodeFormat = get(each,"LOGIN")+":"+get(each,"PASSWORD");
+	endpointURL = get(each,"ENDPOINTURL");
+}
+/**********************Authorization Query*************************************/
+put(headerDict, "Content-Type", "json/xml");
+put(headerDict, "Authorization", "Basic "+encodebase64(enCodeFormat));
+if(opportunityNumber_t<>"" AND teamMembers_RECase_Flag==false){
+	oppOwnerURLquery= BMQL("select Endpoint_URL,API_Service from RAC_EndpointURL where CPQ_SysCompName= $_system_company_name");
+		for eachURL in oppOwnerURLquery{
+			oppURL= get(eachURL, "Endpoint_URL");
+			apiService= get(eachURL, "API_Service");
+			if(apiService=="oppOwner"){
+				oppResourceendpointURL = oppURL+opportunityNumber_t+"/child/OpportunityResource?onlyData=true";
+		
+			}
+			if(apiService=="RECase_Id"){
+				reCaseIdendpointURL = oppURL+opportunityID_t;
+			}
+						
+		}
+		
+		oppResResp= urldatabyget(oppResourceendpointURL,"","error",1000000, headerDict);
+		if(oppResResp<>"" AND NOT ISNULL(oppResResp) AND oppResResp<>"error" AND find(oppResResp,"<title>")==-1){
+			oppObj =json(oppresResp);
+			oppOwnerVal=jsonget(oppObj, "items");
+			oppArr=jsonarray(oppOwnerVal);
+			oppArrsize= range(jsonarraysize(oppArr));
+			for oppOwner in oppArrsize{
+						valOppOwnFlag= jsonarrayget(oppArr,oppOwner);
+						oppOwnerjson= json(valOppOwnFlag);
+						if(not isnull(jsonget(oppOwnerjson,"OwnerFlag")) AND jsonget(oppOwnerjson,"OwnerFlag") <> ""){
+							oppOwnerFlag= jsonget(oppOwnerjson,"OwnerFlag");
+								if(oppOwnerFlag=="true"){
+									if(not isnull(jsonget(oppOwnerjson,"EmailAddress")) AND jsonget(oppOwnerjson,"EmailAddress") <> ""){
+										oppEmailAddress= jsonget(oppOwnerjson,"EmailAddress");
+										returnString = returnString + "1~salesRepEmail_Opportunity_RISE_t~"+oppEmailAddress +"|";
+										returnString = returnString + "1~dSS_t~"+oppEmailAddress +"|";
+										returnString = returnString + "1~cc_t~"+oppEmailAddress +"|";
+									}
+									if(not isnull(jsonget(oppOwnerjson,"PartyName")) AND jsonget(oppOwnerjson,"PartyName") <> ""){
+										oppPartyName= jsonget(oppOwnerjson,"PartyName");
+										returnString = returnString + "1~salesRepName_Opp_RISE~"+oppPartyName +"|";
+									}
+									if(not isnull(jsonget(oppOwnerjson,"FormattedPhoneNumber")) AND jsonget(oppOwnerjson,"FormattedPhoneNumber") <> ""){
+										oppFormattedPhoneNum= jsonget(oppOwnerjson,"FormattedPhoneNumber");
+										returnString = returnString + "1~salesRepContactNumber_t~"+oppFormattedPhoneNum +"|";
+									}
+		
+								}
+								
+						}
+			}
+	}
+	reCaseIdresponse= urldatabyget(reCaseIdendpointURL,"","error",1000000, headerDict);
+	if(reCaseIdresponse<> "" AND reCaseIdresponse<> "error" AND ISNULL(reCaseIdresponse)==false AND find(reCaseIdresponse,"<title>")==-1){
+		
+		recaseIdObj = json(reCaseIdresponse);
+		reCasearrVal= jsonget(recaseIdObj,"items");
+		reCaseArray = jsonarray(reCasearrVal);
+		reCasearraysize = range(jsonarraysize(reCaseArray));
+		for reCaseval in reCasearraysize{
+			valReCase = jsonarrayget(reCaseArray ,reCaseval );
+			reCaseIdjson= json(valReCase);
+			if(not isnull(jsonget(reCaseIdjson,"Id")) AND jsonget(reCaseIdjson,"Id") <> ""){
+				recaseId= jsonget(reCaseIdjson,"Id");
+				returnString = returnString + "1~REcaseID_t~"+recaseId+"|";
+			}
+			for eachURL in oppOwnerURLquery{
+				reCaseURL= get(eachURL, "Endpoint_URL");
+				apiService= get(eachURL, "API_Service");
+					if(apiService=="Team_Members"){
+						bcEndpointURL = reCaseURL+recaseId+"/enclosure/Business_challenges_c";
+						otherRelevantInforURL = reCaseURL+recaseId+"/enclosure/Other_relevant_information_c";
+					}
+			}
+	/*******************To Set Business Challenges & Other Relevant Information START******************************************/
+		bcResponse = urldatabyget(bcEndpointURL ,"","error",50000, headerDict);
+		otherRelevantInfor = urldatabyget(otherRelevantInforURL ,"","error",50000, headerDict);
+			if(bcResponse <> "" AND bcResponse <> "error" AND find(bcResponse,"<title>")==-1){
+				returnString = returnString + "1~businessChallenges_t~"+bcResponse +"|";
+			}
+			if(otherRelevantInfor <> "" AND otherRelevantInfor <> "error" AND find(otherRelevantInfor,"<title>")==-1){
+				returnString = returnString + "1~otherRelevantInformation_t~"+otherRelevantInfor+"|";
+			}
+	/*******************To Set Business Challenges & Other Relevant Information END******************************************/
+			if(not isnull(jsonget(reCaseIdjson,"RecordName")) AND jsonget(reCaseIdjson,"RecordName") <> ""){
+				recaseName= jsonget(reCaseIdjson,"RecordName");
+				returnString = returnString + "1~REcaseName_t~"+recaseName+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"LeasePaymentTerm_c")) AND jsonget(reCaseIdjson,"LeasePaymentTerm_c") <> ""){
+				reLeasePaymentTerm= jsonget(reCaseIdjson,"LeasePaymentTerm_c");
+				returnString = returnString + "1~leasePaymentTerm_Rise_t~"+reLeasePaymentTerm+"|";
+			}
+			//start_bau_CHG0083198_created by New field and data to pass from RISE RE Case Questionnaire gowtham on 06-07-2023
+			if(not isnull(jsonget(reCaseIdjson,"OtherLeasePaymentTerm_c")) AND jsonget(reCaseIdjson,"OtherLeasePaymentTerm_c") <> ""){
+				reOtherLeasePaymentTerm= jsonget(reCaseIdjson,"OtherLeasePaymentTerm_c");
+				returnString = returnString + "1~otherLeasePaymentTerm_t~"+reOtherLeasePaymentTerm+"|";
+			}
+			//end_bau_CHG0083198_created by New field and data to pass from RISE RE Case Questionnaire gowtham on 06-07-2023
+			
+			if(not isnull(jsonget(reCaseIdjson,"DealTypeImportantToConfirm_c")) AND jsonget(reCaseIdjson,"DealTypeImportantToConfirm_c") <> ""){
+				reDealType= jsonget(reCaseIdjson,"DealTypeImportantToConfirm_c");
+				returnString = returnString + "1~dealType_Rise_t~"+reDealType+"|";
+			}if(not isnull(jsonget(reCaseIdjson,"ContractedPriceList_c")) AND jsonget(reCaseIdjson,"ContractedPriceList_c") <> ""){
+				reContractPriceList= jsonget(reCaseIdjson,"ContractedPriceList_c");
+				returnString = returnString + "1~contractedPriceList_Rise_txt_t~"+reContractPriceList+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"MixedmulitpleVendorsRequirements_c")) AND jsonget(reCaseIdjson,"MixedmulitpleVendorsRequirements_c") <> ""){
+				recaseMixedMultiVendorReq= jsonget(reCaseIdjson,"MixedmulitpleVendorsRequirements_c");
+				returnString = returnString + "1~multipleVendorFleetRequirements_t~"+recaseMixedMultiVendorReq+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"CurrentPrintVendor_c")) AND jsonget(reCaseIdjson,"CurrentPrintVendor_c") <> ""){
+				recaseCurrPrintVendor= jsonget(reCaseIdjson,"CurrentPrintVendor_c");
+				returnString = returnString + "1~currentPrintVendor_t~"+recaseCurrPrintVendor+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"DoesTheCustomerCurrentlyUsePrintServers_c")) AND jsonget(reCaseIdjson,"DoesTheCustomerCurrentlyUsePrintServers_c") <> ""){
+				recaseDoestheCust= jsonget(reCaseIdjson,"DoesTheCustomerCurrentlyUsePrintServers_c");
+				returnString = returnString + "1~customerUsingPrintServers_t~"+recaseDoestheCust+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"ConfirmThatThisIsAManagedPrint_c")) AND jsonget(reCaseIdjson,"ConfirmThatThisIsAManagedPrint_c") <> ""){
+				recaseConfirmThatthisisMP= jsonget(reCaseIdjson,"ConfirmThatThisIsAManagedPrint_c");
+				returnString = returnString + "1~isthisManagedPrint_t~"+recaseConfirmThatthisisMP+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"NumberOfSites_c")) AND jsonget(reCaseIdjson,"NumberOfSites_c") <> ""){
+				recaseNumberofSites= jsonget(reCaseIdjson,"NumberOfSites_c");
+				returnString = returnString + "1~numberOfSites_t~"+recaseNumberofSites+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"MobilePrintRequirements_c")) AND jsonget(reCaseIdjson,"MobilePrintRequirements_c") <> ""){
+				recaseMobiPrintReq= jsonget(reCaseIdjson,"MobilePrintRequirements_c");
+				returnString = returnString + "1~mobilePrintRequired_t~"+recaseMobiPrintReq+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"TypeOfEngagement_c")) AND jsonget(reCaseIdjson,"TypeOfEngagement_c") <> ""){
+				recaseTypeEngReq= jsonget(reCaseIdjson,"TypeOfEngagement_c");
+				returnString = returnString + "1~engagementType_t~"+recaseTypeEngReq+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"InternationalScope_c")) AND jsonget(reCaseIdjson,"InternationalScope_c") <> ""){
+				recaseIntScope= jsonget(reCaseIdjson,"InternationalScope_c");
+				returnString = returnString + "1~internationalScope_t~"+recaseIntScope+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"ExistingRIMA_c")) AND jsonget(reCaseIdjson,"ExistingRIMA_c") <> ""){
+				recaseExistingRIMA= jsonget(reCaseIdjson,"ExistingRIMA_c");
+				returnString = returnString + "1~existingRIMA_t~"+recaseExistingRIMA+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"ComputingEnvironmentForSolutions_c")) AND jsonget(reCaseIdjson,"ComputingEnvironmentForSolutions_c") <> ""){
+				recaseComEnvSol= jsonget(reCaseIdjson,"ComputingEnvironmentForSolutions_c");
+				returnString = returnString + "1~computingEnvironmentForSolutions_t~"+recaseComEnvSol+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"SolutionRequested_c")) AND jsonget(reCaseIdjson,"SolutionRequested_c") <> ""){
+				recaseSolRequested= jsonget(reCaseIdjson,"SolutionRequested_c");
+				returnString = returnString + "1~solutionRequested_t~"+recaseSolRequested+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"EstimatedRevnueLessThan5000_c")) AND jsonget(reCaseIdjson,"EstimatedRevnueLessThan5000_c") <> ""){
+				recaseEstRevLess= jsonget(reCaseIdjson,"EstimatedRevnueLessThan5000_c");
+				returnString = returnString + "1~estimatedRevenue_t~"+recaseEstRevLess+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"CurrentPrintSolutionInstalled_c")) AND jsonget(reCaseIdjson,"CurrentPrintSolutionInstalled_c") <> ""){
+				recaseCurrentPrintSolution= jsonget(reCaseIdjson,"CurrentPrintSolutionInstalled_c");
+				returnString = returnString + "1~currentPrintSolution_t~"+recaseCurrentPrintSolution+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"PreviousDeisgnLead_c")) AND jsonget(reCaseIdjson,"PreviousDeisgnLead_c") <> ""){
+				recasePreviousDesignLead= jsonget(reCaseIdjson,"PreviousDeisgnLead_c");
+				returnString = returnString + "1~previousDesignlead_t~"+recasePreviousDesignLead+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"NumberOfUsers_c")) AND jsonget(reCaseIdjson,"NumberOfUsers_c") <> ""){
+				recaseNoOfUsers= jsonget(reCaseIdjson,"NumberOfUsers_c");
+				returnString = returnString + "1~numberOfUsers_t~"+recaseNoOfUsers+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"ExpectedBookDate_c")) AND jsonget(reCaseIdjson,"ExpectedBookDate_c") <> ""){
+				recaseExpectedBookDate= jsonget(reCaseIdjson,"ExpectedBookDate_c");
+				returnString = returnString + "1~expectedSignDate_t~"+recaseExpectedBookDate+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"NumberOfExistingDevices_c")) AND jsonget(reCaseIdjson,"NumberOfExistingDevices_c") <> ""){
+				recaseNoOFExistingDevices= jsonget(reCaseIdjson,"NumberOfExistingDevices_c");
+				returnString = returnString + "1~numberOfExistingDevices_t~"+recaseNoOFExistingDevices+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"SolutionPrimaryFunction_c")) AND jsonget(reCaseIdjson,"SolutionPrimaryFunction_c") <> ""){
+				recaseSolPrimaryFunction= jsonget(reCaseIdjson,"SolutionPrimaryFunction_c");
+				returnString = returnString + "1~solutionPrimaryFunction_t~"+recaseSolPrimaryFunction+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"SalesRepName01_c")) AND jsonget(reCaseIdjson,"SalesRepName01_c") <> ""){
+				recaseSalesRepName= jsonget(reCaseIdjson,"SalesRepName01_c");
+				returnString = returnString + "1~salesRepName_t~"+recaseSalesRepName+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"Email_c")) AND jsonget(reCaseIdjson,"Email_c") <> ""){
+				recaseSalesRepEmail= jsonget(reCaseIdjson,"Email_c");
+				returnString = returnString + "1~salesRepEmail_t~"+recaseSalesRepEmail+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"AreasOfExpertiseFor_c")) AND jsonget(reCaseIdjson,"AreasOfExpertiseFor_c") <> ""){
+				recaseAreaofExpertise= jsonget(reCaseIdjson,"AreasOfExpertiseFor_c");
+				returnString = returnString + "1~primarySolutionRISE_t~"+recaseAreaofExpertise+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"SolutionServicesCategoryFor_c")) AND jsonget(reCaseIdjson,"SolutionServicesCategoryFor_c") <> ""){
+				recaseSolutionsSerCat= jsonget(reCaseIdjson,"SolutionServicesCategoryFor_c");
+				recaseSolutionsSerCatNew=replace(recaseSolutionsSerCat," || ",",");
+				returnString = returnString + "1~solutionServicesCategoryRISE_t~"+recaseSolutionsSerCatNew+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"ExistingMasterServiceAgreement_c")) AND jsonget(reCaseIdjson,"ExistingMasterServiceAgreement_c") <> ""){
+				recaseExistingMasSerAgree= jsonget(reCaseIdjson,"ExistingMasterServiceAgreement_c");
+				returnString = returnString + "1~existingMasaterServiceAgreement_t~"+recaseExistingMasSerAgree+"|";
+			}
+			if(not isnull(jsonget(reCaseIdjson,"Resource_Name_c")) AND jsonget(reCaseIdjson,"Resource_Name_c") <> ""){
+				recaseResourceName= jsonget(reCaseIdjson,"Resource_Name_c");
+				returnString = returnString + "1~resourceName_t~"+recaseResourceName+"|";
+			}
+			
+		}
+	}
+}
+return returnString;

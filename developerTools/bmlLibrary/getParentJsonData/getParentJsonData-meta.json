@@ -1,0 +1,15 @@
+{
+  "name" : "getParentJsonData",
+  "variableName" : "getParentJsonData",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "Key",
+    "type" : "String"
+  }, {
+    "name" : "ChildJson",
+    "type" : "Json"
+  } ],
+  "attributes" : [ ]
+}

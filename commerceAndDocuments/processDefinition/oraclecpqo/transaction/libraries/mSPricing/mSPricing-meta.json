@@ -1,0 +1,11 @@
+{
+  "name" : "MS Pricing",
+  "variableName" : "mSPricing",
+  "description" : "",
+  "libraryFunctions" : [ "util.getPartPrice" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_parent_doc_number", "_model_name", "_part_number", "_document_number", "_config_attr_info", "partName_l", "contractedUnitPrice_l", "unitSalesCost_l", "_part_custom_field7", "_part_base_price", "_price_list_price_each", "_price_quantity" ],
+  "mainDocAttributes" : [ "termMonths_t", "contractOtherTerm_t" ],
+  "systemAttributes" : [ ]
+}

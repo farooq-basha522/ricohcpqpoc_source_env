@@ -1,0 +1,189 @@
+//Utility Function: abo_addDiagnosticInfo
+//Input: msgTitle(string),msgJson(json), action(string)
+//output: all msg so far                     
+//
+//Purpose: 
+//   This is the utility function to manage diagnosis, which provides in-depth log information when enabled.
+//   It provide capability to add/retrieve/reset diagnosis log.
+//
+//   When diagnosis is enabled, add the specified info to a diagnosis json object which can be examined later for debugging
+//  the structure of the diagnosis object will be:
+//  {   
+//         allMsgs:[
+//                         { inputTitle:inputMsg1 , date:d1.. , user:.. }
+//                         { inputTitle:inputMsg2 , date:d2.. , user:.. }
+//                  ..]
+//        , summaryMsgs{ lastupdatedate:, lastupdateby:, inputTitle:inputMsg2, inputTitleX:inputMsgX4
+//                  ,  ....}
+//  }
+//  aka  the allMsg is a chronological array list, while summaryMsg is a reset to the new value when the same title is passed in.
+//
+//  action input can be one of the following values:  
+//               default:empty => will add the msg to chronological log only
+//               addToSummary=> will add the msg to both chronological log and summary
+//               get:  => will retrieve the message
+//               reset => will remove all logs.
+//               flushToRemote =>  to support diagnosis on remote session
+//               enable/disable => to enable /disable diagnosis
+
+//constant used in multiple places
+DiagnosticLogKey="abo_diagnostic_log";
+RemoteDiagnosticLogKey="UnknownLogin_"+DiagnosticLogKey;
+if(not(isnull(_user_login)) OR _user_login<>""){  
+    RemoteDiagnosticLogKey=_user_login+"_"+DiagnosticLogKey;
+}
+   
+
+//Make entry in BML Log as well
+
+abocontext = util.abo_getContext();
+//Handling of enable/disable log
+if(action=="enable" OR action=="disable")
+{
+   //reset log
+   usersessionset(DiagnosticLogKey,json());
+   globalDictremove(RemoteDiagnosticLogKey);
+   //turn on/off diagnosis seting
+   if(action=="enable") {usersessionset("AboDiagnosticMode","Y");  }
+   if(action=="disable"){usersessionremove("AboDiagnosticMode");  }
+   //now reload context   
+   commProcName =  jsonget(abocontext, "commerceProcessName", "string", "");
+   abocontext=util.abo_initializeContext(""); //This will trigger drop of context, otherwise setting same process will just return directly.
+   abocontext=util.abo_initializeContext(commProcName );
+   return json();
+}
+
+//in case caller forgot to check whether diagnosis is enabled, we will double check here.
+//   also when caller is using this function for eror handling case, they might just call without check wheter dignostic is on
+//    so that the code on caller side will look cleaner, since the error is last step of the flow, we can afford one time extra cost of getcontext()
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true);
+if(bDiagnosisOff)
+{
+  return json();
+}
+
+//if caller asks to cleanup first.
+if (action=="reset")
+{
+   usersessionset(DiagnosticLogKey,json());
+   globaldictremove(RemoteDiagnosticLogKey);
+   return json();
+}
+
+//now obtain the storage entry
+storageJson = usersessionget(DiagnosticLogKey, "json");      
+if(isnull(storageJson)){
+    storageJson =  json();         
+}
+
+
+if (action=="flushToRemote")
+{ 
+ // This is expected to be invoked as the end of the BML function exposed as a RESTful service which gets invoked
+ // in a separate session. The overall design of remote RESTful session diagnosis is: When bringing up the AssetUI,
+ // if diagnostic mode is on, we will add a prefix of "debug_" to the commerce process name passed to the Asset UI.
+ // When the asset UI's Terminate or Modify is is triggered, the first call of abo_initializeContext will check for 
+ // the presence of the "debug_" prefix. If it is present, we will set the remote session to have diagnostic mode enabled,
+ // thus capturing the diagnostic logs in the remote user session map. At the end of the modify/terminate call 
+ //(BMLs:abo_copyRoottoTransaction, abo_getConfigurationinstance), We will flush the remote user session log to the
+ // global cache. When the user tries to retrieve the log, we will pull data from both local user session and global logs.
+
+ // There are several limitations:  
+ // 1. When there is a throwerror on the remote session, we won't get a chance to flush.
+ // So getlog will not get the globallog. In this case, since diagnostic mode is on in the remote log, 
+ // the prinst will be output to the log, so we have to use the old fashioned way to debug code.
+ // We could choose to auto-flush on each additional log, but that's very costly, as each addlog will prompt a
+ // write to the database due to globalset/get calls.
+ // 2.if two people are using the same user to test, they will see each other's global log
+   dummy=globalDictset(RemoteDiagnosticLogKey,jsontostr(storageJson));
+   return json();
+}
+
+
+if(action=="get")
+{
+   globalstring=globalDictget(RemoteDiagnosticLogKey);
+   globalJson=json();
+   if((not isnull(globalstring)) and globalstring<>""){
+      globalJson=json(globalstring);
+   }
+   jsonput(storageJson, "globalLog",globalJson);
+   return storageJson;
+}
+
+//now we are adding the message to diagnostic logs
+title=msgTitle;
+if(msgTitle=="")
+{
+   title="Unknown";
+}
+
+//now populate into the all message chronological list
+strDate =  datetostr(getDate(true));
+allMsgKey = strDate +"_"+ title;
+               
+allMsgs=  json(); 
+if(util.abo_isjsonnull(storageJson , "allMsgs")<>true){                 
+   allMsgs=  jsonget(storageJson , "allMsgs", "json");
+}
+else  {
+  allMsgs=jsonput(storageJson , "allMsgs", allMsgs); 
+}
+jsonput(allMsgs, allMsgKey, msgJson);   
+
+//if caller asked, we also update into the summary section.
+summaryMsgs=json();
+if(action=="addToSummary"){
+
+   if(util.abo_isjsonnull(storageJson , "summaryMsgs")<>true){                 
+       summaryMsgs=  jsonget(storageJson , "summaryMsgs", "json");
+   }else {
+       summaryMsgs= jsonput(storageJson , "summaryMsgs", json());
+   }   
+   jsonput(summaryMsgs,  title, msgJson);
+} 
+
+//Add special procesing for BOM strucure, to add sorted copy as it is easier to compare
+sortedMsg=json();
+if(endswith(title, "BomArr") OR endswith(title,"Bom"))
+{//sort the children by partnum,id,  to analyze, use notepad++ to copy segement, 
+  //use json-prettifier to sort by property key,  use json-compare to compare 2 BOMs.
+  critArr =  jsonarray();
+  crit1 = json("{\"field\":\"partNumber\",\"order\":\"asc\"}");
+  crit2 = json("{\"field\":\"id\",\"order\":\"asc\"}");
+  jsonarrayappend(critArr, crit1);
+  jsonarrayappend(critArr, crit2);
+  
+  if(endswith(title, "Bom")){
+     sortedMsg=jsoncopy(msgJson);
+     arrChild=jsonpathgetsingle(sortedMsg,"$.children","jsonarray",jsonarray());
+     if(jsonarraysize(arrChild)>0){
+        arrChild=util.abo_jsonSort(arrChild, critArr);
+        jsonpathset(sortedMsg, "$.children", arrChild);
+    }
+  }
+  if(endswith(title, "BomArr")){
+     sortedMsg=jsoncopy(msgJson);
+     arrBom=jsonpathgetsingle(sortedMsg,"$.BomArr","jsonarray",jsonarray());
+     index=0; dummyArr=  string[jsonarraysize(arrBom)];
+     for dummyIter in dummyArr{
+         curbom=jsonarrayget(arrBom, index, "json"); index=index+1;
+         arrChild=jsonpathgetsingle(curBom,"$.children","jsonarray",jsonarray());
+        if(jsonarraysize(arrChild)>0){
+            arrChild=util.abo_jsonSort(arrChild, critArr);
+            jsonpathset(curbom, "$.children", arrChild);
+         }         
+      }
+  }
+ 
+   jsonput(allMsgs, allMsgKey+ "-sorted", sortedMsg);
+    
+   if(action=="addToSummary"){
+      jsonput(summaryMsgs,  title+"-sorted", sortedMsg);
+      jsonput(summaryMsgs,  title, sortedMsg);
+   }
+}
+
+usersessionset(DiagnosticLogKey, storageJson );
+
+return storageJson ;

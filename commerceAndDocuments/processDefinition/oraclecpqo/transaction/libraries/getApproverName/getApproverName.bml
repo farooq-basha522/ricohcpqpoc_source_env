@@ -1,0 +1,8 @@
+approverName ="";
+queryRes= BMQL("select $approvalLevel from RAC_SA_ApprovalFlow where ApprovalType=$approvalType and ApprovalGroup=$approvalGroup");
+
+for res in queryRes
+{
+approverName = get(res,approvalLevel);
+}
+return "1~" + approverName + "~" + _system_supplier_company_name ;

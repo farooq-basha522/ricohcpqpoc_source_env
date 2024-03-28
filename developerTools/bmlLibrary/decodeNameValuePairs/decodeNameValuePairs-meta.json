@@ -1,0 +1,15 @@
+{
+  "name" : "Decode Name Value Pairs",
+  "variableName" : "decodeNameValuePairs",
+  "description" : "Decodes a given delimited string into a string dictionary with Key=Name, and Value=Value.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String Dictionary",
+  "parameters" : [ {
+    "name" : "encodedNameValuePairs",
+    "type" : "String"
+  }, {
+    "name" : "extraInputsDict",
+    "type" : "String Dictionary"
+  } ],
+  "attributes" : [ ]
+}

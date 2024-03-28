@@ -1,0 +1,11 @@
+{
+  "name" : "Set Pricelist RISE->CPQ",
+  "variableName" : "setPricelistRISECPQ",
+  "description" : "Created by Subha -12/09/2021 To fetch the Pricelist from RISE->CPQ",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "RISEAccountNumber_t", "rAC_Pricelist_RISE" ],
+  "systemAttributes" : [ "_system_company_name", "_system_supplier_company_name" ]
+}

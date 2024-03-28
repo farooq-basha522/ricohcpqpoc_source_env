@@ -1,0 +1,9 @@
+{
+  "name" : "Add ITS View Status Logs",
+  "variableName" : "addITSViewStatusLogs",
+  "description" : "",
+  "libraryFunctions" : [ "util.removeITSViewStatusLogs" ],
+  "returnType" : "Boolean",
+  "parameters" : [ ],
+  "attributes" : [ "_user_login", "_user_group" ]
+}

@@ -1,0 +1,15 @@
+{
+  "name" : "Get Attributes from Commerce",
+  "variableName" : "getAttributesFromCommerce",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "typeOfattribute",
+    "type" : "String"
+  }, {
+    "name" : "attributeName",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

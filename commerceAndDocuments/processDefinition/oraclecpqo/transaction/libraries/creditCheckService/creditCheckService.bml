@@ -1,0 +1,109 @@
+//*****************************************************************************************************
+//** Function:    Credit Check Service Function
+//**
+//** Description: This function will calculate if a a credit check is required, make the web service 
+//** 		  call if required, parse the response, and populate the three attributes.
+//**		  This function only runs on "Create Order" action.
+//**              If creditCheckRequired_t is true and creditCheckApproved_t <> "TRUE", 
+//**			then quote will go into CC Required step
+//**                                                                                               
+//** History:	Date		Author     	Comment
+//**				HHo		Initial Implementation
+//*****************************************************************************************************
+
+/**** OLD BLOCK OF CODE
+ret = "";
+ccServiceMessages = "";
+manualCCRequired = "";
+creditCheckRequired = true; //Credit Check WEB SERVICE required
+creditCheckPreviouslyApproved = creditCheckPreviouslyApproved_t; //already approved or not. Will be blank on quotes that have not gone through this process yet
+if(billingAuthority_t == "GRAYCON"){
+	creditCheckRequired = false;
+}
+
+
+ccServiceMessages = creditCheckServiceMessages_t;
+customerID_GP = customerIDGP_t;
+
+if(creditCheckRequired <> true AND creditCheckPreviouslyApproved <> "TRUE" AND billingAuthority_t <> "GRAYCON"){ //if not graycon and it was NOT already approved previously (ie: approved and recalled)
+	if((totalPriceMRR_t + totalPriceProServNRR_t + totalPriceInstallNRR_t ) > 5000 ){ //Always require manual credit approval if > 5K
+		creditCheckPreviouslyApproved = "FALSE"; //CC requires approval still
+		ccServiceMessages = "Greater Than 5K Non-Equipment Quoted";
+	}
+	elif(customerID_GP == ""){//Always require credit approval if this is a blank account number (i.e., a Prospect or New account)
+		creditCheckPreviouslyApproved = "FALSE"; //CC requires approval still
+		ccServiceMessages = "New/Prospect Account";
+	}
+	//Call Credit check function if necessary
+	else{
+		resultDict = util.creditCheckWebServiceCallout(customerID_GP);
+		
+		//Key: manualCCRequired, Type: Boolean, Value: True if a manual CC is required
+		//Key: message, Type: String, Value: error/success message
+		ccServiceMessages = get(resultDict, "message", "string");
+		manualCCRequired = upper(string(get(resultDict, "manualCCRequired", "boolean")));
+		if (manualCCRequired == "TRUE"){
+			creditCheckPreviouslyApproved = "FALSE";
+		}
+		elif(manualCCRequired == "FALSE"){
+			creditCheckPreviouslyApproved = "TRUE";
+		}
+	}
+}
+
+ret = ret + "1~creditCheckRequired_t~" + string(creditCheckRequired) + "|"
+	  + "1~creditCheckApproved_t~" + (creditCheckPreviouslyApproved) + "|"
+	  + "1~creditCheckServiceMessages_t~" +ccServiceMessages + "|"
+	;
+
+return ret;
+****/
+
+ret = "";
+ccServiceMessages = "";
+manualCCRequired = "";
+creditCheckRequired = true; //Credit Check WEB SERVICE required
+creditCheckWSNeeded = true;
+creditCheckAutoApproved = "FALSE";
+
+if(billingAuthority_t == "GRAYCON"){
+	creditCheckRequired = false;
+	creditCheckWSNeeded = false;
+}
+
+
+ccServiceMessages = creditCheckServiceMessages_t;
+customerID_GP = customerIDGP_t;
+
+if(creditCheckRequired == true AND billingAuthority_t <> "GRAYCON"){ //if not graycon and it was NOT already approved previously (ie: approved and recalled)
+	if((totalPriceMRR_t + totalPriceProServNRR_t + totalPriceInstallNRR_t ) > 5000 ){ //Always require manual credit approval if > 5K
+		creditCheckWSNeeded = false; //CC requires MANUAL approval
+		ccServiceMessages = "Greater Than 5K Non-Equipment Quoted";
+	}
+	elif(customerID_GP == ""){//Always require credit approval if this is a blank account number (i.e., a Prospect or New account)
+		creditCheckWSNeeded = false; //CC requires MANUAL approval
+		ccServiceMessages = "New/Prospect Account";
+	}
+	//Call Credit check function if necessary
+	elif(creditCheckWSNeeded == true){
+		resultDict = util.creditCheckWebServiceCallout(customerID_GP);
+		
+		//Key: manualCCRequired, Type: Boolean, Value: True if a manual CC is required
+		//Key: message, Type: String, Value: error/success message
+		ccServiceMessages = get(resultDict, "message", "string");
+		manualCCRequired = upper(string(get(resultDict, "manualCCRequired", "boolean")));
+		if (manualCCRequired <> "FALSE"){
+			creditCheckAutoApproved = "FALSE";
+		}
+		else{ //service returned manualCCRequied = FALSE
+			creditCheckAutoApproved = "TRUE";
+		}
+	}
+}
+
+ret = ret + "1~creditCheckRequired_t~" + string(creditCheckRequired) + "|"
+	  + "1~creditCheckApproved_t~" + creditCheckAutoApproved + "|"
+	  + "1~creditCheckServiceMessages_t~" +ccServiceMessages + "|"
+	;
+
+return ret;

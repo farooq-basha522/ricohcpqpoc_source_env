@@ -1,0 +1,58 @@
+currentdate = datetostr(getdate(),"yyyy-MM-dd");
+retValue = "";
+rowNum = 1;
+rowNum1 = 1;
+itemsArray = quoteWorkbench_VQt;
+arraySize = range(jsonarraysize(itemsArray));
+vendorRequestNumberNonRicohtemp = false;
+vendorRequestNumberNonRicohtempval = "";
+vendorQuoteRequestNameRicohtemp = false;
+vendorQuoteRequestNameRicohtempval = "";
+quoteExpirationDateRicohTemp = false;
+quoteExpirationDateRicohTempval = "";
+	for arr in arraySize {
+		quoteExpirationDate = jsonget(json(jsonarrayget(itemsArray , arr)),"quoteExpiration_QuoteWorkbench_t"); 
+		selectAll_QuoteWorkbench_t = jsonget(json(jsonarrayget(itemsArray , arr)),"selectAll_QuoteWorkbench_t"); 
+		ricohEDPCode = jsonget(json(jsonarrayget(itemsArray , arr)),"ricohEDPCode_QuoteWorkbench_t");
+		vendorName_QuoteWorkbench_t = jsonget(json(jsonarrayget(itemsArray , arr)),"vendorName_QuoteWorkbench_t");
+
+
+		lineID = jsonget(json(jsonarrayget(itemsArray , arr)),"lineID_t");
+
+		
+		if(len(quoteExpirationDateRicohTempval) == 0){
+			quoteExpirationDateRicohTempval = quoteExpirationDate;
+		}
+	    
+		else {
+			quoteExpirationDateRicohTempval = quoteExpirationDate;
+		}
+		
+		
+				if(NOT ISNULL(selectAll_QuoteWorkbench_t) AND selectAll_QuoteWorkbench_t == "true" AND NOT ISNULL(vendorName_QuoteWorkbench_t) AND vendorName_QuoteWorkbench_t <> "RICOH"){
+
+		if(len(quoteExpirationDate) < 1) {
+			retValue = retValue + lineID + " " + ": Quote Expiration Date is required.\n ";
+		}
+		if(len(quoteExpirationDate) > 0) {
+			/* if(comparedates(strtodate(quoteExpirationDate,"yyyy-MM-dd"),strtodate(currentdate,"yyyy-MM-dd" ) ) == 0) {
+				retValue = retValue + lineID + " " + ": Quote Expiration Date should not be today's date.\n " ;
+			} */
+			if(comparedates(strtodate(quoteExpirationDate,"yyyy-MM-dd"),strtodate(currentdate,"yyyy-MM-dd" ) ) <> 1) {
+				retValue = retValue + lineID + " " + "- Vendor Quote Expiration Date has passed – request a new vendor quote.\n " ;
+			}
+			
+		}	
+		}
+		
+		rs_c = bmql("SELECT custom_field1 FROM _parts WHERE part_number = $ricohEDPCode");
+        for s_c in rs_c{
+			if(get(s_c,"custom_field1") <> "Active" AND ricohEDPCode <> "MAP-GENERIC"){
+							retValue = retValue +"Line Number# "+lineID + " - " + "item is inactive – please confirm with Vendor/Marketing \n ";
+			}
+		}
+	
+		rowNum = rowNum + 1;
+	}
+
+return retValue;

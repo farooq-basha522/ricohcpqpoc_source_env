@@ -1,0 +1,11 @@
+{
+  "name" : "GetUserNumberFormat",
+  "variableName" : "oRCL_fOM_getUserNumberFormat",
+  "description" : "Get the round off integer value as per the user format.",
+  "libraryFunctions" : [ ],
+  "returnType" : "Integer",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ "_system_user_number_format" ]
+}

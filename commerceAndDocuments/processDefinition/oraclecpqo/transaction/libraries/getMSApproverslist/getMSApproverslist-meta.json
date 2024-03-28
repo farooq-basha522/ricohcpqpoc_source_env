@@ -1,0 +1,14 @@
+{
+  "name" : "Get MS Approvers List(NOT USING)",
+  "variableName" : "getMSApproverslist",
+  "description" : "",
+  "libraryFunctions" : [ "commerce.generateMSApproversString" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "paramDict",
+    "type" : "String Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "mSTotalDealSectionArray_t", "mSTransactionType_t", "annualRevenueEscalation_t" ],
+  "systemAttributes" : [ "_system_supplier_company_name" ]
+}

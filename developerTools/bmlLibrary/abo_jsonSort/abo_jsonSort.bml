@@ -1,0 +1,96 @@
+//Function Name : abo_jsonSort
+//  Inputs: unsortedJsonArray(JsonArray) , critArray(JsonArray)
+//  output: sortedJsonArray (JsonArray)
+//Description:
+//   This utility BML is for sorting records in input jsonarray based on input criteria
+//Assumption & Input Format:
+//   The input of unsortedJsonArray has to be an array of homogeneous Json Objects.
+//   eg : [{"documentNumber":"54","actionCode":"UPDATE"},{"documentNumber":"54","actionCode":"ADD"},{"documentNumber":"63","actionCode":"ADD"}]
+//
+//   The input of critArray has to be an array of Json objects. 
+//   Each Json Object in crit array should have mandatory key "field".
+//    optional keys are "order" -- value can be "asc" or "desc" -- default "asc"
+//                       "type" -- value can be "string", "number", "date" -- default is "string"
+//                      "dateFormat" -- default is "yyyy/MM/dd HH:mm:ss"
+//   Example Code to create crit array
+//             crit1= json("{\"field\":\"documentNumber\",\"order\":\"asc\", \"type\":\"number\"}");
+//             crit2= json("{\"field\":\"actionCode\",\"order\":\"asc\", \"type\":\"string\"}");
+//             critArray = jsonarray(); jsonarrayappend(crit1); jsonarrayappend(crit2);
+//Implementation Logic:
+//   we are using bubble sort as in most cases the array is in almost sorted order already
+//   since moving a json object within jsonarray is costly(involving copying whole json object),
+//   we are putting the index into an array and sorting the array of indices based on the json object the index points to.
+//   To avoid confusion, for variable name, usually 
+//         index refers to the index in the original jsonarray
+//         counter refers to the index of the index array used for sorting.
+
+//declare size variables of unsortedJsonArray and critArray.
+inputArraySize = jsonarraysize(unsortedJsonArray);
+critArraySize = jsonarraysize(critArray);
+
+//declare a sorted map to hold the sorted index
+counterToArrIndexMap = dict("integer");
+
+if(inputArraySize > 0){
+    // initiate counterToArrIndexMap with index as value.
+    iterator = string[inputArraySize];
+    index = 0;
+    for a in iterator{
+        put(counterToArrIndexMap , index, index);
+        index = index+1;
+    }
+
+    //start of bubble sort. 
+    unSortedStart = 0;
+    curEleIterator = string[inputArraySize];
+    
+    // iterate the input array from index 0 to inputArraySize.
+    for i in curEleIterator {//outer loop of bubble sort
+        bHasSwap = false;
+        prevIndex = get(counterToArrIndexMap,0);
+        prevObj = jsonarrayget(unsortedJsonArray, prevIndex,"json");
+        
+        counter= 1;
+        unSortedIterator = string[inputArraySize-unSortedStart-1];
+        
+        for j in unSortedIterator{//inner loop, buble the biggest within the subset from 0 to inputArraySize-unSortedStart
+            curIndex = get(counterToArrIndexMap,counter);
+            curObj = jsonarrayget(unsortedJsonArray, curIndex ,"json");
+            
+            compareInt = util.abo_jsonCompare(prevObj , curObj , critArray);
+            
+            // swap the elements if the compare int is greater than 0.
+            if(compareInt > 0){
+                bHasSwap = true;
+                put(counterToArrIndexMap,counter,prevIndex);
+                put(counterToArrIndexMap,counter-1 ,curIndex);
+            }else{
+                prevIndex = curIndex;
+                prevObj = curObj;           
+            }
+            
+            counter = counter+1 ;
+                
+        }//end of inner loop of bubble sort
+        
+        // if there is no swap, that means elements are in order
+        if(not(bHasSwap)){
+            break;
+        }
+        unSortedStart= unSortedStart+1;
+    }//end of outer loop of bubble sort
+    
+}
+
+
+// forming the sorted Json Array
+sortedJsonArray = jsonarray();
+inputIterator = string[inputArraySize];
+index = 0;
+for i in inputIterator{
+    arrayEle = jsonarrayget(unsortedJsonArray ,get(counterToArrIndexMap, index ), "json");
+    jsonarrayappend(sortedJsonArray ,arrayEle);
+    index = index+1;
+}
+
+return sortedJsonArray;

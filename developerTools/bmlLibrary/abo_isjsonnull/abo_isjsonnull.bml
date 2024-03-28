@@ -1,0 +1,16 @@
+//Funation Name: abo_isjsonnull
+//  Inputs: inputjson(json), key(String)
+//  output: boolean (true or false)
+//Purpose:
+//   Returns true if input json is null or input key does not exist in input json
+
+if(isnull(inputjson)){
+   return true;
+}
+keyArray =  jsonkeys(inputjson);
+
+index =  findinarray(keyArray, key); 
+if(index == -1){
+   return true;
+}
+return false;

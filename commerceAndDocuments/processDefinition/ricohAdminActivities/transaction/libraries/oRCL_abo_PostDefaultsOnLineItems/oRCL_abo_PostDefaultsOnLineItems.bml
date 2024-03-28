@@ -1,0 +1,30 @@
+//oRCL_abo_PostDefaultsOnLineItems
+//   Commerce library function used by SubDoc>AdvancedDefault>AfterForumla
+//   Script code is available when ABO package is migrated.
+/////////////////////////////////////////
+//Function Definition
+//  Input Parameters:
+//      "lineHierInfo" - dict("anytype"); result of AboBuildLineItemHierarchy execution
+//  Imported library Functions:
+//      "abo_initializeContext", "abo_dateTimeConverter"
+//  Imported MainDoc Attributes:
+//      "defaultRequestDate_t"
+//  Imported SubDoc Attributes:
+//      "transactionLine" - collection of new Sub Documents
+//      "_document_number" - doc number of current line
+//      "_parent_doc_number" - doc number of parent line
+//      "_model_variable_name" - model var name associated with the line
+//      "_line_bom_id" - BOM instance id holding field, Asset Key application discriminator 
+//      "itemInstanceId_l" - ABO asset key holding field
+//      "fulfillmentStatus_l" - ABO fulfillment status
+//      "oRCL_ABO_ActionCode_l" - ABO action code
+//      "requestDate_l" - order requested date on the line
+//  System Attributes:
+//	"_system_process_name"
+//	"_system_subscription_order_enabled" 
+//  Returns string - concatenation of docNum~AttributeVarName~AttributeValue strings 
+//                   in the format compatible with Advanced Default>After Formulas
+// Function Body:
+returnVal = "";
+
+return returnVal;

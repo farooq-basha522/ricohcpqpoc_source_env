@@ -1,0 +1,2454 @@
+/******************************************************************************************************/
+//Author: 		Chakri 11/11/2021
+//Updated By: 		Priyanka 12/01/2022
+//Updated By:		Subha 21/02/2022--Updated the Quote Summary Calculations for Promotions and discarded unused code//
+//Updated By:           Abhishek-INC2446048-CHG0082486-- Dicount was not overridden for variable price item for PS product
+//Updated By:		Namrata 16/05/2023--Updated Ext Net Price and Unit Net Price calculation//
+//Functionality: 	Validating Discounts and Promotions & Updated Quote Summary array
+//Updated By: 		Akshay 29/06/2023 - Change in Quote Summary Calculations for SRP, Sales Cost, Standard Cost, Contract/Target Price - RITM1312597
+//Updated By:		Rohit 15/08/2023- Updated one time calculation in Quote summary for MS-INC2499578/CHG0084089
+//Updated By:           Rohit 18/08/2023 - Added if/else condition to calculate totl valuse based on subscription term if it is other for -INC2503443/CHG0084205
+//Updated By:           gowtham 01/09/2023 - Added linecount for ms ps of recuring and non - recuring , totals to populate in ricoh proposal document for -CHG0083689
+//Updated By:           Rohit 11/13/2023 - Added code to calucate ext values for mrgin calculations CHG0086279
+//Updated By:           Abhishek 24/01/2024 - Below code added & updated to calculate margin sales cost CHG0087521
+//Updated By:           Updated below line condition for ITS group sales cost by Rohit for CHG0087926
+/******************************************************************************************************/
+x = getcurrenttimeinmillis();
+ContractPriceRecSC_TCV=0;
+
+DEBUG_FLAG = false;
+ARRAY_DELIM = "$,$";
+retval = "";
+//Defect-13511 START
+retBooleanDict = dict("boolean");
+retStringDict = dict("string");
+retFloatDict = dict("float");
+retIntegerDict = dict("integer");
+//Defect-13511 END
+sysdate = datetostr(getdate(), "MM/dd/yyyy");
+promotionjson = json();
+promotionjsonarray = jsonarray();
+startDate = "";
+endDate = "";
+//===========================================
+contractedValueOTSA = 0.0;
+TotalMRRContractValueTT = 0.0;
+TotalOneTimeContractValue = 0.0;
+TotalOneTimeContractValueSA = 0.0;
+TotalOneTimeContractValueITS = 0.0;
+TotalOneTimeContractValueMS = 0.0;
+TotalOneTimeContractValueSC = 0.0;
+TotalOneTimeContractValueTT = 0.0;
+TotalAnnualContractValue = 0.0;
+TotalOneTimeDiscount_Ana = 0.0;
+TotalOneTimeDiscount_Analytics = 0.0;
+TotalOneTimeNetPrice_Analytics = 0.0;
+TotalOneSalesCost_Analytics = 0.0;
+unitSRPOTSA = 0.0;
+unitSRPRecSA = 0.0;
+unitSalesCostOTSA = 0.0;
+unitSalesCostRecSA = 0.0;
+unitStdCostOTSA = 0.0;
+unitStdCostRecSA = 0.0;
+contractedUnitPriceOTSA = 0.0;
+contractedUnitPriceRecSA = 0.0;
+extNetPriceOTSA = 0.0;
+extNetPriceRecSA = 0.0;
+extSellingPriceOTSA = 0.0;
+extSellingPriceRecSA = 0.0;
+ContractPriceRecSA = 0.0;
+marginPercentagesalescostOTSA = 0.0;
+marginPercentagesalescostRecSA = 0.0;
+marginPercentagestdscostOTSA = 0.0;
+marginPercentagestdscostRecSA = 0.0;
+//ITS Variables
+contractedValueOTITS = 0.0;
+unitSRPOTITS = 0.0;
+unitSRPRecITS = 0.0;
+unitSalesCostOTITS = 0.0;
+unitSalesCostRecITS = 0.0;
+unitStdCostOTITS = 0.0;
+unitStdCostRecITS = 0.0;
+contractedUnitPriceOTITS = 0.0;
+contractedUnitPriceRecITS = 0.0;
+discountAmounttRecITS = 0.0;
+promotionValueRecITS = 0.0;
+extNetPriceOTITS = 0.0;
+extNetPriceRecITS = 0.0;
+extSellingPriceOTITS = 0.0;
+extSellingPriceRecITS = 0.0;
+ContractPriceRecITS = 0.0;
+marginPercentagesalescostOTITS = 0.0;
+marginPercentagesalescostRecITS = 0.0;
+marginPercentagestdscostOTITS = 0.0;
+marginPercentagestdscostRecITS = 0.0;
+//PS in MS Variables - CR 034
+//CHG0078656 MS Implementation Change
+unitSRPPSInMS = 0.0;
+unitSalesCostPSInMS =0.0;
+unitStdCostPSInMS = 0.0;
+contractedUnitPricePSInMS = 0.0;
+contractedValuePSInMS =0.0;
+discountAmounttPSInMS =0.0;
+promotionValuePSInMS =0.0;
+unitSellingPricePSInMS =0.0;
+extNetPricePSInMS =0.0;
+extSellingPricePSInMS=0.0;
+ContractPricePSInMS =0.0;
+marginPercentagesalescostPSInMS=0.0;
+marginPercentagestdscostPSInMS=0.0;
+//MS Variables
+contractedValueOTMS = 0.0;
+unitSRPOTMS = 0.0;
+unitSRPRecMS = 0.0;
+unitSalesCostOTMS = 0.0;
+unitSalesCostRecMS = 0.0;
+unitStdCostOTMS = 0.0;
+unitStdCostRecMS = 0.0;
+contractedUnitPriceOTMS = 0.0;
+contractedUnitPriceRecMS = 0.0;
+discountAmounttOTMS = 0.0;
+discountAmounttRecMS = 0.0;
+promotionValueOTMS = 0.0;
+promotionValueRecMS = 0.0;
+unitSellingPriceOTMS = 0.0;
+unitSellingPriceRecMS = 0.0;
+extNetPriceOTMS =0.0;
+extNetPriceRecMS = 0.0;
+extSellingPriceOTMS = 0.0;
+extSellingPriceRecMS = 0.0;
+ContractPriceRecMS = 0.0;
+marginPercentagesalescostOTMS = 0.0;
+marginPercentagesalescostRecMS = 0.0;
+marginPercentagestdscostOTMS = 0.0;
+marginPercentagestdscostRecMS = 0.0;
+//MPS Variables Added by Namrata for MPS Quote Summary #CHG0085215
+
+contractedValueOTMPS = 0.0;
+unitSRPOTMPS = 0.0;
+unitSRPRecMPS = 0.0;
+unitSalesCostOTMPS = 0.0;
+unitSalesCostRecMPS = 0.0;
+unitStdCostOTMPS = 0.0;
+unitStdCostRecMPS = 0.0;
+contractedUnitPriceOTMPS = 0.0;
+contractedUnitPriceRecMPS = 0.0;
+discountAmounttOTMPS = 0.0;
+discountAmounttRecMPS = 0.0;
+promotionValueOTMPS = 0.0;
+promotionValueRecMPS = 0.0;
+unitSellingPriceOTMPS = 0.0;
+unitSellingPriceRecMPS = 0.0;
+extNetPriceOTMPS =0.0;
+extNetPriceRecMPS = 0.0;
+extSellingPriceOTMPS = 0.0;
+extSellingPriceRecMPS = 0.0;
+ContractPriceRecMPS = 0.0;
+marginPercentagesalescostOTMPS = 0.0;
+marginPercentagesalescostRecMPS = 0.0;
+marginPercentagestdscostOTMPS = 0.0;
+marginPercentagestdscostRecMPS = 0.0;
+//SC Variables
+contractedValueOTSC = 0.0;
+unitSRPOTSC = 0.0;
+unitSRPRecSC = 0.0;
+unitSalesCostOTSC = 0.0;
+unitSalesCostRecSC = 0.0;
+unitStdCostOTSC = 0.0;
+unitStdCostRecSC = 0.0;
+contractedUnitPriceOTSC = 0.0;
+contractedUnitPriceRecSC = 0.0;
+discountAmounttRecSC = 0.0;
+extNetPriceOTSC = 0.0;
+extSellingPriceOTSC = 0.0;
+extNetPriceRecSC = 0.0;
+extSellingPriceOTSC = 0.0;
+extSellingPriceRecSC = 0.0;
+ContractPriceRecSC = 0.0;
+marginPercentagesalescostOTSC = 0.0;
+marginPercentagesalescostRecSC = 0.0;
+marginPercentagestdscostOTSC = 0.0;
+marginPercentagestdscostRecSC = 0.0;
+//Total Deal Variables
+ttlUnitSRPOT = 0.0;
+ttlUnitSalesCostOT = 0.0;
+ttlUnitStdCostOT = 0.0;
+ttlContractedUnitPriceOT = 0.0;
+ttlUnitSellingPriceOT =0.0;
+ttlContractedValue = 0.0;
+ttlExtNetPriceOT = 0.0;
+ttlExtSellingPriceOT = 0.0;
+ttlExtSellingPriceRec = 0.0;
+ttlMarginPercentagesalescostOT = 0.0;
+ttlMarginPercentagestdscostOT = 0.0;
+ttlUnitSRPRec = 0.0;
+ttlUnitSalesCostRec = 0.0;
+ttlUnitStdCostRec = 0.0;
+ttlContractedUnitPriceRec = 0.0;
+ttlUnitSellingPriceRec = 0.0;
+ttlExtNetPriceRec = 0.0;
+ttlContractPriceRec = 0.0;
+ttlMarginPercentagesalescostRec = 0.0;
+ttlMarginPercentagestdscostRec = 0.0;
+ttlContractedUnitPriceForTotalDeal = 0.0;
+ttlTotalCaontractValueRec = 0.0;
+totalDealRevenue = 0.0;
+quoteSummuryBuild = jsonArray();
+allModelJson = json();
+SAJson = json();
+SAOTJson = json();
+SARecJson = json();
+ITSOTJson = json();
+ITSRecJson = json();
+ITSJson = json();
+MSOTJson = json();
+MSRecJson = json();
+MPSOTJson = json(); 	//Added by Namrata for MPS Quote Summary #CHG0085215
+MPSRecJson = json(); 	//Added by Namrata for MPS Quote Summary #CHG0085215
+MSJson = json();
+MPSJson = json(); 	//Added by Namrata for MPS Quote Summary #CHG0085215
+SCOTJson = json();
+SCPSInMSJson = json(); //CR 034
+SCRecJson = json();
+SCJson = json();
+ttlDealOTJson = json();
+ttlDealRecJson = json();
+ttlJson = json();
+SALineCounterOT = 0;
+SALineCounterRec = 0;
+ITSLineCounterOT = 0;
+ITSLineCounterRec = 0;
+PsInMSCounter =0; //CR 034
+MSLineCounterOT = 0;
+MSLineCounterRec = 0;
+MPSLineCounterOT = 0; 	//Added by Namrata for MPS Quote Summary #CHG0085215
+MPSLineCounterRec = 0; 	//Added by Namrata for MPS Quote Summary #CHG0085215
+SCLineCounterOT = 0;
+SCLineCounterRec = 0;
+ttlLineCounterOT = 0;
+ttlLineCounterRec = 0;
+ttlLineCounterOTSC = 0;
+ttlLineCounterRecSC = 0;
+quotePrice = 0.0;
+
+//added by Akshay for Ext Unit SRP, sales cost, standard cost, contract target/Unit Price for RITM1312597
+extunitSRPOTSA = 0.0;
+extunitSalesCostOTSA = 0.0;
+extunitStdCostOTSA = 0.0;
+extcontractedUnitPriceOTSA = 0.0;
+totalExtUnitStdCostValue=0.0;
+
+extunitSRPRecSA = 0.0;
+extunitSalesCostRecSA = 0.0;
+extunitStdCostRecSA = 0.0;
+extcontractedUnitPriceRecSA = 0.0;
+
+extunitSRPOTITS = 0.0;
+extunitSalesCostOTITS = 0.0;
+extunitStdCostOTITS = 0.0;
+extcontractedUnitPriceOTITS = 0.0;
+
+extunitSRPRecITS = 0.0;
+extunitSalesCostRecITS = 0.0;
+extunitStdCostRecITS = 0.0;
+extcontractedUnitPriceRecITS = 0.0;
+
+extunitSRPPSInMS = 0.0;
+extunitSalesCostPSInMS = 0.0;
+extunitStdCostPSInMS = 0.0;
+extcontractedUnitPricePSInMS = 0.0;
+
+extunitSRPOTMS = 0.0;
+extunitSalesCostOTMS = 0.0;
+extunitStdCostOTMS = 0.0;
+extcontractedUnitPriceOTMS = 0.0;
+
+//Added by Namrata for MPS Quote Summary #CHG0085215
+extunitSRPOTMPS = 0.0;
+extunitSalesCostOTMPS = 0.0;
+extunitStdCostOTMPS = 0.0;
+extcontractedUnitPriceOTMPS = 0.0;
+
+extunitSRPRecMS = 0.0;
+extunitSalesCostRecMS = 0.0;
+extunitStdCostRecMS = 0.0;
+extcontractedUnitPriceRecMS = 0.0;
+
+extunitSRPRecMPS = 0.0;
+extunitSalesCostRecMPS = 0.0;
+extunitStdCostRecMPS = 0.0;
+extcontractedUnitPriceRecMPS = 0.0;
+
+extunitSRPOTSC = 0.0;
+extunitSalesCostOTSC = 0.0;
+extunitStdCostOTSC = 0.0;
+extcontractedUnitPriceOTSC = 0.0;
+
+extunitSRPRecSC = 0.0;
+extunitSalesCostRecSC = 0.0;
+extunitStdCostRecSC = 0.0;
+extcontractedUnitPriceRecSC = 0.0;
+
+extttlUnitSRPOT = 0.0;
+extttlUnitSalesCostOT = 0.0;
+extttlUnitStdCostOT = 0.0;
+extttlContractedValue = 0.0;
+
+extttlUnitSRPRec = 0.0;
+extttlUnitSalesCostRec = 0.0;
+extttlUnitStdCostRec = 0.0;
+extttlContractedUnitPriceRec = 0.0;
+
+extttlContractedUnitPriceOT = 0.0;
+
+
+//Defect-13511 START
+customerSegment = segment_t;
+segmentLevel = segmentLevel_t;
+accountCoverage = accountCoverage_t;
+priceListStr = rAC_Pricelist_RISE;
+marketPlace = marketplace_t;
+fyCustomerStartType = fYStartCustomerType_t;
+fyCustomerStartTypeException = fYStartCustomerTypeException_t;
+fYStartProductionZBA = fYStartProductionZBA_t;
+fyCustomerStartTypeException = "N";
+if (fyCustomerStartTypeException == "true") {
+    fyCustomerStartTypeException = "Y";
+}
+fYStartProductionZBA = "N";
+if (fYStartProductionZBA == "true") {
+    fYStartProductionZBA = "Y";
+}
+if (segmentLevel_t == "None") {
+    segmentLevel = "";
+}
+if (rAC_Pricelist_RISE == "") {
+    priceListStr = priceList_t;
+}
+put(retStringDict, "customerSegment", customerSegment);
+put(retStringDict, "segmentLevel", segmentLevel);
+put(retStringDict, "accountCoverage", accountCoverage);
+put(retStringDict, "priceList", priceListStr);
+//Defect-13511 END
+
+//START - Added as a part of Defect ID - 12519
+termMonth = 12; // Commented as part of defect
+/*if(mSTransactionType_t<>"Net New"){
+	termMonth = monthsRemainingInContractTerm_t;
+}
+el*/
+if (isnumber(termMonths_t)) {
+    termMonth = atoi(termMonths_t);
+}
+elif(termMonths_t == "12MonthRenewal") {
+    termMonth = 12;
+}
+elif(termMonths_t == "24MonthRenewal") {
+    termMonth = 24;
+}
+elif(termMonths_t == "36MonthRenewal") {
+    termMonth = 36;
+}
+else {
+    termMonth = contractOtherTerm_t;
+}
+
+termFactor = 1.0;
+termFactorRecordSet = BMQL("select CostOfMoney from RAC_CostOfMoney WHERE TermMonths = $termMonth");
+
+for eachTermFactorRecord in termFactorRecordSet {
+    CostOfMoney = get(eachTermFactorRecord, "CostOfMoney");
+
+    if (CostOfMoney <> ""
+        AND NOT ISNULL(CostOfMoney)) {
+        termFactor = atof(CostOfMoney);
+    }
+}
+
+//==================================================
+
+promotionDT = BMQL("select * from RAC_Promotions");
+for prodtiondata in promotionDT {
+    itemNumber = get(prodtiondata, "ItemNumber");
+    promoCode = get(prodtiondata, "PromoCode");
+    description = get(prodtiondata, "Description");
+    promoType = get(prodtiondata, "PromoType");
+    discountValue = get(prodtiondata, "DiscountValue");
+    startDate = get(prodtiondata, "StartDate");
+    endDate = get(prodtiondata, "EndDate");
+    minQty = get(prodtiondata, "MinQty");
+
+    jsonput(promotionjson, "ItemNumber", itemNumber);
+    jsonput(promotionjson, "PromoCode", promoCode);
+    jsonput(promotionjson, "Description", description);
+    jsonput(promotionjson, "PromoType", promoType);
+    jsonput(promotionjson, "DiscountValue", discountValue);
+    jsonput(promotionjson, "StartDate", startDate);
+    jsonput(promotionjson, "EndDate", endDate);
+    jsonput(promotionjson, "MinQty", minQty);
+
+    jsonarrayappend(promotionjsonarray, promotionjson);
+}
+//=========COST ONLY- IMPLEMENTATION COST===========//
+//CHG0078656 MS Implementation Change
+hasImplementationCost = false;
+implementationCostCO =0.0;
+implementationCostMPSCO =0.0;
+
+//PostMVP_CR076# - Added ZBA Condition - Chakri
+//PostMVP_CR077# - Added Expansion New Location Condition - Chakri
+if(lower(mSTransactionType_t) == "net new" OR lower(mSTransactionType_t) == "zba" OR lower(mSTransactionType_t) == "expansion" OR mSTransactionType_t == "Expansion (New Location)"){
+	hasImplementationCost = true;
+}
+//=======END COST ONLY - IMPLEMENTATION COST============//
+itemjson = json();
+unitSellingPrice = 0.0;
+extSellingPrice = 0.0;
+marginSalesCost = 0.0;
+marginStandardCost = 0.0;
+quotePrice = 0.0;
+
+// ITS
+totalOneTimeAmountMS = 0.0;
+totalOneTimeAmountMPS = 0.0;
+totalOneTimeAmountPS = 0.0;
+totalOneTimeAmountITS = 0.0;
+totalEquipmentAmountITS = 0.0;
+totalRecurringAmountITS = 0.0;
+totalRecurringAmountMS = 0.0;
+totalRecurringAmountMPS = 0.0;
+totalRecurringAmountPS = 0.0;
+extSRPTotalOT = 0.00;
+extNetPriceTotalOT = 0.00;
+extSRPTotalRec = 0.00;
+extNetPriceTotalRec = 0.00;
+totalITSDiscountPercentageOneTime = 0.00;
+totalITSDiscountPercentageRecurring = 0.00;
+OTFlag = false;
+RecFlag = false;
+approvalRequiredSubmitOT = false;
+approvalRequiredSubmitREC = false;
+OTIndex = 0;
+RecIndex = 0;
+EqIndex = 0;
+serviceLevelAdvatageModelFlag = false;
+extSP = 0.0;
+vpFlag = false;
+totalQtyVar = 0;
+totalUnitCostVar =0;
+totalExtSellingPriceVar =0;
+totalExtNetPriceVar  =  0;
+FirstMonthPaymentPIMA =0;
+FirstYearPIMAGP= 0;
+
+//START_HYPERCARE-CR_CHG#0082000_CR#11_Description_by Namrata
+//code to retrive MRR Net Price from quote summary
+ExtNetPriceMRR = "";
+itemTypeVar = "";
+//ExtNetPriceMRRVar = "";
+
+//
+if(jsonarraysize(quoteSummaryArraySet_t) > 0 ){
+quoteSummarySize = jsonarraysize(quoteSummaryArraySet_t);
+indices = range(quoteSummarySize);
+for index in indices {
+	ArrayRow = jsonarrayget(quoteSummaryArraySet_t, index,"json");
+	itemType = jsonget(ArrayRow ,"itemType_quoteSummary");
+	if(itemType == "Total Deal"){
+		counter = 0;
+		MSIndex = index;
+		for j in indices {
+if(jsonarraysize(quoteSummaryArraySet_t) >=MSIndex+counter+1){
+			ArrayRow1 = jsonarrayget(quoteSummaryArraySet_t, MSIndex+counter,"json");
+			itemType = jsonget(ArrayRow1 ,"itemType_quoteSummary");
+			if(itemType == "MRR"){
+			ExtNetPriceMRR = jsonget(ArrayRow1 ,"sellingPrice_quoteSummary");
+			break;
+			}
+			counter = counter+1;
+		}
+	}
+	}
+}
+}
+//code to retrive values from PIMA
+promotionFac = 0;
+MonthPaymentVar = "";
+yearParam = "month1Revenue_FirstMonthBilling";
+if(jsonarraysize(firstMonthBillingArraySet_t) > 11){
+if(NOT isnull(jsonget(json(jsonarrayget(firstMonthBillingArraySet_t,11)),yearParam))){
+	marginQuoteSummary = jsonget(json(jsonarrayget(firstMonthBillingArraySet_t, 11)),yearParam);
+	if(marginQuoteSummary <> ""){
+		MonthPaymentVar = (marginQuoteSummary);
+		FirstMonthPaymentPIMA = atof(MonthPaymentVar );
+		}
+	}
+}
+impCost = 0.0;
+yearParam = "year1_MSTotalArraySet";
+if(jsonarraysize(mSTotalDealSectionArray_t) > 5){
+	if(NOT isnull(jsonget(json(jsonarrayget(mSTotalDealSectionArray_t, 6)),yearParam))){
+		marginQuoteSummary = jsonget(json(jsonarrayget(mSTotalDealSectionArray_t, 6)),yearParam);
+		if(marginQuoteSummary <> ""){
+			impCost = atof(marginQuoteSummary);
+			impCost =round(impCost , 2);
+		}
+	}
+}
+
+//END_HYPERCARE-CR_CHG#0082000_CR#11_Description_by Namrata
+if(mSDealPricingValueHolder_t <> string(monthlyPayment_t)){
+	paymentValue = string(monthlyPayment_t);
+	setattributevalue(1,"mSDealPricingValueHolder_t",paymentValue );
+	//print "mSDealPricingValueHolder_t";print mSDealPricingValueHolder_t;
+}
+if(gMPercentageHolder_t <> string(gMPercentage_t)){
+	GMValue = string(gMPercentage_t);
+	setattributevalue(1,"gMPercentageHolder_t",GMValue);
+}
+	
+oldMSDealPaymentValue = getoldvalue("mSDealPricingValueHolder_t" , 1);
+oldMSDealGMValue = getoldvalue("gMPercentageHolder_t" , 1);
+itemtypeCategoryDict = dict("string");
+itemtypeArray = string[];
+ItemTypeDict = dict("string");
+partArray = string[];
+//MPS_PERFORMANCE_CHANGES
+if(modelsContainsInQuote_t <> "Managed Print Services"){//01_11_2024 MPS_PERFORMANCE_CHANGES #CHG0085215 Added by Vasundhara - Added if condition so the below logic should not run for MPS.
+	for line1 in transactionLine{
+		//START 06_11_2023 Added if condition for not to run for MPS lines and run for all other process groups #CHG0085215 by Vasundhara
+		if(line1._price_calculation_info == "" OR line1._price_calculation_info == "[]" OR line1._price_calculation_info == "{}"){
+			LabourFalg = false; 
+			itemtype = "";
+			SCItemValue  = "";
+			lineBOMStr = line1._line_bom_attributes;
+			if(lineBOMStr <> "{}" AND not(isnull(lineBOMStr)) AND lineBOMStr <> "") {
+				LineBOMJSON = json(lineBOMStr);
+				jobTitle_Labor_MS = "";
+				if(jsonpathcheck(LineBOMJSON, "$.JobTitle.value")){
+					LabourFalg = true;
+				}
+			}
+			// get item type for getting solution item catagories
+			// Defect #18777 fix by Namrata 
+			if(line1._part_number <> ""){
+				append(itemtypeArray,line1.type_l);
+				append(partArray,line1._part_number);
+
+			}
+			itemTypeSet = bmql("select * from RAC_ITEM_TYPE where ItemType in $itemtypeArray");
+			for eachValue in itemTypeSet{
+				put(itemtypeCategoryDict,get(eachValue,"ItemType"),get(eachValue,"ProcessGroup"));
+			}
+			bomRecordSet=bmql("select ItemType,PartNumber from Oracle_BomItemDef2 where PartNumber in $partArray");
+			for eachData in bomRecordSet{
+				put(ItemTypeDict,get(eachData,"PartNumber"),get(eachData,"ItemType"));
+			}
+			if(not(isnull(get(itemtypeCategoryDict,line1.type_l)))){
+				SCItemValue = get(itemtypeCategoryDict,line1.type_l);
+			}
+			itemtype =get(ItemTypeDict,line1._part_number);
+			if(SCItemValue == "SC" AND line1.includeInMS_l){	
+				itemtype = "PS in MS";
+			}
+			// Defect #18777 fix by Namrata 
+
+			if((itemtype<>"" AND NOT ISNULL(itemtype)) AND ((find(itemtype,"PS in MS") <> -1 AND line1.includeInMS_l) OR (find(itemtype,"PS in MS") == -1 AND SCItemValue <> "SC"))){
+				if(LabourFalg == true AND  ((gMPercentageHolder_t <> oldMSDealGMValue) OR (oldMSDealPaymentValue <> mSDealPricingValueHolder_t )) AND line1.lockPriceFlag_l== false){ 
+					totalExtNetPriceVar = totalExtNetPriceVar +line1.extNetPrice_l;
+				}
+				if((gMPercentageHolder_t <> oldMSDealGMValue) OR (oldMSDealPaymentValue <> mSDealPricingValueHolder_t)){
+					totalUnitCostVar = totalUnitCostVar+line1.unitSalesCost_l*line1._price_quantity;
+				}
+			}
+		}
+	}
+}
+//END_HYPERCARE-CR_CHG#0082000_CR#11_Description_by Namrata
+plCashJson  = json();
+plAttributesJson = json();
+upliftJson = json();
+rebatePercentagePath = "rebatePercentage";
+rebatePercentage = 0.0;
+if(modelsContainsInQuote_t <> "Managed Print Services"){//01_11_2024 MPS_PERFORMANCE_CHANGES #CHG0085215 Added by Vasundhara - Added if condition so the below logic should not run for MPS.
+	//START 08_16_2023 PERFORMANCE_ACTIVITIES Added by Vasundhara. Calling data tables out of Util.GetPricingITSAndSC
+	if(pLCashJsonString_t <> ""){
+		plCashJson = json(pLCashJsonString_t);
+	}
+	if(plAttributesJsonString_t <> ""){
+		plAttributesJson = json(plAttributesJsonString_t);
+	}
+	if(upliftJsonString_t <> ""){
+		upliftJson = json(upliftJsonString_t);
+	}
+	if(jsonpathcheck(plAttributesJson,rebatePercentagePath) AND isnumber(jsonpathgetsingle(plAttributesJson,rebatePercentagePath,"string"))){
+		rebatePercentage = jsonpathgetsingle(plAttributesJson,rebatePercentagePath,"float");
+	}
+}
+if(DEBUG_FLAG){
+	print "plCashJson";
+	print plCashJson;
+	print "plAttributesJson";
+	print plAttributesJson;
+	print "upliftJson";
+	print upliftJson;
+}
+for line in transactionLine {
+	processGroup = "";
+	itemType = line._part_custom_field23;
+	unitNetPrice = 0.0;
+	extNetPrice = 0.0;
+	extSellingPrice = 0.0;
+
+	itemTypeArray = string[];
+	append(itemTypeArray, itemType);
+	processGroupDict = util.getProcessGroup(itemTypeArray);
+	if(containskey(processGroupDict, itemType)){
+		processGroup = get(processGroupDict, itemType);
+	}
+	if(processGroup <> "MPS"){//01_11_2024 MPS_PERFORMANCE_CHANGES #CHG0085215 Added by Vasundhara - this logic should not run for MPS lines 
+		prtNumberLine = line._part_number;
+		if (line._parent_doc_number == ""
+			AND line._model_name == "Service Advantage Model"){
+			serviceLevelAdvatageModelFlag = true;
+		}
+		elif(line._parent_doc_number == ""
+			AND line._model_name <> "Service Advantage Model") {
+			serviceLevelAdvatageModelFlag = false;
+
+		}
+		if (serviceLevelAdvatageModelFlag AND line._parent_doc_number <> "") {
+			PartQtyLine = line.quantitySA_l;
+			extSP = line.quantitySA_l * line.unitSRP_l;
+		} else {
+			PartQtyLine = line._price_quantity;
+			extSP = line._price_quantity * line.unitSRP_l;
+		}
+
+		promoCodeLine = line.promoCode_l;
+		discountValueLine = string(line.discountAmountt_l);
+		discounttype = line.discounttype_l;
+		promotionTypeLine = line.promotionType_l;
+		unitSalesCostLine = line.unitSalesCost_l;
+		unitStandardCostLine = line.unitCost_l;
+		contractUnitPriceLine = line.contractedUnitPrice_l;
+		customSequenceForProposal = 0;
+		promoTypevalue = "";
+		promoValue = 0.0;
+		promoDescription = "";
+		promoValuePct = 0.0;
+		discountPct = 0.0;
+		promoValueAmt = 0.0;
+		discountAmt = 0.0;
+		CalculatedContractPrice = 0.0;
+		marginForContractPrice = 0.0;
+		revenueChangeNeeded = 0.0;
+		docNumber = line._document_number;
+		LabourFalg = false; 
+		lineBOMStr = line._line_bom_attributes;
+		if(lineBOMStr <> "{}" AND not(isnull(lineBOMStr)) AND lineBOMStr <> "") {
+			LineBOMJSON = json(lineBOMStr);
+			jobTitle_Labor_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.JobTitle.value")){
+				LabourFalg = true;
+			}
+		}	
+
+		size = range(jsonarraysize(promotionjsonarray));
+		for arrval in size {
+			itemjsonstr = jsonarrayget(promotionjsonarray, arrval);
+			itemjson = json(itemjsonstr);
+			itemNameTable = jsonget(itemjson, "ItemNumber");
+			promoCodeTable = jsonget(itemjson, "PromoCode");
+			promotionTypeTable = jsonget(itemjson, "PromoType");
+			discountPromoValueLine = jsonget(itemjson, "DiscountValue");
+			startDate = jsonget(itemjson, "StartDate");
+			endDate = jsonget(itemjson, "EndDate");
+
+			if (discounttype == "") {
+				discountValueLine = "0.0";
+				unitSellingPrice = (line.contractedUnitPrice_l);
+				//print "unitSellingPrice: " + string(unitSellingPrice);
+			}
+
+			retval = retval + line._document_number + "~discountAmountt_l~" + discountValueLine + "|";
+			if (discounttype == "Override") {
+				discountAmt = atof(discountValueLine);
+				unitSellingPrice = atof(discountValueLine);
+				//print "unitSellingPrice1: " + string(unitSellingPrice);
+			}
+			if (discounttype == "Amount") {
+				discountAmt = atof(discountValueline);
+				unitSellingPrice = (line.contractedUnitPrice_l) - atof(discountValueline);
+				//print "unitSellingPrice2: " + string(unitSellingPrice);
+			}
+
+			if (discounttype == "Percent") {
+				discountAmt = ((atof(discountValueline) / 100) * line.contractedUnitPrice_l);
+				unitSellingPrice = line.contractedUnitPrice_l - ((atof(discountValueline) / 100) * line.contractedUnitPrice_l);
+				//print "unitSellingPrice3: " + string(unitSellingPrice);
+			}
+			extSellingPrice = (unitSellingPrice * PartQtyLine);
+			
+			//START_HYPERCARE-CR_CHG#0082000_CR#11_Description_by Namrata
+			if (promoCodeLine == "") {
+				unitNetPrice = unitSellingPrice;
+				extNetPrice = unitNetPrice * PartQtyLine;
+				
+				if( LabourFalg == true ){
+				//POST MVP CR#88 description by Namrata lockprice condition added
+					if(mSTotalDealPricingMethod_t == "solveForGMPercentage" AND gMPercentage_t <> 0 AND oldMSDealGMValue <> gMPercentageHolder_t AND checkForMSDealPricing == false AND line.lockPriceFlag_l== false){
+
+						if(totalExtNetPriceVar <> 0){
+							promotionFac = line.extNetPrice_l/totalExtNetPriceVar;
+						//promotionFac  = round(promotionFac ,2);
+						}						
+						FirstYearPIMA = FirstMonthPaymentPIMA*12;
+						totalUnitSellingPriceFirstYear = (totalUnitCostVar*12)+impCost ;
+						NewExtSellingPrice = totalUnitSellingPriceFirstYear/(1-(gMPercentage_t/100));
+						difference = NewExtSellingPrice -(FirstYearPIMA);
+						//difference = round(difference ,2);
+						differencePerMonth = difference/12;
+						ExtNetPrice = line.extNetPrice_l+ ((differencePerMonth)*promotionFac);
+						unitNetPrice = ExtNetPrice/PartQtyLine;
+					}
+					elif(mSTotalDealPricingMethod_t == "solveForGMPercentage" AND gMPercentage_t <> 0){
+						unitNetPrice = line.unitNetPrice_l;
+						extNetPrice = line.extNetPrice_l; // set ExtNetPrice as unit price for solveForGMPercentage
+					}
+				}
+
+				if(LabourFalg == true  ){
+				//POST MVP CR#88 description by Namrata lockprice condition added	
+					if(mSTotalDealPricingMethod_t == "solveForMonthlyPayment" AND monthlyPayment_t <> 0 AND oldMSDealPaymentValue <> mSDealPricingValueHolder_t AND checkForMSDealPricing == false AND line.lockPriceFlag_l== false){
+						promotionFac = 0;	
+						if(totalExtNetPriceVar <> 0){
+							promotionFac = line.extNetPrice_l/totalExtNetPriceVar;
+						}
+						if(isnumber(ExtNetPriceMRR)){
+							difference = monthlyPayment_t-atof(ExtNetPriceMRR);
+							//difference = round(difference ,2);
+							ExtNetPrice = line.extNetPrice_l+ ((difference)*promotionFac);
+							unitNetPrice = ExtNetPrice/PartQtyLine;
+						}
+					}
+					elif(mSTotalDealPricingMethod_t == "solveForMonthlyPayment" AND monthlyPayment_t <> 0){
+						unitNetPrice =  line.unitNetPrice_l;
+						extNetPrice = line.extNetPrice_l;
+					}
+				}
+			}
+			//END_HYPERCARE-CR_CHG#0082000_CR#11_Description_by Namrata
+
+			if(itemNameTable == prtNumberLine AND promoCodeTable == promoCodeLine AND sysdate >= startDate AND sysdate <= endDate) {
+				promoTypevalue = promotionTypeTable;
+				promoValue = atof(discountPromoValueLine);
+				promoDescription = (jsonget(itemjson, "Description"));
+
+				if (promotionTypeTable == "Amount") {
+					promoValueAmt = promoValue;
+					unitNetPrice = unitSellingPrice - promoValue;
+				}
+				if (promotionTypeTable == "Percent") {
+					promoValueAmt = (((promoValue) / 100) * unitSellingPrice);
+					unitNetPrice = unitSellingPrice - (((promoValue) / 100) * unitSellingPrice);
+				}
+				if (promotionTypeTable == "Override") {
+					promoValueAmt = promoValue;
+					unitNetPrice = promoValue;
+				}
+
+				extNetPrice = unitNetPrice * PartQtyLine;
+					
+				//START_HYPERCARE-CR_CHG#0082000_CR#11_Description_by Namrata
+				promotionFac = 0;
+				if(LabourFalg == true ){
+				//POST MVP CR#88 description by Namrata lockprice condition added
+					if(mSTotalDealPricingMethod_t == "solveForGMPercentage" AND gMPercentage_t <> 0 AND oldMSDealGMValue <> gMPercentageHolder_t AND checkForMSDealPricing == false AND line.lockPriceFlag_l== false){
+						promotionFac = 0;
+						if(totalExtNetPriceVar <> 0){
+							promotionFac = line.extNetPrice_l/totalExtNetPriceVar;
+						//promotionFac  = round(promotionFac ,2);
+						}						
+						FirstYearPIMA = FirstMonthPaymentPIMA*12;
+						totalUnitSellingPriceFirstYear = (totalUnitCostVar*12)+impCost ;
+						NewExtSellingPrice = totalUnitSellingPriceFirstYear/(1-(gMPercentage_t/100));
+						difference = NewExtSellingPrice -(FirstYearPIMA);
+						//difference = round(difference ,2);
+						differencePerMonth = difference/12;
+						ExtNetPrice = line.extNetPrice_l+ ((differencePerMonth)*promotionFac);
+						//print ExtNetPrice ;
+						unitNetPrice = ExtNetPrice/PartQtyLine;
+					}
+					elif(mSTotalDealPricingMethod_t == "solveForGMPercentage" AND gMPercentage_t <> 0){
+						unitNetPrice = line.unitNetPrice_l;
+						extNetPrice = line.extNetPrice_l; // set ExtNetPrice as unit price for solveForGMPercentage
+					}
+				}
+				if(LabourFalg == true ){
+				//POST MVP CR#88 description by Namrata lockprice condition added
+					if(mSTotalDealPricingMethod_t == "solveForMonthlyPayment" AND monthlyPayment_t <> 0 AND oldMSDealPaymentValue <> mSDealPricingValueHolder_t  AND checkForMSDealPricing == false AND line.lockPriceFlag_l== false){							//code to retrive MRR Net Price from quote summary
+						promotionFac = 0;	
+						if(totalExtNetPriceVar <> 0){
+							promotionFac = line.extNetPrice_l/totalExtNetPriceVar;
+						}
+						difference = monthlyPayment_t-atof(ExtNetPriceMRR);
+						//difference = round(difference ,2);
+						ExtNetPrice = line.extNetPrice_l+ ((difference)*promotionFac);
+						unitNetPrice = ExtNetPrice/PartQtyLine;
+					}
+					elif(mSTotalDealPricingMethod_t == "solveForMonthlyPayment" AND monthlyPayment_t <> 0){
+						unitNetPrice =  line.unitNetPrice_l;
+						extNetPrice = line.extNetPrice_l;
+					}		
+				}
+			}				
+			//END_HYPERCARE-CR_CHG#0082000_CR#11_Description_by Namrata
+		
+			if (unitNetPrice <> 0.0){
+				marginSalesCost = ((unitNetPrice - unitSalesCostLine) / unitNetPrice) * 100;
+				marginStandardCost = ((unitNetPrice - unitStandardCostLine) / unitNetPrice) * 100;
+			}
+		}
+		quotePrice = quotePrice + extNetPrice;
+
+		// ITS
+		if (line.customSequenceForProposal_l > 0) {
+			customSequenceForProposal = line.customSequenceForProposal_l;
+		}
+		elif(line.customSequenceSuffix_l > 0) {
+			customSequenceForProposal = line.customSequenceSuffix_l;
+		} else {
+			customSequenceForProposal = line._sequence_number;
+		}
+
+		//Defect-13511 START Added by vasundhara - Added below logic in case of VP Item and cost is Zero
+		/*if (line._part_number <> "" OR line._model_variable_name == "managedServices_Root") { //Updated the conditon as a part of Defect ID -12495
+			processGroup = "";
+			itemType = line.type_l;
+			//quotePrice = quotePrice + line.extNetPrice_l;
+			itemTypeRecordSet = bmql("SELECT ItemType, ProcessGroup FROM RAC_ITEM_TYPE WHERE ItemType = $itemType");
+			for eachItemType in itemTypeRecordSet {
+				processGroup = get(eachItemType, "ProcessGroup");
+			}
+		}*/
+	  //Updated if condition by Lingala Iswarya for VP Codes calculation as part of CHG0080949 ,CHG0081706
+			 //Commented if condition by Abhishek-INC2446048-CHG0082486 for Variable Pricing for PS products
+			//if(line.unitSRP_l >= 0.0 AND line.unitSalesCost_l >= 0.0 AND Line.vendorQuoteNumber_VLIG=="" AND Line.vendorName_l =="" AND ((line._part_custom_field27 == "VP" OR line._part_custom_field27 == "YES"))){ 
+	   //Updated if condition by Abhishek-INC2446048-CHG0082486 for Variable Pricing for PS products
+	   
+	   //Updated below line condition for ITS group sales cost by Rohit for CHG0087926
+	  if(((line.unitSRP_l >= 0.0 AND line.unitSalesCost_l >= 0.0 AND Line.vendorQuoteNumber_VLIG=="" AND Line.vendorName_l =="" AND ((line._part_custom_field27 == "VP" OR line._part_custom_field27 == "YES"))) OR (line.unitSRP_l >= 0.0 AND line.unitSalesCost_l >= 0.0 and ((line._part_custom_field27 == "VP" OR line._part_custom_field27 == "YES")) and (processGroup=="SC" or processGroup== "ITS") AND Line.vendorQuoteNumber_VLIG=="")) AND (line.discounttype_l <> "" AND (line.discountAmountt_l <> 0.0 or line.discountAmountt_l <> 0.01))){        
+	   //if (line.unitSRP_l == 0.0 AND line.unitSalesCost_l == 0.0 AND line._part_custom_field27 == "VP") {
+			vpFlag = true;
+			partNumberArray = string[];
+			defaultListPriceStr = line._price_list_price_each;
+			partNumber = line._part_number;
+			vendorCost = line.vendorCost_l;
+			listPrice = line._part_custom_field7;
+			frozenCost = line._part_custom_field6;
+			priceUpliftCategory = line._part_custom_field25;
+			docNum = line._document_number;
+			append(partNumberArray, partNumber);
+
+			partCustomFieldDict=util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+			if(containskey(partCustomFieldDict,partNumber+"custom_field7")) {
+				listPrice= atof(get(partCustomFieldDict,partNumber+"custom_field7"));
+			}
+			if(containskey(partCustomFieldDict,partNumber+"custom_field6")) {
+				frozenCost = atof(get(partCustomFieldDict,partNumber+"custom_field6"));
+			}
+			if(containskey(partCustomFieldDict,partNumber+"custom_field25")) {
+				priceUpliftCategory = get(partCustomFieldDict,partNumber+"custom_field25");
+			}
+			
+			//START 08_16_2023 PERFORMANCE_ACTIVITIES added by Vasundhara
+			cashPrice = 0.0;
+			sMA = 0.0;
+			fplaFlag = "";
+			minGPPercentage = 0.0;
+			productFloor = 0.0;
+			sgaSegement = 0.0;
+			hardwareTargetPrice = 0.0;
+			priceUpliftCategoryStr = "";
+			if(priceUpliftCategory <> ""){
+				priceUpliftCategoryStr = replace(lower(priceUpliftCategory),".","_");
+			}
+			cashPricePath = "$."+ partNumber + "." + partNumber + "-" + "priceListPrice";
+			sMApath = "$." + partNumber + "." + partNumber + "-" + "sMA";
+			fplaFlagpath = "$." + partNumber + "." + partNumber + "-" + "FPLA_Flag";
+			minGPPercentagePath = "$." + priceUpliftCategoryStr + "." + "minGPPercentage";
+			productFloorPath = "$." + priceUpliftCategoryStr + "." + "productFloor";
+			sgaSegementPath = "$." + priceUpliftCategoryStr + "." + "sgaSegement";
+			hardwareTargetPricePath = "$." + priceUpliftCategoryStr + "." + "hardwareTargetPrice";
+			if(jsonpathcheck(plCashJson,cashPricePath) AND isnumber(jsonpathgetsingle(plCashJson,cashPricePath,"string"))){
+				cashPrice = jsonpathgetsingle(plCashJson,cashPricePath,"float");
+			}
+			if(jsonpathcheck(plCashJson,sMApath) AND isnumber(jsonpathgetsingle(plCashJson,sMApath,"string"))){
+				sMA = jsonpathgetsingle(plCashJson,sMApath,"float");
+			}
+			if(jsonpathcheck(plCashJson,fplaFlagpath)){
+				fplaFlag = jsonpathgetsingle(plCashJson,fplaFlagpath,"string");
+			}
+			if(jsonpathcheck(upliftJson,minGPPercentagePath) AND isnumber(jsonpathgetsingle(upliftJson,minGPPercentagePath,"string"))){
+				minGPPercentage = jsonpathgetsingle(upliftJson,minGPPercentagePath,"float");
+			}
+			if(jsonpathcheck(upliftJson,productFloorPath) AND isnumber(jsonpathgetsingle(upliftJson,productFloorPath,"string"))){
+				productFloor = jsonpathgetsingle(upliftJson,productFloorPath,"float");
+			}
+			if(jsonpathcheck(upliftJson,sgaSegementPath) AND isnumber(jsonpathgetsingle(upliftJson,sgaSegementPath,"string"))){
+				sgaSegement = jsonpathgetsingle(upliftJson,sgaSegementPath,"float");
+			}
+			if(jsonpathcheck(upliftJson,hardwareTargetPricePath) AND isnumber(jsonpathgetsingle(upliftJson,hardwareTargetPricePath,"string"))){
+				hardwareTargetPrice = jsonpathgetsingle(upliftJson,hardwareTargetPricePath,"float");
+			}
+			put(retFloatDict,"cashPrice",cashPrice);
+			put(retFloatDict,"sMA",sMA);
+			put(retFloatDict,"minGPPercentage",minGPPercentage);
+			put(retFloatDict,"productFloor",productFloor);
+			put(retFloatDict,"sgaSegement",sgaSegement);
+			put(retFloatDict,"hardwareTargetPrice",hardwareTargetPrice);
+			put(retStringDict,"fplaFlag",fplaFlag);
+			//END 08_16_2023 PERFORMANCE_ACTIVITIES added by Vasundhara
+			
+			put(retStringDict, "docNum", docNum);
+			put(retFloatDict, "defaultListPriceStr", defaultListPriceStr);
+			put(retStringDict, "ItemType", itemType);
+			put(retStringDict, "PartNumber", partNumber);
+			put(retFloatDict, "VendorCost", vendorCost);
+			put(retFloatDict, "ListPrice", listPrice);
+			put(retFloatDict, "FrozenCost", frozenCost);
+			if (NOT isnull(priceUpliftCategory)) {
+				put(retStringDict, "PriceUpliftCategory", priceUpliftCategory);
+			}
+			put(retStringDict, "marketPlace", marketPlace);
+			put(retStringDict, "fyCustomerStartType", fyCustomerStartType);
+			put(retStringDict, "fyCustomerStartTypeException", fyCustomerStartTypeException);
+			put(retStringDict, "fYStartProductionZBA", fYStartProductionZBA);
+			put(retStringDict, "processGroup", processGroup);
+			put(retFloatDict, "ITSUnitSalesCost", line.unitCost_l);
+			put(retStringDict, "EquipmentComment", line._line_item_comment);
+			put(retFloatDict, "unitSellingPrice", unitSellingPrice);          
+			put(retStringDict, "derivedFrom", "Before Formulas");
+			put(retBooleanDict, "vpFlag", vpFlag);
+			put(retStringDict, "VenodrQuoteNum", line.vendorQuoteNumber_VLIG);
+			put(retStringDict, "VenodrName", line.vendorName_l);
+			put(retStringDict,"VariableItem",line._part_custom_field27); //Added by Iswarya for VP code pricing CHG0080949
+			put(retIntegerDict, "_price_quantity", line._price_quantity);
+		   if ((processGroup == "ITS" AND transactionType_t <> "migratedQuote" AND (isnull(line._line_bom_attributes) OR line._line_bom_attributes == "")) OR processGroup == "SC") {
+		   // if ((processGroup == "ITS" AND transactionType_t <> "migratedQuote" AND (isnull(line._line_bom_attributes) OR line._line_bom_attributes == "")) OR processGroup == "SC") {//Added AND condition as it is overriding MS ITS lines by Vasundhara Defect - 17783
+				retval=retval+util.getPricingForITSAndSC(retStringDict, retIntegerDict, retFloatDict, retBooleanDict);
+			}
+		}
+		//Defect-13511 END
+		if (NOT vpFlag) {
+			retval = retval + line._document_number + "~extSRP_l~" + string(extSP) + "|";
+		}
+
+		//written by SK for C119 story
+		//commentiong the below code as it is stopping the Testing-Subha 2/21/2023//
+		/*contractedUnitPrice_custom = line.contractedUnitPrice_l;
+		contractPrice_custom = line.contractPrice_l;
+		if (line._part_custom_field27 == "NO" AND processGroup <> "MS") { //Added for Managed Services
+			contractedUnitPrice_custom = 0.0;
+			unitNetPrice = 0.0;
+			unitSellingPrice = 0.0;
+			contractPrice_custom = 0.0;
+		}
+		retval = retval + line._document_number + "~contractedUnitPrice_l~" + string(contractedUnitPrice_custom) + "|";
+		retval = retval + line._document_number + "~contractPrice_l~" + string(contractPrice_custom) + "|";*/
+
+		/*	if(mSTotalDealPricingMethod_t <>"" AND checkForMSDealPricing == true AND ((gMPercentageHolder_t <> oldMSDealGMValue) OR (oldMSDealPaymentValue <> mSDealPricingValueHolder_t ))){
+			setattributevalue(docNumber,"extNetPrice_l",extNetPrice);
+			setattributevalue(docNumber,"unitNetPrice_l",unitNetPrice);
+		}*/
+
+		//PostMVP_CR068# - Lock Price for MS Labor - Getting data for Discounts and Promotions - Chakri
+		
+		//START 06_11_2023 Added if condition for not to run for MPS lines and run for all other process groups #CHG0085215 by Vasundhara ,Namrata
+		if(line._price_calculation_info=="" OR line._price_calculation_info=="[]" OR line._price_calculation_info=="{}"){
+			retval = retval + line._document_number + "~unitSellingPrice_l~" + string(unitSellingPrice) + "|" +
+			line._document_number + "~extSellingPrice_l~" + string(extSellingPrice) + "|" +
+			line._document_number + "~discountAmountPercentage_l~" + string(discountAmt) + "|" +
+			line._document_number + "~promotionType_l~" + promoTypevalue + "|" +
+			line._document_number + "~promotionValue_l~" + string(promoValue) + "|" +
+			line._document_number + "~promotionComments_l~" + promoDescription + "|" +
+			line._document_number + "~unitNetPrice_l~" + string(unitNetPrice) + "|" +    
+			line._document_number + "~extNetPrice_l~" + string(extNetPrice) + "|" +
+			line._document_number + "~percentAmountPercentage_l~" + string(promoValueAmt) + "|" +
+			line._document_number + "~marginPercentagesalescost_l~" + string(marginSalesCost) + "|" +
+			line._document_number + "~marginPercentagestdscost_l~" + string(marginStandardCost) + "|" +
+			line._document_number + "~customSequenceForProposal_l~" + string(customSequenceForProposal) + "|" +
+			line._document_number + "~discountTypeOldValue_l~" + line.discounttype_l + "|" +
+			line._document_number + "~discountAmountOldValue_l~" + string(line.discountAmountt_l) + "|" +
+			line._document_number + "~promotionCodeOldValue_l~" + line.promoCode_l + "|" +
+			line._document_number + "~lockPriceFlag_l~" + string(line.lockPriceMS_l)+ "|" +
+			_transaction_document_number + "~quotePrice_t~" + string(quotePrice) + "|";
+			
+		}
+		// ITS Pricing
+		/* if(line.chargeType_l == "Recurring" AND (commerce.checkForITSItemType(line.type_l)==true)){
+			totalRecurringAmountITS = totalRecurringAmountITS + extNetPrice;
+			RecFlag = true;
+			extSRPTotalRec = extSRPTotalRec + line.extSRP_l;
+			extNetPriceTotalRec = extNetPriceTotalRec + extNetPrice;
+			if(unitNetPrice < line.unitCost_l) {
+				approvalRequiredSubmitREC = true;
+			}
+		}
+		if(line.chargeType_l == "One Time" AND (commerce.checkForITSItemType(line.type_l) == true)){
+			totalOneTimeAmountITS = totalOneTimeAmountITS + extNetPrice;
+			OTFlag = true;
+			extSRPTotalOT = extSRPTotalOT + line.extSRP_l;
+			extNetPriceTotalOT = extNetPriceTotalOT + extNetPrice;
+			if(unitNetPrice < line.unitCost_l){
+				approvalRequiredSubmitOT = true;
+			}
+		} */
+
+		
+		//============================= Service Advanatge Code Start ==================================
+		if (line.chargeType_l == "One Time"
+			AND processGroup == "SA") {
+			SALineCounterOT = SALineCounterOT + 1;
+			
+			//added by Akshay to pull values for Ext Unit SRP, sales cost, standard cost, contract target/Unit Price for RITM1312597
+			extunitSRPOTSA = extunitSRPOTSA + (line.extSRP_l/* * PartQtyLine*/ );
+			extunitSalesCostOTSA = extunitSalesCostOTSA + (line.extUnitStandardCost_l/* *PartQtyLine*/ );
+			extunitStdCostOTSA = unitStdCostOTSA + (line.extUnitStandardCost_l /* *PartQtyLine*/ );
+			extcontractedUnitPriceOTSA = contractedUnitPriceOTSA + (line.extUnitContractTargetPrice_l /* *PartQtyLine*/ );
+			
+			unitSRPOTSA = unitSRPOTSA + (line.unitSRP_l /* * PartQtyLine*/ );
+			unitSalesCostOTSA = unitSalesCostOTSA + (line.unitSalesCost_l /* *PartQtyLine*/ );
+			unitStdCostOTSA = unitStdCostOTSA + (line.unitCost_l /* *PartQtyLine*/ );
+			contractedUnitPriceOTSA = contractedUnitPriceOTSA + (line.contractedUnitPrice_l /* *PartQtyLine*/ );
+			
+			
+			contractedValueOTSA = contractedValueOTSA + extNetPrice;
+			extNetPriceOTSA = extNetPriceOTSA + extNetPrice;
+			extSellingPriceOTSA = extSellingPriceOTSA + extSellingPrice;
+			//marginPercentagesalescostOTSA = (marginPercentagesalescostOTSA + marginSalesCost);
+			//marginPercentagestdscostOTSA = (marginPercentagestdscostOTSA + marginStandardCost);
+		}
+		elif(line.chargeType_l == "Recurring" AND processGroup == "SA") {
+			SALineCounterRec = SALineCounterRec + 1;
+		
+			//added by Akshay to pull values for Ext Unit SRP, sales cost, standard cost, contract target/Unit Price for RITM1312597
+			extunitSRPRecSA = extunitSRPRecSA + (line.extSRP_l/* *PartQtyLine*/);
+			extunitSalesCostRecSA = extunitSalesCostRecSA + (line.extUnitSalesCost_l/* *PartQtyLine*/ ); 
+			extunitStdCostRecSA = extunitStdCostRecSA + (line.extUnitStandardCost_l /* *PartQtyLine*/ );
+			//contractedUnitPriceRecSA = contractedUnitPriceRecSA + line.contractedUnitPrice_l;
+			extcontractedUnitPriceRecSA = extcontractedUnitPriceRecSA + (line.extUnitContractTargetPrice_l /* *PartQtyLine */ ); 
+			
+			unitSRPRecSA = unitSRPRecSA + (line.unitSRP_l /* *PartQtyLine*/);
+			unitSalesCostRecSA = unitSalesCostRecSA + (line.unitSalesCost_l /* *PartQtyLine*/ ); 
+			unitStdCostRecSA = unitStdCostRecSA + (line.unitCost_l /* *PartQtyLine*/ );
+			//contractedUnitPriceRecSA = contractedUnitPriceRecSA + line.contractedUnitPrice_l;
+			contractedUnitPriceRecSA = contractedUnitPriceRecSA + (line.contractedUnitPrice_l /* *PartQtyLine */ ); 
+			extNetPriceRecSA = extNetPriceRecSA + extNetPrice; 
+			extSellingPriceRecSA = extSellingPriceRecSA + extSellingPrice;
+			ContractPriceRecSA = ContractPriceRecSA + (extNetPrice * 12);
+			//marginPercentagesalescostRecSA = (marginPercentagesalescostRecSA + marginSalesCost);
+			//marginPercentagestdscostRecSA = (marginPercentagestdscostRecSA + marginStandardCost);
+		}
+		//============================= Service Advanatge Code End ==================================
+
+		//============================= ITS Code Start ==============================================
+		if (line.chargeType_l == "One Time" AND processGroup == "ITS") {
+			ITSLineCounterOT = ITSLineCounterOT + 1;
+		
+			//added by Akshay to pull values for Ext Unit SRP, sales cost, standard cost, contract target/Unit Price for RITM1312597
+			extunitSRPOTITS = extunitSRPOTITS + (line.extSRP_l /* *PartQtyLine*/ );
+		
+			extunitSalesCostOTITS = extunitSalesCostOTITS + (line.extUnitSalesCost_l/* *PartQtyLine*/); 
+			extunitStdCostOTITS = extunitStdCostOTITS + (line.extUnitStandardCost_l/* *PartQtyLine*/ ); 
+			extcontractedUnitPriceOTITS = extcontractedUnitPriceOTITS + (line.extUnitContractTargetPrice_l /* *PartQtyLine*/); 
+
+			unitSRPOTITS = unitSRPOTITS + (line.unitSRP_l /* *PartQtyLine*/ );
+			unitSalesCostOTITS = unitSalesCostOTITS + (line.unitSalesCost_l /* *PartQtyLine*/ ); 
+			unitStdCostOTITS = unitStdCostOTITS + (line.unitCost_l /* *PartQtyLine*/ ); 
+			contractedUnitPriceOTITS = contractedUnitPriceOTITS + (line.contractedUnitPrice_l /* *PartQtyLine*/ ); 
+				
+			contractedValueOTITS = contractedValueOTITS + extNetPrice; 
+			extNetPriceOTITS = extNetPriceOTITS + extNetPrice; 
+			extSellingPriceOTITS = extSellingPriceOTITS + extSellingPrice;
+			//marginPercentagesalescostOTITS = (marginPercentagesalescostOTITS + marginSalesCost);
+			//marginPercentagestdscostOTITS = (marginPercentagestdscostOTITS + marginStandardCost);
+
+			//totalOneTimeAmountITS = totalOneTimeAmountITS + extNetPrice;
+			OTFlag = true; extSRPTotalOT = extSRPTotalOT + line.extSRP_l; extNetPriceTotalOT = extNetPriceTotalOT + extNetPrice;
+
+			if (unitNetPrice < line.unitCost_l) {
+				approvalRequiredSubmitOT = true;
+			}
+		}
+		elif(line.chargeType_l == "Recurring" AND processGroup == "ITS") {
+			ITSLineCounterRec = ITSLineCounterRec + 1;
+		
+			//added by Akshay to pull values for Ext Unit SRP, sales cost, standard cost, contract target/Unit Price for RITM1312597
+			extunitSRPRecITS = extunitSRPRecITS + (line.extSRP_l/* *PartQtyLine*/);
+			extunitSalesCostRecITS = extunitSalesCostRecITS + (line.extUnitSalesCost_l/* *PartQtyLine*/);                            
+			extunitStdCostRecITS = extunitStdCostRecITS + (line.extUnitStandardCost_l/* *PartQtyLine*/); 
+			extcontractedUnitPriceRecITS = extcontractedUnitPriceRecITS + (line.extUnitContractTargetPrice_l/* *PartQtyLine*/);
+
+			unitSRPRecITS = unitSRPRecITS + (line.unitSRP_l /* *PartQtyLine*/);
+			unitSalesCostRecITS = unitSalesCostRecITS + (line.unitSalesCost_l /* *PartQtyLine*/ ); 
+			unitStdCostRecITS = unitStdCostRecITS + (line.unitCost_l /* *PartQtyLine*/ ); 
+			contractedUnitPriceRecITS = contractedUnitPriceRecITS + (line.contractedUnitPrice_l /* *PartQtyLine*/ ); 
+			 
+			discountAmounttRecITS = discountAmounttRecITS + (discountAmt /* *PartQtyLine*/ );
+			//if(line.promotionValue_l <> ""){
+			promotionValueRecITS = promotionValueRecITS + (promoValueAmt /* *PartQtyLine*/ );
+			//}
+			extNetPriceRecITS = extNetPriceRecITS + extNetPrice; extSellingPriceRecITS = extSellingPriceRecITS + extSellingPrice; ContractPriceRecITS = ContractPriceRecITS + (extNetPrice * 12);
+			//marginPercentagesalescostRecITS = (marginPercentagesalescostRecITS + marginSalesCost);
+			//marginPercentagestdscostRecITS = (marginPercentagestdscostRecITS + marginStandardCost);
+
+			//totalRecurringAmountITS = totalRecurringAmountITS + extNetPrice;
+			RecFlag = true; extSRPTotalRec = extSRPTotalRec + line.extSRP_l; extNetPriceTotalRec = extNetPriceTotalRec + extNetPrice;
+
+			if (unitNetPrice < line.unitCost_l) {
+				approvalRequiredSubmitREC = true;
+			}
+		}
+
+		if (line.type_l == "IT SERVICES-ONE TIME CHARGE" AND processGroup == "ITS") {
+			totalOneTimeAmountITS = totalOneTimeAmountITS + extNetPrice;
+			OTIndex = OTIndex + 1;
+		}
+		elif((line.type_l == "IT SERVICES-HARDWARE" OR line.type_l == "IT SERVICES-SOFTWARE" OR line.type_l == "IT SERVICES-SUPPORT") AND processGroup == "ITS"){
+			totalEquipmentAmountITS = totalEquipmentAmountITS + extNetPrice;
+			EqIndex = EqIndex + 1;
+		}
+		elif(line.type_l == "IT SERVICES-RECURRING CHARGE" AND processGroup == "ITS") {
+			totalRecurringAmountITS = totalRecurringAmountITS + extNetPrice;
+			RecIndex = RecIndex + 1;
+		}
+		//============================= ITS Code End ==============================================
+
+		//============================= MS Code Start ==============================================
+		//CHG0078656 MS Implementation Change
+		//------------------------------MS EACH LINE PROCESSING FOR QUOTE SUMMARY---------------------------------//
+		//CR 034 - Include In MS items should be added to SC section of quote summary
+		if(processGroup == "SC" AND line.includeInMS_l == true){
+			PsInMSCounter = PsInMSCounter +1;
+		
+			//added by Akshay to pull values for Ext Unit SRP, sales cost, standard cost, contract target/Unit Price for RITM1312597
+			extunitSRPPSInMS = extunitSRPPSInMS + line.extSRP_l;
+			extunitSalesCostPSInMS = extunitSalesCostPSInMS + line.extUnitSalesCost_l;
+			extunitStdCostPSInMS = extunitStdCostPSInMS + line.extUnitStandardCost_l;
+			extcontractedUnitPricePSInMS = extcontractedUnitPricePSInMS + line.extUnitContractTargetPrice_l;
+						
+			unitSRPPSInMS = unitSRPPSInMS + line.unitSRP_l;
+			unitSalesCostPSInMS = unitSalesCostPSInMS + line.unitSalesCost_l ;
+			unitStdCostPSInMS = unitStdCostPSInMS + line.unitCost_l ;
+			contractedUnitPricePSInMS = contractedUnitPricePSInMS + line.contractedUnitPrice_l ;
+						
+			contractedValuePSInMS = contractedValuePSInMS + extNetPrice;
+			if (discountAmt <> 0.0) {
+				discountAmounttPSInMS = discountAmounttPSInMS + discountAmt ;
+				}
+			if (line.promotionValue_l <> "" AND line.promotionValue_l <> "0.0") {
+				promotionValuePSInMS = promotionValuePSInMS + promoValueAmt;
+			}
+			unitSellingPricePSInMS = unitSellingPricePSInMS + unitSellingPrice;  //extNetPrice; //Defect 16834
+			extNetPricePSInMS = extNetPricePSInMS + extNetPrice;
+			extSellingPricePSInMS = extSellingPricePSInMS + extSellingPrice;
+			ContractPricePSInMS = ContractPricePSInMS + (extNetPrice);
+			marginPercentagesalescostPSInMS = (marginPercentagesalescostPSInMS + marginSalesCost);
+			marginPercentagestdscostPSInMS = (marginPercentagestdscostPSInMS + marginStandardCost);
+
+		} //End of CR 034 
+		elif (line.chargeType_l == "One Time" AND processGroup == "MS") {
+			MSLineCounterOT = MSLineCounterOT + 1;
+			//Start_bau_CHG0083689_created_by_gowtham_on_31/08/2023
+			totalOneTimeAmountMS = totalOneTimeAmountMS + extNetPrice;
+			//End_bau_CHG0083689_created_by_gowtham_on_31/08/2023
+			//added by Akshay to pull values for Ext Unit SRP, sales cost, standard cost, contract target/Unit Price for RITM1312597
+			extunitSRPOTMS = extunitSRPOTMS + (line.extSRP_l/* * PartQtyLine*/ );
+			extunitSalesCostOTMS = extunitSalesCostOTMS + (line.extUnitSalesCost_l/* * PartQtyLine*/ );
+			extunitStdCostOTMS = extunitStdCostOTMS + (line.extUnitStandardCost_l/* * PartQtyLine*/ );
+			extcontractedUnitPriceOTMS = extcontractedUnitPriceOTMS + (line.extUnitContractTargetPrice_l/* * PartQtyLine*/ );
+			
+			unitSRPOTMS = unitSRPOTMS + (line.unitSRP_l /* * PartQtyLine*/ );
+			unitSalesCostOTMS = unitSalesCostOTMS + (line.unitSalesCost_l /* * PartQtyLine*/ );
+			unitStdCostOTMS = unitStdCostOTMS + (line.unitCost_l /* * PartQtyLine*/ );
+			contractedUnitPriceOTMS = contractedUnitPriceOTMS + (line.contractedUnitPrice_l /* * PartQtyLine*/ );
+			
+			contractedValueOTMS = contractedValueOTMS + extNetPrice;
+			if (discountAmt <> 0.0) {
+				discountAmounttOTMS = discountAmounttOTMS + (discountAmt /* * PartQtyLine*/ );
+			}
+			if (line.promotionValue_l <> "" AND line.promotionValue_l <> "0.0") {
+				promotionValueOTMS = promotionValueOTMS + (promoValueAmt /* *PartQtyLine*/ );
+			}
+			unitSellingPriceOTMS = unitSellingPriceOTMS + unitSellingPrice ;//extNetPrice; //Defect 16834
+			extNetPriceOTMS = extNetPriceOTMS+ extNetPrice;
+			extSellingPriceOTMS = extSellingPriceOTMS + extSellingPrice;
+			marginPercentagesalescostOTMS = (marginPercentagesalescostOTMS + marginSalesCost);
+			marginPercentagestdscostOTMS = (marginPercentagestdscostOTMS + marginStandardCost);
+		}
+		elif(line.chargeType_l == "Recurring" AND processGroup == "MS") {
+			MSLineCounterRec = MSLineCounterRec + 1;
+			//Start_bau_CHG0083689_created_by_gowtham_on_31/08/2023	
+			totalRecurringAmountMS = totalRecurringAmountMS + extNetPrice;
+			//End_bau_CHG0083689_created_by_gowtham_on_31/08/2023
+			//added by Akshay to pull values for Ext Unit SRP, sales cost, standard cost, contract target/Unit Price
+			extunitSRPRecMS = extunitSRPRecMS + (line.extSRP_l /* * PartQtyLine*/ );
+			extunitSalesCostRecMS = extunitSalesCostRecMS + (line.extUnitSalesCost_l/* * PartQtyLine*/ );
+			extunitStdCostRecMS = extunitStdCostRecMS + (line.extUnitStandardCost_l/* * PartQtyLine*/ );
+			extcontractedUnitPriceRecMS = extcontractedUnitPriceRecMS + (line.extUnitContractTargetPrice_l /* * PartQtyLine*/ );
+			
+			unitSRPRecMS = unitSRPRecMS + (line.unitSRP_l /* * PartQtyLine*/ );
+			unitSalesCostRecMS = unitSalesCostRecMS + (line.unitSalesCost_l /* * PartQtyLine*/ );
+			unitStdCostRecMS = unitStdCostRecMS + (line.unitCost_l /* * PartQtyLine*/ );
+			contractedUnitPriceRecMS = contractedUnitPriceRecMS + (line.contractedUnitPrice_l /* * PartQtyLine*/ );
+			if (discountAmt <> 0.0) {
+				discountAmounttRecMS = discountAmounttRecMS + (discountAmt /* * PartQtyLine*/ );
+			}
+			if (line.promotionValue_l <> "" AND line.promotionValue_l <> "0.0") {
+				promotionValueRecMS = promotionValueRecMS + (promoValueAmt /* * PartQtyLine*/ );
+			}
+			
+			unitSellingPriceRecMS = unitSellingPriceRecMS + unitSellingPrice ; //extNetPrice; //Defect 16834
+			extNetPriceRecMS = extNetPriceRecMS + extNetPrice;
+			extSellingPriceRecMS = extSellingPriceRecMS + extSellingPrice;
+			//ContractPriceRecMS = ContractPriceRecMS + (extNetPrice * termMonth); - OCS Change - 2/10/23
+			ContractPriceRecMS = ContractPriceRecMS + (extNetPrice);
+			marginPercentagesalescostRecMS = (marginPercentagesalescostRecMS + marginSalesCost);
+			marginPercentagestdscostRecMS = (marginPercentagestdscostRecMS + marginStandardCost);
+		}
+	}
+	//--------------------------COST ONLY SECTION - ADD ONLY FROM ROOT-----------------//
+	if (line._model_variable_name == "managedServices_Root") {
+		costOnly_description = getconfigattrvalue(line._document_number, "costOnly_description");
+		costOnly_cost = getconfigattrvalue(line._document_number, "costOnly_cost");
+
+		costOnly_description_Array = split(costOnly_description, ARRAY_DELIM);
+		costOnly_Cost_Array = split(costOnly_cost, ARRAY_DELIM);
+		noOfCostOnlyItem = integer[];
+		if(sizeofarray(costOnly_description_Array) > 0){
+			noOfCostOnlyItem = range(sizeofarray(costOnly_description_Array));
+		}
+		for eachCostItem in noOfCostOnlyItem {
+			/*============CR 034 -Quote summary to include all cost-only elements (Donations, Consulting fees and Sign On Bonus)
+			 as One-Time Sales cost and Standard Cost under the MS section.======================================================*/
+			if ((costOnly_description_Array[eachCostItem] == "Donations") OR (costOnly_description_Array[eachCostItem] == "Sign-on Bonus") OR (costOnly_description_Array[eachCostItem] == "Consultation Fee")) {
+				// unitSRPOTMS = unitSRPOTMS + atof(costOnly_Cost_Array[eachCostItem]);
+				if(isnumber(costOnly_Cost_Array[eachCostItem])){
+					unitSalesCostOTMS = unitSalesCostOTMS + atof(costOnly_Cost_Array[eachCostItem]);
+					unitStdCostOTMS = unitStdCostOTMS+ atof(costOnly_Cost_Array[eachCostItem]);
+					ttlUnitSalesCostOT = ttlUnitSalesCostOT+ (atof(costOnly_Cost_Array[eachCostItem]));
+					ttlUnitStdCostOT = ttlUnitStdCostOT + (atof(costOnly_Cost_Array[eachCostItem]));
+					MSLineCounterOT = MSLineCounterOT + 1;
+					ttlLineCounterOT = ttlLineCounterOT + 1; 
+				}
+			}
+			//Commented for CR 034
+			/*elif((costOnly_description_Array[eachCostItem] == "Sign-on Bonus"
+				OR costOnly_description_Array[eachCostItem] == "Consultation Fee")) {
+
+				MSLineCounterRec = MSLineCounterRec + 1;
+				ttlLineCounterRec = ttlLineCounterRec + 1;
+				// unitSRPRecMS = unitSRPRecMS + (atof(costOnly_Cost_Array[eachCostItem]) * termFactor);
+				unitSalesCostRecMS = unitSalesCostRecMS + (atof(costOnly_Cost_Array[eachCostItem]) * termFactor);
+				// here we need MRR
+				
+				ttlUnitSalesCostRec = ttlUnitSalesCostRec + (atof(costOnly_Cost_Array[eachCostItem]) * termFactor);
+				unitStdCostRecMS = unitStdCostRecMS + (atof(costOnly_Cost_Array[eachCostItem]) * termFactor);
+				ttlUnitStdCostRec = ttlUnitStdCostRec + (atof(costOnly_Cost_Array[eachCostItem]) *termFactor);
+
+			}*/
+		}
+	}
+	//START condition added by Namrata as part of MPS Quote Summary #CHG0085215
+	elif (line.chargeType_l == "One Time" AND processGroup == "MPS") {
+		MPSLineCounterOT = MPSLineCounterOT + 1;
+		totalOneTimeAmountMPS = totalOneTimeAmountMPS + line.extNetPrice_l;
+		extunitSRPOTMPS = extunitSRPOTMPS + (line.extSRP_l/* * PartQtyLine*/ );
+		extunitSalesCostOTMPS = extunitSalesCostOTMPS + (line.extUnitSalesCost_l/* * PartQtyLine*/ );
+		extunitStdCostOTMPS = extunitStdCostOTMPS + (line.extUnitStandardCost_l/* * PartQtyLine*/ );
+		extcontractedUnitPriceOTMPS = extcontractedUnitPriceOTMPS + (line.extUnitContractTargetPrice_l/* * PartQtyLine*/ );
+		
+		unitSRPOTMPS = unitSRPOTMPS + (line.unitSRP_l /* * PartQtyLine*/ );
+		unitSalesCostOTMPS = unitSalesCostOTMPS + (line.unitSalesCost_l /* * PartQtyLine*/ );
+		unitStdCostOTMPS = unitStdCostOTMPS + (line.unitCost_l /* * PartQtyLine*/ );
+		contractedUnitPriceOTMPS = contractedUnitPriceOTMPS + (line.contractedUnitPrice_l /* * PartQtyLine*/ );
+		
+		contractedValueOTMPS = contractedValueOTMPS + line.extNetPrice_l;
+		/* if (discountAmt <> 0.0) {
+		discountAmounttOTMPS = discountAmounttOTMPS + (discountAmt /* * PartQtyLine*/ /* ) ;*/
+		/*}
+		/*if (line.promotionValue_l <> "" AND line.promotionValue_l <> "0.0") {
+			promotionValueOTMPS = promotionValueOTMPS + (promoValueAmt /* *PartQtyLine*//*  ) ;*/
+		/*} */
+		unitSellingPriceOTMPS = unitSellingPriceOTMPS + line.unitSellingPrice_l ;//extNetPrice; //Defect 16834
+		extNetPriceOTMPS = extNetPriceOTMPS+ line.extNetPrice_l;
+		extSellingPriceOTMPS = extSellingPriceOTMPS + line.extSellingPrice_l;
+		marginPercentagesalescostOTMPS = (marginPercentagesalescostOTMPS + line.marginPercentagesalescost_l);
+		marginPercentagestdscostOTMPS = (marginPercentagestdscostOTMPS + line.marginPercentagestdscost_l);
+	}
+	elif(line.chargeType_l == "Recurring" AND processGroup == "MPS") {
+		MPSLineCounterRec = MPSLineCounterRec + 1;
+		totalRecurringAmountMPS = totalRecurringAmountMPS + line.extNetPrice_l;
+		extunitSRPRecMPS = extunitSRPRecMPS + (line.extSRP_l  );
+		extunitSalesCostRecMPS = extunitSalesCostRecMPS + (line.extUnitSalesCost_l);
+		extunitStdCostRecMPS = extunitStdCostRecMPS + (line.extUnitStandardCost_l );
+		extcontractedUnitPriceRecMPS = extcontractedUnitPriceRecMPS + (line.extUnitContractTargetPrice_l /* * PartQtyLine*/ );
+		
+		unitSRPRecMPS = unitSRPRecMPS + (line.unitSRP_l  );
+		unitSalesCostRecMPS = unitSalesCostRecMPS + (line.unitSalesCost_l  );
+		unitStdCostRecMPS = unitStdCostRecMPS + (line.unitCost_l );
+		contractedUnitPriceRecMPS = contractedUnitPriceRecMPS + (line.contractedUnitPrice_l );
+		/* if (discountAmt <> 0.0) {
+			discountAmounttRecMPS = discountAmounttRecMPS + (discountAmt);
+		}
+		if (line.promotionValue_l <> "" AND line.promotionValue_l <> "0.0") {
+			promotionValueRecMPS = promotionValueRecMPS + (promoValueAmt /* * PartQtyLine*/ /* ); */
+		/*} */
+		
+		unitSellingPriceRecMPS = unitSellingPriceRecMPS + line.unitSellingPrice_l ; //extNetPrice; //Defect 16834
+		extNetPriceRecMPS = extNetPriceRecMPS + line.extNetPrice_l;
+		extSellingPriceRecMPS = extSellingPriceRecMPS + line.extSellingPrice_l;
+		ContractPriceRecMPS = ContractPriceRecMPS + line.extNetPrice_l;
+		marginPercentagesalescostRecMPS = (marginPercentagesalescostRecMPS + line.marginPercentagesalescost_l);
+		marginPercentagestdscostRecMPS = (marginPercentagestdscostRecMPS + line.marginPercentagestdscost_l);
+	}
+	//--------------------------COST ONLY SECTION - ADD ONLY FROM MPS ROOT-----------------//
+	if (line._model_variable_name == "managedPrintServices") {
+		costOnly_description_MPS = getconfigattrvalue(line._document_number, "description_array_costonly");
+		costOnly_cost_MPS = getconfigattrvalue(line._document_number, "cost_array_costonly");
+
+		costOnly_description_Array_MPS = split(costOnly_description_MPS, ARRAY_DELIM);
+		costOnly_Cost_Array_MPS = split(costOnly_cost_MPS, ARRAY_DELIM);
+		noOfCostOnlyItemMPS = integer[];
+		if(sizeofarray(costOnly_description_Array_MPS) > 0){
+			noOfCostOnlyItemMPS = range(sizeofarray(costOnly_Cost_Array_MPS));
+		}
+		for eachCostItemMPS in noOfCostOnlyItemMPS {
+			/*============CR 034 -Quote summary to include all cost-only elements (Donations, Consulting fees and Sign On Bonus)
+			 as One-Time Sales cost and Standard Cost under the MS section.======================================================*/
+				if ((costOnly_description_Array_MPS[eachCostItemMPS] == "Donations") OR (costOnly_description_Array_MPS[eachCostItemMPS] == "Sign-on Bonuses") OR (costOnly_description_Array_MPS[eachCostItemMPS] == "Consulting Fees")) {
+				if(isnumber(costOnly_Cost_Array_MPS[eachCostItemMPS])){
+					unitSalesCostOTMPS = unitSalesCostOTMPS + atof(costOnly_Cost_Array_MPS[eachCostItemMPS]);
+					print "****";
+					print unitStdCostOTMPS; 
+					unitStdCostOTMPS = unitStdCostOTMPS+ atof(costOnly_Cost_Array_MPS[eachCostItemMPS]);
+					print unitStdCostOTMPS;
+					ttlUnitSalesCostOT = ttlUnitSalesCostOT+ (atof(costOnly_Cost_Array_MPS[eachCostItemMPS]));
+					ttlUnitStdCostOT = ttlUnitStdCostOT + (atof(costOnly_Cost_Array_MPS[eachCostItemMPS]));
+					MPSLineCounterOT = MPSLineCounterOT + 1;
+					ttlLineCounterOT = ttlLineCounterOT + 1; 
+				}
+			}
+
+		}
+	}
+	//END condition added by Namrata as part of MPS Quote Summary #CHG0085215
+	
+	if(processGroup <> "MPS"){//01_11_2024 MPS_PERFORMANCE_CHANGES #CHG0085215 Added by Vasundhara - Added if condition so the below logic should not run for MPS.
+		//================COST ONLY - IMPLEMENTATION COST - SUM TOTALS==========================//
+		if(hasImplementationCost == true){
+			partNumber = line._part_number;
+			laborType = line.mslaborType_l;
+			msItemType = "";
+			if(laborType == "" AND line._line_bom_attributes <> ""){
+				bomAttr = json(line._line_bom_attributes);
+				laborType = jsonpathgetsingle(bomAttr,"LaborType.value");
+			}
+			if(laborType == "MS" OR laborType == "MPS"){
+				bomRecordSet=bmql("select ItemType,PartNumber from Oracle_BomItemDef2 where PartNumber= $partNumber");
+				for item in bomRecordSet{
+					msItemType = get(item,"ItemType");
+				}
+				//START_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+				if(msItemType == "MS Labor" OR msItemType == "MPS Labor" OR msItemType == "3rd Party" OR msItemType == "Vehicle" OR msItemType == "TRAC" OR  msItemType == "Mailroom Solutions" OR itemtype == "Ancillary Cost"){
+				/*impCostF  = 0; impCostVariable  = "";
+				if(msItemType == "Ancillary Cost"){
+					 implementRecords = BMQL("select Category_Value from RAC_MS_UPLIFT where Category_Name = 'IMPLEMENT_COST_Variable'");
+					 for eachImp in implementRecords {
+						impCostVariable = get(eachImp ,"Category_Value");
+					 }
+					 if(impCostVariable  <> ""){
+						 impCostF  = atof(impCostVariable);
+						 implementationCostCO =  implementationCostCO  + ( line.unitSalesCost_l* impCostF * 12);
+					 }
+				}
+				else{*/
+					implementationCostCO = implementationCostCO  +line.implementationCost_l;
+					//}
+				}//END_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+			}
+			if(laborType == "MPS"){
+				
+				if(msItemType == "MPS Labor"){
+					implementationCostMPSCO = implementationCostMPSCO  + line.implementationCost_l;
+
+				}
+			}
+			
+			
+		}
+		//================END OF COST ONLY - IMPLEMENTATION COST - SUM TOTALS==========================//
+		//============================= MS Code End ==============================================
+		//ENd of CHG0078656 MS Implementation Change
+		//============================= SC Code Start ==============================================
+		if (line.chargeType_l == "One Time" AND processGroup == "SC" AND line.includeInMS_l <>true) {
+			SCLineCounterOT = SCLineCounterOT + 1;
+			//START_bau_CHG0083689_created_by_gowtham_on_31/08/2023	
+			totalOneTimeAmountPS = totalOneTimeAmountPS+ extNetPrice;
+			//End_bau_CHG0083689_created_by_gowtham_on_31/08/2023
+			//Below line commented by AKshay to pull pricing from extSR{
+			//unitSRPOTSC = unitSRPOTSC + (line.unitSRP_l /* * PartQtyLine*/ );
+		  
+			//added by Akshay to pull values for Ext Unit SRP, sales cost, standard cost, contract target/Unit Price for RITM1312597
+			extunitSRPOTSC = extunitSRPOTSC + (line.extSRP_l /* * PartQtyLine*/ );
+			extunitSalesCostOTSC = extunitSalesCostOTSC + (line.extUnitSalesCost_l /* * PartQtyLine*/ );
+			extunitStdCostOTSC = extunitStdCostOTSC + (line.extUnitStandardCost_l /* * PartQtyLine*/ );
+			extcontractedUnitPriceOTSC = extcontractedUnitPriceOTSC + (line.extUnitContractTargetPrice_l /* * PartQtyLine*/ );
+			
+			unitSRPOTSC = unitSRPOTSC + (line.unitSRP_l /* * PartQtyLine*/ );
+			unitSalesCostOTSC = unitSalesCostOTSC + (line.unitSalesCost_l /* * PartQtyLine*/ );
+			unitStdCostOTSC = unitStdCostOTSC + (line.unitCost_l /* * PartQtyLine*/ );
+			contractedUnitPriceOTSC = contractedUnitPriceOTSC + (line.contractedUnitPrice_l /* * PartQtyLine*/ );
+			
+			contractedValueOTSC = contractedValueOTSC + extNetPrice;
+			extNetPriceOTSC = extNetPriceOTSC + extNetPrice;
+			extSellingPriceOTSC = extSellingPriceOTSC + extSellingPrice;
+			//marginPercentagesalescostOTSC = (marginPercentagesalescostOTSC + marginSalesCost);
+			//marginPercentagestdscostOTSC = (marginPercentagestdscostOTSC + marginStandardCost);
+		}
+		elif(line.chargeType_l == "Recurring" AND processGroup == "SC" AND line.includeInMS_l <>true) {
+			SCLineCounterRec = SCLineCounterRec + 1;
+			//Start_bau_CHG0083689_created_by_gowtham_on_31/08/2023	
+			totalRecurringAmountPS = totalRecurringAmountPS+ extNetPrice;
+			
+			//End_bau_CHG0083689_created_by_gowtham_on_31/08/2023
+			//added by Akshay to pull values for Ext Unit SRP, sales cost, standard cost, contract target/Unit Price for RITM1312597
+			extunitSRPRecSC = extunitSRPRecSC + (line.extSRP_l /* * PartQtyLine*/ );
+			extunitSalesCostRecSC = extunitSalesCostRecSC + (line.extUnitSalesCost_l/* * PartQtyLine*/ );
+			extunitStdCostRecSC = extunitStdCostRecSC + (line.extUnitStandardCost_l/* * PartQtyLine*/ );
+			extcontractedUnitPriceRecSC = extcontractedUnitPriceRecSC + (line.extUnitContractTargetPrice_l /* *PartQtyLine*/ );
+			
+			unitSRPRecSC = unitSRPRecSC + (line.unitSRP_l /* * PartQtyLine*/ );
+			unitSalesCostRecSC = unitSalesCostRecSC + (line.unitSalesCost_l /* * PartQtyLine*/ );
+			unitStdCostRecSC = unitStdCostRecSC + (line.unitCost_l /* * PartQtyLine*/ );
+			contractedUnitPriceRecSC = contractedUnitPriceRecSC + (line.contractedUnitPrice_l /* *PartQtyLine*/ );
+			
+			discountAmounttRecSC = discountAmounttRecSC + (discountAmt /* * PartQtyLine*/ );
+			extNetPriceRecSC = extNetPriceRecSC + extNetPrice;
+			extSellingPriceRecSC = extSellingPriceRecSC + extSellingPrice;
+			ContractPriceRecSC = ContractPriceRecSC + extNetPrice * 12;
+			//commented below line by Rohit Ranjan for INC2503443/CHG0084205 and modified if elsif condition to calculate based on non std term if subscription term is other
+			//if(line.subscriptionTerm_l <>"")   Added If condition as part of CHG0080780
+			if(line.subscriptionTerm_l <>"" and line.subscriptionTerm_l<>"others"){
+				ContractPriceRecSC_TCV = ContractPriceRecSC_TCV + extNetPrice * atoi(line.subscriptionTerm_l);
+			}
+			elif(line.subscriptionTerm_l  <> "" and line.subscriptionTerm_l=="others" and line.nonStandardTerm_l<>""){
+				ContractPriceRecSC_TCV = ContractPriceRecSC_TCV + extNetPrice * atoi(line.nonStandardTerm_l);
+			}	
+			elif(line.subscriptionTerm_l  == ""){
+				ContractPriceRecSC_TCV = ContractPriceRecSC_TCV + extNetPrice*12;
+			}
+			/*if(processGroup <> "SC" AND ISNUMBER(line._part_custom_field26)){
+				ContractPriceRecSC = ContractPriceRecSC + (extNetPrice * atoi(line._part_custom_field26));
+			}else{
+				ContractPriceRecSC = ContractPriceRecSC + extNetPrice;
+			}
+			*/
+			//marginPercentagesalescostRecSC = (marginPercentagesalescostRecSC + marginSalesCost);
+			//marginPercentagestdscostRecSC = (marginPercentagestdscostRecSC + marginStandardCost);
+		}
+		//============================= SC Code End ==============================================
+		//============================= Total Deal Code Start =====================================
+	}
+	if (line.chargeType_l == "One Time" AND line.includeInMS_l <> true) {
+		ttlLineCounterOT = ttlLineCounterOT + 1;
+		
+		//added by Akshay to pull values for Ext Unit SRP, sales cost, standard cost, contract target/Unit Price for RITM1312597
+		extttlUnitSRPOT = extttlUnitSRPOT + (line.extSRP_l /* * PartQtyLine*/ );
+		//print extttlUnitSRPOT ; print line.extSRP_l;
+		extttlUnitSalesCostOT = extttlUnitSalesCostOT + (line.extUnitSalesCost_l/* * PartQtyLine*/ );
+		extttlUnitStdCostOT = extttlUnitStdCostOT + (line.extUnitStandardCost_l /* * PartQtyLine*/ );
+		extttlContractedValue = extttlContractedValue + extNetPrice;
+		
+		ttlUnitSRPOT = ttlUnitSRPOT + (line.unitSRP_l /* * PartQtyLine*/ );
+		ttlUnitSalesCostOT = ttlUnitSalesCostOT + (line.unitSalesCost_l /* * PartQtyLine*/ );
+		ttlUnitStdCostOT = ttlUnitStdCostOT + (line.unitCost_l /* * PartQtyLine*/ );
+		ttlContractedValue = ttlContractedValue + extNetPrice;
+		
+		ttlExtNetPriceOT = ttlExtNetPriceOT + extNetPrice;
+		ttlExtSellingPriceOT = ttlExtSellingPriceOT + extSellingPrice;
+		//Below code commented & added by Abhishek for CHG0087521
+		//ttlContractedUnitPriceOT = ttlContractedUnitPriceOT + (line.extUnitContractTargetPrice_l/* * PartQtyLine*/ );
+		ttlContractedUnitPriceOT = ttlContractedUnitPriceOT + (line.contractedUnitPrice_l/* * PartQtyLine*/ );
+		//ttlUnitSellingPriceOT = ttlUnitSellingPriceOT +ttlUnitSellingPriceRec ; //Defect 16834
+		ttlUnitSellingPriceOT = ttlUnitSellingPriceOT +unitSellingPrice ; //Defect 16834
+		//ttlMarginPercentagesalescostOT = (ttlMarginPercentagesalescostOT + marginSalesCost);
+		//ttlMarginPercentagestdscostOT = (ttlMarginPercentagestdscostOT + marginStandardCost);
+		if(processGroup == "MPS"){//01_11_2024 MPS_PERFORMANCE_CHANGES #CHG0085215  Added by Vasundhara - These lines will run only for MPS
+			extttlContractedValue = extttlContractedValue + line.extNetPrice_l;
+			ttlContractedValue = ttlContractedValue + line.extNetPrice_l;
+			ttlExtNetPriceOT = ttlExtNetPriceOT + line.extNetPrice_l;
+			ttlExtSellingPriceOT = ttlExtSellingPriceOT + line.extSellingPrice_l;
+		}
+	}
+	elif(line.chargeType_l == "Recurring" OR line.includeInMS_l == true) {
+		ttlLineCounterRec = ttlLineCounterRec + 1;
+		
+		//added by Akshay to pull values for Ext Unit SRP, sales cost, standard cost, contract target/Unit Price for RITM1312597
+		extttlUnitSRPRec = extttlUnitSRPRec + (line.extSRP_l /* * PartQtyLine*/ );
+		extttlUnitSalesCostRec = extttlUnitSalesCostRec + (line.extUnitSalesCost_l/* * PartQtyLine*/ );
+		extttlUnitStdCostRec = extttlUnitStdCostRec + (line.extUnitStandardCost_l /* * PartQtyLine*/ );
+		extttlContractedUnitPriceRec = extttlContractedUnitPriceRec + (line.extUnitContractTargetPrice_l/* * PartQtyLine*/ );
+		
+		ttlUnitSRPRec = ttlUnitSRPRec + (line.unitSRP_l /* * PartQtyLine*/ );
+		ttlUnitSalesCostRec = ttlUnitSalesCostRec + (line.unitSalesCost_l /* * PartQtyLine*/ );
+		ttlUnitStdCostRec = ttlUnitStdCostRec + (line.unitCost_l /* * PartQtyLine*/ );
+		ttlContractedUnitPriceRec = ttlContractedUnitPriceRec + (line.contractedUnitPrice_l /* * PartQtyLine*/ );
+		ttlUnitSellingPriceRec = ttlUnitSellingPriceRec +unitSellingPrice ; //Defect #16834
+		ttlExtNetPriceRec = ttlExtNetPriceRec + extNetPrice;
+		ttlExtSellingPriceRec = ttlExtSellingPriceRec + extSellingPrice;
+		ttlContractPriceRec = ttlContractPriceRec + (extNetPrice * 12);
+
+		//added by Namrata for MPS CHG0085215
+		if(processGroup == "MPS"){
+		ttlUnitSellingPriceRec = ttlUnitSellingPriceRec +line.unitSellingPrice_l ;
+		ttlExtNetPriceRec = ttlExtNetPriceRec + line.extNetPrice_l;
+		ttlExtSellingPriceRec = ttlExtSellingPriceRec + line.extSellingPrice_l;
+		ttlContractPriceRec = ttlContractPriceRec + (line.extNetPrice_l * 12);
+		}
+		//added by Namrata for MPS CHG0085215
+
+		
+		if (processGroup == "MPS") {
+			ttlTotalCaontractValueRec = ttlTotalCaontractValueRec + (line.extNetPrice_l * termMonth);
+		}
+		elif (processGroup <> "SC") {
+			ttlTotalCaontractValueRec = ttlTotalCaontractValueRec + (extNetPrice * termMonth);
+		}
+		elif(processGroup == "SC" AND ISNUMBER(line.subscriptionTerm_l)) {//Changed line._part_custom_field26 to line.subscriptionTerm_l as part of CHG0080780
+			ttlTotalCaontractValueRec = ttlTotalCaontractValueRec + (extNetPrice * atoi(line.subscriptionTerm_l));
+		}                                    
+		//added below elif condition by ROhit Ranjan for subscription term other for INC2503443/CHG0084205
+	   elif(processGroup == "SC" AND line.subscriptionTerm_l=="others" and line.nonStandardTerm_l<>"") {//Changed line._part_custom_field26 to line.subscriptionTerm_l as part of CHG0080780
+			ttlTotalCaontractValueRec = ttlTotalCaontractValueRec + (extNetPrice * atoi(line.nonStandardTerm_l));
+		} 
+		else{
+			ttlTotalCaontractValueRec = ttlTotalCaontractValueRec + (extNetPrice * 12);
+		}
+		//ttlMarginPercentagesalescostRec = (ttlMarginPercentagesalescostRec + marginSalesCost);
+		//ttlMarginPercentagestdscostRec = (ttlMarginPercentagestdscostRec + marginStandardCost);
+	}
+	//CR 10 - REBATE CALCULATIONS FOR MS
+	
+	//MPS Condition added by Namrata as part of MPS project 
+	if((processgroup == "SC" AND line.includeInMS_l ==true) OR processgroup == "MS"){
+		totalDealRevenue = totalDealRevenue +extNetPrice;
+	}elif(processgroup == "MPS"){
+		totalDealRevenue = totalDealRevenue +line.extNetPrice_l;
+	}
+	//============================= Total Deal Code End =====================================	
+}
+//==================LAST SECTION: COST ONLY -IMPLEMENTATION COST - ADD TO MS AND TOTAL DEAL============//
+//CHG0078656 MS Implementation Change
+//MPS Condition added by Namrata as part of MPS project 
+if(implementationCostCO <>0.0){
+	//Add value to One-Time total costs of MS and total deal
+	unitSalesCostOTMS = unitSalesCostOTMS +implementationCostCO ;
+	unitStdCostOTMS = unitStdCostOTMS  + implementationCostCO ;
+	ttlUnitSalesCostOT =ttlUnitSalesCostOT + implementationCostCO ;
+	ttlunitStdCostOT = ttlunitStdCostOT  + implementationCostCO ;
+	ttlLineCounterOT = ttlLineCounterOT + 1;
+	MSLineCounterOT = MSLineCounterOT +1;
+	//Added by Namrata for MPS Quote Summary #CHG0085215
+	unitSalesCostOTMPS = unitSalesCostOTMPS +implementationCostMPSCO ;
+	unitStdCostOTMPS = unitStdCostOTMPS  + implementationCostMPSCO ;
+	MPSLineCounterOT = MPSLineCounterOT +1;
+
+
+}
+
+ //==============LAST SECTION: End OF COST ONLY- IMPLEMENTATION COST - ADD TO MS AND TOTAL DEAL========//
+if (OTFlag == true AND extNetPriceTotalOT <> 0.00 AND extSRPTotalOT <> 0.00) {
+	totalITSDiscountPercentageOneTime = (100 * (1 - extNetPriceTotalOT / extSRPTotalOT));
+}
+if (RecFlag == true AND extNetPriceTotalRec <> 0.00 AND extSRPTotalRec <> 0.00) {
+	totalITSDiscountPercentageRecurring = (100 * (1 - extNetPriceTotalRec / extSRPTotalRec));
+}
+//Start_bau_CHG0083689_created_by_gowtham_on_31/08/2023
+retval = retval +	"1~pSOneTimeLineCount_t~" + String(SCLineCounterOT) + "|" +
+	"1~totalOneTimeAmountPS~" + String(totalOneTimeAmountPS) + "|" +	
+	"1~mSOneTimeLineCount_t~" + String(MSLineCounterOT) + "|" +
+	"1~totalOneTimeAmountMS~" + String(totalOneTimeAmountMS) + "|" +
+	"1~mSRecurringLineCount_T~" + String(MSLineCounterRec) + "|" +
+	"1~totalRecurringAmountMS~" + String(totalRecurringAmountMS) + "|" +
+	"1~pSRecurringLineCount_t~" + String(SCLineCounterRec) + "|" +
+	"1~totalRecurringAmountPS~" + String(totalRecurringAmountPS) + "|"+
+	"1~mPSOneTimeLineCount_t_c~" + String(MPSLineCounterOT) + "|" +	 //Added by Namrata for Quote Summary MPS
+	"1~mPSRecurringLineCount_t_c~" + String(MPSLineCounterRec) + "|" ; //Added by Namrata for Quote Summary MPS
+
+retval = retval +
+	"1~totalOneTimeAmount_t~" + string(totalOneTimeAmountITS) + "|" +
+	"1~totalEquipmentAmount_t~" + string(totalEquipmentAmountITS) + "|" +
+	"1~totalRecurringAmount_t~" + string(totalRecurringAmountITS) + "|" +
+	"1~totalAmountITS_t~" + string(totalOneTimeAmountITS + totalEquipmentAmountITS + totalRecurringAmountITS) + "|" +
+	"1~totalITSDiscountPercentageOneTime_t~" + String(totalITSDiscountPercentageOneTime) + "|" +
+	"1~totalITSDiscountPercentageRecurring_t~" + String(totalITSDiscountPercentageRecurring) + "|" +
+	"1~iTSOneTimeLineCount_t~" + String(OTIndex) + "|" +
+	"1~iTSEquipmentLineCount_t~" + String(EqIndex) + "|" +
+	"1~iTSRecurringLineCount_t~" + String(RecIndex) + "|" +
+	"1~totalAmountPS_t~" + String(totalOneTimeAmountPS + totalRecurringAmountPS) + "|" +	
+	"1~totalAmountMS_t~" + String(totalOneTimeAmountMS + totalRecurringAmountMS) + "|" +							
+	"1~totalAmount_t~" + string(totalOneTimeAmountMS + totalOneTimeAmountPS + totalRecurringAmountMS +totalRecurringAmountPS + totalOneTimeAmountITS + totalEquipmentAmountITS + totalRecurringAmountITS) + "|" +
+	"1~totalMonthlyRecurringServices_t~" + string(totalRecurringAmountMS +totalRecurringAmountPS +  totalRecurringAmountITS) + "|" + 	
+	"1~totalNonRecurringServices_t~" + string(totalOneTimeAmountMS + totalOneTimeAmountPS + totalOneTimeAmountITS + totalEquipmentAmountITS ) +"|" +
+	"1~totalAmountMPS_t_c~" + String(totalOneTimeAmountMPS + totalRecurringAmountMPS) + "|" ; // Added by Namrata for Quote Summary MPS					
+						 
+	//end_bau_CHG0083689_created_by_gowtham_on_31/08/2023
+	//  "1~totalUnitSellingPrice_t~" + string(totalUnitCostVar) + "|"+
+	//  "1~totalExtSellingPrice_t~" + string(totalExtSellingPriceVar) + "|"+
+	//"1~totalExtNetPrice_t~" + string(totalExtNetPriceVar) + "|";
+	//"1~totalQty_t~" + string(totalQtyVar) + "|"+
+	//  "1~a1stYearPIMAGP_t~" + string(FirstYearPIMAGP) + "|"+
+	//  "1~a1stMonthPaymentPIMA_t~" + string(FirstMonthPaymentPIMA) + "|";          
+	//   print  "print the totals******";       print totalExtSellingPriceVar;print totalExtNetPriceVar;print totalUnitCostVar;
+    
+if (approvalRequiredSubmitOT == true OR approvalRequiredSubmitREC == true) {
+	retval = retval +
+		"1~lineApprovalsRequired_t~true|";
+} else {
+	retval = retval +
+		"1~lineApprovalsRequired_t~false|";
+}
+
+termMonth_c = 1;
+if(termMonth == 24){
+	termMonth_c = 2;
+}
+if(termMonth == 36){
+	termMonth_c = 3;
+}
+if(termMonths_t == "Other" AND contractOtherTerm_t > 0){
+	termMonth_c = contractOtherTerm_t/12;
+}
+
+//SA Json
+if (SALineCounterOT > 0) {
+	jsonput(SAOTJson, "itemType_quoteSummary", "One-Time");
+	jsonput(SAOTJson, "sRP_quoteSummary", extunitSRPOTSA );
+	jsonput(SAOTJson, "salesCost_quoteSummary", extunitSalesCostOTSA );
+	jsonput(SAOTJson, "stdCost_quoteSummary", extunitStdCostOTSA);
+	jsonput(SAOTJson, "contractTargetPrice_quoteSummary", extcontractedUnitPriceOTSA);
+	if (contractedUnitPriceOTSA <> 0.0 AND NOT(ISNULL(contractedUnitPriceOTSA)) AND(((contractedUnitPriceOTSA - extSellingPriceOTSA) / contractedUnitPriceOTSA) * 100) > 0.0) {
+		jsonput(SAOTJson, "discount_quoteSummary", (((contractedUnitPriceOTSA - extSellingPriceOTSA) / contractedUnitPriceOTSA) * 100));
+	} else {
+		jsonput(SAOTJson, "discount_quoteSummary", "0.0");
+	}
+	if (extNetPriceOTSA <> 0.0 AND NOT(ISNULL(extNetPriceOTSA)) AND(((extSellingPriceOTSA - extNetPriceOTSA) / extSellingPriceOTSA) * 100) > 0.0) {
+		jsonput(SAOTJson, "promotionPct_quoteSummary", (((extSellingPriceOTSA - extNetPriceOTSA) / extSellingPriceOTSA) * 100));
+	} else {
+		jsonput(SAOTJson, "promotionPct_quoteSummary", "0.0");
+	}
+	//Naming convention is wrong for the attribute so it is mapped to Ext Net Price as on UI it's Net Price//
+        //below code added by Rohit to calculte margin based on extSalesCOst and extstdcost  CHG0086279
+	jsonput(SAOTJson, "sellingPrice_quoteSummary", extNetPriceOTSA);
+	if (extNetPriceOTSA <> 0.0) {
+		marginPercentagesalescostOTSA = (((extNetPriceOTSA - extunitSalesCostOTSA) / extNetPriceOTSA) * 100);
+	} else {
+		marginPercentagesalescostOTSA = 0.0;
+	}
+	if (extNetPriceOTSA <> 0.0) {
+		marginPercentagestdscostOTSA = (((extNetPriceOTSA - extunitStdCostOTSA) / extNetPriceOTSA) * 100);
+	} else {
+		marginPercentagestdscostOTSA = 0.0;
+	}
+	jsonput(SAOTJson, "margin_quoteSummary", marginPercentagesalescostOTSA);
+	jsonput(SAOTJson, "standardMargin_quoteSummary", marginPercentagestdscostOTSA);
+	jsonput(SAOTJson, "totalContractPrice_quoteSummary", contractedValueOTSA);
+	jsonput(SAOTJson, "totalContractValue_quoteSummary", contractedValueOTSA);
+
+	//doubt on this totalcontractprice//
+}
+
+if (SALineCounterRec > 0) {
+	jsonput(SARecJson, "itemType_quoteSummary", "MRR");
+	jsonput(SARecJson, "sRP_quoteSummary", extunitSRPRecSA);
+	jsonput(SARecJson, "salesCost_quoteSummary", extunitSalesCostRecSA);
+	jsonput(SARecJson, "stdCost_quoteSummary", extunitStdCostRecSA);
+	jsonput(SARecJson, "contractTargetPrice_quoteSummary", extcontractedUnitPriceRecSA);
+	if (contractedUnitPriceRecSA <> 0.0 AND NOT(ISNULL(contractedUnitPriceRecSA)) AND(((contractedUnitPriceRecSA - extSellingPriceRecSA) / contractedUnitPriceRecSA) * 100) > 0.0) {
+		jsonput(SARecJson, "discount_quoteSummary", (((contractedUnitPriceRecSA - extSellingPriceRecSA) / contractedUnitPriceRecSA) * 100));
+	} else {
+		jsonput(SARecJson, "discount_quoteSummary", "0.0");
+	}
+	if (extNetPriceRecSA <> 0.0 AND NOT(ISNULL(extNetPriceRecSA)) AND(((extSellingPriceRecSA - extNetPriceRecSA) / extSellingPriceRecSA) * 100) > 0.0) {
+		jsonput(SARecJson, "promotionPct_quoteSummary", (((extSellingPriceRecSA - extNetPriceRecSA) / extSellingPriceRecSA) * 100));
+	} else {
+		jsonput(SARecJson, "promotionPct_quoteSummary", "0.0");
+	}
+	//Naming convention is wrong for the attribute so it is mapped to Ext Net Price as on UI it's Net Price//
+	jsonput(SARecJson, "sellingPrice_quoteSummary", extNetPriceRecSA);
+	//Below is for first year contract value which is extNetPrice//
+	jsonput(SARecJson, "totalContractPrice_quoteSummary", ContractPriceRecSA);
+	jsonput(SARecJson, "totalContractValue_quoteSummary", ContractPriceRecSA*termMonth_c);
+	
+        //below code added by Rohit to calculte margin based on extSalesCOst and extstdcost  CHG0086279
+	if (extNetPriceRecSA <> 0.0) {
+		marginPercentagesalescostRecSA = (((extNetPriceRecSA - extunitSalesCostRecSA) / extNetPriceRecSA) * 100);
+	} else {
+		marginPercentagesalescostRecSA = 0.0;
+	}
+	if (extNetPriceRecSA <> 0.0) {
+		marginPercentagestdscostRecSA = (((extNetPriceRecSA - extunitStdCostRecSA ) / extNetPriceRecSA) * 100);
+	} else {
+		marginPercentagestdscostRecSA = 0.0;
+	}
+	jsonput(SARecJson, "margin_quoteSummary", marginPercentagesalescostRecSA);
+	jsonput(SARecJson, "standardMargin_quoteSummary", marginPercentagestdscostRecSA);
+}
+
+//ITS Json
+if (ITSLineCounterOT > 0) {
+	jsonput(ITSOTJson, "itemType_quoteSummary", "One-Time");
+	jsonput(ITSOTJson, "sRP_quoteSummary", extunitSRPOTITS );
+	jsonput(ITSOTJson, "salesCost_quoteSummary", extunitSalesCostOTITS);
+	jsonput(ITSOTJson, "stdCost_quoteSummary", extunitStdCostOTITS);
+	jsonput(ITSOTJson, "contractTargetPrice_quoteSummary", extcontractedUnitPriceOTITS);
+	if (contractedUnitPriceOTITS <> 0.0 AND NOT(ISNULL(contractedUnitPriceOTITS)) AND(((contractedUnitPriceOTITS - extSellingPriceOTITS) / contractedUnitPriceOTITS) * 100) > 0.0) {
+		jsonput(ITSOTJson, "discount_quoteSummary", (((contractedUnitPriceOTITS - extSellingPriceOTITS) / contractedUnitPriceOTITS) * 100));
+	} else {
+		jsonput(ITSOTJson, "discount_quoteSummary", "0.0");
+	}
+	if (extSellingPriceOTITS <> 0.0 AND NOT(ISNULL(extSellingPriceOTITS)) AND(((extSellingPriceOTITS - extNetPriceOTITS) / extSellingPriceOTITS) * 100) > 0.0) {
+		jsonput(ITSOTJson, "promotionPct_quoteSummary", (((extSellingPriceOTITS - extNetPriceOTITS) / extSellingPriceOTITS) * 100));
+	} else {
+		jsonput(ITSOTJson, "promotionPct_quoteSummary", "0.0");
+	}
+	//Naming convention is wrong for the attribute so it is mapped to Ext Net Price as on UI it's Net Price//
+	jsonput(ITSOTJson, "sellingPrice_quoteSummary", extNetPriceOTITS);
+        //below code added by Rohit to calculte margin based on extSalesCOst and extstdcost  CHG0086279
+	if (extNetPriceOTITS <> 0.0) {
+		marginPercentagesalescostOTITS = (((extNetPriceOTITS - extunitSalesCostOTITS) / extNetPriceOTITS) * 100);
+	} else {
+		marginPercentagesalescostOTITS = 0.0;
+	}
+	if (extNetPriceOTITS <> 0.0) {
+		marginPercentagestdscostOTITS = (((extNetPriceOTITS - extunitStdCostOTITS) / extNetPriceOTITS) * 100);
+	} else {
+		marginPercentagestdscostOTITS = 0.0;
+	}
+	jsonput(ITSOTJson, "margin_quoteSummary", marginPercentagesalescostOTITS);
+	jsonput(ITSOTJson, "standardMargin_quoteSummary", marginPercentagestdscostOTITS);
+	//Below is for first year contract value which is extNetPrice//
+	jsonput(ITSOTJson, "totalContractPrice_quoteSummary", contractedValueOTITS);
+	jsonput(ITSOTJson, "totalContractValue_quoteSummary", contractedValueOTITS);
+
+}
+if (ITSLineCounterRec > 0) {
+	jsonput(ITSRecJson, "itemType_quoteSummary", "MRR");
+	jsonput(ITSRecJson, "sRP_quoteSummary", extunitSRPRecITS);
+
+	jsonput(ITSRecJson, "salesCost_quoteSummary", extunitSalesCostRecITS);
+	jsonput(ITSRecJson, "stdCost_quoteSummary", extunitStdCostRecITS);
+	jsonput(ITSRecJson, "contractTargetPrice_quoteSummary", extcontractedUnitPriceRecITS);
+	//Need to check with Sathish why it's different for Rec for ITS//
+	if (contractedUnitPriceRecITS <> 0.0 AND NOT(ISNULL(contractedUnitPriceRecITS)) AND((discountAmounttRecITS / contractedUnitPriceRecITS) * 100) > 0.0) {
+		jsonput(ITSRecJson, "discount_quoteSummary", ((discountAmounttRecITS / contractedUnitPriceRecITS) * 100));
+	} else {
+		jsonput(ITSRecJson, "discount_quoteSummary", "0.0");
+	}
+	//Need to check with Sathish why it's different for Rec for ITS//
+
+	if (extSellingPriceRecITS <> 0.0 AND NOT(ISNULL(extSellingPriceRecITS)) AND((promotionValueRecITS / extSellingPriceRecITS) * 100) > 0.0) {
+		jsonput(ITSRecJson, "promotionPct_quoteSummary", ((promotionValueRecITS / extSellingPriceRecITS) * 100));
+	} else {
+		jsonput(ITSRecJson, "promotionPct_quoteSummary", "0.0");
+	}
+	//Naming convention is wrong for the attribute so it is mapped to Ext Net Price as on UI it's Net Price//
+	jsonput(ITSRecJson, "sellingPrice_quoteSummary", extNetPriceRecITS);
+        //below code added by Rohit to calculte margin based on extSalesCOst and extstdcost  CHG0086279
+	if (extNetPriceRecITS <> 0.0) {
+		marginPercentagesalescostRecITS = (((extNetPriceRecITS - extunitSalesCostRecITS) / extNetPriceRecITS) * 100);
+	} else {
+		marginPercentagesalescostRecITS = 0.0;
+	}
+	if (extNetPriceRecITS <> 0.0) {
+		marginPercentagestdscostRecITS = (((extNetPriceRecITS - extunitStdCostRecITS) / extNetPriceRecITS) * 100);
+	} else {
+		marginPercentagestdscostRecITS = 0.0;
+	}
+	//Below is for first year contract value which is extNetPrice//
+	jsonput(ITSRecJson, "totalContractPrice_quoteSummary", ContractPriceRecITS);
+	jsonput(ITSRecJson, "totalContractValue_quoteSummary", ContractPriceRecITS*termMonth_c);
+
+	//Need to check with Sathish for Rec//
+	jsonput(ITSRecJson, "margin_quoteSummary", marginPercentagesalescostRecITS / ITSLineCounterRec);
+	jsonput(ITSRecJson, "standardMargin_quoteSummary", marginPercentagestdscostRecITS / ITSLineCounterRec);
+}
+
+//CHG0078656 MS Implementation Change
+if (MSLineCounterOT > 0) {
+                           
+//----  Added as part of C020:: 1 Mar 2023 :: 
+//Commented As part of CR 10
+/* if(rebateType_t == "directPayment"){
+unitSalesCostOTMS = unitSalesCostOTMS+ rebateValueDollar_t;
+}	*/
+                            
+	jsonput(MSOTJson, "itemType_quoteSummary", "One-Time");
+	//below 3 lines commented by Rohit for INC2499578/CHG0084089 and added another 3 line
+	//jsonput(MSOTJson, "sRP_quoteSummary", extunitSRPOTMS);
+	//jsonput(MSOTJson, "salesCost_quoteSummary", extunitSalesCostOTMS);
+	//jsonput(MSOTJson, "stdCost_quoteSummary", extunitStdCostOTMS);                         
+	jsonput(MSOTJson, "sRP_quoteSummary", unitSRPOTMS);
+	jsonput(MSOTJson, "salesCost_quoteSummary", unitSalesCostOTMS);
+	jsonput(MSOTJson, "stdCost_quoteSummary", unitStdCostOTMS);
+	jsonput(MSOTJson, "contractTargetPrice_quoteSummary", extcontractedUnitPriceOTMS);
+	if (discountAmounttOTMS <> 0.0 AND contractedUnitPriceOTMS <> 0.0 AND NOT(ISNULL(contractedUnitPriceOTMS)) AND(((contractedUnitPriceOTMS - unitSellingPriceOTMS) / contractedUnitPriceOTMS) * 100) > 0.0) {
+		jsonput(MSOTJson, "discount_quoteSummary", (((contractedUnitPriceOTMS - unitSellingPriceOTMS) / contractedUnitPriceOTMS) * 100));
+	} else {
+		jsonput(MSOTJson, "discount_quoteSummary", "0.0");
+	}
+	if (promotionValueOTMS <> 0.0 AND extSellingPriceOTMS<> 0.0 AND NOT(ISNULL(extSellingPriceOTMS)) AND(((extSellingPriceOTMS - extNetPriceOTMS) / extSellingPriceOTMS ) * 100) > 0.0) {
+		jsonput(MSOTJson, "promotionPct_quoteSummary", (((extSellingPriceOTMS- extNetPriceOTMS) / extSellingPriceOTMS ) * 100));
+	} else {
+		jsonput(MSOTJson, "promotionPct_quoteSummary", "0.0");
+	}
+	jsonput(MSOTJson, "sellingPrice_quoteSummary", unitSellingPriceOTMS);
+	
+	if (extNetPriceOTMS<> 0.0) {
+		marginPercentagesalescostOTMS = (((extNetPriceOTMS- extunitSalesCostOTMS) / extSellingPriceOTMS) * 100);
+	} else {
+		marginPercentagesalescostOTMS = 0.0;
+	}
+	if (extNetPriceOTMS<> 0.0) {
+		marginPercentagestdscostOTMS = (((extNetPriceOTMS- extunitStdCostOTMS) / extSellingPriceOTMS) * 100);
+	} else {
+		marginPercentagestdscostOTMS = 0.0;
+	}
+	jsonput(MSOTJson, "margin_quoteSummary", marginPercentagesalescostOTMS);
+	jsonput(MSOTJson, "standardMargin_quoteSummary", marginPercentagestdscostOTMS);
+	jsonput(MSOTJson, "totalContractPrice_quoteSummary", contractedValueOTMS);
+}
+//Added by Namrata for MPS Quote Summary #CHG0085215
+
+if(MPSLineCounterOT > 0){                                
+	jsonput(MPSOTJson, "itemType_quoteSummary", "One-Time");                       
+	jsonput(MPSOTJson, "sRP_quoteSummary", unitSRPOTMPS);
+	jsonput(MPSOTJson, "salesCost_quoteSummary", unitSalesCostOTMPS);
+	print "******&&&"; print unitStdCostOTMPS;
+	jsonput(MPSOTJson, "stdCost_quoteSummary", unitStdCostOTMPS);
+	jsonput(MPSOTJson, "contractTargetPrice_quoteSummary", extcontractedUnitPriceOTMPS);
+	if (discountAmounttOTMPS <> 0.0 AND contractedUnitPriceOTMPS <> 0.0 AND NOT(ISNULL(contractedUnitPriceOTMPS)) AND(((contractedUnitPriceOTMPS - unitSellingPriceOTMPS) / contractedUnitPriceOTMPS) * 100) > 0.0) {
+		jsonput(MPSOTJson, "discount_quoteSummary", (((contractedUnitPriceOTMPS - unitSellingPriceOTMPS) / contractedUnitPriceOTMPS) * 100));
+	} else {
+		jsonput(MPSOTJson, "discount_quoteSummary", "0.0");
+	}
+	if (promotionValueOTMPS <> 0.0 AND extSellingPriceOTMPS<> 0.0 AND NOT(ISNULL(extSellingPriceOTMPS)) AND(((extSellingPriceOTMPS - extNetPriceOTMPS) / extSellingPriceOTMPS ) * 100) > 0.0) {
+		jsonput(MPSOTJson, "promotionPct_quoteSummary", (((extSellingPriceOTMPS- extNetPriceOTMPS) / extSellingPriceOTMPS ) * 100));
+	} else {
+		jsonput(MPSOTJson, "promotionPct_quoteSummary", "0.0");
+	}
+	jsonput(MPSOTJson, "sellingPrice_quoteSummary", unitSellingPriceOTMPS);
+	
+	if (extNetPriceOTMPS<> 0.0) {
+		marginPercentagesalescostOTMPS = (((extNetPriceOTMPS- extunitSalesCostOTMPS) / extSellingPriceOTMPS) * 100);
+	} else {
+		marginPercentagesalescostOTMPS = 0.0;
+	}
+	if (extNetPriceOTMPS<> 0.0) {
+		marginPercentagestdscostOTMPS = (((extNetPriceOTMPS- extunitStdCostOTMPS) / extSellingPriceOTMPS) * 100);
+	} else {
+		marginPercentagestdscostOTMPS = 0.0;
+	}
+	jsonput(MPSOTJson, "margin_quoteSummary", marginPercentagesalescostOTMPS);
+	jsonput(MPSOTJson, "standardMargin_quoteSummary", marginPercentagestdscostOTMPS);
+	jsonput(MPSOTJson, "totalContractPrice_quoteSummary", contractedValueOTMPS);
+	jsonput(MPSOTJson, "totalContractValue_quoteSummary", contractedValueOTMPS *termMonth);
+
+}
+//Added by Namrata for MPS Quote Summary #CHG0085215
+
+if (MPSLineCounterRec > 0) {
+	jsonput(MPSRecJson, "itemType_quoteSummary", "MRR");
+	jsonput(MPSRecJson, "sRP_quoteSummary", extunitSRPRecMPS);	
+	jsonput(MPSRecJson, "salesCost_quoteSummary", extunitSalesCostRecMPS);
+	jsonput(MPSRecJson, "stdCost_quoteSummary", extunitStdCostRecMPS);
+	jsonput(MPSRecJson, "contractTargetPrice_quoteSummary", extcontractedUnitPriceRecMPS);
+	if (contractedUnitPriceRecMPS <> 0.0 AND NOT(ISNULL(contractedUnitPriceRecMPS)) AND(((contractedUnitPriceRecMPS - unitSellingPriceRecMPS) / contractedUnitPriceRecMPS) * 100) > 0.0) {
+		jsonput(MPSRecJson, "discount_quoteSummary", (((contractedUnitPriceRecMPS - unitSellingPriceRecMPS) / contractedUnitPriceRecMPS) * 100));
+	} else {
+		jsonput(MPSRecJson, "discount_quoteSummary", "0.0");
+	}
+	if (extSellingPriceRecMPS <> 0.0 AND NOT(ISNULL(extSellingPriceRecMPS )) AND(((extSellingPriceRecMPS - extNetPriceRecMPS ) / extSellingPriceRecMPS ) * 100) > 0.0) {
+		jsonput(MPSRecJson, "promotionPct_quoteSummary", (((extSellingPriceRecMPS - extNetPriceRecMPS) / extSellingPriceRecMPS ) * 100));
+	} else {
+		jsonput(MPSRecJson, "promotionPct_quoteSummary", "0.0");
+	}
+
+	jsonput(MPSRecJson, "sellingPrice_quoteSummary", extNetPriceRecMPS);
+        //below code added by Rohit to calculte margin based on extSalesCOst and extstdcost  CHG0086279
+	jsonput(MPSRecJson, "totalContractPrice_quoteSummary", round((ContractPriceRecMPS * 12), 2));
+	if (extNetPriceRecMPS<> 0.0) {
+		marginPercentagesalescostRecMPS = (((extNetPriceRecMPS- extunitSalesCostRecMPS) / extNetPriceRecMPS) * 100);
+	} else {
+		marginPercentagesalescostRecMPS = 0.0;
+	}
+	if (extNetPriceRecMPS<> 0.0) {
+		marginPercentagestdscostRecMPS = (((extNetPriceRecMPS- extunitStdCostRecMPS) / extNetPriceRecMPS) * 100);
+	} else {
+		marginPercentagestdscostRecMPS = 0.0;
+	}
+	jsonput(MPSRecJson, "margin_quoteSummary", marginPercentagesalescostRecMPS);
+	jsonput(MPSRecJson, "standardMargin_quoteSummary", marginPercentagestdscostRecMPS);
+	jsonput(MPSRecJson, "totalContractValue_quoteSummary", ContractPriceRecMPS * termMonth);
+	print MPSRecJson;
+}
+
+if (MSLineCounterRec > 0) {
+	
+	jsonput(MSRecJson, "itemType_quoteSummary", "MRR");
+	jsonput(MSRecJson, "sRP_quoteSummary", extunitSRPRecMS);	
+	jsonput(MSRecJson, "salesCost_quoteSummary", extunitSalesCostRecMS);
+	jsonput(MSRecJson, "stdCost_quoteSummary", extunitStdCostRecMS);
+	jsonput(MSRecJson, "contractTargetPrice_quoteSummary", extcontractedUnitPriceRecMS);
+	if (contractedUnitPriceRecMS <> 0.0 AND NOT(ISNULL(contractedUnitPriceRecMS)) AND(((contractedUnitPriceRecMS - unitSellingPriceRecMS) / contractedUnitPriceRecMS) * 100) > 0.0) {
+		jsonput(MSRecJson, "discount_quoteSummary", (((contractedUnitPriceRecMS - unitSellingPriceRecMS) / contractedUnitPriceRecMS) * 100));
+	} else {
+		jsonput(MSRecJson, "discount_quoteSummary", "0.0");
+	}
+	if (extSellingPriceRecMS <> 0.0 AND NOT(ISNULL(extSellingPriceRecMS )) AND(((extSellingPriceRecMS - extNetPriceRecMS ) / extSellingPriceRecMS ) * 100) > 0.0) {
+		jsonput(MSRecJson, "promotionPct_quoteSummary", (((extSellingPriceRecMS - extNetPriceRecMS) / extSellingPriceRecMS ) * 100));
+	} else {
+		jsonput(MSRecJson, "promotionPct_quoteSummary", "0.0");
+	}
+
+	jsonput(MSRecJson, "sellingPrice_quoteSummary", extNetPriceRecMS);
+        //below code added by Rohit to calculte margin based on extSalesCOst and extstdcost  CHG0086279
+	jsonput(MSRecJson, "totalContractPrice_quoteSummary", round((ContractPriceRecMS * 12), 2));
+	if (extNetPriceRecMS<> 0.0) {
+		marginPercentagesalescostRecMS = (((extNetPriceRecMS- extunitSalesCostRecMS) / extNetPriceRecMS) * 100);
+	} else {
+		marginPercentagesalescostRecMS = 0.0;
+	}
+	if (extNetPriceRecMS<> 0.0) {
+		marginPercentagestdscostRecMS = (((extNetPriceRecMS- extunitStdCostRecMS) / extNetPriceRecMS) * 100);
+	} else {
+		marginPercentagestdscostRecMS = 0.0;
+	}
+	jsonput(MSRecJson, "margin_quoteSummary", marginPercentagesalescostRecMS);
+	jsonput(MSRecJson, "standardMargin_quoteSummary", marginPercentagestdscostRecMS);
+}
+//End of //CHG0078656 MS Implementation Change
+//SC Json
+if (SCLineCounterOT > 0) {
+	jsonput(SCOTJson, "itemType_quoteSummary", "One-Time");
+	jsonput(SCOTJson, "sRP_quoteSummary", extunitSRPOTSC);
+	jsonput(SCOTJson, "salesCost_quoteSummary", extunitSalesCostOTSC);
+	jsonput(SCOTJson, "stdCost_quoteSummary", extunitStdCostOTSC);
+	jsonput(SCOTJson, "contractTargetPrice_quoteSummary", extcontractedUnitPriceOTSC);
+	if (contractedUnitPriceOTSC <> 0.0 AND NOT(ISNULL(contractedUnitPriceOTSC)) AND(((contractedUnitPriceOTSC - extSellingPriceOTSC) / contractedUnitPriceOTSC) * 100) > 0.0) {
+		jsonput(SCOTJson, "discount_quoteSummary", (((contractedUnitPriceOTSC - extSellingPriceOTSC) / contractedUnitPriceOTSC) * 100));
+	} else {
+		jsonput(SCOTJson, "discount_quoteSummary", "0.0");
+	}
+	if (extNetPriceOTSC <> 0.0 AND NOT(ISNULL(extNetPriceOTSC)) AND(((extSellingPriceOTSC - extNetPriceOTSC) / extSellingPriceOTSC) * 100) > 0.0) {
+		jsonput(SCOTJson, "promotionPct_quoteSummary", (((extSellingPriceOTSC - extNetPriceOTSC) / extSellingPriceOTSC) * 100));
+	} else {
+		jsonput(SCOTJson, "promotionPct_quoteSummary", "0.0");
+	}
+	//Naming convention is wrong for the attribute so it is mapped to Ext Net Price as on UI it's Net Price//
+	jsonput(SCOTJson, "sellingPrice_quoteSummary", extNetPriceOTSC);
+        //below code added by Rohit to calculte margin based on extSalesCOst and extstdcost  CHG0086279
+	if (extNetPriceOTSC <> 0.0) {
+		marginPercentagesalescostOTSC = (((extNetPriceOTSC - extunitSalesCostOTSC) / extNetPriceOTSC) * 100);
+	} else {
+		marginPercentagesalescostOTSC = 0.0;
+	}
+	if (extNetPriceOTSC <> 0.0) {
+		marginPercentagestdscostOTSC = (((extNetPriceOTSC - extunitStdCostOTSC) / extNetPriceOTSC) * 100);
+	} else {
+		marginPercentagestdscostOTSC = 0.0;
+	}
+	jsonput(SCOTJson, "margin_quoteSummary", marginPercentagesalescostOTSC);
+	jsonput(SCOTJson, "standardMargin_quoteSummary", marginPercentagestdscostOTSC);
+	//Below is for first year contract value which is extNetPrice//
+	jsonput(SCOTJson, "totalContractPrice_quoteSummary", contractedValueOTSC);
+		jsonput(SCOTJson, "totalContractValue_quoteSummary", contractedValueOTSC);
+
+}
+if (SCLineCounterRec > 0) {
+	jsonput(SCRecJson, "itemType_quoteSummary", "MRR");
+	jsonput(SCRecJson, "sRP_quoteSummary", extunitSRPRecSC);
+	jsonput(SCRecJson, "salesCost_quoteSummary", extunitSalesCostRecSC);
+	jsonput(SCRecJson, "stdCost_quoteSummary", extunitStdCostRecSC);
+	jsonput(SCRecJson, "contractTargetPrice_quoteSummary", extcontractedUnitPriceRecSC);
+	if (contractedUnitPriceRecSC <> 0.0 AND NOT(ISNULL(contractedUnitPriceRecSC)) AND((discountAmounttRecSC / contractedUnitPriceRecSC) * 100) > 0.0) {
+		jsonput(SCRecJson, "discount_quoteSummary", (((contractedUnitPriceRecSC - extSellingPriceRecSC) / contractedUnitPriceRecSC) * 100));
+	} else {
+		jsonput(SCRecJson, "discount_quoteSummary", "0.0");
+	}
+	if (extNetPriceRecSC <> 0.0 AND NOT(ISNULL(extNetPriceRecSC)) AND(((extSellingPriceRecSC - extNetPriceRecSC) / extSellingPriceRecSC) * 100) > 0.0) {
+		jsonput(SCRecJson, "promotionPct_quoteSummary", (((extSellingPriceRecSC - extNetPriceRecSC) / extSellingPriceRecSC) * 100));
+	} else {
+		jsonput(SCRecJson, "promotionPct_quoteSummary", "0.0");
+	}
+	//Naming convention is wrong for the attribute so it is mapped to Ext Net Price as on UI it's Net Price//
+	jsonput(SCRecJson, "sellingPrice_quoteSummary", extNetPriceRecSC);
+	//Below is for first year contract value which is extNetPrice//
+	jsonput(SCRecJson, "totalContractPrice_quoteSummary", ContractPriceRecSC);
+		jsonput(SCRecJson, "totalContractValue_quoteSummary", ContractPriceRecSC_TCV);
+        //below code added by Rohit to calculte margin based on extSalesCOst and extstdcost  CHG0086279
+	if (extNetPriceRecSC <> 0.0) {
+		marginPercentagesalescostRecSC = (((extNetPriceRecSC - extunitSalesCostRecSC) / extNetPriceRecSC) * 100);
+	} else {
+		marginPercentagesalescostRecSC = 0.0;
+	}
+	if (extNetPriceRecSC <> 0.0) {
+		marginPercentagestdscostRecSC = (((extNetPriceRecSC - extunitStdCostRecSC) / extNetPriceRecSC) * 100);
+	} else {
+		marginPercentagestdscostRecSC = 0.0;
+	}
+	jsonput(SCRecJson, "margin_quoteSummary", marginPercentagesalescostRecSC);
+	jsonput(SCRecJson, "standardMargin_quoteSummary", marginPercentagestdscostRecSC);
+}
+//CR 034 - Include In MS items should be added to SC section of quote summary
+//CHG0078656 MS Implementation Change
+if(PsInMSCounter > 0){
+	jsonput(SCPSInMSJson, "itemType_quoteSummary", "MRR-PS In MS");
+	jsonput(SCPSInMSJson, "sRP_quoteSummary", extunitSRPPSInMS);
+	jsonput(SCPSInMSJson, "salesCost_quoteSummary", extunitSalesCostPSInMS);
+	jsonput(SCPSInMSJson, "stdCost_quoteSummary", extunitStdCostPSInMS);
+	jsonput(SCPSInMSJson, "contractTargetPrice_quoteSummary", extcontractedUnitPricePSInMS);
+	if (contractedUnitPricePSInMS <> 0.0 AND NOT(ISNULL(contractedUnitPricePSInMS)) AND((discountAmounttPSInMS / contractedUnitPricePSInMS) * 100) > 0.0) {
+		jsonput(SCPSInMSJson, "discount_quoteSummary", (((contractedUnitPricePSInMS - unitSellingPriceOTMS) / contractedUnitPricePSInMS) * 100));
+	} else {
+		jsonput(SCPSInMSJson, "discount_quoteSummary", "0.0");
+	}
+	if (extNetPricePSInMS <> 0.0 AND NOT(ISNULL(extNetPricePSInMS )) AND(((extSellingPricePSInMS - extNetPricePSInMS ) / extSellingPricePSInMS) * 100) > 0.0) {
+		jsonput(SCPSInMSJson, "promotionPct_quoteSummary", (((extSellingPricePSInMS - extNetPricePSInMS ) / extSellingPricePSInMS) * 100));
+	} else {
+		jsonput(SCPSInMSJson, "promotionPct_quoteSummary", "0.0");
+	}
+	jsonput(SCPSInMSJson, "sellingPrice_quoteSummary", extNetPricePSInMS );
+	 //Updated for production Incident - Annual Contract value must shown for full term (multiplied with number of years).
+	//below code added by Rohit to calculte margin based on extSalesCOst and extstdcost  CHG0086279
+
+	jsonput(SCPSInMSJson, "totalContractPrice_quoteSummary",round((ContractPricePSInMS*termMonth), 2) );
+	if (extNetPricePSInMS <> 0.0) {
+		marginPercentagesalescostPSInMS = (((contractedUnitPricePSInMS - extunitSalesCostPSInMS) / contractedUnitPricePSInMS) * 100);
+	} else {
+		marginPercentagesalescostPSInMS = 0.0;
+	}
+	if (extNetPricePSInMS <> 0.0) {
+		marginPercentagestdscostPSInMS = (((contractedUnitPricePSInMS - extunitStdCostPSInMS) / contractedUnitPricePSInMS) * 100);
+	} else {
+		marginPercentagestdscostPSInMS = 0.0;
+	}
+	jsonput(SCPSInMSJson, "margin_quoteSummary", marginPercentagesalescostPSInMS);
+	jsonput(SCPSInMSJson, "standardMargin_quoteSummary", marginPercentagestdscostPSInMS);
+}  //End of CR 034
+//End OF //CHG0078656 MS Implementation Change
+//Total Deal Json
+if (ttlLineCounterOT > 0) {
+	if (rebateType_t == "reducedInvoice") {
+		ttlExtNetPriceOT = round(ttlExtNetPriceOT - (ttlExtNetPriceOT * 0.01 * rebateValue_t), 2);
+	}
+	jsonput(ttlDealOTJson, "itemType_quoteSummary", "One-Time");
+	//code added by AKshay RITM1312597                           
+	jsonput(ttlDealOTJson, "sRP_quoteSummary", extttlUnitSRPOT);
+	jsonput(ttlDealOTJson, "salesCost_quoteSummary", extttlUnitSalesCostOT);
+	jsonput(ttlDealOTJson, "stdCost_quoteSummary", extttlUnitStdCostOT);
+	jsonput(ttlDealOTJson, "contractTargetPrice_quoteSummary", extttlContractedValue);
+	//code commented by AKshay  RITM1312597
+   // jsonput(ttlDealOTJson, "sRP_quoteSummary", ttlUnitSRPOT);
+   // jsonput(ttlDealOTJson, "salesCost_quoteSummary", ttlUnitSalesCostOT);
+   // jsonput(ttlDealOTJson, "stdCost_quoteSummary", ttlUnitStdCostOT);
+   // jsonput(ttlDealOTJson, "contractTargetPrice_quoteSummary", ttlContractedUnitPriceOT);
+	if (ttlContractedUnitPriceOT <> 0.0 AND NOT(ISNULL(ttlContractedUnitPriceOT)) AND(((ttlContractedUnitPriceOT - ttlUnitSellingPriceOT) / ttlContractedUnitPriceOT) * 100) > 0.0) {
+		TotalOneTimeDiscount_Ana = (((ttlContractedUnitPriceOT - ttlUnitSellingPriceOT) / ttlContractedUnitPriceOT) * 100);
+		jsonput(ttlDealOTJson, "discount_quoteSummary", (((ttlContractedUnitPriceOT - ttlUnitSellingPriceOT) / ttlContractedUnitPriceOT) * 100));
+	} else {
+		jsonput(ttlDealOTJson, "discount_quoteSummary", "0.0");
+	}
+	if (ttlExtNetPriceOT <> 0.0 AND NOT(ISNULL(ttlExtNetPriceOT)) AND(((ttlextSellingPriceOT - ttlExtNetPriceOT) / ttlextSellingPriceOT) * 100) > 0.0) {
+		jsonput(ttlDealOTJson, "promotionPct_quoteSummary", (((ttlextSellingPriceOT - ttlExtNetPriceOT) / ttlextSellingPriceOT) * 100));
+	} else {
+		jsonput(ttlDealOTJson, "promotionPct_quoteSummary", "0.0");
+	}
+	//Naming convention is wrong for the attribute so it is mapped to Ext Net Price as on UI it's Net Price//
+	jsonput(ttlDealOTJson, "sellingPrice_quoteSummary", ttlExtNetPriceOT);
+        //below code added by Rohit to calculte margin based on extSalesCOst and extstdcost  CHG0086279
+	if (ttlExtNetPriceOT <> 0.0) {
+		ttlMarginPercentagesalescostOT = (((ttlExtNetPriceOT - extttlUnitSalesCostOT) / ttlExtNetPriceOT) * 100);
+	} else {
+		ttlMarginPercentagesalescostOT = 0.0;
+	}
+	if (ttlExtNetPriceOT <> 0.0) {
+		ttlMarginPercentagestdscostOT = (((ttlExtNetPriceOT - extttlUnitStdCostOT) / ttlExtNetPriceOT) * 100);
+	} else {
+		ttlMarginPercentagestdscostOT = 0.0;
+	}
+	
+	jsonput(ttlDealOTJson, "margin_quoteSummary", ttlMarginPercentagesalescostOT);
+	jsonput(ttlDealOTJson, "standardMargin_quoteSummary", ttlMarginPercentagestdscostOT);
+	//Below is for first year contract value which is extNetPrice//
+	jsonput(ttlDealOTJson, "totalContractPrice_quoteSummary", ttlContractedValue);
+	jsonput(ttlDealOTJson, "totalContractValue_quoteSummary", ttlContractedValue);	
+}
+if (ttlLineCounterRec > 0) {
+	//code added by AKshay RITM1312597
+	jsonput(ttlDealRecJson, "itemType_quoteSummary", "MRR");
+	jsonput(ttlDealRecJson, "sRP_quoteSummary", extttlUnitSRPRec);
+	jsonput(ttlDealRecJson, "salesCost_quoteSummary", extttlUnitSalesCostRec);
+	jsonput(ttlDealRecJson, "stdCost_quoteSummary", extttlUnitStdCostRec);
+	jsonput(ttlDealRecJson, "contractTargetPrice_quoteSummary", extttlContractedUnitPriceRec);
+	//code commented by Akshay RITM1312597
+	//jsonput(ttlDealRecJson, "sRP_quoteSummary", ttlUnitSRPRec);
+	// jsonput(ttlDealRecJson, "salesCost_quoteSummary", ttlUnitSalesCostRec);
+	// jsonput(ttlDealRecJson, "stdCost_quoteSummary", ttlUnitStdCostRec);
+	//jsonput(ttlDealRecJson, "contractTargetPrice_quoteSummary", ttlContractedUnitPriceRec);
+	print "&&&&&&&"; print ttlContractedUnitPriceRec; print ttlUnitSellingPriceRec;
+	if (ttlContractedUnitPriceRec <> 0.0 AND NOT(ISNULL(ttlContractedUnitPriceRec)) AND(((ttlContractedUnitPriceRec - ttlUnitSellingPriceRec) / ttlContractedUnitPriceRec) * 100) > 0.0) {
+		jsonput(ttlDealRecJson, "discount_quoteSummary", (((ttlContractedUnitPriceRec - ttlUnitSellingPriceRec) / ttlContractedUnitPriceRec) * 100));
+	
+	} else {
+		jsonput(ttlDealRecJson, "discount_quoteSummary", "0.0");
+	}
+	if (ttlExtNetPriceRec <> 0.0 AND NOT(ISNULL(ttlExtNetPriceRec)) AND(((ttlExtSellingPriceRec - ttlExtNetPriceRec) / ttlExtSellingPriceRec) * 100) > 0.0) {
+	   jsonput(ttlDealRecJson, "promotionPct_quoteSummary", (((ttlExtSellingPriceRec - ttlExtNetPriceRec) / ttlExtSellingPriceRec) * 100));
+	} else {
+		jsonput(ttlDealRecJson, "promotionPct_quoteSummary", "0.0");
+	}
+	//Naming convention is wrong for the attribute so it is mapped to Ext Net Price as on UI it's Net Price//
+
+	if (rebateType_t == "reducedInvoice") {
+		ttlExtNetPriceRec = round(ttlExtNetPriceRec - (ttlExtNetPriceRec * 0.01 * rebateValue_t), 2);
+	}
+	print ttlExtNetPriceRec;
+	jsonput(ttlDealRecJson, "sellingPrice_quoteSummary", ttlExtNetPriceRec);
+	jsonput(ttlDealRecJson, "totalContractPrice_quoteSummary", ttlContractPriceRec);
+	jsonput(ttlDealRecJson, "totalContractValue_quoteSummary", ttlTotalCaontractValueRec);
+	
+         //Below code updated to calculate margin sales cost CHG0087521
+	if (ttlExtNetPriceRec <> 0.0) {
+		ttlMarginPercentagesalescostRec = (((ttlExtNetPriceRec - extttlUnitSalesCostRec) / ttlExtNetPriceRec) * 100);
+	} else {
+		ttlMarginPercentagesalescostRec = 0.0;
+	}
+	if (ttlExtNetPriceRec <> 0.0) {
+		ttlMarginPercentagestdscostRec = (((ttlExtNetPriceRec - extttlUnitStdCostRec) / ttlExtNetPriceRec) * 100);
+	} else {
+		ttlMarginPercentagestdscostRec = 0.0;
+	}
+	jsonput(ttlDealRecJson, "margin_quoteSummary", ttlMarginPercentagesalescostRec);
+	jsonput(ttlDealRecJson, "standardMargin_quoteSummary", ttlMarginPercentagestdscostRec);
+	print ttlDealRecJson;
+}
+//=======================================================
+TotalMRRContractValueTT = TotalMRRContractValueTT + ttlTotalCaontractValueRec + ttlContractedValue;
+TotalOneTimeContractValueTT = TotalOneTimeContractValueTT + ttlContractedValue;
+//Below is for first year contract value which is extNetPrice//
+//TotalAnnualContractValue = TotalAnnualContractValue + ttlContractPriceRec;
+TotalAnnualContractValue = TotalAnnualContractValue + (ttlExtNetPriceRec * 12);
+TotalOneTimeDiscount_Analytics = TotalOneTimeDiscount_Analytics + TotalOneTimeDiscount_Ana;
+TotalOneTimeNetPrice_Analytics = TotalOneTimeNetPrice_Analytics + ttlExtNetPriceOT;
+TotalOneSalesCost_Analytics = TotalOneSalesCost_Analytics + ttlUnitSalesCostOT;
+//========================================================
+//==================CR 10 Rebate Calculations==========================//
+//CHG0078656 MS Implementation Change
+rebateRecJson = json();
+rebateOTJson = json();
+rebateCostRec = 0.0;
+rebateMarginRec = 0.0;
+rebateCostOT = 0.0;
+rebateMarginOT = 0.0;
+rebateFlag =false;
+if(rebateEligible_t ==true){
+	rebateCostRec = (rebateValue_CustomerSpecific_t/100)*totalDealRevenue;	
+	if(totalDealRevenue <> 0.0){
+	rebateMarginRec = (totalDealRevenue - rebateCostRec)/totalDealRevenue;
+	}
+	rebateFlag =true;	
+}
+elif(rebateEligible_t== false AND rebateApplied_t <> "" AND NOT(ISNULL(rebateApplied_t )) AND rebateApplied_t <> "none"){
+	if(rebateApplied_t == "oneTime"){
+		rebateCostOT = rebateValueDollar_t;
+		if(rebateValueOption_t== "rebatePercent"){
+			rebateCostOT = (rebateValue_t/100)*totalDealRevenue ;
+		}
+		if(totalDealRevenue <> 0.0){
+		rebateMarginOT = (totalDealRevenue - rebateCostOT)/totalDealRevenue;
+		}
+		rebateFlag =true;	
+	}
+	else{
+		if(rebateValueOption_t== "rebatePercent"){
+			rebateCostRec = (rebateValue_t/100)*totalDealRevenue ;
+		}
+		else{
+		rebateterm = 1.0;
+		if(rebateApplied_t == "monthly"){
+		rebateterm=1;
+		}
+		if(rebateApplied_t == "quarterly"){
+		rebateterm=3;
+		}
+		if(rebateApplied_t == "semiAnnual"){
+		rebateterm=6;
+		}
+		if(rebateApplied_t == "annual"){
+		rebateterm=12;
+		}
+		rebateCostRec=(rebateValueDollar_t/rebateterm);	
+		}
+		if(totalDealRevenue <> 0.0){
+		rebateMarginRec = (totalDealRevenue - rebateCostRec)/totalDealRevenue;
+		}
+		rebateFlag =true;	
+	}
+}
+if(rebateFlag){
+	jsonput(rebateOTJson,"itemType_quoteSummary","Rebate-One Time");
+	if(rebateCostOT > 0.0){
+		jsonput(rebateOTJson, "salesCost_quoteSummary",round(rebateCostOT,2) );
+		jsonput(rebateOTJson, "stdCost_quoteSummary", round(rebateCostOT,2));
+		//jsonput(rebateOTJson, "margin_quoteSummary", rebateMarginOT); commented by Namrata for MS and MPS as part of MPS Hypercare defect id 20340
+		//jsonput(rebateOTJson, "standardMargin_quoteSummary", rebateMarginOT);commented by Namrata for MS and MPS as part of MPS Hypercare defect id 20340
+	}
+	//MRR
+	jsonput(rebateRecJson,"itemType_quoteSummary","Rebate-MRR");
+	if(rebateCostRec > 0.0){
+		jsonput(rebateRecJson, "salesCost_quoteSummary", round(rebateCostRec,2));
+		jsonput(rebateRecJson, "stdCost_quoteSummary",round(rebateCostRec,2));
+		//jsonput(rebateRecJson, "margin_quoteSummary", rebateMarginRec);commented by Namrata for MS and MPS as part of MPS Hypercare defect id 20340
+		//jsonput(rebateRecJson, "standardMargin_quoteSummary", rebateMarginRec);commented by Namrata for MS and MPS as part of MPS Hypercare defect id 20340
+	}
+	rebateFlag = true;
+}
+			
+//================End Of CR 10 Rebate Calculations========================//
+jsonput(SAJson, "One-Time", SAOTJson);
+jsonput(SAJson, "MRR", SARecJson);
+jsonput(ITSJson, "One-Time", ITSOTJson);
+jsonput(ITSJson, "MRR", ITSRecJson);
+jsonput(MSJson, "One-Time", MSOTJson);
+jsonput(MSJson, "MRR", MSRecJson);
+jsonput(SCJson, "One-Time", SCOTJson);
+jsonput(SCJson, "MRR-PS In MS", SCPSInMSJson); //CR 034
+jsonput(SCJson, "MRR", SCRecJson);
+jsonput(MPSJson, "One-Time", MPSOTJson); //Added by Namrata for MPS Quote Summary #CHG0085215
+jsonput(MPSJson, "MRR", MPSRecJson); 	//Added by Namrata for MPS Quote Summary #CHG0085215
+jsonput(ttlJson, "One-Time", ttlDealOTJson);
+jsonput(ttlJson, "MRR", ttlDealRecJson);
+
+if (jsontostr(SAJson) <> "{\"One-Time\":{},\"MRR\":{}}") {
+	jsonput(allModelJson, "Service Advantage", SAJson);
+}
+if (jsontostr(ITSJson) <> "{\"One-Time\":{},\"MRR\":{}}") {
+	jsonput(allModelJson, "IT Services", ITSJson);
+}
+if (jsontostr(MSJson) <> "{\"One-Time\":{},\"MRR\":{}}") {
+	jsonput(allModelJson, "Managed Services", MSJson);
+}
+if (jsontostr(MPSJson) <> "{\"One-Time\":{},\"MRR\":{}}") {
+	jsonput(allModelJson, "Managed Print Services", MPSJson);
+}
+if (jsontostr(SCJson) <> "{\"One-Time\":{},\"MRR-PS In MS\":{},\"MRR\":{}}") {
+	jsonput(allModelJson, "Solution Configuration", SCJson);
+}
+if (jsontostr(ttlJson) <> "{\"One-Time\":{},\"MRR\":{}}") {
+	jsonput(allModelJson, "Total Deal", ttlJson);
+}
+
+keys = jsonkeys(allModelJson);
+	   
+	   print keys;
+for eachKey in keys {
+	if (NOT(ISNULL(eachKey))) {
+		allModelFinalJson = json();
+		SAJson1 = json();
+		SAOneTime = json();
+		SAMRR = json();
+		ITSJson1 = json();
+		ITSOneTime = json();
+		ITSMRR = json();
+		MSJson1 = json();
+		MSOneTime = json();
+		MSMRR = json();
+		SCJson1 = json();
+		SCOneTime = json();
+		SCPSInMS = json();
+		SCMRR = json();
+		TTLJson1 = json();
+		TTLOneTime = json();
+		TTLMRR = json();
+		MPSJson1 = json();
+		MPSOneTime = json();
+		MPSMRR = json();
+		
+		if (eachKey == "Service Advantage") {
+			SAJson1 = json(jsonget(allModelJson, "Service Advantage"));
+			jsonput(allModelFinalJson, "itemType_quoteSummary", "Service Advantage");
+			jsonarrayappend(quoteSummuryBuild, allModelFinalJson);
+			if (NOT(ISNULL(jsonget(SAJson1, "One-Time"))) AND jsonget(SAJson1, "One-Time") <> "{}") {
+				SAOneTime = json(jsonget(SAJson1, "One-Time"));
+			} else {
+				jsonput(SAOneTime, "itemType_quoteSummary", "One-Time");
+			}
+			if (NOT(ISNULL(jsonget(SAJson1, "MRR"))) AND jsonget(SAJson1, "MRR") <> "{}") {
+				SAMRR = json(jsonget(SAJson1, "MRR"));
+			} else {
+				jsonput(SAMRR, "itemType_quoteSummary", "MRR");
+			}
+			jsonarrayappend(quoteSummuryBuild, SAOneTime);
+			jsonarrayappend(quoteSummuryBuild, SAMRR);
+		}
+		if (eachKey == "IT Services") {
+			ITSJson1 = json(jsonget(allModelJson, "IT Services"));
+			jsonput(allModelFinalJson, "itemType_quoteSummary", "IT Services");
+			jsonarrayappend(quoteSummuryBuild, allModelFinalJson);
+			if (NOT(ISNULL(jsonget(ITSJson1, "One-Time"))) AND jsonget(ITSJson1, "One-Time") <> "{}") {
+				ITSOneTime = json(jsonget(ITSJson1, "One-Time"));
+			} else {
+				jsonput(ITSOneTime, "itemType_quoteSummary", "One-Time");
+			}
+			if (NOT(ISNULL(jsonget(ITSJson1, "MRR"))) AND jsonget(ITSJson1, "MRR") <> "{}") {
+				ITSMRR = json(jsonget(ITSJson1, "MRR"));
+			} else {
+				jsonput(ITSMRR, "itemType_quoteSummary", "MRR");
+			}
+			jsonarrayappend(quoteSummuryBuild, ITSOneTime);
+			jsonarrayappend(quoteSummuryBuild, ITSMRR);
+		}
+		//Commenting below code as MS is not part of Phase1 release//
+		if (eachKey == "Managed Services") {
+			MSJson1 = json(jsonget(allModelJson, "Managed Services"));
+			jsonput(allModelFinalJson, "itemType_quoteSummary", "Managed Services");
+			
+			jsonarrayappend(quoteSummuryBuild, allModelFinalJson);
+			if (NOT(ISNULL(jsonget(MSJson, "One-Time"))) AND jsonget(MSJson, "One-Time") <> "{}") {
+				MSOneTime = json(jsonget(MSJson, "One-Time"));
+			} else {
+				jsonput(MSOneTime, "itemType_quoteSummary", "One-Time");
+			}
+			
+				
+			if (NOT(ISNULL(jsonget(MSJson, "MRR"))) AND jsonget(MSJson, "MRR") <> "{}") {
+				MSMRR = json(jsonget(MSJson, "MRR"));
+			} else {
+				jsonput(MSMRR, "itemType_quoteSummary", "MRR");
+			}
+			jsonarrayappend(quoteSummuryBuild, MSOneTime);
+			//CR 10 - ADD Rebate ONe TIME and MRR Rows if either one is present.
+			if(rebateFlag ==true){
+				jsonarrayappend(quoteSummuryBuild,rebateOTJson);
+				jsonarrayappend(quoteSummuryBuild,rebateRecJson);
+			}
+			jsonarrayappend(quoteSummuryBuild, MSMRR);
+		}
+		if (eachKey == "Solution Configuration") {
+			containsPSInMS= false;
+			SCJson1 = json(jsonget(allModelJson, "Solution Configuration"));
+			jsonput(allModelFinalJson, "itemType_quoteSummary", "Solution Configuration");
+		   
+			jsonarrayappend(quoteSummuryBuild, allModelFinalJson);
+			if (NOT(ISNULL(jsonget(SCJson, "One-Time"))) AND jsonget(SCJson, "One-Time") <> "{}") {
+				SCOneTime = json(jsonget(SCJson, "One-Time"));
+			} else {
+				jsonput(SCOneTime, "itemType_quoteSummary", "One-Time");
+			}
+			//CR 034 -  Include in MS items should be added to Solution Configuration Section
+			if (NOT(ISNULL(jsonget(SCJson, "MRR-PS In MS"))) AND jsonget(SCJson, "MRR-PS In MS") <> "{}") {
+				SCPSInMS = json(jsonget(SCJson, "MRR-PS In MS"));
+				containsPSInMS= true;
+			} /*else { //Commented for Defect #17378
+				jsonput(SCPSInMS, "itemType_quoteSummary", "MRR-PS In MS");
+			}*/
+			//End CR 034
+			if (NOT(ISNULL(jsonget(SCJson, "MRR"))) AND jsonget(SCJson, "MRR") <> "{}") {
+				SCMRR = json(jsonget(SCJson, "MRR"));
+			} else {
+				jsonput(SCMRR, "itemType_quoteSummary", "MRR");
+			}
+			jsonarrayappend(quoteSummuryBuild, SCOneTime);
+			if(containsPSInMS==true){
+				jsonarrayappend(quoteSummuryBuild,SCPSInMS);
+			}
+			jsonarrayappend(quoteSummuryBuild, SCMRR);
+		}
+		//Added by Namrata for MPS Quote Summary #CHG0085215
+
+		if (eachKey == "Managed Print Services") {
+			MPSJson1 = json(jsonget(allModelJson, "Managed Print Services"));
+			jsonput(allModelFinalJson, "itemType_quoteSummary", "Managed Print Services");
+			
+			jsonarrayappend(quoteSummuryBuild, allModelFinalJson);
+			if (NOT(ISNULL(jsonget(MPSJson, "One-Time"))) AND jsonget(MPSJson, "One-Time") <> "{}") {
+				MPSOneTime = json(jsonget(MPSJson, "One-Time"));
+			} else {
+				jsonput(MPSOneTime, "itemType_quoteSummary", "One-Time");
+			}
+			
+				
+			if (NOT(ISNULL(jsonget(MPSJson, "MRR"))) AND jsonget(MPSJson, "MRR") <> "{}") {
+				MPSMRR = json(jsonget(MPSJson, "MRR"));
+			} else {
+				jsonput(MPSMRR, "itemType_quoteSummary", "MRR");
+			}
+			jsonarrayappend(quoteSummuryBuild, MPSOneTime);
+			//CR 10 - ADD Rebate ONe TIME and MRR Rows if either one is present.
+			if(rebateFlag ==true){
+				jsonarrayappend(quoteSummuryBuild,rebateOTJson);
+				jsonarrayappend(quoteSummuryBuild,rebateRecJson);
+			}
+			jsonarrayappend(quoteSummuryBuild, MPSMRR);
+		}
+		if (eachKey == "Total Deal") {
+
+			TTLJson1 = json(jsonget(allModelJson, "Total Deal"));
+			jsonput(allModelFinalJson, "itemType_quoteSummary", "Total Deal");
+			
+			jsonarrayappend(quoteSummuryBuild, allModelFinalJson);
+			if (NOT(ISNULL(jsonget(TTLJson1, "One-Time"))) AND jsonget(TTLJson1, "One-Time") <> "{}") {
+				TTLOneTime = json(jsonget(TTLJson1, "One-Time"));
+			} else {
+				jsonput(TTLOneTime, "itemType_quoteSummary", "One-Time");
+			}
+			
+			if (NOT(ISNULL(jsonget(TTLJson1, "MRR"))) AND jsonget(TTLJson1, "MRR") <> "{}") {
+				TTLMRR = json(jsonget(TTLJson1, "MRR"));
+			} else {
+				jsonput(TTLMRR, "itemType_quoteSummary", "MRR");
+			}
+			jsonarrayappend(quoteSummuryBuild, TTLOneTime);
+			//CR 10 - ADD Rebate ONe TIME and MRR Rows if either one is present.
+			if(rebateFlag ==true){
+				jsonarrayappend(quoteSummuryBuild,rebateOTJson);
+				jsonarrayappend(quoteSummuryBuild,rebateRecJson);
+			}
+			jsonarrayappend(quoteSummuryBuild, TTLMRR);
+		}
+	}
+}
+print "*************";
+print quoteSummuryBuild;
+print "*************";
+
+retval = retval + "1~totalOneTimeNetPrice_Analytics~" + string(TotalOneTimeNetPrice_Analytics) + "|";
+retval = retval + "1~totalOneTimeDiscount_Analytics~" + string(TotalOneTimeDiscount_Analytics) + "|";
+retval = retval + "1~totalOneTimeSalesCost_Analytics~" + string(TotalOneSalesCost_Analytics) + "|";
+retval = retval + "1~totalOneTimeContractTargetPrice_analytics~" + string(TotalOneTimeContractValueTT) + "|";
+retval = retval + "1~totalMRRContractValue_t~" + string(TotalMRRContractValueTT) + "|";
+retval = retval + "1~totalContractValue_t~" + string(TotalMRRContractValueTT) + "|";
+retval = retval + "1~oneTimeTotalContractValue_t~" + string(TotalOneTimeContractValueTT) + "|";
+retval = retval + "1~totalAnnualValue_t~" + string(TotalAnnualContractValue) + "|";
+// retval = retval + "1~totalQty_t~" + string(totalQtyVar) + "|";
+//print "totalUnitSellingPrice" ; print totalUnitSellingPriceVar ;
+//  print "totalQty"; print totalQty_t ;
+retval = retval + _transaction_document_number + "~quoteSummaryArraySet_t~" + jsonarrayrefid(quoteSummuryBuild) + "|";
+y = getcurrenttimeinmillis();
+z = y - x;
+
+return retval;

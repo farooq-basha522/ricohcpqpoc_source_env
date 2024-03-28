@@ -1,0 +1,14 @@
+{
+  "name" : "Generate Solution Configuration Summary",
+  "variableName" : "generateSolutionConfigurationSummary_c",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "paramDict",
+    "type" : "String Dictionary"
+  } ],
+  "subDocAttributes" : [ "type_l", "extSRP_l", "unitCost_l", "extSellingPrice_l", "_model_name", "_document_number", "_parent_doc_number", "_price_quantity", "_part_number", "unitSalesCost_l" ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

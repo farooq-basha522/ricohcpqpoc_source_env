@@ -1,0 +1,54 @@
+retVal = "";
+tilde = "~";
+delim = "|";
+
+locationStringDelim = "~";
+locIDArr = split(oscAccountLocationIDs_t, locationStringDelim);
+locNumArr = split(oscAccountLocationNumbers_t, locationStringDelim);
+locAddr1Arr = split(oscAccountLocationAddress1s_t, locationStringDelim);
+locNamesArr = split(oscAccountLocationNames_t, locationStringDelim);
+
+for line in transactionLine{
+	locID = "";
+	locNum = "";
+	locAddr1 = "";
+	locName = "";
+	
+	if(line._part_number <> "" AND line._parent_doc_number == ""){ //If standalone part
+		locID = line.locationID_l;
+		locIdIndex = findinarray(locIdArr, locID);
+		if(locIdIndex <> -1){
+			if(NOT isnull(locNumArr[locIdIndex])){
+				locNum = locNumArr[locIdIndex];
+			}
+		}
+		if(locIdIndex <> -1){
+			if(NOT isnull(locAddr1Arr [locIdIndex])){
+				locAddr1 = locAddr1Arr [locIdIndex];
+			}
+		}
+		if(locIdIndex <> -1){
+			if(NOT isnull(locNamesArr[locIdIndex])){
+				locName = locNamesArr[locIdIndex];
+			}
+		}
+	}
+	else{ //model or part from configuration
+		docNumToSearch = line._parent_doc_number;
+		if(line._parent_doc_number == ""){ //if a model
+			docNumToSearch = line._document_number;
+		}
+		locID = getconfigattrvalue(docNumToSearch, "selectedLocationID");
+		locNum = getconfigattrvalue(docNumToSearch, "selectedLocationNumber");
+		locAddr1 = getconfigattrvalue(docNumToSearch, "selectedLocationAddress1");
+		locName = getconfigattrvalue(docNumToSearch, "selectedLocationName");
+	}
+	
+	retVal = retVal + line._document_number + tilde + "locationID_l" + tilde + locID + delim
+			+ line._document_number + tilde + "locationNumber_l" + tilde + locNum + delim
+			+ line._document_number + tilde + "locationAddress1_l" + tilde + locAddr1 + delim
+			+ line._document_number + tilde + "locationName_l" + tilde + locName + delim
+			;
+}
+
+return retVal;

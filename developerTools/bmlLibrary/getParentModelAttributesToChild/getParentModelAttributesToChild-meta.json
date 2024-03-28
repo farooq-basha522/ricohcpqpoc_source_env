@@ -1,0 +1,15 @@
+{
+  "name" : "Get Parent Model Attributes To Child",
+  "variableName" : "getParentModelAttributesToChild",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "rootAttribute",
+    "type" : "String"
+  }, {
+    "name" : "systemConfigModelPath",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

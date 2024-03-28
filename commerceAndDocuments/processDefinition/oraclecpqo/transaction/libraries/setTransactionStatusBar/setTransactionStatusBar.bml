@@ -1,0 +1,40 @@
+/*Commerce Process > Quote > Visual Workflow
+  Added by Nupur Das 8/6/2021
+  _system_current_step_var - Current step in the Step workflow process*/
+
+ret = "<img src='/bmfsweb/" + _system_company_name + "/image/Workflow Images/";
+
+if(quoteStep_t == "Create Quote" ){
+	ret = ret + "1_Create_Quote";
+	//return <img src='/bmfsweb/ricohcpqpoc/image/images/normal_jpg.jpg' alt='Broken Step Workflow'/>";
+}elif(_system_current_step_var == "pendingFnFApproval"){
+	
+	ret = ret + "2_In_Progress";
+}elif(quoteStep_t == "fitFeasibility" OR _system_current_step_var == "approvedFnF"){
+	ret = ret + "3_Fit_and_Feasibility";
+}elif(quoteStep_t == "pending_process"){
+	ret = ret + "2_In_Progress_Fit";
+	//return "<img src='/bmfsweb/ricohcpqpoc/image/images/normal_jpg.jpg' alt='Broken Step Workflow'/>";
+	
+}elif(quoteStep_t == "priced"){
+	ret = ret + "4_Priced";
+}
+elif(quoteStep_t == "approved"){
+	ret = ret + "5_Approved";
+}
+elif(quoteStep_t == "sentToCustomer"){
+	ret = ret + "6_Sent_to_Customer";
+}
+elif(quoteStep_t == "customerApproved"){
+	ret = ret + "7_Customer_Approved";
+}
+elif(quoteStep_t == "Sent to RISE"){
+	ret = ret + "8_Sent_to_RISE";
+}
+else{
+	ret = ret + "2_In_Progress_Fit";
+}
+
+ret = ret + ".png' alt='Broken Step Workflow' />";
+
+return ret;

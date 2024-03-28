@@ -1,0 +1,11 @@
+{
+  "name" : "Set Resource Team Table",
+  "variableName" : "setTeamMemberDetails",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_model_name", "type_l" ],
+  "mainDocAttributes" : [ "selectedDRTeamMemberArraySet_t", "teamMemberDetails_t", "leadDesignDetails_t", "leadDesignNameChanges_t", "previousDesignEngineerEmailBackEndUse_t", "previousDesignLeadEmailBackEndUse_t", "pDLCounterCapture_t", "previousStoredLDEApproverEmail_t", "previousStoredPDLApproverEmail_t", "fFParticipantArraySet_t" ],
+  "systemAttributes" : [ ]
+}

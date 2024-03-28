@@ -1,0 +1,42 @@
+//************************************************************************************************************
+//** Function:    Encode Name Value Pair(encodeNameValuePairs)
+//** Type:        Utility Library Function   
+//**
+//** Description: Encodes Two String Arrays (one for names, one for values) into a set of name-value pairs.
+//** 
+//** Param:       nameValPairDict    - String dict containing with keys=name, and values=value.
+//**              extraInputsDict    - String dict containing extra inputs such as delims. Possible keys are:
+//**                                      nameValDelim  = delimiter between name and value (optional - default of $=$)
+//**                                      pairDelim = delimiter between multiple nameValuePairs (optional - default of $^$)
+//**
+//** Return type: String - Delimited string of name-value pairs
+//**              String Format is: name1'nameValueDelimiter'value1'pairDelimiter'name2'nameValueDelimiter'value2
+//**                                NOTE: the keywords 'nameValueDelimiter' and 'pairDelimiter' are replaced by actual delimiters
+//**
+//** History:     Date     Author       Comment 
+//**              INITIAL  RConaghan    Initial Creation 
+//************************************************************************************************************
+retVal = "";
+
+nameValDelim = "=";
+pairDelim = "&";
+
+// If the delimiters are not blank then override defaults
+if(containskey(extraInputsDict, "nameValDelim")){
+    nameValDelim = get(extraInputsDict, "nameValDelim");
+}
+if(containskey(extraInputsDict, "pairDelim")){
+    pairDelim = get(extraInputsDict, "pairDelim");
+}
+
+keysArray = keys(nameValPairDict);
+for key in keysArray{
+    retVal = retVal + key+ nameValDelim + get(nameValPairDict, key) + pairDelim;
+}
+
+//Trim trailing delim
+if(retVal <> ""){
+    retVal = substring(retVal, 0, len(retVal) - len(pairDelim));
+}
+
+return retVal;

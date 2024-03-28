@@ -1,0 +1,11 @@
+{
+  "name" : "Validate the Promo Code",
+  "variableName" : "validateThePromoCode",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "bundleID_l", "_part_number", "itemPartId", "_document_number", "_config_attr_info" ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ "_system_user_groups" ]
+}

@@ -1,0 +1,274 @@
+retVal = "";
+quoteWorkbenchArray1 = jsonarray();
+receivedDate = getstrdate();
+quoteWorkbenchArray = jsonarray();
+arraysize = integer[];
+if(NOT ISNULL(quoteWorkbench_VQt)){
+quoteWorkbenchArray = quoteWorkbench_VQt; 
+arraysize = range(jsonarraysize(quoteWorkbenchArray));
+}
+fitandfeasibilityValidation = false;
+oneoffApprovalCheckBox = false;
+oneoffApprovalCheckBoxArray = string[];
+validationReturnDict = dict("anytype");
+//receivedDate = getstrdate()
+skipSetAttribute = false;
+recordSet = bmql("select SupervisorName,SupervisorEmail from RAC_HRMS");
+unSelectedAllQuoteItems = false;
+selectedItemNotAvailable = false;
+selectedItemNotAvailableStr ="";
+originalWorkBenchArray = quoteWorkbench_VQt;
+if(NOT ISNULL(inputJsonArray) OR jsonarraysize(inputJsonArray)>=0){
+originalWorkBenchArray = inputJsonArray;
+}
+mapGenericValidation = false;
+selectedItemsArray_Cust = string[];
+unselectedItemsArray = string[];
+price=0.0;
+priceD=0.0;
+messageStr="";
+ricohSolutionbeing = false;
+skipSetAttribute = false;
+expirationDate = false;
+validationTrigger = false;reasonForRejection = false;
+statusArray = string[]{"Design Approved - Item Available","Design Approved - Pending New Item Creation","Item Available","Quote Cancelled"};
+errorMessageDict = dict("string");
+recordSet = bmql("select MESSAGE_NAME,MESSAGE_TEXT from RAC_ErrorMessages where ACTIVE = 'Y'");
+for each in recordSet{
+	put(errorMessageDict,get(each,"MESSAGE_NAME"),get(each,"MESSAGE_TEXT"));
+}
+if(actionName == "Request for One Off Approval" OR actionName == "Reject One Off Approval"){
+
+//end here
+
+for arr in arraysize{
+	selectedItemsRow = jsonarrayget(quoteWorkbenchArray,arr);
+	selectedItemsJson = json(selectedItemsRow);
+	
+	vendorQuoteNumbers_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorQuoteNumbers_QuoteWorkbench_t");
+	vendorName_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorName_QuoteWorkbench_t");
+	vendorEmail_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorEmail_QuoteWorkbench_t");
+	itemType_QuoteWorkbench_t = jsonget(selectedItemsJson,"itemType_QuoteWorkbench_t");
+	quoteReceived_QuoteWorkbench_t = jsonget(selectedItemsJson,"quoteReceived_QuoteWorkbench_t");
+	quoteExpiration_QuoteWorkbench_t = jsonget(selectedItemsJson,"quoteExpiration_QuoteWorkbench_t");
+	vendorProductNumber_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorProductNumber_QuoteWorkbench_t");
+	ricohEDPCode_QuoteWorkbench_t = jsonget(selectedItemsJson,"ricohEDPCode_QuoteWorkbench_t");
+	ricohEDPCodeDescription_QuoteWorkbench_t = jsonget(selectedItemsJson,"ricohEDPCodeDescription_QuoteWorkbench_t");
+	portfolioFlag_QuoteWorkbench_t = jsonget(selectedItemsJson,"portfolioFlag_QuoteWorkbench_t");
+	quantity_QuoteWorkbench_t = jsonget(selectedItemsJson,"quantity_QuoteWorkbench_t");
+	unitCost_QuoteWorkbench_t = jsonget(selectedItemsJson,"unitCost_QuoteWorkbench_t");
+	unitMSRP_QuoteWorkbench_t = jsonget(selectedItemsJson,"unitMSRP_QuoteWorkbench_t");
+	instructions_QuoteWorkbench_t = jsonget(selectedItemsJson,"instructions_QuoteWorkbench_t");
+	vendorRequestStatus_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorRequestStatus_QuoteWorkbench_t");
+	processGroup_quoteWorkbench_t = jsonget(selectedItemsJson,"processGroup_quoteWorkbench_t");
+	vendorProductDescription_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorProductDescription_QuoteWorkbench_t");
+	itemCreationFlag_quoteWorkbench_t = jsonget(selectedItemsJson,"itemCreationFlag_quoteWorkbench_t");
+	quoteRequestedBy_QuoteWorkbench_t = jsonget(selectedItemsJson,"quoteRequestedBy_QuoteWorkbench_t");
+	selectAll_QuoteWorkbench_t = jsonget(selectedItemsJson,"selectAll_QuoteWorkbench_t");
+	vendorQuoteRequestNumber_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorQuoteRequestNumber_QuoteWorkbench_t");
+	whyIsntARicohSolutionBeingProposed_QuoteWorkbench = jsonget(selectedItemsJson,"whyIsntARicohSolutionBeingProposed_QuoteWorkbench_");
+	reasonForRejection_t = jsonget(selectedItemsJson,"reasonForRejection_t");
+		lineID_t = jsonget(selectedItemsJson,"lineID_t");
+
+		
+	quantity = 0;
+	if(isnumber(quantity_QuoteWorkbench_t)){
+		quantity = atoi(quantity_QuoteWorkbench_t);
+	}
+	unitCost = 0;
+	if(isnumber(unitCost_QuoteWorkbench_t)){
+		unitCost = atof(unitCost_QuoteWorkbench_t);
+	}
+	unitMSRP = 0;
+	if(isnumber(unitMSRP_QuoteWorkbench_t)){
+		unitMSRP = atof(unitMSRP_QuoteWorkbench_t);
+	}
+	//instructions = jsonget(selectedItemsJson,"instructions_QuoteWorkbench_t");
+	vendorRequestStatus = vendorRequestStatus_QuoteWorkbench_t;
+	if(vendorRequestStatus_QuoteWorkbench_t <> "Item Available!!"){
+		//vendorRequestStatus = "Pending with Market Activation Approval"; 
+		vendorRequestStatus = "Submitted for One-off approval"; 
+
+	}
+	
+			
+if(NOT ISNULL(selectAll_QuoteWorkbench_t) AND selectAll_QuoteWorkbench_t == "true"){
+
+	if(ISNULL(whyIsntARicohSolutionBeingProposed_QuoteWorkbench) OR whyIsntARicohSolutionBeingProposed_QuoteWorkbench == ""){
+		ricohSolutionbeing = true;
+
+	}
+	
+			append(selectedItemsArray_Cust,vendorQuoteNumbers_QuoteWorkbench_t);
+		}
+		if(ISNULL(selectAll_QuoteWorkbench_t) OR selectAll_QuoteWorkbench_t == "false"){
+				append(unselectedItemsArray,lineID_t);
+
+		}
+		
+		if(NOT ISNULL(vendorRequestStatus_QuoteWorkbench_t) AND find(lower(vendorRequestStatus_QuoteWorkbench_t),"quote received")==-1  AND /*NOT selectedItemNotAvailable AND*/ NOT ISNULL(selectAll_QuoteWorkbench_t) AND selectAll_QuoteWorkbench_t == "true"){
+			selectedItemNotAvailable = true;
+			selectedItemNotAvailableStr = selectedItemNotAvailableStr +lineID_t+": "+ get(errorMessageDict,"APPROVAL_SENT_ITEMS") + "\n";
+		}
+		
+		if(((ISNULL(reasonForRejection_t) OR reasonForRejection_t == "")) AND NOT ISNULL(vendorRequestStatus_QuoteWorkbench_t) AND find(vendorRequestStatus_QuoteWorkbench_t,"Submitted for One-off approval")<>-1 AND actionName == "Reject One Off Approval"){
+		reasonForRejection = true;
+	}
+	if(NOT ISNULL(quoteExpiration_QuoteWorkbench_t) AND quoteExpiration_QuoteWorkbench_t <> "" AND NOT ISNULL(selectAll_QuoteWorkbench_t) AND selectAll_QuoteWorkbench_t == "true"){
+	splitDate = split(quoteExpiration_QuoteWorkbench_t," ");
+	expDate =  strtojavadate(splitDate[0], "yyyy-MM-dd");
+	currDate = getdate();
+	compareD = comparedates(expDate,currDate);
+	if(compareD < 1){
+		expirationDate = true;
+
+	}
+
+	}
+	
+	if(NOT ISNULL(selectAll_QuoteWorkbench_t) AND selectAll_QuoteWorkbench_t == "true" AND NOT ISNULL(ricohEDPCode_QuoteWorkbench_t) AND ricohEDPCode_QuoteWorkbench_t == "MAP-GENERIC"){
+		mapGenericValidation = true;
+	}
+	
+if(false AND NOT ISNULL(selectAll_QuoteWorkbench_t) AND selectAll_QuoteWorkbench_t == "true"){
+	setattributevalue(1, "quoteRequestedBy_DWB", quoteRequestedBy_QuoteWorkbench_t);
+	setattributevalue(1, "quoteRequestedEmail_DWB",quoteRequestedBy_QuoteWorkbench_t);
+	setattributevalue(1, "ricohVendorQuoteRequestNumber_DWB", vendorQuoteNumbers_QuoteWorkbench_t);
+	setattributevalue(1, "vendorQuoteRequestNumber_DWB", vendorQuoteRequestNumber_QuoteWorkbench_t);
+	setattributevalue(1, "vendorNameD_DWB", vendorName_QuoteWorkbench_t);
+	setattributevalue(1, "vendorEmail_DWB", vendorEmail_QuoteWorkbench_t);
+	setattributevalue(1, "quoteReceived_DWB", quoteReceived_QuoteWorkbench_t);
+	setattributevalue(1, "quoteExpiration_DWB", quoteExpiration_QuoteWorkbench_t);
+	/* setattributevalue(1, "managerOfDesignEmail", jsonarrayrefid(arraySet));
+	setattributevalue(1, "managerOfDesignName", jsonarrayrefid(arraySet)); */
+	skipSetAttribute = true;
+}
+
+	
+}
+
+
+
+multiQuoteitemsFlag = false;
+it = 0;
+originalItem="";
+unselectedItemsArrayStr = join(unselectedItemsArray,"##");
+for each in selectedItemsArray_Cust{
+	if(it == 0){
+			originalItem = each;
+	}
+	if(find(each,originalItem)==-1 AND each<>""){
+		multiQuoteitemsFlag = true;
+	}
+	if(find(unselectedItemsArrayStr,each)<>-1){
+		unSelectedAllQuoteItems = true;
+		break;
+	}
+	it = it+1;
+}
+
+
+if(unSelectedAllQuoteItems){
+	
+	
+	messageStr = get(errorMessageDict,"APPROVAL_COMPLETE_VENDOR_ITEMS");
+	
+	
+}
+elif(selectedItemNotAvailableStr <> ""){
+	
+	messageStr =  selectedItemNotAvailableStr;
+	
+	//quoteWorkbenchArray = originalWorkBenchArray;
+
+}
+
+elif(multiQuoteitemsFlag){
+	
+	
+	messageStr =get(errorMessageDict,"APPROVAL_ALL_ITEMS");
+	
+}
+elif(ricohSolutionbeing){
+	
+	messageStr = get(errorMessageDict,"APPROVAL_RICOH_SOLUTION_PROP");
+	
+}
+elif(reasonForRejection){
+		messageStr = get(errorMessageDict,"APPROVAL_REJECT_FOR_REASON");
+
+}elif(expirationDate){
+			messageStr = get(errorMessageDict,"APPROVAL_EXPIRATION_DATE");
+
+}elif(false){
+				messageStr = get(errorMessageDict,"APPROVAL_MAP_GENERIC");
+
+}
+if(ISNULL(messageStr) AND messageStr == ""){
+	setattributevalue(1, "submittedForOneOffApprovalFlag_quote", true);
+
+}elif(NOT ISNULL(messageStr) AND messageStr <> ""){
+		validationTrigger = true;
+
+}
+
+
+setattributevalue(1, "successMessageOnAddingVendorItemsString_t", messageStr);
+
+//retVal = retVal + "1~successMessageOnAddingVendorItemsString_t~" + messageStr + "|";
+
+//retVal = retVal + "1~quoteWorkbench_VQt~" + jsonarraytostr(quoteWorkbenchArray1)+ "|" ;
+}
+elif(actionName == "Send Selected Quote Request"){
+	
+if(sendSelectedQuoteArraySetValidationFlag){
+				messageStr = get(errorMessageDict,"REQUEST_ITEMS_SELECT");
+
+}
+	
+}
+elif(actionName == "Fit&FeasibilityApprovals"){
+	
+	for arr in arraysize{
+	selectedItemsRow = jsonarrayget(quoteWorkbenchArray,arr);
+	selectedItemsJson = json(selectedItemsRow);
+	vendorRequestStatus_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorRequestStatus_QuoteWorkbench_t");
+	tempSTR = join(statusArray,"##");
+	if(NOT ISNULL(vendorRequestStatus_QuoteWorkbench_t) AND find(tempSTR,vendorRequestStatus_QuoteWorkbench_t) == -1){
+		fitandfeasibilityValidation = true;
+	}
+	}
+	
+	if(fitandfeasibilityValidation){
+messageStr = get(errorMessageDict,"REQUEST_APPROVAL_FIT&FEASIBILITY");
+	}
+
+
+	
+}
+elif(actionName == "checkboxonsubmitoneoffapproval"){
+messageStr="";
+	for arr in arraysize{
+	selectedItemsRow = jsonarrayget(quoteWorkbenchArray,arr);
+	selectedItemsJson = json(selectedItemsRow);
+	selectAll_QuoteWorkbench_t = jsonget(selectedItemsJson,"selectAll_QuoteWorkbench_t");
+	tempSTR = join(statusArray,"##");
+	if(NOT ISNULL(selectAll_QuoteWorkbench_t)){
+		append(oneoffApprovalCheckBoxArray,selectAll_QuoteWorkbench_t);
+	}
+	}
+	strCheck = join(oneoffApprovalCheckBoxArray,"##");
+	usersessionset("checkbx",strCheck);
+	if(find(strCheck,"true") ==  -1){
+messageStr = get(errorMessageDict,"REQUEST_APPROVAL_CHECKBOX");
+	}	
+}
+
+put(validationReturnDict,"validationMessage",messageStr);
+put(validationReturnDict,"validationStatus",false);
+if(messageStr <> "" AND NOT ISNULL(messageStr)){
+put(validationReturnDict,"validationStatus",true);
+}
+
+
+return validationReturnDict;

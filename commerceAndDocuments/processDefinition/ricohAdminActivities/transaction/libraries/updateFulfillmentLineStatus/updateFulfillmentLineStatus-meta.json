@@ -1,0 +1,11 @@
+{
+  "name" : "Update Fulfillment Line Status",
+  "variableName" : "updateFulfillmentLineStatus",
+  "description" : "Updates line's Fulfillment Status according to line's Status.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_document_number", "_parent_doc_number", "rootAssetKey_l", "status_l", "fulfillmentStatus_l", "_part_number", "itemInstanceId_l" ],
+  "mainDocAttributes" : [ "bs_id", "triggerUpdateAssetForLineStatus_t" ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,15 @@
+{
+  "name" : "abo_processDeltaItem",
+  "variableName" : "abo_processDeltaItem",
+  "description" : "This is invoked from abo_processDeltaBom. Each line(Item) 's old and new json is passed for delta comparison and for adding actionCode",
+  "libraryFunctions" : [ "util.abo_isjsonnull", "util.abo_processDeltaXA" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "oldNodeJson",
+    "type" : "Json"
+  }, {
+    "name" : "newNodeJson",
+    "type" : "Json"
+  } ],
+  "attributes" : [ ]
+}

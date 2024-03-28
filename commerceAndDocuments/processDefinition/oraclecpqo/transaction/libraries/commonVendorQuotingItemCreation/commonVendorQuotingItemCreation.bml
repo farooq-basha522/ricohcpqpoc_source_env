@@ -1,0 +1,101 @@
+retVal = "";
+processGroupValue = "";
+lineIDData = "";
+counter = 1;
+systemDate = getstrdate();
+userEmailId = vendorQuoteSubmittedUserMailId_t;
+itemTypeDict = dict("string");
+quoteWorkbenchArray = jsonarray();
+receivedDate = getstrdate();
+selectedItemsStrArray = selectedItemsArray; 
+arraysize = range(jsonarraysize(selectedItemsStrArray));
+
+for arr in arraysize{
+	selectedItemsRow = jsonarrayget(selectedItemsArray,arr);
+	selectedItemsJson = json(selectedItemsRow);
+	vendorRequestNumber = jsonget(selectedItemsJson,"vendorRequestNumber_selectedItemsArray");
+	vendorName = vendorNames_VQt;
+	vendorEmail = jsonget(selectedItemsJson,"vendorEmail_selectedItemsArray");
+	itemType = jsonget(selectedItemsJson,"itemType_selectedItemsArray");
+	quoteReceived = receivedDate;
+	vendorProductNumber = jsonget(selectedItemsJson,"vendorProductNumber_selectedItemsArray");
+	vendorProductDescription = jsonget(selectedItemsJson,"vendorProductDescription_selectedItemsArray");
+	ricohEDPCode = jsonget(selectedItemsJson,"ricohEDPCode_selectedItemsArray");
+	ricohEDPCodeDescription = jsonget(selectedItemsJson,"ricohEDPCodeDescription_selectedItemsArray");
+	portfolioFlag = jsonget(selectedItemsJson,"portfolioFlag_selectedItemsArray_t");
+	itemCreation_selectedItemsArray = jsonget(selectedItemsJson,"itemCreation_selectedItemsArray");
+	quantityStr = jsonget(selectedItemsJson,"quantity_selectedItemsArray");
+	quantity = 0;
+	if(isnumber(quantityStr)){
+		quantity = atoi(quantityStr);
+	}
+	unitCostStr = jsonget(selectedItemsJson,"unitCost_selectedItemsArray");
+	unitCost = 0;
+	if(isnumber(unitCostStr)){
+		unitCost = atof(unitCostStr);
+	}
+	unitMSRPStr = jsonget(selectedItemsJson,"unitMSRP_selectedItemsArray");
+	unitMSRP = 0;
+	if(isnumber(unitMSRPStr)){
+		unitMSRP = atof(unitMSRPStr);
+	}
+	instructions = jsonget(selectedItemsJson,"instructions_selectedItemsArray_t_c");
+	processGroup = jsonget(selectedItemsJson,"processGroup_selectedItemsArray");
+	vendorRequestStatus = "Sent for Item Creation";
+	if(itemCreation_selectedItemsArray == "N" AND ricohEDPCode <> "MAP-GENERIC"){
+		vendorRequestStatus = "Item Available!!";
+	}
+	manufactureLIGLine = "NA";
+	manufacturePartLIGLine = "NA";
+	category = "NA";
+	itemCatalog = "NA";
+	requestedPartNumber = ricohEDPCode;
+	//Get Process Group from Item Type
+	itemTypeArray = string[];
+	append(itemTypeArray,itemType);
+	if(sizeofarray(itemTypeArray) > 0){
+		itemTypeDict = util.getProcessGroup(itemTypeArray);
+	}
+	//Get Line of Business
+	lineofBusinessStr = "ALL";
+	if(containskey(itemTypeDict,itemType)){
+		lineofBusinessStr = get(itemTypeDict,itemType);
+	}
+	lineIDData = lineofBusinessStr + "-" + transactionID_t + "-" + String(counter);
+	
+	//Quote WorkBench Array
+	quoteWorkbenchJson = json();
+	jsonput(quoteWorkbenchJson,"vendorQuoteNumbers_QuoteWorkbench_t",vendorRequestNumber);
+	jsonput(quoteWorkbenchJson,"vendorName_QuoteWorkbench_t",vendorName);
+	jsonput(quoteWorkbenchJson,"vendorEmail_QuoteWorkbench_t",vendorEmail);
+	jsonput(quoteWorkbenchJson,"itemType_QuoteWorkbench_t",itemType);
+	jsonput(quoteWorkbenchJson,"processGroup_quoteWorkbench_t",lineofBusinessStr);
+	jsonput(quoteWorkbenchJson,"quoteReceived_QuoteWorkbench_t",receivedDate);
+	jsonput(quoteWorkbenchJson,"quoteExpiration_QuoteWorkbench_t",quoteExpirationDate_VQt);
+	jsonput(quoteWorkbenchJson,"vendorProductNumber_QuoteWorkbench_t",vendorProductNumber);
+	jsonput(quoteWorkbenchJson,"vendorProductDescription_QuoteWorkbench_t",vendorProductDescription);
+	jsonput(quoteWorkbenchJson,"ricohEDPCode_QuoteWorkbench_t",ricohEDPCOde);
+	jsonput(quoteWorkbenchJson,"ricohEDPCodeDescription_QuoteWorkbench_t",ricohEDPCodeDescription);
+	jsonput(quoteWorkbenchJson,"quantity_QuoteWorkbench_t",quantity);
+	jsonput(quoteWorkbenchJson,"unitCost_QuoteWorkbench_t",unitCost);
+	jsonput(quoteWorkbenchJson,"unitMSRP_QuoteWorkbench_t",unitMSRP);
+	jsonput(quoteWorkbenchJson,"instructions_QuoteWorkbench_t_c",instructions);
+	jsonput(quoteWorkbenchJson,"vendorRequestStatus_QuoteWorkbench_t",vendorRequestStatus);
+	jsonput(quoteWorkbenchJson,"portfolioFlag_QuoteWorkbench_t",portfolioFlag);
+	jsonput(quoteWorkbenchJson,"vendorProductDescription_QuoteWorkbench_t",vendorProductDescription);
+	jsonput(quoteWorkbenchJson,"itemCreationFlag_quoteWorkbench_t",itemCreation_selectedItemsArray);
+	jsonarrayappend(quoteWorkbenchArray,quoteWorkbenchJson);
+
+	if(itemCreation_selectedItemsArray == "Y"){
+		results = bmql("insert into Marketing_Mapping (LineId,VendorQuoteNumber,VendorPartNum,VendorName,ProcessGroup,ItemCode,ItemDescription,ItemType,ManufacturerName,ManufacturerPartNum,PortfolioFlag,Quantity,VendorUnitCost,Status,Instructions,RequestorEmailId,ItemRequestedDate,UnitPrice,Category,ItemCatalog,RequestedPartNumber) values ($lineIDData,$vendorRequestNumber,$vendorProductNumber,$vendorName,$processGroupValue,$ricohEDPCode,$ricohEDPCodeDescription,$itemType,$manufactureLIGLine,$manufacturePartLIGLine,$portfolioFlag,$quantity,$unitCost,$vendorRequestStatus,$instructions,$userEmailId,$systemDate,$unitMSRP,$category,$itemCatalog,$requestedPartNumber)");
+		for result in results {
+				insert_count_integer = get(result, "records_inserted");
+				records_error_string = get(result, "records_error");
+
+		}
+	}
+	counter = counter + 1;
+}
+retVal = retVal + "1~quoteWorkbench_VQt~" + jsonarraytostr(quoteWorkbenchArray)+ "|" ;
+
+return retVal;

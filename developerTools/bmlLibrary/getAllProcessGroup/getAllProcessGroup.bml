@@ -1,0 +1,15 @@
+//CHG0078656 : CPQ MS- CPQ Changes deployment//
+processGroupArray= string[];
+itemTypeRecordSet = recordset();
+if(NOT(isempty(itemTypeArray))){
+	itemTypeRecordSet = bmql("select ItemType, ProcessGroup from RAC_ITEM_TYPE where ItemType in $itemTypeArray");
+}else{
+	itemTypeRecordSet = bmql("select ItemType, ProcessGroup from RAC_ITEM_TYPE");
+}
+
+for eachItemType in itemTypeRecordSet{
+	processGroup = get(eachItemType,"ProcessGroup");
+	append(processGroupArray,processGroup);
+}
+
+return processGroupArray;

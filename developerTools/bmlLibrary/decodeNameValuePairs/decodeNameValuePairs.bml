@@ -1,0 +1,40 @@
+//************************************************************************************************************
+//** Function:    Decode Name Value Pair(decodeNameValuePairs)
+//** Type:        Utility Library Function   
+//**
+//** Description: Decodes name value pair and returns a dictionary
+//** 
+//** Param:       encodedNameValuePairs - delimited string containing encoded name-value pairs
+//**              extraInputsDict       - String dict of any extra inputs such as delimiters. Possible delims are:
+//**                                      nameValDelim: Delimiter between name and value (optional - default of $=$)
+//**                                      pairDelim:    Delimiter between multiple nameValuePairs  (optional - default of $^$)
+//**
+//** Return type: String dictionary - key=name, value=value for that name
+//**
+//** History:     Date     Author       Comment 
+//**              12/19/16 RConaghan    Initial Creation  
+//************************************************************************************************************
+
+retDict = dict("string");
+
+if(NOT isnull(encodedNameValuePairs)){
+    nameValDelim = "=";
+    pairDelim = "&";
+    // If the delimiters are not blank then override default delimiters
+    if(containskey(extraInputsDict, "nameValDelim")){
+        nameValDelim = get(extraInputsDict, "nameValDelim");
+    }
+    if(containskey(extraInputsDict, "pairDelim")){
+        pairDelim = get(extraInputsDict, "pairDelim");
+    }
+    
+    nameValuePairsArray = split(encodedNameValuePairs, pairDelim);
+    for nameValuePair in nameValuePairsArray {
+        tempData = split(nameValuePair, nameValDelim);
+        if(tempData[0] <> "") {
+            put(retDict, tempData[0], tempData[1]);
+        }
+    }
+}   
+
+return retDict;

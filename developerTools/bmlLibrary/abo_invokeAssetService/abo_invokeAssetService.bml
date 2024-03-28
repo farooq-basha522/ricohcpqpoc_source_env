@@ -1,0 +1,74 @@
+//Function Name: abo_invokeAssetService
+//   input param:  subUrl(String), Method(String), queryParam(String), payloadJson(Json)
+//   output param: responseJson(Json)
+//Description: 
+//   This utility function is used to execute get/post REST service calls on Asset Local Repository
+
+abocontext =  util.abo_getContext();
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true);
+adfUIAssetEndPoint =  jsonpathgetsingle(abocontext, "$.siteInfo.localAssetSvc");
+if(not bDiagnosisOff)//logging input
+{
+   dummy=util.abo_addDiagnosticInfo("Invoking Asset Svc, subUrl="+subUrl+",method="+method+ ",queryParam="+queryParam
+         ,payloadJson,"");
+}
+
+// Prepare header for REST call.
+headerDict=dict("string"); //using dictionary to store value
+if(len(subUrl) <> 0){
+   adfUIAssetEndPoint = adfUIAssetEndPoint + subUrl;    
+}
+
+if (len(queryParam)<>0){
+    adfUIAssetEndPoint = adfUIAssetEndPoint + queryParam;  
+}
+responseJson =  json();
+requestResponseLog=json(); 
+jsonput(requestResponseLog,"method",method);
+jsonput(requestResponseLog,"url"   ,adfUIAssetEndPoint);
+
+if(method == "Get"){
+    response=urldata(adfUIAssetEndPoint, "Get", headerDict);
+    messageBody = get(response, "Message-Body");
+    status_code = get(response, "Status-Code");
+        
+    if(not bDiagnosisOff){
+        fullResponse=json();
+        jsonput(fullResponse,"Status-Code",status_code);
+        jsonput(fullResponse,"Message-Body",messageBody);
+        jsonput(requestResponseLog,"Response",fullResponse);
+        dummy=util.abo_addDiagnosticInfo("Invoking Asset Service GET, URL="+adfUIAssetEndPoint,requestResponseLog,"");
+    }
+   
+    /*if message body is empty, populate response json with status and error code*/ 
+    if (status_code <> "200"){
+       errMsg="Failed to invoke product instance service. Url:"+adfUIAssetEndPoint+", Status:"+status_code;
+       if(not bDiagnosisOff)
+       {
+          errMsg=errMsg+", message-Body="+messageBody;
+          dummy=util.abo_addDiagnosticInfo(errMsg,requestResponseLog,"");          
+       }
+       throwError(errMsg);
+    }        
+    responseJson =  json(messageBody);
+    return responseJson;      
+}
+
+//We are here because this is post request (create/update/delete)
+put(headerDict, "Content-Type", "application/json"); 
+assetUpdateResponse = urldatabypost(adfUIAssetEndPoint, jsontostr(payloadJson), "", headerDict, true);    
+if(not bDiagnosisOff){
+        jsonput(requestResponseLog,"payload",payloadJson);
+        jsonput(requestResponseLog,"response",assetUpdateResponse);
+        dummy=util.abo_addDiagnosticInfo("Invoking Asset Service POST, URL="+adfUIAssetEndPoint,requestResponseLog,"");
+}
+  
+if (startswith(assetUpdateResponse, "ERROR:")==true ){   
+   errMsg = "Failed to invoke product instance service, url:" +adfUIAssetEndPoint ;     
+   if(not bDiagnosisOff){
+        errMsg = errMsg + "PayLoad: "+ jsontostr(payloadJson)+"====Response:"+assetUpdateResponse;
+   }
+   throwError(errMsg);     
+}
+
+return responseJson;

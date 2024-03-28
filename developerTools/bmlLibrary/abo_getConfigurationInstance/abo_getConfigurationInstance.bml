@@ -1,0 +1,44 @@
+//Function Name: abo_getConfigurationInstance
+//   Input: assetKey(String), transactionDate(Date), transactionId(Integer), commerceProcess(String)
+//   output: resultMap(String Dictionary)
+//Description:
+//   This is entry  BML for ABO Modify flow, will be invoked as getConfigurationInstance operation on asset resource.
+//Implementation:
+//  it is a wrapper of the abo_prepareConfigInstance which will calculate the PAC(projected asset cache) & config BOM  and set to session map
+//  within this wrapper, it will transfer the PAC/config BOM from usersessionmap to global cache and return the global cache key
+//  the reason is the REST servcie is stateless and is in a different session from the configurator/commerce UI session
+//  so the PAC/config BOM placed in user session by prepareinstance won't be picked up in configurator ui.
+//  in the beginning of configurator launch, when it see the input of global cache key, 
+//  it will transfer the content of the cache entry from global cache to the user session map for the UI session
+//     so that the rest of flow will be transparent to this cross-session integration.
+
+abocontext= util.abo_initializeContext(commerceProcess);
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true);  
+
+//this will caculate the PAC/config BOM and place them in user session cache
+resultMap =  util.abo_prepareConfigurationInstance(assetKey, transactionDate, transactionId);
+
+//retrieve the PAC/config BOM from user session cache and place into a single json
+configContext = json();
+configBom =  usersessionget(BM_SALES_ROOT_BOM_ITEM, "json");
+pacBom =  usersessionget("bm_abo_pac_root_json", "json");
+jsonput(configContext, BM_SALES_ROOT_BOM_ITEM, configBom);
+jsonput(configContext, "bm_abo_pac_root_json", pacBom);    
+//PLACEHOLDER, you can add additoinal content to configContext here, 
+//  each entry you put in this json will be copied to ui session's sessionmap as indivial root entry in user session cache 
+
+//place this into global cache avaiable for all sessions.
+uuids = getuuid(1);
+configContextKey=uuids[0];
+globalDictset(configContextKey, jsontostr(configContext));
+//pass the global cache entry key back to asset UI, the modify button will pass this as url parameter to configurator UI.
+put(resultMap, "configContextKey", configContextKey);  
+
+if(not bDiagnosisOff){ 
+   dummy=util.abo_addDiagnosticInfo("getConfigInsntace_output_configContextKey="+configContextKey, json(),"addToSummary");
+   //push the diagnostic info from current user session to global cache 
+   //as otherwise the info won't be available to examine on UI session
+   dummy=util.abo_addDiagnosticInfo("", json(),"flushToRemote");
+}
+
+return resultMap;

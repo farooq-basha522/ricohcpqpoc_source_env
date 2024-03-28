@@ -1,0 +1,14 @@
+{
+  "name" : "Convert Library Function Date String to Date",
+  "variableName" : "convertLibraryFunctionDateStringToDate",
+  "description" : "Convert Library function date string to date attribute.",
+  "libraryFunctions" : [ ],
+  "returnType" : "Date",
+  "parameters" : [ {
+    "name" : "dateString",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

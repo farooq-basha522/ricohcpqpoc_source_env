@@ -1,0 +1,128 @@
+rollupStr = stringbuilder();
+groupSeqDict = dict("string");     // holds group sequence number as key and document number as value
+recurRevDict = dict("float");   // holds recurring revenue roll ups for root lines
+nonRecurRevDict = dict("float");  // holds  non recurring revenue roll ups for root lines
+usageRevDict = dict("float");  // holds usage revenue roll ups for root lines
+contractValDict = dict("float");  // holds contract value roll ups for root lines
+monthlyRecurRevDict = dict("float");  // holds monthly recurring revenue roll ups for root lines
+monthlyUsageRevDict = dict("float");  // holds monthly recurring revenue roll ups for root lines
+priceTypeDict = dict("string");  // holds group sequence number as key and rolled up price type as value
+pricePeriodDict = dict("string");  // holds group sequence number as key and rolledup price period value
+contractPeriodsDict = dict("integer");  // holds group sequence number as key and rolled up contract periods
+docGrpSeqDict = dict("string");  // holds doc number as key and grp seq number as value
+contractListValDict = dict("float");  // holds contract list value rollups for root lines
+quantityDict = dict("integer");  // holds quantities of root lines
+rootPriceTypeDict = dict("string");  // holds price types of root lines
+rootPricePeriodDict = dict("string");  // holds actual price periods of root lines
+rootContractPeriodsDict = dict("integer"); // holds actual contract periods of root lines
+priceTypeRollup = "";
+pricePeriodRollup = "";
+discountPercentRollup = 0;
+for line in transactionLine {
+    groupSeqArray = split(line._group_sequence_number,  ".");
+    groupSeqLine = groupSeqArray[0];
+    if(line._parent_doc_number == "")
+    {  
+        rootDocNum = line._document_number ;
+        put(recurRevDict, rootDocNum, line.recurringRevSummable_l);
+        put(nonRecurRevDict, rootDocNum, line.nonRecurRevSummable_l);
+        put(usageRevDict, rootDocNum, line.usageRevSummable_l);
+        put(contractValDict, rootDocNum, line.contractValue_l);
+        put(monthlyRecurRevDict, rootDocNum, line.monthlyRecurRevSummable_l);
+        put(monthlyUsageRevDict, rootDocNum, line.monthlyUsageRevSummable_l);
+        put(contractListValDict, rootDocNum, line.contractListValue_l);
+        put(quantityDict, rootDocNum, line.requestedQuantity_l);
+        put(rootPriceTypeDict, rootDocNum, line.priceType_l);
+        put(rootPricePeriodDict, rootDocNum, line.priceRecurFrequency_l);
+        put(rootContractPeriodsDict, rootDocNum, line.contractedPeriods_l);
+        put(groupSeqDict, groupSeqLine, line._document_number);    
+        put(docGrpSeqDict, line._document_number, groupSeqLine);   
+    } else {
+        if(containskey(groupSeqDict, groupSeqLine)) {
+            lineDocNum = get(groupSeqDict, groupSeqLine);
+            put(recurRevDict, lineDocNum, get(recurRevDict, lineDocNum) + line.recurringRevSummable_l);
+            put(nonRecurRevDict, lineDocNum, get(nonRecurRevDict, lineDocNum) + line.nonRecurRevSummable_l);
+            put(usageRevDict, lineDocNum, get(usageRevDict, lineDocNum) + line.usageRevSummable_l);
+            put(contractValDict, lineDocNum,  get(contractValDict, lineDocNum) + line.contractValue_l);
+            put(monthlyRecurRevDict, lineDocNum, get(monthlyRecurRevDict, lineDocNum) + line.monthlyRecurRevSummable_l);
+            put(monthlyUsageRevDict, lineDocNum, get(monthlyUsageRevDict, lineDocNum) + line.monthlyUsageRevSummable_l);
+            put(contractListValDict, lineDocNum,  get(contractListValDict, lineDocNum) + line.contractListValue_l);
+        }
+    }
+    if(line.lineType_l <> "MODEL" or line.listPrice_l <> 0){ //ignore no price models
+        if(containskey(priceTypeDict, groupSeqLine)) {
+            priceType = get(priceTypeDict, groupSeqLine);
+            pricePeriod = get(pricePeriodDict, groupSeqLine);
+            contractPeriods = get(contractPeriodsDict, groupSeqLine);
+            if(line.priceType_l <> priceType)
+            {
+                put(priceTypeDict, groupSeqLine, "Mixed");             
+            }
+            if(line.priceRecurFrequency_l <> pricePeriod)
+            {
+                granular = ""; // keep the granular one.
+                if(line.priceRecurFrequency_l == "MONTHLY" or pricePeriod == "MONTHLY" ) {
+                    granular = "MONTHLY";
+                } else {
+                    if(line.priceRecurFrequency_l == "YEARLY" or pricePeriod == "YEARLY" ){
+                        granular = "YEARLY";
+                    }
+                }
+                put(pricePeriodDict, groupSeqLine, granular);
+            }                 
+            if(line.contractedPeriods_l > contractPeriods){ //keep largest
+                put(contractPeriodsDict, groupSeqLine, line.contractedPeriods_l);
+            }                                      
+        } else {
+            put(priceTypeDict, groupSeqLine, line.priceType_l);
+            put(pricePeriodDict, groupSeqLine, line.priceRecurFrequency_l);
+            put(contractPeriodsDict, groupSeqLine, line.contractedPeriods_l);                  
+        }  
+    }
+}
+rootDocNumbers = values(groupSeqDict);
+for docNum in rootDocNumbers{ // Assign values to all rollup attributes of root lines
+    rootGroupSeqNum = get(docGrpSeqDict, docNum);
+    if(containskey(priceTypeDict, rootGroupSeqNum)) {
+        priceTypeRollup = get(priceTypeDict, rootGroupSeqNum);
+    } else { //defaults to root's price type when there is zero price root model without any childs
+        priceTypeRollup = get(rootPriceTypeDict, docNum);
+    }
+    if(containskey(pricePeriodDict, rootGroupSeqNum)) {
+        pricePeriodRollup = get(pricePeriodDict, rootGroupSeqNum);
+    } else { //defaults to root's price period when there is zero price root model without any childs
+        pricePeriodRollup = get(rootPricePeriodDict, docNum);
+    }
+    if(containskey(contractPeriodsDict, rootGroupSeqNum)) {
+        contractPeriodsRollup = get(contractPeriodsDict, rootGroupSeqNum);
+    } else { //defaults to root's contractedperiods when there is zero price root model without any childs
+        contractPeriodsRollup = get(rootContractPeriodsDict, docNum);
+    }
+     
+    contractListRollup = get(contractListValDict, docNum);
+    rootQuantity = get(quantityDict, docNum);
+    listPriceRollup = contractListRollup / (rootQuantity * contractPeriodsRollup); // Rolled Up Contract Value (List) / (Root Line Qty x Rolled Up Contracted Periods)
+    netPriceRollup = get(contractValDict, docNum) / (rootQuantity * contractPeriodsRollup); // Rolled Up Contract Value (Net) / (Root Line Qty x Rolled Up Contracted Periods)
+    netAmountRollup = netPriceRollup * rootQuantity; // Rolled Up Net Price x Root Line Qty
+     
+    if(contractListRollup > 0 ) { //(Rolled up Contract Value (List) - Rolled up Contract Value (Net)) / Rolled Up Contract Value (List)
+        discountPercentRollup = ((get(contractListValDict, docNum) - get(contractValDict, docNum)) / contractListRollup) * 100;
+    }
+     
+    sbappend(rollupStr, docNum, "~contractValueRollup_l~", string(get(contractValDict, docNum)), "|");
+    sbappend(rollupStr, docNum, "~recurRevRollup_l~", string(get(recurRevDict, docNum)), "|");
+    sbappend(rollupStr, docNum, "~nonRecurRevRollup_l~", string(get(nonRecurRevDict, docNum)), "|");
+    sbappend(rollupStr, docNum, "~usageRevRollup_l~", string(get(usageRevDict, docNum)), "|");
+    sbappend(rollupStr, docNum, "~monthlyRecurRevRollup_l~", string(get(monthlyRecurRevDict, docNum)), "|");
+    sbappend(rollupStr, docNum, "~monthlyUsageRevRollup_l~", string(get(monthlyUsageRevDict, docNum)), "|");
+    sbappend(rollupStr, docNum, "~contractListValueRollup_l~", string(contractListRollup), "|");
+    sbappend(rollupStr, docNum, "~priceTypeRollup_l~", priceTypeRollup, "|");
+    sbappend(rollupStr, docNum, "~priceRecurFrequencyRollup_l~", pricePeriodRollup, "|");
+    sbappend(rollupStr, docNum, "~contractedPeriodsRollup_l~", string(contractPeriodsRollup), "|");
+    sbappend(rollupStr, docNum, "~listPriceRollup_l~", string(listPriceRollup), "|");
+    sbappend(rollupStr, docNum, "~netPriceRollup_l~", string(netPriceRollup), "|");
+    sbappend(rollupStr, docNum, "~netAmountRollup_l~", string(netAmountRollup), "|");
+    sbappend(rollupStr, docNum, "~discountPercentRollup_l~", string(discountPercentRollup), "|");  
+}    
+ 
+return sbtostring(rollupStr);

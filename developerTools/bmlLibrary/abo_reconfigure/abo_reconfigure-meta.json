@@ -1,0 +1,21 @@
+{
+  "name" : "abo_reconfigure",
+  "variableName" : "abo_reconfigure",
+  "description" : "This is the entry BML for ABO reconfig operation.This BML captures logic specific to ABO reconfig flow, this is invoked from the reconfig action of both main doc and sub doc.",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_apply", "util.abo_generatePAC", "util.abo_getContext" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "lineBomId",
+    "type" : "String"
+  }, {
+    "name" : "lineTrx_Date",
+    "type" : "String"
+  }, {
+    "name" : "bs_Id",
+    "type" : "String"
+  }, {
+    "name" : "line_Num",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

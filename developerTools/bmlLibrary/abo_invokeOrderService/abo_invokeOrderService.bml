@@ -1,0 +1,52 @@
+//function Name: abo_invokeOrderService
+//   input: line(boolean), queryParam(string)
+//   output:json
+//Description: 
+//   This utility executes REST service call on transaction/line document.
+
+abocontext =  util.abo_getContext(); 
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true);
+requestResponseLog= json();
+if (not bDiagnosisOff){//log input
+    jsonput(requestResponseLog, "linedoc", line);
+    jsonput(requestResponseLog, "queryParm", queryParam);
+    dummy=util.abo_addDiagnosticInfo("Invoking order service, input=",requestResponseLog,"");
+}
+
+//Prepare header for REST call
+headerDict=dict("string"); //using dictionary to store value
+url ="";
+if(line){
+   url = jsonpathgetsingle(abocontext, "$.siteInfo.lineDocSvc");
+}else{
+  //Quote header
+   url = jsonpathgetsingle(abocontext, "$.siteInfo.mainDocSvc");
+}
+url =  url+queryParam; 
+
+response=urldata(url, "Get", headerDict);
+
+status_code =  get(response, "Status-Code");
+messageBody = "";
+if(containsKey(response,"Message-Body")){
+  messageBody= get(response,"Message-Body");
+}
+if (not bDiagnosisOff){//log output
+    jsonput(requestResponseLog, "url", url);
+    jsonput(requestResponseLog, "status_code", status_code);
+    jsonput(requestResponseLog, "messageBody", messageBody);
+    dummy=util.abo_addDiagnosticInfo("Order service invoked, input/ouput=",requestResponseLog,"");
+}
+if (status_code <> "200"){  
+   msg =  "Failed to invoke Transaction Service. url: "+ url +", Status Code: " + status_code;
+   if(not bDiagnosisOff){
+       msg = msg+ "===== messageBody="+messageBody;
+   }
+   throwError(msg);
+}      
+if (messageBody<>"")
+{
+  responsejson  =  json(messageBody);  
+  return responseJson;  
+}
+return json();

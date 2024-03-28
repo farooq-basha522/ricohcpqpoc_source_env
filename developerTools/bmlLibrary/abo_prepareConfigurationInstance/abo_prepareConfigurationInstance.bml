@@ -1,0 +1,70 @@
+//Function: abo_prepareConfigurationInstance
+//     Input: assetKey(String), transactionDate(Date), transactionId(Integer)
+//     output: resultMap(Dictionary)
+// Description:
+//     This is entry BML for ABO Follow on order flow. Also common logic used by ABO Modify & follow on order flow are in this BML. 
+//     It will calculate the projected state for a specified product instance as of requested date and store that into user session cache.
+// Details:
+//     This will generate ABO Projected Asset Cache(PAC) BOM.
+//     This combines the information from asset respository and the open order line on this same asset until the requested date.
+//     The data will be first loaded as BOM structure from asset repository and open order separately 
+//     and then applies on top of each other in the ascending order of transactionDate collecting all open quotes with same assetKey.
+//     The result BOM will be saved into user session and final BOM id(bomkey) will be passed back in resultMap
+//     so that the caller can use the bomkey to construct url to launch configurator picking up the BOM from sessionMap using the bomkey
+
+abocontext = util.abo_getContext();
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true);  
+callContext="prepareInstance";
+if(not bDiagnosisOff){
+   inputLog=json();
+   jsonput(inputLog,"assetKey",assetKey);
+   jsonput(inputLog,"txnDate",datetostr(transactionDate));
+   jsonput(inputLog, "txnId", transactionId);
+   dummy=util.abo_addDiagnosticInfo(callContext+"_input",inputLog,"addToSummary");
+}
+
+//Note below call returns flat PAC BOM 
+pacBom = util.abo_generatePAC(assetKey, transactionDate, transactionId, -1, "modify");
+if(util.abo_isjsonnull(pacBom, "partNumber")){
+   msg =  "Product Instance does not exist as of date:" +datetostr(transactionDate);
+   throwError(msg);
+}
+
+//partNumber is a mandatory field in pacBom 
+if(util.abo_isjsonnull(pacBom, "partNumber")){
+  msg = "Failed to load product instance, there is no product instance with matching key("+assetKey+") as of date:"+ datetostr(transactionDate);
+  dummy=util.abo_addDiagnosticInfo(callContext+msg+":pacBom",json(),"");    
+  throwerror(msg);
+} 
+//clone pacBom to configBom
+configBom =  jsoncopy(pacBom);
+idBomRoot =  jsonget(pacBom, "id", "string");
+partNumber =  jsonget(pacbom, "partNumber", "string");
+
+configBomHier =  convertbomtohier(configBom);
+
+//Include instruction to preserve inputBom for configurator launch
+jsonput(configBom, "instruction", "preserveInputBom");
+
+//remove previously set values before setting new values:
+usersessionremove ("bm_abo_pac_root_json");
+usersessionremove (BM_SALES_ROOT_BOM_ITEM);
+//Store pacBom/configBom to session map
+usersessionset("bm_abo_pac_root_json", pacBom);
+usersessionset(BM_SALES_ROOT_BOM_ITEM,configBomHier);
+if(not bDiagnosisOff){
+   dummy=util.abo_addDiagnosticInfo(callContext+"_saved_bom_to_userSession",json(),"");
+   dummy=util.abo_addDiagnosticInfo(callContext+"_output_pacBom",pacBom,"addToSummary");
+   dummy=util.abo_addDiagnosticInfo(callContext+"_output_configBom",configBomHier,"addToSummary");
+}
+
+//lookup the model information for the part number
+resultDict = util.abo_getProductModelInfo(partNumber);
+put(resultDict,"bomkey",assetKey);
+
+if(not bDiagnosisOff){
+   dummy=util.abo_addDiagnosticInfo(callContext+"_final_output=checklog",json(),"");
+  //we don't have a way to convert dict to json in one line call.
+}
+  
+return resultDict;

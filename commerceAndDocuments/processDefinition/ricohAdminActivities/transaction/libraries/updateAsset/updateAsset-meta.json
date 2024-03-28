@@ -1,0 +1,11 @@
+{
+  "name" : "Update Asset",
+  "variableName" : "updateAsset",
+  "description" : "Creates assets for lines.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

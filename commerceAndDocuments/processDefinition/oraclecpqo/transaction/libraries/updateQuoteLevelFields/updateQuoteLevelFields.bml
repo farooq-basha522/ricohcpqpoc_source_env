@@ -1,0 +1,40 @@
+x=getcurrenttimeinmillis();
+returnString = "";
+salesRepDetailsJson = json();
+lowerSalerRepEmail=lower(salesRepEmail_Opportunity_RISE_t);
+salesRepDetails = BMQL("select WorkPhoneNumber, SupervisorName, Region, Area from RAC_HRMS where EmailAddress= $lowerSalerRepEmail");
+for eachRecord in salesRepDetails{
+	jsonput(salesRepDetailsJson,"WorkPhoneNumber",get(eachRecord,"WorkPhoneNumber"));
+	jsonput(salesRepDetailsJson,"SupervisorName",get(eachRecord,"SupervisorName"));
+	jsonput(salesRepDetailsJson,"Region",get(eachRecord,"Region"));
+	jsonput(salesRepDetailsJson,"Area",get(eachRecord,"Area"));
+}
+
+returnString = "1~salesRepContactNumber_t~" + jsonget(salesRepDetailsJson,"WorkPhoneNumber","string","") + "|";
+returnString = returnString + "1~manager_t~" + jsonget(salesRepDetailsJson,"SupervisorName","string","") + "|";
+returnString = returnString + "1~region_t~" + jsonget(salesRepDetailsJson,"Region","string","") + "|";
+returnString = returnString + "1~marketplace_t~" + jsonget(salesRepDetailsJson,"Area","string","") + "|";
+returnString = returnString + "1~nESMChangedToDSM_t~" + jsonget(salesRepDetailsJson,"SupervisorName","string","") + "|";
+
+//START - Performance_Code_Changes - Commented below code as it is not getting used by Vasundhara
+
+/* items="";
+sectionName="";
+salesCost="0.0";
+targetPrice="0.0";
+salesCostFormula="";
+targetPriceFormula="";
+otherCostFormula="";
+priceExtractString="";
+for line in transactionLine{
+if(line._parent_doc_number <> ""){
+	priceExtractString = priceExtractString+sectionName+"!"+line._part_number+"!"+string(line.unitSalesCost_l)+"!"+string(line.contractedUnitPrice_l)+"!"+salesCostFormula
+	+"!"+targetPriceFormula+"!"+otherCostFormula+"@@";
+	}
+	
+}
+returnString = returnString + "1~pricingCalculationExtractString_quote~" + priceExtractString + "|"; */
+//END - Performance_Code_Changes - Commented below code as it is not getting used by Vasundhara
+y=getcurrenttimeinmillis();
+z=y-x;
+return returnString;

@@ -1,0 +1,14 @@
+{
+  "name" : "Get MPS Approvers",
+  "variableName" : "getMPSApprovers_c",
+  "description" : "",
+  "libraryFunctions" : [ "commerce.generateMSApproversList", "commerce.isUserActive", "commerce.isUserExistsinGroup" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "paramDict",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "mSTotalDealSectionArray_t", "mSTransactionType_t", "annualRevenueEscalation_t", "mSTotalDealSectionArrayString_t", "variableAnnualRevenueEscalation_t", "variableAnnualEscalationArraySet_t", "mSModelFlag_t", "isMPSConfigured_c", "mpSTotalDealSectionArrayString_c" ],
+  "systemAttributes" : [ "_system_supplier_company_name" ]
+}

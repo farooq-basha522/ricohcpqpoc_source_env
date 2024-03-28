@@ -1,0 +1,12 @@
+{
+  "name" : "Get Current User Name",
+  "variableName" : "getCurrentUserName",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String Dictionary",
+  "parameters" : [ {
+    "name" : "inputDict",
+    "type" : "String Dictionary"
+  } ],
+  "attributes" : [ "_user_first_name", "_user_last_name" ]
+}

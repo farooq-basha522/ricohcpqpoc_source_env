@@ -1,0 +1,84 @@
+selectedItemsJSON = json();
+itemsArray = jsonarray();
+vendorArray = jsonarray();
+quoteWorkbenchJSONArray = quoteWorkbench_VQt;
+quoteWorkbenchArrayIndex = range(jsonarraysize(quoteWorkbenchJSONArray));
+
+quoteWorkbenchJSONArray_Original = jsonarray(quotedItemsSummaryEditValidation_t);
+quoteWorkbenchArrayIndex_Original = range(jsonarraysize(jsonarray(quotedItemsSummaryEditValidation_t)));
+
+quoteWorkbenchOriginalJson = json();
+qtyEditedCheckDict = dict("string");
+for each in  quoteWorkbenchArrayIndex_Original{
+searchResultRow = jsonarrayget(quoteWorkbenchJSONArray_Original,each);
+quoteWorkbenchResultJson = json(searchResultRow);
+    lineID = jsonget(quoteWorkbenchResultJson,"lineID_t");
+	quantity_QuoteWorkbench_t = jsonget(quoteWorkbenchResultJson,"quantity_QuoteWorkbench_t");
+	put(qtyEditedCheckDict,lineID,quantity_QuoteWorkbench_t);
+}
+selectedItemsFlag = false;
+finalString = "";
+itemF=false;
+itemC=0;
+itemV=0;
+editFlag = "false";
+conditioncheck = "false";
+statusArray = "";
+selectArray = "";
+returnJSON = json();
+vendorItemStr = string[];
+qtyVal = "";
+for each in quoteWorkbenchArrayIndex{
+	
+searchResultRow = jsonarrayget(quoteWorkbenchJSONArray,each);
+quoteWorkbenchResultJson = json(searchResultRow);
+
+	lineID = jsonget(quoteWorkbenchResultJson,"lineID_t");
+	quantity_QuoteWorkbench_t = jsonget(quoteWorkbenchResultJson,"quantity_QuoteWorkbench_t");
+	itemsAddedDirectOnQuoteSummary = jsonget(quoteWorkbenchResultJson,"itemsAddedDirectOnQuoteSummary");
+	quantity_QuoteWorkbench_t_original = jsonget(quoteWorkbenchResultJson,"quantity_QuoteWorkbench_t");
+	portfolioFlag_QuoteWorkbench_t = jsonget(quoteWorkbenchResultJson,"portfolioFlag_QuoteWorkbench_t");
+	vendorRequestStatus_QuoteWorkbench_t  = jsonget(quoteWorkbenchResultJson,"vendorRequestStatus_QuoteWorkbench_t");
+	vendorName_QuoteWorkbench_t = jsonget(quoteWorkbenchResultJson,"vendorName_QuoteWorkbench_t");
+	
+	if(NOT ISNULL(vendorName_QuoteWorkbench_t) AND upper(vendorName_QuoteWorkbench_t) <> "RICOH" AND NOT ISNULL(vendorRequestStatus_QuoteWorkbench_t) AND vendorRequestStatus_QuoteWorkbench_t <> "Quote Received" AND NOT ISNULL(lineID) AND containskey(qtyEditedCheckDict,lineID) AND 
+		get(qtyEditedCheckDict,lineID) <> quantity_QuoteWorkbench_t_original){
+			append(vendorItemStr,lineID);
+					editFlag =  "true";
+					jsonput(returnJSON,"qtyVal",get(qtyEditedCheckDict,lineID));
+
+					break;
+	}elif(NOT ISNULL(vendorName_QuoteWorkbench_t) AND upper(vendorName_QuoteWorkbench_t) == "RICOH" AND NOT ISNULL(vendorRequestStatus_QuoteWorkbench_t) AND vendorRequestStatus_QuoteWorkbench_t == "Quote Received"){
+							editFlag =  "false";
+	}elif(NOT ISNULL(vendorName_QuoteWorkbench_t) AND upper(vendorName_QuoteWorkbench_t) == "RICOH" AND NOT ISNULL(vendorRequestStatus_QuoteWorkbench_t) AND vendorRequestStatus_QuoteWorkbench_t <> "Quote Received" AND NOT ISNULL(lineID) AND containskey(qtyEditedCheckDict,lineID) AND 
+		get(qtyEditedCheckDict,lineID) <> quantity_QuoteWorkbench_t_original){
+							editFlag =  "true";
+			append(vendorItemStr,lineID);
+								jsonput(returnJSON,"qtyVal",get(qtyEditedCheckDict,lineID));
+
+								break;
+	}
+	elif(NOT ISNULL(itemsAddedDirectOnQuoteSummary) AND itemsAddedDirectOnQuoteSummary == "Yes" AND find(vendorRequestStatus_QuoteWorkbench_t,"Quote Received")<>-1){
+							editFlag =  "false";
+							
+	}elif((ISNULL(itemsAddedDirectOnQuoteSummary) OR itemsAddedDirectOnQuoteSummary == "NO") AND upper(vendorName_QuoteWorkbench_t) <> "RICOH" AND NOT ISNULL(vendorRequestStatus_QuoteWorkbench_t) AND vendorRequestStatus_QuoteWorkbench_t == "Quote Received" AND NOT ISNULL(lineID) AND containskey(qtyEditedCheckDict,lineID) AND 
+		get(qtyEditedCheckDict,lineID) <> quantity_QuoteWorkbench_t_original){
+			editFlag =  "true";
+			append(vendorItemStr,lineID);
+								jsonput(returnJSON,"qtyVal",get(qtyEditedCheckDict,lineID));
+
+								break;
+		
+	}elif(NOT ISNULL(itemsAddedDirectOnQuoteSummary) AND itemsAddedDirectOnQuoteSummary == "Yes" AND find(vendorRequestStatus_QuoteWorkbench_t,"Quote Received")==-1 AND NOT ISNULL(lineID) AND containskey(qtyEditedCheckDict,lineID) AND 
+		get(qtyEditedCheckDict,lineID) <> quantity_QuoteWorkbench_t_original){
+							editFlag =  "true";
+			append(vendorItemStr,lineID);
+								jsonput(returnJSON,"qtyVal",get(qtyEditedCheckDict,lineID));
+
+								break;	}		
+
+}
+jsonput(returnJSON,"vendorItemsString",join(vendorItemStr,","));
+jsonput(returnJSON,"editFlag",editFlag);
+
+return jsontostr(returnJSON);

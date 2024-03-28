@@ -1,0 +1,11 @@
+{
+  "name" : "Opp Details Import RISE->CPQ",
+  "variableName" : "oppDetailsImportRISECPQ",
+  "description" : "To import the opportunity details and RE Case questionnaires through REST API custom integration calls.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "opportunityNumber_t", "opportunityID_t", "teamMembers_RECase_Flag" ],
+  "systemAttributes" : [ "_system_company_name", "_system_supplier_company_name" ]
+}

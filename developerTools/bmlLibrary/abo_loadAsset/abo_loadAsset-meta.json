@@ -1,0 +1,12 @@
+{
+  "name" : "abo_loadAsset",
+  "variableName" : "abo_loadAsset",
+  "description" : "This utility is used to load asset data from local asset repository and convert to the BOM structure to be used in ABO flow.",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_bomRollDown", "util.abo_getContext", "util.abo_invokeAssetService", "util.abo_isjsonnull" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "assetKey",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

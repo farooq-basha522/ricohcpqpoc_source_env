@@ -1,0 +1,238 @@
+//*****************************************************************************************************
+//** Function:    Output Doc Calcuations Function
+//**
+//** Description: Set flags using commerce attribute, otherwise not feasible with built-in features on 
+//**		doc designer
+//**                                                                                               
+//** History:	Date		Author     	Comment
+//**				        HHo		     Initial Implementation
+//**            01/13/17    RConaghan    Modified to allow "other" criteria and to allow for dynamic provision headers
+//**            02/24/17    RConaghan    Added enhancement for exhibits (proposalExhibits_t)
+//*****************************************************************************************************
+ret = "";
+tcIteration = 1;
+productGroupArrCall = string[]{"General Provisions", "Other Provisions"}; //Used for BMQL call
+otherCriteriaArr = string[]; //Array of 'other criteria' such as 90 day out.
+partsArr = string[];
+partNumberArray=string[];
+
+allSowTextsUsedArr = string[]; //Array of all provisions used
+validationError = ""; //Debug variable
+nameValInnerDelim = "@@"; //Delimiter sepearating a name and value in a name-value pair
+nameValOuterDelim = "##"; //Delimiter seperating sets of name-value pairs
+sectionDelim = "^^"; //Delimiter seperating entire sections, with each section containing sets of name-value pairs.
+headerNameFlag = "HEADER"; //Flag that doc engine will use to determine that we are on a new provision type.
+provisionsDict = dict("string[]"); //Dict of key: Provision Name, and value: String array of all sow text files.
+provisionsOutputString = ""; //Full formatted string to be written to provisions delimited string attribute.
+provisionsPreSortOutputString = "";
+provisionsUnsortedOutputString = "";
+provisionsPostSortOutputString = "";
+provisionPreSortArr = string[]; //Array that drives the SORTING of the provision headers on the output doc. Provisions not included here will be inserted in a semi-random order (order they were pulled from data table).
+provisionPostSortArr = string[];
+baseURLPath = "https://" + _system_supplier_company_name + ".bigmachines.com/bmfsweb/" + _system_supplier_company_name + "/image/SOW/";
+workOrderFlag = (documentType == "WORK_ORDER"); //False for proposals, true for work order
+exhibitsClauseArr = string[]; //Provision clauses list within this provision
+exhibitsClauseWithPagesArr = string[]; //Provisions clauses broken out by page. This is used to write to the output.
+showProposalSectionsOnWorkOrder = false;
+
+for line in transactionLine{
+	partNum = line._part_number;
+	//productGroup = line._part_custom_field18;
+	productGroup = "";
+	append(partNumberArray,partNum);
+	partCustomFieldDict=util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+	productGroup = "";
+	if(containskey(partCustomFieldDict,partNum+"custom_field18")) {
+		productGroup = get(partCustomFieldDict,partNum+"custom_field18");
+	}
+	if(productGroup <> "" AND findinarray(productGroupArrCall, productGroup) == -1){
+		append(productGroupArrCall, productGroup);
+	}
+	if(partNum <> "" AND findinarray(partsArr, partNum) == -1){
+    	append(partsArr, partNum);
+    }
+	
+	//Set work order flag to false if any one line item is in the App Dev group
+	if(productGroup == "Application Development"){
+		showProposalSectionsOnWorkOrder = true;
+	}
+	/* Removed the below line as the requirement changed so that AppDev gets a full proposal + signature blocks.
+	if(workOrderFlag == true AND productGroup == "Application Development"){
+		workOrderFlag = false;
+	}*/
+}
+//write work order flag
+ret = ret + "1~generateWorkOrder_t~" + string(workOrderFlag) + "|"
+		  + "1~showProposalSectionsOnWorkOrder_t~" + string(showProposalSectionsOnWorkOrder) + "|";
+
+//Build quote-level misc criteria
+if(NinetyDayOut_t == true){
+		append(otherCriteriaArr, "NINETY_DAY_OUT");
+}
+/*Commented below line and added next line below line by Jagadeesh Padavala on 11/03/2022, for the issue of INC2255476 in Service Now */
+/*if(monthsFree_quote == "1"){*/if(monthsFree_quote == "Yes"){
+		append(otherCriteriaArr, "ONE_MONTH_FREE");
+}
+
+//TABLE CALLS - SOW Text
+if(isempty(partsArr)){ //need to append a dummy value if array is empty
+	append(partsArr, "-1");
+}
+if(isempty(otherCriteriaArr)){ //need to append a dummy value if array is empty
+	append(otherCriteriaArr, "-1");
+}
+if(isempty(productGroupArrCall)){ //need to append a dummy value if array is empty
+	append(productGroupArrCall, "-1");
+}
+recSet = bmql("SELECT SOW_Provisions, SOW_Text FROM SOW WHERE SKU_Number IN $partsArr OR Product_Group IN $productGroupArrCall OR Other_Criteria IN $otherCriteriaArr OR (SKU_Number IS NULL AND Product_Group IS NULL AND Other_Criteria IS NULL)");
+
+//Filter SOW with provisions
+for each in recSet{
+	sow_provision = get(each, "SOW_Provisions");
+	sow_text = get(each, "SOW_Text");
+
+	if(findinarray(allSowTextsUsedArr, sow_text) == -1){
+		append(allSowTextsUsedArr, sow_text);
+	}
+	
+	//@RConaghan - Wrote the pieces below in this loop; did not touch above yet.
+	provisionClauseArr = string[]; //Provision clauses list within this provision
+	if(containskey(provisionsDict, sow_provision)){
+			provisionClauseArr = get(provisionsDict, sow_provision);
+	}
+	if(findinarray(provisionClauseArr, sow_text) == -1){ //Only add text if it hasn't been added in this provision yet.
+		append(provisionClauseArr, sow_text);
+	}
+	put(provisionsDict, sow_provision, provisionClauseArr);
+}
+
+//Call competing clauses table and remove any clauses that should be overridden
+recSet = bmql("SELECT Overriding_Clause, Overridden_Clause FROM Competing_Clauses WHERE Overriding_Clause IN $allSowTextsUsedArr AND Overridden_Clause IN $allSowTextsUsedArr");
+for each in recSet{
+	overriding = get(each, "Overriding_Clause");
+	overridden = get(each, "Overridden_Clause");
+	allProvisions = keys(provisionsDict);
+	for provision in allProvisions{
+		sowTextArr = get(provisionsDict, provision);
+		sowTextIndex = findinarray(sowTextArr, overridden);
+		if(sowTextIndex <> -1){
+			remove(sowTextArr, sowTextIndex);
+			put(provisionsDict, provision, sowTextArr);
+		}
+		
+	}
+}
+
+//@RConaghan - Begin Generic Provisions Work
+//Enhancement possibility - make sorting data table driven.
+//Add provisions in a 'pre-sort' to be added after any unsorted provisions.
+append(provisionPreSortArr, "General Provisions");
+//Add provisions in a 'post-sort' that will be added after any 'unsorted' provisions
+append(provisionPostSortArr, "Other Provisions");
+
+provisionList = keys(provisionsDict);
+sortedProvisionList = string[]; //List of final, applicable provisions that exist
+//Build list of final, applicable pre sort provisions
+for preSortProvision in provisionPreSortArr{
+	if(containskey(provisionsDict, preSortProvision)){
+		indexToRemove = findinarray(provisionList, preSortProvision);
+		if(indexToRemove <> -1){
+			remove(provisionList, indexToRemove);
+		}
+		append(sortedProvisionList, preSortProvision);
+	}
+}
+//for all post-sort attributes, remove from unsorted list and append to end
+for postSortProvision in provisionPostSortArr{
+	if(containskey(provisionsDict, postSortProvision)){
+		indexToRemove = findinarray(provisionList, postSortProvision);
+		if(indexToRemove <> -1){
+			remove(provisionList, indexToRemove);
+		}
+		append(provisionList, postSortProvision);
+	}
+}
+//we now have a list of 'pre-sorted' provisions that exist, and the unsorted + post-sorted provisions. Need to combine
+for provision in provisionList{
+	append(sortedProvisionList, provision);
+}
+
+provisionIndex = 1; //Provision numbers will have a format of X.Y. This is the X portion
+for provisionType in sortedProvisionList{
+	thisProvisionOutputString = "HEADER" + nameValInnerDelim + provisionType;
+	provisionClauseList = get(provisionsDict, provisionType);
+	clauseIndex = 1; //Provision number will have a format of X.Y. This is the Y portion
+	for provisionClause in provisionClauseList{
+		thisProvisionText = urldatabyget(baseURLPath + provisionClause, "", "Error fetching " + provisionClause); 
+		/*thisProvisionText = replace(thisProvisionText, "&", "&amp;");
+		thisProvisionText = replace(thisProvisionText, "<", "&lt;");
+		thisProvisionText = replace(thisProvisionText, ">", "&gt;");
+		thisProvisionText = replace(thisProvisionText, "\"", "&quot;");
+		thisProvisionText = replace(thisProvisionText, "'", "&apos;");*/
+		clauseFullIndex = string(provisionIndex) + "." + string(clauseIndex);
+		thisProvisionOutputString = thisProvisionOutputString + nameValOuterDelim + clauseFullIndex + nameValInnerDelim + thisProvisionText;
+		clauseIndex = clauseIndex + 1;
+	}
+	
+	provisionsOutputString = provisionsOutputString + thisProvisionOutputString + sectionDelim;
+	provisionIndex = provisionIndex + 1;
+}
+
+if(provisionsOutputString <> ""){
+	provisionsOutputString = substring(provisionsOutputString, 0, -1 * len(sectionDelim)); //trim trailing delim
+}
+
+ret = ret + "1~" + "genericProvisionsOutputString_t" + "~"+ provisionsOutputString + "|";
+//@RConaghan - End Generic Provisions Work
+
+//@RConaghan - Begin Exhibits work
+recSet = bmql("SELECT Exhibit_PDF, Num_Pages FROM Exhibits WHERE SKU_Number IN $partsArr OR Product_Group IN $productGroupArrCall OR Other_Criteria IN $otherCriteriaArr OR (SKU_Number IS NULL AND Product_Group IS NULL AND Other_Criteria IS NULL)");
+
+exhibitsOutputStr = "";
+for each in recSet{
+	exhibit = get(each, "Exhibit_PDF");
+	numPages = getint(each, "Num_Pages");
+	if(findinarray(exhibitsClauseArr, exhibit) == -1){ //Only add text if it hasn't been added in this exhibit yet.
+		append(exhibitsClauseArr, exhibit);
+		if(numPages > 0){
+			loopArr = range(numPages);
+			for page in loopArr{
+					append(exhibitsClauseWithPagesArr,  exhibit + "#page=" + string(page+1));
+			}
+		}
+	}
+}
+
+ret = ret + "1~" + "proposalExhibits_t" + "~" + join(exhibitsClauseWithPagesArr, ",") + "|";
+
+
+if(customerSolutionImage1_t <> "") {
+	ret = ret + "1~customerSolutionImageFlag1_t~" + string(true) + "|";
+} else {
+	ret = ret + "1~customerSolutionImageFlag1_t~" + string(false) + "|";
+}
+if(customerSolutionImage2_t <> "") {
+	ret = ret + "1~customerSolutionImageFlag2_t~" + string(true) + "|";
+} else {
+	ret = ret + "1~customerSolutionImageFlag2_t~" + string(false) + "|";
+}
+
+if(contractTermMonthsNumeric_t == 12) {
+	ret = ret + "1~termAnniversary_t~first|";
+} elif (contractTermMonthsNumeric_t == 24) {
+	ret = ret + "1~termAnniversary_t~second|";
+} elif (contractTermMonthsNumeric_t == 36) {
+	ret = ret + "1~termAnniversary_t~third|";
+} else {
+	ret = ret + "1~termAnniversary_t~fifth|";
+}
+
+//---Debug section
+/* This section is no longer used. Old architecture that involved hard-coding categories.
+if(validationError <> "") {
+	ret = ret + "1~outputDocValidationErrorMessage_t~"+ validationError +"|";
+} 
+*/
+//---End of Debug section
+
+return ret;

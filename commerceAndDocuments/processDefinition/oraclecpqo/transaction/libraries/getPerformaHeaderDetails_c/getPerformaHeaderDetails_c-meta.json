@@ -1,0 +1,11 @@
+{
+  "name" : "Get Performa Header Details",
+  "variableName" : "getPerformaHeaderDetails_c",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "termMonths_t", "contractOtherTerm_t", "performaHeaderDetailsString_t_c", "leadingPricingStrategy_t", "containsMPSFleetLines_t_c", "customerCompanyName_t", "transactionID_t" ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,11 @@
+{
+  "name" : "SA Pricing*Backup*Pls dont touch",
+  "variableName" : "sAPricingBackupPlsDontTouch",
+  "description" : "",
+  "libraryFunctions" : [ "util.getMutliplteCustomFieldValuesForselectedParts", "util.getPartPrice", "util.getProcessGroup" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "line_l", "_parent_doc_number", "_document_number", "_config_attr_info", "_part_number", "itemCategory_l", "_part_custom_field7", "_part_base_price", "_price_list_price_each", "_part_custom_field23", "extNetPrice_l", "_price_quantity", "partName_l", "quantitySA_l" ],
+  "mainDocAttributes" : [ "termMonths_t", "contractOtherTerm_t", "proposalDocString_t" ],
+  "systemAttributes" : [ ]
+}

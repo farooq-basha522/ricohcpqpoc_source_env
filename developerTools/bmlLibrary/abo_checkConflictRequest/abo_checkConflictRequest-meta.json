@@ -1,0 +1,24 @@
+{
+  "name" : "abo_checkConflictRequest",
+  "variableName" : "abo_checkConflictRequest",
+  "description" : "This function is to ensure the current requested action will not conflict with other open requests on the same lines. For example,  the same action for the same date on the same product instance can only happen once in a given transaction. It will throw error when it detect such conflict.",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_getContext" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "arrLine",
+    "type" : "JsonArray"
+  }, {
+    "name" : "requestedAction",
+    "type" : "String"
+  }, {
+    "name" : "requestDate",
+    "type" : "String"
+  }, {
+    "name" : "requestAssetKey",
+    "type" : "String"
+  }, {
+    "name" : "transactionId",
+    "type" : "Integer"
+  } ],
+  "attributes" : [ ]
+}

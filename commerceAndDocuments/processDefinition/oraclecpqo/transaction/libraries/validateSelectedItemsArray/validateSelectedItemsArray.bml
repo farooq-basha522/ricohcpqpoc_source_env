@@ -1,0 +1,275 @@
+currentdate = datetostr(getdate(),"yyyy-MM-dd");
+retValue = "";
+rowNum = 1;
+rowNum1 = 1;
+itemsArray = selectedItemsArray;
+itemsArray1 = selectedItemsBasedOnVendorQuoteNumberArray;
+arraySize = range(jsonarraysize(itemsArray));
+arraySize1 = range(jsonarraysize(itemsArray1));
+vendorRequestNumberNonRicohtemp = false;
+vendorRequestNumberNonRicohtempval = "";
+vendorQuoteRequestNameRicohtemp = false;
+vendorQuoteRequestNameRicohtempval = "";
+quoteExpirationDateRicohTemp = false;
+quoteExpirationDateRicohTempval = "";
+
+
+if(vendorQuoteRequestNumberField_VQt == "") {
+
+	for arr in arraySize 
+	{
+		vendorRequestNumber = jsonget(json(jsonarrayget(itemsArray , arr)),"vendorRequestNumber_selectedItemsArray");
+		quoteRequestedBy= jsonget(json(jsonarrayget(itemsArray , arr)),"quoteRequestedBy_selectedItemsArray");
+		vendorRequestNumberNonRicoh = jsonget(json(jsonarrayget(itemsArray , arr)),"vendorRequestNumber_NonRicoh_selectedItemsArray");
+		vendorQuoteRequestName = jsonget(json(jsonarrayget(itemsArray , arr)),"vendorQuoteRequestName_selectedItemsArray");
+		quoteExpirationDate = jsonget(json(jsonarrayget(itemsArray , arr)),"quoteExpirationDate_selectedItemsArray");
+		vendorName = jsonget(json(jsonarrayget(itemsArray , arr)),"vendorName_selectedItemsArray");
+		vendorEmail = jsonget(json(jsonarrayget(itemsArray , arr)),"vendorEmail_selectedItemsArray");
+		itemType = jsonget(json(jsonarrayget(itemsArray , arr)),"itemType_selectedItemsArray");
+		vendorProductNumber = jsonget(json(jsonarrayget(itemsArray , arr)),"vendorProductNumber_selectedItemsArray");
+		vendorProductDescription = jsonget(json(jsonarrayget(itemsArray , arr)),"vendorProductDescription_selectedItemsArray");
+		ricohEDPCode = jsonget(json(jsonarrayget(itemsArray , arr)),"ricohEDPCode_selectedItemsArray");
+		ricohEDPCodeDescription = jsonget(json(jsonarrayget(itemsArray , arr)),"ricohEDPCodeDescription_selectedItemsArray");
+		quantity = jsonget(json(jsonarrayget(itemsArray , arr)),"quantity_selectedItemsArray");
+		unitCost = jsonget(json(jsonarrayget(itemsArray , arr)),"unitCost_selectedItemsArray");
+		zeroCost = jsonget(json(jsonarrayget(itemsArray , arr)),"zeroCost_selectedItemsArray");
+		unitMSRP = jsonget(json(jsonarrayget(itemsArray , arr)),"unitMSRP_selectedItemsArray");
+		instructions = jsonget(json(jsonarrayget(itemsArray , arr)),"instructions_selectedItemsArray_t_c");
+		approvalType = jsonget(json(jsonarrayget(itemsArray , arr)),"approvalType_selectedItemsArray");
+		itemCreation = jsonget(json(jsonarrayget(itemsArray , arr)),"itemCreation_selectedItemsArray");
+		processGroup = jsonget(json(jsonarrayget(itemsArray , arr)),"processGroup_selectedItemsArray");
+		portfolioFlag = jsonget(json(jsonarrayget(itemsArray , arr)),"portfolioFlag_selectedItemsArray_t");
+		lineID = jsonget(json(jsonarrayget(itemsArray , arr)),"lineID_selecteditemArray");
+		statusValue = jsonget(json(jsonarrayget(itemsArray , arr)),"status_selectedItemsArray");
+		
+		if(len(vendorRequestNumberNonRicohtempval) == 0){
+			vendorRequestNumberNonRicohtempval = vendorRequestNumberNonRicoh;
+		}
+	    elif(vendorRequestNumberNonRicohtempval <> vendorRequestNumberNonRicoh) {
+		  	vendorRequestNumberNonRicohtemp = true;
+		}
+		else {
+			vendorRequestNumberNonRicohtempval = vendorRequestNumberNonRicoh;
+		}
+		
+		if(len(vendorQuoteRequestNameRicohtempval) == 0){
+			vendorQuoteRequestNameRicohtempval = vendorQuoteRequestName;
+		}
+	    elif(vendorQuoteRequestNameRicohtempval <> vendorQuoteRequestName) {
+		  	vendorQuoteRequestNameRicohtemp = true;
+		}
+		else {
+			vendorQuoteRequestNameRicohtempval = vendorQuoteRequestName;
+		}
+		
+		if(len(quoteExpirationDateRicohTempval) == 0){
+			quoteExpirationDateRicohTempval = quoteExpirationDate;
+		}
+	    elif(quoteExpirationDateRicohTempval <> quoteExpirationDate) {
+		  	quoteExpirationDateRicohTemp = true;
+		}
+		else {
+			quoteExpirationDateRicohTempval = quoteExpirationDate;
+		}
+		
+		if(len(vendorRequestNumberNonRicoh) < 1) {
+			retValue = retValue + lineID + " " + ": Vendor Quote Request Number is required.\n " ;
+		}
+		
+		if(len(vendorQuoteRequestName) < 1) {
+			retValue = retValue + lineID + " " + ": Vendor Quote Request Name is required.\n ";
+		}
+		
+		if(len(quoteExpirationDate) < 1) {
+			retValue = retValue + lineID + " " + ": Quote Expiration Date is required.\n ";
+		}
+		
+		if(len(quoteExpirationDate) > 0) {
+			if(comparedates(strtodate(quoteExpirationDate,"yyyy-MM-dd"),strtodate(currentdate,"yyyy-MM-dd" ) ) == 0) {
+				retValue = retValue + lineID + " " + ": Quote Expiration Date should not be today's date.\n " ;
+			}
+			elif(comparedates(strtodate(quoteExpirationDate,"yyyy-MM-dd"),strtodate(currentdate,"yyyy-MM-dd" ) ) <> 1) {
+				retValue = retValue + lineID + " " + ": Quote Expiration Date should not be old date.\n " ;
+			}
+			
+		}
+		
+		if(len(vendorProductNumber) < 1) {
+			retValue = retValue + lineID + " " + ": Vendor Product Number is required.\n ";
+		}
+		
+		if(len(vendorProductDescription) < 1) {
+			retValue = retValue + lineID + " " + ": Vendor Product Description is required.\n ";
+		}
+		
+		if(quantity == "" OR quantity == "0" OR ISNULL(quantity)) {
+			retValue = retValue + lineID + " " + ": Quantity is required.\n ";
+		}
+		//START PS_Pricing add below code by Vasundhara for Unit Cost
+		unitCostInNumber = 0.0;
+		if(isnumber(unitCost)){
+			unitCostInNumber = atof(unitCost);
+		}
+        if(isnull(zeroCost)){
+			zeroCost = "false";
+		}
+		//END PS_Pricing add above code by Vasundhara for Unit Cost
+		
+		if((unitCostInNumber == 0.0 OR unitCostInNumber == 0.01) AND zeroCost == "false"){ // Updated condition for PS_Pricing by Vasundhara
+			retValue = retValue + lineID + " " + ": Unit Cost is required.\n ";
+		}
+		if(unitCostInNumber <> 0.0 AND unitCostInNumber <> 0.01 AND zeroCost == "true"){ // Updated condition for PS_Pricing by Vasundhara
+			retValue = retValue + lineID + " " + ": Zero Cost Allowed is Checked and amount entered is Greater than $0.01, either uncheck or revise cost to proceed.\n ";
+		}
+		if(vendorRequestNumberNonRicohtemp)	{
+			retValue = retValue + lineID + " " + ": Vendor Quote Request Number should be same as previous value.\n ";
+		}
+		
+		if(vendorQuoteRequestNameRicohtemp)	{
+			retValue = retValue + lineID + " " + ": Vendor Quote Request Name should be same as previous value.\n ";
+		}
+		
+		if(quoteExpirationDateRicohTemp)	{
+			retValue = retValue + lineID + " " + ": Quote Expiration Date should be same as previous value.\n ";
+		}
+		rs_c = bmql("SELECT custom_field1 FROM _parts WHERE part_number = $ricohEDPCode");
+        for s_c in rs_c{
+			if(get(s_c,"custom_field1") <> "Active" AND ricohEDPCode <> "MAP-GENERIC"){
+							retValue = retValue + lineID + " " + ": Selected Item is not active.\n ";
+			}
+		}
+	
+		rowNum = rowNum + 1;
+	}
+} else {
+	for arr1 in arraySize1 {
+		vendorRequestNumber = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"ricohVendorQuoteRequestNumber_SelectedItemsVQArray");
+		quoteRequestedBy= jsonget(json(jsonarrayget(itemsArray1 , arr1)),"quoteRequestedBy_SelectedItemsVQArray");
+		vendorRequestNumberNonRicoh = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"vendorQuoteRequestNumber_SelectedItemsVQArray");
+		vendorQuoteRequestName = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"vendorQuoteRequestName_SelectedItemsVQArray");
+		quoteExpirationDate = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"quoteExpirationDate_SelectedItemsVQArray");
+		vendorName = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"vendorName_SelectedItemsVQArray");
+		vendorEmail = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"vendorEmail_SelectedItemsVQArray");
+		itemType = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"itemType_SelectedItemsVQArray");
+		vendorProductNumber = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"vendorProductNumber_SelectedItemsVQArray");
+		vendorProductDescription = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"vendorProductDescription_SelectedItemsVQArray");
+		ricohEDPCode = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"ricohEDPCode_SelectedItemsVQArray");
+		ricohEDPCodeDescription = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"ricohEDPCodeDescription_SelectedItemsVQArray");
+		quantity = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"quantity_SelectedItemsVQArray");
+		unitCost = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"unitCost_SelectedItemsVQArray");
+		zeroCost = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"zeroCost_SelectedItemsVQArray");
+		unitMSRP = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"unitMSRP_SelectedItemsVQArray");
+		instructions = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"instructions_SelectedItemsVQArray_t_c");
+		approvalType = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"approvalType_SelectedItemsVQArray");
+		itemCreation = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"itemCreationFlag_SelectedItemsVQArray");
+		processGroup = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"processGroup_SelectedItemsVQArray");
+		portfolioFlag = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"portfolioFlag_SelectedItemsVQArray");
+		lineID = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"lineID_SelectedItemsVQArray");
+		statusValue = jsonget(json(jsonarrayget(itemsArray1 , arr1)),"status_SelectedItemsVQArray");
+		
+		if(len(vendorRequestNumberNonRicohtempval) == 0){
+			vendorRequestNumberNonRicohtempval = vendorRequestNumberNonRicoh;
+		}
+	    elif(vendorRequestNumberNonRicohtempval <> vendorRequestNumberNonRicoh) {
+		  	vendorRequestNumberNonRicohtemp = true;
+		}
+		else {
+			vendorRequestNumberNonRicohtempval = vendorRequestNumberNonRicoh;
+		}
+		
+		if(len(vendorQuoteRequestNameRicohtempval) == 0){
+			vendorQuoteRequestNameRicohtempval = vendorQuoteRequestName;
+		}
+	    elif(vendorQuoteRequestNameRicohtempval <> vendorQuoteRequestName) {
+		  	vendorQuoteRequestNameRicohtemp = true;
+		}
+		else {
+			vendorQuoteRequestNameRicohtempval = vendorQuoteRequestName;
+		}
+		
+		if(len(quoteExpirationDateRicohTempval) == 0){
+			quoteExpirationDateRicohTempval = quoteExpirationDate;
+		}
+	    elif(quoteExpirationDateRicohTempval <> quoteExpirationDate) {
+		  	quoteExpirationDateRicohTemp = true;
+		}
+		else {
+			quoteExpirationDateRicohTempval = quoteExpirationDate;
+		}
+
+		if(len(vendorRequestNumberNonRicoh) < 1) {
+			retValue = retValue + lineID + " " + ": Vendor Quote Request Number is required.\n " ;
+		}
+		
+		if(len(vendorQuoteRequestName) < 1) {
+			retValue = retValue + lineID + " " + ": Vendor Quote Request Name is required.\n ";
+		}
+		
+		if(len(quoteExpirationDate) < 1) {
+			retValue = retValue + lineID + " " + ": Quote Expiration Date is required.\n ";
+		}
+		
+		if(len(quoteExpirationDate) > 0) {
+		
+			if(comparedates(strtodate(quoteExpirationDate,"yyyy-MM-dd"),strtodate(currentdate,"yyyy-MM-dd" ) ) == 0) {
+				retValue = retValue + lineID + " " + ": Quote Expiration Date should not be today's date.\n " ;
+			}
+			elif(comparedates(strtodate(quoteExpirationDate,"yyyy-MM-dd"),strtodate(currentdate,"yyyy-MM-dd" ) ) <> 1) {
+				retValue = retValue + lineID + " " + ": Quote Expiration Date should not be old date.\n " ;
+			}
+		}
+		
+		if(len(vendorProductNumber) < 1) {
+			retValue = retValue + lineID + " " + ": Vendor Product Number is required.\n ";
+		}
+		
+		if(len(vendorProductDescription) < 1) {
+			retValue = retValue + lineID + " " + ": Vendor Product Description is required.\n ";
+		}
+		
+		if(quantity == "" OR quantity == "0" OR ISNULL(quantity)) {
+			retValue = retValue + lineID + " " + ": Quantity is required.\n ";
+		}
+		//START PS_Pricing add below code by Vasundhara for Unit Cost
+		unitCostInNumber = 0.0;
+		if(isnumber(unitCost)){
+			unitCostInNumber = atof(unitCost);
+		}
+        if(isnull(zeroCost)){
+			zeroCost = "false";
+		}
+		//END PS_Pricing add above code by Vasundhara for Unit Cost
+		if((unitCostInNumber == 0.0 OR unitCostInNumber == 0.01) AND zeroCost == "false"){ // Updated condition for PS_Pricing by Vasundhara
+			retValue = retValue + lineID + " " + ": Unit Cost is required.\n ";
+		}
+		if(unitCostInNumber <> 0.0 AND unitCostInNumber <> 0.01 AND zeroCost == "true"){ // Updated condition for PS_Pricing by Vasundhara
+			retValue = retValue + lineID + " " + ": Zero Cost Allowed is Checked and amount entered is Greater than $0.01, either uncheck or revise cost to proceed.\n ";
+		}
+		if(vendorRequestNumberNonRicohtemp)	{
+			retValue = retValue + lineID + " " + ": Vendor Quote Request Number should be same as previous value.\n ";
+		}
+		
+		if(vendorQuoteRequestNameRicohtemp)	{
+			retValue = retValue + lineID + " " + ": Vendor Quote Request Name should be same as previous value.\n ";
+		}
+		
+		if(quoteExpirationDateRicohTemp) {
+			retValue = retValue + lineID + " " + ": Quote Expiration Date should be same as previous value.\n ";
+		}
+		
+		rs_c = bmql("SELECT custom_field1 FROM _parts WHERE part_number = $ricohEDPCode");
+        for s_c in rs_c{
+			if(get(s_c,"custom_field1") <> "Active" AND ricohEDPCode <> "MAP-GENERIC"){
+							retValue = retValue +"Line Number#"+ lineID + "-" + "item is  inactive – please confirm with Vendor\n ";
+			}
+		}
+		//Setting flags for Release 2, In Release 2 remove below codePointAt
+		vendorRequestNumberNonRicohtemp = false;
+		vendorQuoteRequestNameRicohtemp = false;
+		quoteExpirationDateRicohTemp = false;
+		
+		rowNum1 = rowNum1+ 1;
+	}
+}
+print retValue ;
+return retValue;

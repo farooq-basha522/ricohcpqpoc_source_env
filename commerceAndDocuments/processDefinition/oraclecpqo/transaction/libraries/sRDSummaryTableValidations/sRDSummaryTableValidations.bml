@@ -1,0 +1,223 @@
+selectedItemsJSON = json();
+itemsArray = jsonarray();
+vendorArray = jsonarray();
+selectedItemsJSONArray = selectedItemsArray;
+selectedItemsArrayIndex = range(jsonarraysize(selectedItemsJSONArray));
+srdDataString = json();
+jsonput(srdDataString ,"sRDTableEditValidationItemArray_t",sRDTableEditValidationItemArray_t);
+srdDataStringJSON = jsonget(srdDataString ,"sRDTableEditValidationItemArray_t");
+
+actionName = get(inputDict,"action");
+selectedItemsFlag = false;
+finalString = "";
+itemF=false;
+itemC=0;
+itemV=0;
+editFlag = "false";
+conditioncheck = "false";
+if(vendorQuoteRequestNumberField_VQt <> ""){
+srdDataString = json();
+jsonput(srdDataString ,"sRDTableEditValidationVQArray_t",sRDTableEditValidationVQArray_t);
+srdDataStringJSON = jsonget(srdDataString ,"sRDTableEditValidationVQArray_t");
+selectedItemsJSONArray = selectedItemsBasedOnVendorQuoteNumberArray;
+selectedItemsArrayIndex = range(jsonarraysize(selectedItemsJSONArray));
+selectedItemsFlag = true;
+}
+
+statusArray = "";
+selectArray = "";
+for each in selectedItemsArrayIndex{
+searchResultRow = jsonarrayget(selectedItemsJSONArray,each);
+searchResultJson = json(searchResultRow);
+if(NOT selectedItemsFlag){
+	
+	
+	lineID = jsonget(searchResultJson,"lineID_selecteditemArray");
+	vendorRequestNumber_NonRicoh_selectedItemsArray = jsonget(searchResultJson,"vendorRequestNumber_NonRicoh_selectedItemsArray");
+	quoteExpirationDate_selectedItemsArray = jsonget(searchResultJson,"quoteExpirationDate_selectedItemsArray");
+	vendorProductNumber_selectedItemsArray = jsonget(searchResultJson,"vendorProductNumber_selectedItemsArray");
+	vendorProductDescription_selectedItemsArray = jsonget(searchResultJson,"vendorProductDescription_selectedItemsArray");
+	quantity_selectedItemsArray = jsonget(searchResultJson,"quantity_selectedItemsArray");
+	unitCost_selectedItemsArray = jsonget(searchResultJson,"unitCost_selectedItemsArray");
+	unitMSRP_selectedItemsArray = jsonget(searchResultJson,"unitMSRP_selectedItemsArray");
+	vendorQuoteRequestName_selectedItemsArray = jsonget(searchResultJson,"vendorQuoteRequestName_selectedItemsArray");
+	instructions_selectedItemsArray_t_c = jsonget(searchResultJson,"instructions_selectedItemsArray_t_c");
+	zeroCost_selectedItemsArray = jsonget(searchResultJson,"zeroCost_selectedItemsArray");
+	//statusArray = jsonget(searchResultJson,"status_SelectedItemsVQArray");
+	statusArray = jsonget(searchResultJson,"status_selectedItemsArray");
+
+	 
+	vendorRequestNumber_NonRicoh_selectedItemsArray_original = jsonget(searchResultJson,"vendorRequestNumber_NonRicoh_selectedItemsArray");
+		quoteExpirationDate_selectedItemsArray_original = jsonget(searchResultJson,"quoteExpirationDate_selectedItemsArray");
+		vendorProductNumber_SelectedItemsVQArray_original = jsonget(searchResultJson,"vendorProductNumber_selectedItemsArray");
+	vendorProductDescription_SelectedItemsVQArray_original = jsonget(searchResultJson,"vendorProductDescription_selectedItemsArray");
+		quantity_SelectedItemsVQArray_original = jsonget(searchResultJson,"quantity_selectedItemsArray");
+		unitCost_SelectedItemsVQArray_original = jsonget(searchResultJson,"unitCost_selectedItemsArray");
+			unitMSRP_SelectedItemsVQArray_original = jsonget(searchResultJson,"unitMSRP_selectedItemsArray");
+			vendorQuoteRequestName_selectedItemsArray_original = jsonget(searchResultJson,"vendorQuoteRequestName_selectedItemsArray");
+			instructions_selectedItemsArray_t_c_original = jsonget(searchResultJson,"instructions_selectedItemsArray_t_c");
+			//Added by Nupur for PS pricing changes 8/29/2023
+			zeroCost_selectedItemsArray_original = jsonget(searchResultJson,"zeroCost_selectedItemsArray");
+
+
+if(NOT ISNULL(jsonget(json(srdDataStringJSON),lineID))  AND NOT ISNULL(statusArray) AND statusArray <> "" AND  statusArray <> "Submitted to Vendor "){
+	vq_RecordWiseData = json(jsonget(json(srdDataStringJSON),lineID));
+	testAr = jsonkeys(vq_RecordWiseData);
+	for t_k in testAr {
+		if(NOT ISNULL(jsonget(vq_RecordWiseData,"vendorRequestNumber_NonRicoh_selectedItemsArray")) AND t_k == "vendorRequestNumber_NonRicoh_selectedItemsArray" AND jsonget(vq_RecordWiseData,"vendorRequestNumber_NonRicoh_selectedItemsArray") <> vendorRequestNumber_NonRicoh_selectedItemsArray_original){
+			editFlag = "true";
+		}
+		if(instructions_selectedItemsArray_t_c_original <> "null"){
+			print instructions_selectedItemsArray_t_c_original;
+		}
+		
+		if(((NOT ISNULL(jsonget(vq_RecordWiseData,"instructions_selectedItemsArray_t_c")) AND NOT ISNULL(instructions_selectedItemsArray_t_c_original)) AND t_k == "instructions_selectedItemsArray_t_c" AND jsonget(vq_RecordWiseData,"instructions_selectedItemsArray_t_c") <> instructions_selectedItemsArray_t_c_original)){
+			editFlag = "true";
+
+		}
+		if(((NOT ISNULL(jsonget(vq_RecordWiseData,"zeroCost_selectedItemsArray")) AND NOT ISNULL(zeroCost_selectedItemsArray_original)) AND t_k == "zeroCost_selectedItemsArray" AND jsonget(vq_RecordWiseData,"zeroCost_selectedItemsArray") <> zeroCost_selectedItemsArray_original)){
+			editFlag = "true";
+
+		}
+		if(NOT ISNULL(vendorQuoteRequestName_selectedItemsArray_original) AND NOT ISNULL(jsonget(vq_RecordWiseData,"vendorQuoteRequestName_selectedItemsArray")) AND t_k == "vendorQuoteRequestName_selectedItemsArray" AND jsonget(vq_RecordWiseData,"vendorQuoteRequestName_selectedItemsArray") <> vendorQuoteRequestName_selectedItemsArray_original){
+			editFlag = "true";
+
+		}
+		if(NOT ISNULL(quoteExpirationDate_selectedItemsArray_original) AND NOT ISNULL(jsonget(vq_RecordWiseData,"quoteExpirationDate_selectedItemsArray")) AND t_k == "quoteExpirationDate_selectedItemsArray" AND jsonget(vq_RecordWiseData,"quoteExpirationDate_selectedItemsArray") <> quoteExpirationDate_selectedItemsArray_original){
+			editFlag = "true";
+
+		}
+		if(NOT ISNULL(vendorProductDescription_SelectedItemsVQArray_original) AND NOT ISNULL(jsonget(vq_RecordWiseData,"vendorProductDescription_selectedItemsArray")) AND t_k == "vendorProductDescription_selectedItemsArray" AND jsonget(vq_RecordWiseData,"vendorProductDescription_selectedItemsArray") <> vendorProductDescription_SelectedItemsVQArray_original){
+			editFlag = "true";
+
+		}
+		if(NOT ISNULL(vendorProductNumber_SelectedItemsVQArray_original) AND NOT ISNULL(jsonget(vq_RecordWiseData,"vendorProductNumber_selectedItemsArray")) AND t_k == "vendorProductNumber_selectedItemsArray" AND jsonget(vq_RecordWiseData,"vendorProductNumber_selectedItemsArray") <> vendorProductNumber_SelectedItemsVQArray_original){
+			editFlag = "true";
+
+		}
+		if(NOT ISNULL(unitCost_SelectedItemsVQArray_original) AND NOT ISNULL(jsonget(vq_RecordWiseData,"unitCost_selectedItemsArray")) AND t_k == "unitCost_selectedItemsArray" AND jsonget(vq_RecordWiseData,"unitCost_selectedItemsArray") <> unitCost_SelectedItemsVQArray_original){
+			editFlag = "true";
+
+		}
+		if(NOT ISNULL(unitMSRP_SelectedItemsVQArray_original) AND NOT ISNULL(jsonget(vq_RecordWiseData,"unitMSRP_selectedItemsArray")) AND t_k == "unitMSRP_selectedItemsArray" AND jsonget(vq_RecordWiseData,"unitMSRP_selectedItemsArray") <> unitMSRP_SelectedItemsVQArray_original){
+			editFlag = "true";
+		}
+		if(NOT ISNULL(quantity_SelectedItemsVQArray_original) AND NOT ISNULL(jsonget(vq_RecordWiseData,"quantity_selectedItemsArray")) AND t_k == "quantity_selectedItemsArray" AND jsonget(vq_RecordWiseData,"quantity_selectedItemsArray") <> quantity_SelectedItemsVQArray_original){
+			editFlag = "true";
+		}
+		
+	}
+	
+	}
+	
+
+
+
+	
+
+	statusArray = jsonget(searchResultJson,"status_selectedItemsArray");
+	selectArray = jsonget(searchResultJson,"select_selecteditemArray");	
+
+	if(NOT ISNULL(selectArray) AND selectArray == "true" AND NOT ISNULL(statusArray) AND find(lower(statusArray ),"submitted to vendor")==-1) {
+			conditioncheck  = "true";
+			}
+			
+			
+
+}else{
+
+
+
+	lineID = jsonget(searchResultJson,"lineID_SelectedItemsVQArray");
+	vendorQuoteRequestNumber_SelectedItemsVQArray = jsonget(searchResultJson,"vendorQuoteRequestNumber_SelectedItemsVQArray");
+	quoteExpirationDate_SelectedItemsVQArray = jsonget(searchResultJson,"quoteExpirationDate_SelectedItemsVQArray");
+	vendorProductNumber_SelectedItemsVQArray = jsonget(searchResultJson,"vendorProductNumber_SelectedItemsVQArray");
+	vendorProductDescription_SelectedItemsVQArray = jsonget(searchResultJson,"vendorProductDescription_SelectedItemsVQArray");
+	quantity_SelectedItemsVQArray = jsonget(searchResultJson,"quantity_SelectedItemsVQArray");
+	unitCost_SelectedItemsVQArray = jsonget(searchResultJson,"unitCost_SelectedItemsVQArray");
+	unitMSRP_SelectedItemsVQArray = jsonget(searchResultJson,"unitMSRP_SelectedItemsVQArray");
+	vendorQuoteRequestName_SelectedItemsVQArray = jsonget(searchResultJson,"vendorQuoteRequestName_SelectedItemsVQArray");
+	statusArray = jsonget(searchResultJson,"status_SelectedItemsVQArray");
+	instructions_SelectedItemsVQArray_t_c = jsonget(searchResultJson,"instructions_SelectedItemsVQArray_t_c");
+	zeroCost_SelectedItemsVQArray = jsonget(searchResultJson,"zeroCost_SelectedItemsVQArray");
+	
+	vendorQuoteRequestNumber_SelectedItemsVQArray_original = jsonget(searchResultJson,"vendorQuoteRequestNumber_SelectedItemsVQArray");
+		quoteExpirationDate_SelectedItemsVQArray_original = jsonget(searchResultJson,"quoteExpirationDate_SelectedItemsVQArray");
+		vendorProductNumber_SelectedItemsVQArray_original = jsonget(searchResultJson,"vendorProductNumber_SelectedItemsVQArray");
+	vendorProductDescription_SelectedItemsVQArray_original = jsonget(searchResultJson,"vendorProductDescription_SelectedItemsVQArray");
+		quantity_SelectedItemsVQArray_original = jsonget(searchResultJson,"quantity_SelectedItemsVQArray");
+		unitCost_SelectedItemsVQArray_original = jsonget(searchResultJson,"unitCost_SelectedItemsVQArray");
+			unitMSRP_SelectedItemsVQArray_original = jsonget(searchResultJson,"unitMSRP_SelectedItemsVQArray");
+vendorQuoteRequestName_SelectedItemsVQArray_original = jsonget(searchResultJson,"vendorQuoteRequestName_SelectedItemsVQArray");
+instructions_SelectedItemsVQArray_t_c_original = jsonget(searchResultJson,"instructions_SelectedItemsVQArray_t_c");
+//Added by Nupur for PS pricing changes 8/29/2023
+zeroCost_SelectedItemsVQArray_original = jsonget(searchResultJson,"zeroCost_SelectedItemsVQArray");
+
+
+
+
+
+
+	if(NOT ISNULL(jsonget(json(srdDataStringJSON),lineID)) AND NOT ISNULL(statusArray) AND statusArray <> "" AND  statusArray <> "Submitted to Vendor"){
+	vq_RecordWiseData = json(jsonget(json(srdDataStringJSON),lineID));
+	testAr = jsonkeys(vq_RecordWiseData);
+	for t_k in testAr {
+		if(NOT ISNULL(vendorQuoteRequestNumber_SelectedItemsVQArray_original) AND NOT ISNULL(jsonget(vq_RecordWiseData,"vendorQuoteRequestNumber_SelectedItemsVQArray")) AND t_k == "vendorQuoteRequestNumber_SelectedItemsVQArray" AND jsonget(vq_RecordWiseData,"vendorQuoteRequestNumber_SelectedItemsVQArray") <> vendorQuoteRequestNumber_SelectedItemsVQArray_original OR (NOT ISNULL(vendorQuoteRequestNumber_SelectedItemsVQArray_original) AND vendorQuoteRequestNumber_SelectedItemsVQArray_original <> "" AND ISNULL(jsonget(vq_RecordWiseData,"vendorQuoteRequestNumber_SelectedItemsVQArray")))){
+			editFlag = "true";
+
+		}
+		if(NOT ISNULL(instructions_SelectedItemsVQArray_t_c_original) AND  NOT ISNULL(jsonget(vq_RecordWiseData,"instructions_SelectedItemsVQArray_t_c")) AND t_k == "instructions_SelectedItemsVQArray_t_c" AND jsonget(vq_RecordWiseData,"instructions_SelectedItemsVQArray_t_c") <> instructions_SelectedItemsVQArray_t_c_original OR (NOT ISNULL(instructions_SelectedItemsVQArray_t_c_original) AND instructions_SelectedItemsVQArray_t_c_original <> "" AND ISNULL(jsonget(vq_RecordWiseData,"instructions_SelectedItemsVQArray_t_c")))){
+			editFlag = "true";
+
+		}
+		if(NOT ISNULL(zeroCost_SelectedItemsVQArray_original) AND  NOT ISNULL(jsonget(vq_RecordWiseData,"zeroCost_SelectedItemsVQArray")) AND t_k == "zeroCost_SelectedItemsVQArray" AND jsonget(vq_RecordWiseData,"zeroCost_SelectedItemsVQArray") <> zeroCost_SelectedItemsVQArray_original OR (NOT ISNULL(zeroCost_SelectedItemsVQArray_original) AND zeroCost_SelectedItemsVQArray_original <> "" AND ISNULL(jsonget(vq_RecordWiseData,"instructions_SelectedItemsVQArray_t_c")))){
+			editFlag = "true";
+
+		}
+		if(NOT ISNULL(vendorQuoteRequestName_SelectedItemsVQArray_original) AND  NOT ISNULL(jsonget(vq_RecordWiseData,"vendorQuoteRequestName_SelectedItemsVQArray")) AND t_k == "vendorQuoteRequestName_SelectedItemsVQArray" AND jsonget(vq_RecordWiseData,"vendorQuoteRequestName_SelectedItemsVQArray") <> vendorQuoteRequestName_SelectedItemsVQArray_original){
+			editFlag = "true";
+
+		}
+		if(NOT ISNULL(quoteExpirationDate_SelectedItemsVQArray_original) AND  NOT ISNULL(jsonget(vq_RecordWiseData,"quoteExpirationDate_SelectedItemsVQArray")) AND t_k == "quoteExpirationDate_SelectedItemsVQArray" AND jsonget(vq_RecordWiseData,"quoteExpirationDate_SelectedItemsVQArray") <> quoteExpirationDate_SelectedItemsVQArray_original
+		OR (NOT ISNULL(quoteExpirationDate_SelectedItemsVQArray_original) AND quoteExpirationDate_SelectedItemsVQArray_original <> "" AND ISNULL(jsonget(vq_RecordWiseData,"quoteExpirationDate_SelectedItemsVQArray")))){
+			editFlag = "true";
+
+		}
+		if(NOT ISNULL(vendorProductNumber_SelectedItemsVQArray_original) AND  NOT ISNULL(jsonget(vq_RecordWiseData,"vendorProductNumber_SelectedItemsVQArray")) AND t_k == "vendorProductNumber_SelectedItemsVQArray" AND jsonget(vq_RecordWiseData,"vendorProductNumber_SelectedItemsVQArray") <> vendorProductNumber_SelectedItemsVQArray_original OR (NOT ISNULL(vendorProductNumber_SelectedItemsVQArray_original) AND vendorProductNumber_SelectedItemsVQArray_original <> "" AND ISNULL(jsonget(vq_RecordWiseData,"vendorProductNumber_SelectedItemsVQArray")))){
+			editFlag = "true";
+
+		} 
+		if(NOT ISNULL(vendorProductDescription_SelectedItemsVQArray_original) AND  NOT ISNULL(jsonget(vq_RecordWiseData,"vendorProductDescription_SelectedItemsVQArray")) AND t_k == "vendorProductDescription_SelectedItemsVQArray" AND jsonget(vq_RecordWiseData,"vendorProductDescription_SelectedItemsVQArray" ) <> vendorProductDescription_SelectedItemsVQArray_original OR (NOT ISNULL(vendorProductDescription_SelectedItemsVQArray_original) AND vendorProductDescription_SelectedItemsVQArray_original <> "" AND ISNULL(jsonget(vq_RecordWiseData,"vendorProductDescription_SelectedItemsVQArray")))){
+			editFlag = "true";
+
+		} 
+		if(NOT ISNULL(unitCost_SelectedItemsVQArray_original) AND  NOT ISNULL(jsonget(vq_RecordWiseData,"unitCost_SelectedItemsVQArray")) AND t_k == "unitCost_SelectedItemsVQArray" AND jsonget(vq_RecordWiseData,"unitCost_SelectedItemsVQArray") <> unitCost_SelectedItemsVQArray_original){
+			editFlag = "true";
+
+		}
+		if(NOT ISNULL(quantity_SelectedItemsVQArray_original) AND  NOT ISNULL(jsonget(vq_RecordWiseData,"quantity_SelectedItemsVQArray")) AND t_k == "quantity_SelectedItemsVQArray" AND jsonget(vq_RecordWiseData,"quantity_SelectedItemsVQArray") <> quantity_SelectedItemsVQArray_original){
+			editFlag = "true";
+
+		}
+		if(NOT ISNULL(unitMSRP_SelectedItemsVQArray_original) AND  NOT ISNULL(jsonget(vq_RecordWiseData,"unitMSRP_SelectedItemsVQArray")) AND t_k == "unitMSRP_SelectedItemsVQArray" AND jsonget(vq_RecordWiseData,"unitMSRP_SelectedItemsVQArray") <> unitMSRP_SelectedItemsVQArray_original){
+			editFlag = "true";
+		}
+		
+	}
+	
+	}
+	
+	    
+		statusArray = jsonget(searchResultJson,"status_SelectedItemsVQArray");
+		selectArray = jsonget(searchResultJson,"select_SelectedItemsVQArray");	
+	if(NOT ISNULL(selectArray) AND selectArray == "true" AND NOT ISNULL(statusArray) AND find(lower(statusArray),"submitted to vendor") ==-1) {
+			conditioncheck  = "true";
+			}
+
+}
+}
+if(actionName == "SRD_Delete"){
+	return conditioncheck;
+}
+
+	return editFlag;

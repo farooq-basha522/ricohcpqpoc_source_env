@@ -1,0 +1,428 @@
+//*****************************************************************************************************
+//** Function:    Line Item Sequencing and Association
+//** Type:        Function called on configuration, reconfiguration, and generate output doc
+//**
+//** Description: Sequences Line Items and adds additional flags as necessary for output doc headers.
+//**                                                                                               
+//** History:	Date		Author     	Comment
+//**			01.24.17	RConaghan	Initial Implementation
+//*****************************************************************************************************
+x=getcurrenttimeinmillis();
+//----Declaration
+ret			= "";
+partNum 		= ""; 
+lineCommentNameValDelim = "@@";
+lineCommentPairDelim = "##";
+defaultProductGroupingName = "Additional Products"; //Used if the new productGroupingOutputDoc_l field is blank
+detailedSummaryGroupMethod = detailedPricingSummary_t;
+
+//Doc Designer priintout
+locationHasMRRPartsDict = dict("boolean"); //boolean dict with key of locId and value of true/false
+locationHasINSTALLPartsDict = dict("boolean"); //boolean dict with key of locId and value of true/false
+locationHasEQUIPPartsDict = dict("boolean"); //boolean dict with key of locId and value of true/false
+locationHasPROSERVPartsDict = dict("boolean"); //boolean dict with key of locId and value of true/false
+locationHasOTHERPartsDict = dict("boolean"); //boolean dict with key of locId and value of true/false
+
+firstItemInGroupMRRDict = dict("string"); //string dict with key of group name or location + group name and value of sequence number
+firstItemInGroupINSTALLDict = dict("string"); //string dict with key of group name or location + group name and value of sequence number
+firstItemInGroupEQUIPDict = dict("string"); //string dict with key of group name or location + group name and value of sequence number
+firstItemInGroupPROSERVDict = dict("string"); //string dict with key of group name or location + group name and value of sequence number
+firstItemInGroupOTHERDict = dict("string"); //string dict with key of group name or location + group name and value of sequence number
+
+customSeqFirstSeqOnLocAndTypeDict = dict("string"); //key = "prefix" with location id rather than name (for dupe purposes). Value = doc num. DEPRECATE
+customSeqLastSeqOnLocAndTypeDict = dict("string"); //key = "prefix" with location id rather than name (for dupe purposes). Value = doc num. DEPRECATE
+firstSeqForProductGroupingDict = dict("string");
+lastSeqForProductGroupingDict = dict("string");
+
+firstSeqOfLocationDict = dict("string"); //key = location id, value = sequence num
+
+mrrModelDocNumList 	= string[]; //Array of models that have at least one part
+sequenceNumInc		= 0;
+sequenceNumArr		= string[];
+uniqueLocArray = string[]; //string array of locations, used to group parts by location
+uniqueGroupArray = string[]; //string array of unique Product Groups found on the quote
+docNumToSeqNumDict = dict("string"); //key = document number. value = sequence number
+modelLastSeqNumDict = dict("string"); //key = model/standalone part doc num. value = final doc num under that model.
+docNumToPrefixDict = dict("string"); //key = document number, value = "prefix" portion of custom sequencing
+docNumToSuffixDict = dict("string"); //key = document number, value = "suffix" portion of custom sequencing
+parentChildSuffixDict = dict("integer"); //key = the "parentId" of a parent part. Value is that part's custom sequence suffix
+extraInputsDict = dict("string"); //Dictionary passed into decodeNameValuePairs util.
+	put(extraInputsDict, "nameValDelim", lineCommentNameValDelim);
+	put(extraInputsDict, "pairDelim", lineCommentPairDelim);
+customGroupOrderArr = string[]; //Array that contains a list of all groups not contained in the Prod_Group_Ordering table. Constantly resorted alphabetically
+docNumToParentIdDict = dict("string"); //key = document #, value = parentId for sequencing
+docNumToLineIDDict = dict("string"); //key = document #, value = lineId for sequencing
+docNumToCommentIdDict = dict("string"); //key = document #, Value = a user-facing comment
+parentIdGroupDict = dict("string"); //key = parentID from custom sequencing, value = group name
+//----End of Declaration
+
+//Initialize and Populate Part Type Sorting Dictionary for sequencing
+partTypeNumDict = dict("string");
+put(partTypeNumDict, "MRR", "01");
+put(partTypeNumDict, "EQUIP", "02");
+put(partTypeNumDict, "PROSERV", "03");
+put(partTypeNumDict, "INSTALL", "03"); //Changed to allow Proserv and Install to combine under one header in the output doc
+
+//Initialize and Populate Product GROUP sorting dict for custom sequencing
+partGroupNumDict = dict("integer");
+groupSet = bmql("SELECT Prod_Group, Order FROM Prod_Group_Ordering");
+for group in groupSet{
+	put(partGroupNumDict, get(group, "Prod_Group"), getint(group, "Order"));
+}
+
+partNumberArray=string[];
+//Mini line line loop - necessary to get a list of all the unique product groupings on the quote and to identify parent/child items
+for line in transactionLine{
+	customGroupName = line.productGroupingOutputDoc_l;
+	partNum = line._part_number;
+	docNum = line._document_number;
+	parentDocNum = line._parent_doc_number;
+	customGroupName = line.productGroupingOutputDoc_l;
+	customSeqSuffix = line.customSequenceSuffix_l;
+
+	if((NOT containskey(partGroupNumDict, customGroupName)) AND findinarray(customGroupOrderArr, customGroupName) == -1){
+		append(customGroupOrderArr, customGroupName);
+		sort(customGroupOrderArr, "asc", "text");
+	}
+	
+	if(partNum <> "" AND line._line_item_comment <> "" AND lower(line._line_item_comment) <> "system recommended item"){ //if a part from a model
+		normalizedParentDocNum3 = util.normalizeStringToXDigits(parentDocNum, 3, "0", "PREPEND"); //normalized to length=3
+
+		commentDict = util.decodeNameValuePairs(line._line_item_comment, extraInputsDict);
+		parentId = util.safeGetString(commentDict, "ParentId"); //IDs for all lines will be parent document number (normalized to 3 places) + id from LIC
+		
+		if(parentId <> ""){
+			parentId = util.normalizeStringToXDigits(parentId, 3, "0", "PREPEND"); //normalized to length=3
+			parentId = normalizedParentDocNum3 + parentId; //NOTE - this is not the sequence-ready number
+		}
+		lineIdFromCfg = util.safeGetString(commentDict, "ID");
+		normalizedLineIdFromCfg = util.normalizeStringToXDigits(lineIdFromCfg, 3, "0", "PREPEND"); //normalized to length=3
+		lineId = normalizedParentDocNum3 + normalizedLineIdFromCfg; //NOTE - this is not the sequence-ready number
+		lineComment = util.safeGetString(commentDict, "comments");
+
+		put(docNumToParentIdDict, docNum, parentId);
+		put(docNumToLineIDDict, docNum, lineId); //both parent & children go to this dict
+		put(docNumToCommentIdDict, docNum, lineComment);
+		
+		if(parentId <> "" AND parentId == lineId){
+			put(parentIdGroupDict, parentId, customGroupName);
+			put(parentChildSuffixDict, parentId, customSeqSuffix);
+		}
+	}
+	if(partNum <> ""){
+		append(partNumberArray,partNum);	
+	}
+}
+partCustomFieldDict = util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+//Re-Write here to make sense
+sequenceIndex = 0;
+for line in transactionLine{
+	docNum = line._document_number;
+	parentDocNum = line._parent_doc_number;
+	locId = line.locationID_l;
+	locName = line.locationName_l;
+	partNum = line._part_number;
+	partType = line._part_custom_field9;
+	if(containskey(partCustomFieldDict,partNum+"custom_field9")) {
+		partType = get(partCustomFieldDict,partNum+"custom_field9");
+	}
+	if(partType == "INSTALL"){ //Requirement July 2018 to combine install and proserv in one header on output.
+		partType = "PROSERV";
+	}
+	customGroupName = line.productGroupingOutputDoc_l;
+	unitMRR = line.finalListUnitPrice_l;
+	unitNRR = line.finalListUnitPriceNRR_l;
+	netMRR = line.netPrice_l;
+	netNRR = line.netPriceNRR_l;
+	normalizedParentDocNum3 = util.normalizeStringToXDigits(parentDocNum, 3, "0", "PREPEND"); //normalized to length=3
+	normalizedDocNum3 = util.normalizeStringToXDigits(docNum, 3, "0", "PREPEND"); //normalized to length=3
+	sequenceNum = "";
+	customSeqPrefixDisplay = ""; //actual display of the prefix on the UI
+	customSeqSuffix = line.customSequenceSuffix_l;
+	isChildPart = false;
+	isParentPart = false;
+	locCountStr = "99"; //used in sequencing - Default, if location is null
+	partTypeNum = "00"; //used in sequencing - Default - models get this
+	parentId = "";
+	lineId = "";
+	lineComment = "";
+	groupCountNum = 0; //used to help sort out product groups that are not in, or not ordered in the Prod_Group_Ordering table
+
+	// *************BEGIN PARENT-CHILD LOGIC************ //
+		//USAGE IN THIS IF: Get Parent & Line ID if applicable by parsing through LIC
+	if(partNum <> "" AND line._line_item_comment <> "" AND lower(line._line_item_comment) <> "system recommended item"){		
+		parentId = util.safeGetString(docNumToParentIdDict, docNum);
+		lineId = util.safeGetString(docNumToLineIDDict, docNum);
+		lineComment = util.safeGetString(docNumToCommentIdDict, docNum);
+		if(parentId <> "" AND lineId <> parentId){
+			isChildPart = true;
+			customGroupName = get(parentIdGroupDict, parentId);
+		}
+	}	
+	
+	//added 03/16/2020 to fix the parent/child line numbers being sent to RISE
+	if (partType == "EQUIP") {
+		lineId = "";
+		parentId = "";
+		lineComment = "";
+	}
+		
+	//Write to output where possible
+	ret = ret
+	+ docNum + "~lineNumber_l~" + lineId + "|"
+	+ docNum + "~parentLineNumber_l~" + parentId + "|"
+	+ docNum + "~lineItemCustomComment_l~" + lineComment + "|"
+	;
+	// *************END PARENT-CHILD LOGIC************ //
+	// *********BEGIN SEQUENCING LOGIC**************** //	
+		//Location Count
+	if(locId <> ""){
+		locCount = findinarray(uniqueLocArray, locId);
+		if(locCount == -1){
+				locCount = append(uniqueLocArray, locId) - 1;
+		}
+
+		locCountStr = util.normalizeStringToXDigits(string(locCount), 2, "0", "PREPEND");
+	}
+	
+	if(customGroupName == ""){
+		customGroupName = defaultProductGroupingName;
+	}
+	if(customGroupName <> ""){
+		tmp = findinarray(uniqueGroupArray, customGroupName) + 1;
+		if(tmp == 0){
+			tmp = append(uniqueGroupArray, customGroupName);
+		}
+		groupCountNum = tmp;
+	}
+		
+		//Part Type Map
+	if(partNum <> ""){ 	
+		partTypeNum = util.safeGetString(partTypeNumDict, partType);
+		if(partTypeNum == ""){
+			partTypeNum = "99";
+		}
+	}
+		//Normalize parentId and Id to length = 9
+	normalizedParentId6 = util.normalizeStringToXDigits(parentId, 6, "0", "PREPEND");	
+	normalizedLineId6 = "000000"; //default, if parent id == line id
+	if(parentId <> lineId){
+		normalizedLineId9 = util.normalizeStringToXDigits(lineId, 6, "0", "PREPEND");
+	}
+
+	
+	normalizedGroupOrderNum = "99"; 
+	customGroupNum = "00";
+	
+	if(containskey(partGroupNumDict, customGroupName)){
+		groupOrderNum = string(get(partGroupNumDict, customGroupName));
+		normalizedGroupOrderNum = util.normalizeStringToXDigits(groupOrderNum, 2, "0", "PREPEND");
+	}
+	else{
+		if(customGroupName == defaultProductGroupingName){
+			customGroupNum = "99"; //Additional Products is always Last
+		}
+		else{
+			customGroupNum = util.normalizeStringToXDigits(string(findinarray(customGroupOrderArr, customGroupName)), 2, "0", "PREPEND");
+		}
+	}
+	normalizedGroupOrderNum = util.normalizeStringToXDigits(normalizedGroupOrderNum + customGroupNum, 4, "0", "PREPEND");
+	
+	if(isChildPart){ //child parts get same suffix # and group order num as parent
+		if(containskey(parentChildSuffixDict, parentId)){
+			customSeqSuffix = get(parentChildSuffixDict, parentId);
+		}
+	}
+	
+	normalizedCustomSeqSuffix = util.normalizeStringToXDigits(string(customSeqSuffix), 3, "0", "PREPEND");
+	
+	sequenceNum = partTypeNum + normalizedGroupOrderNum + normalizedCustomSeqSuffix + normalizedParentId6 + normalizedLineId6 + normalizedDocNum3; //default if detailedSummaryGroupMethod is "productGroupOnly" or blank
+	
+	customSeqPrefixDisplay = partType + "_" + customGroupName; //default if detailedSummaryGroupMethod is "productGroupOnly" or blank
+	if(detailedSummaryGroupMethod == "locationAndGroup"){
+		sequenceNum = locCountStr + sequenceNum;
+		customSeqPrefixDisplay = substring(locName, 0, 3) + "_" + customSeqPrefixDisplay;
+	}
+
+	
+	//****First Part of Location + Product Type Combo Logic*****//
+	customSeqLocAndType = locId + "_" + partType; 
+	curLowestSeqNum = util.safeGetString(customSeqFirstSeqOnLocAndTypeDict, customSeqLocAndType);
+	curHighestSeqNum = util.safeGetString(customSeqLastSeqOnLocAndTypeDict, customSeqLocAndType);	
+	if(curLowestSeqNum == "" OR sequenceNum < curLowestSeqNum){
+		put(customSeqFirstSeqOnLocAndTypeDict, customSeqLocAndType, sequenceNum);
+	}
+	if(curHighestSeqNum == "" OR sequenceNum > curHighestSeqNum){
+		put(customSeqLastSeqOnLocAndTypeDict, customSeqLocAndType, sequenceNum);
+	}
+	if(partNum <> "" AND (partType <> "INSTALL" OR (partType == "INSTALL" AND netNRR <> 0))){
+		productGroupingKey = partType + customGroupName; //default if detailedSummaryGroupMethod is "productGroupOnly" or blank 
+		if(detailedSummaryGroupMethod == "locationAndGroup"){
+			productGroupingKey = partType + "_" + locId + "_" + customGroupName;
+		}
+		curLowestSeqNum = util.safeGetString(firstSeqForProductGroupingDict, productGroupingKey);
+		curHighestSeqNum = util.safeGetString(lastSeqForProductGroupingDict, productGroupingKey);	
+
+		if(curLowestSeqNum == "" OR sequenceNum < curLowestSeqNum){
+			put(firstSeqForProductGroupingDict, productGroupingKey, sequenceNum);
+		}
+		if(curHighestSeqNum == "" OR sequenceNum > curHighestSeqNum){
+			put(lastSeqForProductGroupingDict, productGroupingKey, sequenceNum);
+		}
+	
+	}
+	//**END First part of location + product type combo***///
+	//**BEGIN First line item of location**//
+	curFirstSeqNumOfLocation = util.safeGetString(firstSeqOfLocationDict, locId);
+	if(curFirstSeqNumOfLocation == "" OR sequenceNum < curFirstSeqNumOfLocation){
+		put(firstSeqOfLocationDict, locId, sequenceNum);
+	}
+	//**END First line item of location**/
+	
+	sequenceIndex = append(sequenceNumArr, sequenceNum);
+	put(docNumToSeqNumDict, docNum, sequenceNum);
+		
+	//Write to output where possible
+	ret = ret /*+ docNum + "~sequenceNumberLine_l~" + sequenceNum + "|"*/ //Commented by Gowtham as a part of Requirement 11
+			  + docNum + "~customSequencePrefix_l~" + customSeqPrefixDisplay + "|"
+			  ;
+	// *********END SEQUENCING LOGIC**************** //
+
+	// *********BEGIN OUTPUT DOC LOGIC: Model Has X Type / Model is first of X Type pt 1********* //
+	//Consideration - how does this interact with sequencing?
+		//Answer: Safe to use parentDocNum for comparison as parentDocNum carries more weight than non-location fields in sequence logic
+	if(partNum <> ""){
+		if(partType == "MRR" AND (unitMRR <> 0 OR netMRR <> 0)){
+			put(locationHasMRRPartsDict, locId, true);
+		}
+		elif(partType == "INSTALL" AND (netNRR <> 0)){ //unitNRR should be discarded as we do not want it on the exec summary if it was written down
+			put(locationHasINSTALLPartsDict, locId, true);
+		}
+		elif(partType == "EQUIP" AND (unitNRR <> 0 OR netNRR <> 0)){
+			put(locationHasEQUIPPartsDict, locId, true);
+		}
+		elif(partType == "PROSERV" AND (unitNRR <> 0 OR netNRR <> 0)){
+			put(locationHasPROSERVPartsDict, locId, true);
+		}
+		elif((unitMRR <> 0 OR netMRR <> 0) OR (unitNRR <> 0 OR netNRR <> 0)){ //"Other" part categories
+			partType = "OTHER";
+			put(locationHasOTHERPartsDict, locId, true);	
+		}
+	}
+	// *********END OUTPUT DOC LOGIC: Model Has X Type / Model is first of X Type pt 1********* //
+	// *********BEGIN OUTPUT DOC LOGIC: Last Doc Num for Model pt 1*************** //
+	if(partNum <> ""){
+		curLastSequenceNum = util.safeGetString(modelLastSeqNumDict, parentDocNum + "-" + partType);
+				
+		if(curLastSequenceNum == "" OR atof(sequenceNum) > atof(curLastSequenceNum)){
+			put(modelLastSeqNumDict, parentDocNum + "-" + partType, docNum);
+		}
+	}
+	// *********END OUTPUT DOC LOGIC: Last Doc Num for Model pt 1*************** //
+}
+
+//Loop 2 rewritten
+sort(sequenceNumArr);
+for line in transactionLine{
+	docNum = line._document_number;
+	locationId = line.locationID_l;
+	parentDocNum = line._parent_doc_number;
+	partType = line._part_custom_field9;
+	partNum = line._part_number;
+	if(containskey(partCustomFieldDict,partNum+"custom_field9")) {
+		partType = get(partCustomFieldDict,partNum+"custom_field9");
+	}
+	productGrouping = line.productGroupingOutputDoc_l;
+	
+	sequenceNum = get(docNumToSeqNumDict, docNum);
+	
+	firstSeqNumArr = values(customSeqFirstSeqOnLocAndTypeDict); //For custom sorting. Doc Nums to be flagged as first sequence for a prefix. DEPRECATE
+	lastSeqNumArr = values(customSeqLastSeqOnLocAndTypeDict); //For custom sorting. Doc Nums to be flagged as last sequence for a prefix. DEPRECATE
+	
+	firstSeqNumForProdGroupingArr = values(firstSeqForProductGroupingDict);
+	lastSeqNumForProdGroupingArr = values(lastSeqForProductGroupingDict);
+	
+	firstSeqNumOfLocationArr = values(firstSeqOfLocationDict);
+	lineIsFirstSeqNumForLocAndType = (findinarray(firstSeqNumArr, sequenceNum) <> -1); //Deprecate
+	lineIsLastSeqNumForLocAndType = (findinarray(lastSeqNumArr, sequenceNum) <> -1); //Deprecate
+	
+	lineIsFirstSeqNumForLocationOnly = (findinarray(firstSeqNumOfLocationArr, sequenceNum) <> -1);
+	lineIsFirstSeqNumForProdGrouping = (findinarray(firstSeqNumForProdGroupingArr, sequenceNum) <> -1);
+	lineIsLastSeqNumForProdGrouping = (findinarray(lastSeqNumForProdGroupingArr, sequenceNum) <> -1);
+	
+	locationHasMRRPart = (lineIsFirstSeqNumForLocationOnly AND containskey(locationHasMRRPartsDict, locationId)); //will always be true if it exists
+	locationHasINSTALLPart = (lineIsFirstSeqNumForLocationOnly AND containskey(locationHasINSTALLPartsDict, locationId)); //will always be true if it exists
+	locationHasEQUIPPart = (lineIsFirstSeqNumForLocationOnly AND containskey(locationHasEQUIPPartsDict, locationId)); //will always be true if it exists
+	locationHasPROSERVPart = (lineIsFirstSeqNumForLocationOnly AND containskey(locationHasPROSERVPartsDict, locationId)); //will always be true if it exists
+	locationHasOTHERPart = (lineIsFirstSeqNumForLocationOnly AND containskey(locationHasOTHERPartsDict, locationId)); //will always be true if it exists
+	
+	if(productGrouping == ""){
+		ret = ret + docNum + "~productGroupingOutputDoc_l~" + defaultProductGroupingName + "|";
+	} 
+	
+	
+	typeL = line._part_custom_field23;
+	if(containskey(partCustomFieldDict,partNum+"custom_field23")) {
+		typeL = get(partCustomFieldDict,partNum+"custom_field23");
+	}
+	print "----368---";
+	print line._part_number;
+	print docNum;
+	print typeL;
+	print "------";
+	// setattributevalue(docNum ,"type_l", typeL);
+	ret = ret 
+				+ docNum + "~customSequenceShowHeader_l~" + string(lineIsFirstSeqNumForLocAndType) + "|"
+				+ docNum + "~customSequenceShowTotals_l~" + string(lineIsLastSeqNumForLocAndType) + "|"
+				+ docNum + "~firstLineItemOnLocation_l~" + string(lineIsFirstSeqNumForLocationOnly) + "|"
+				+ docNum + "~firstLineItemForProductGrouping_l~" + string(lineIsFirstSeqNumForProdGrouping) + "|"
+				+ docNum + "~lastLineItemForProductGrouping_l~" + string(lineIsLastSeqNumForProdGrouping) + "|"
+				+ docNum + "~firstLineOnLocationHasMRRPartTypes_l~" + string(locationHasMRRPart) + "|"
+				+ docNum + "~firstLineOnLocationHasINSTALLPartTypes_l~" + string(locationHasINSTALLPart) + "|"
+				+ docNum + "~firstLineOnLocationHasEQUIPPartTypes_l~" + string(locationHasEQUIPPart) + "|"
+				+ docNum + "~firstLineOnLocationHasPROSERVPartTypes_l~" + string(locationHasPROSERVPart) + "|"
+				+ docNum + "~firstLineOnLocationHasUncategorizedPartTypes_l~" + string(locationHasOTHERPart) + "|"
+				+ docNum + "~type_l~" + typeL+ "|" 
+				;
+	
+	// *********BEGIN OUTPUT DOC LOGIC: Last Doc Num for Model pt 2*************** //
+	if(parentDocNum <> ""){ //Part on model
+		lastDocNumOnModelBySequence = util.safeGetString(modelLastSeqNumDict, parentDocNum + "-" + partType);
+		lastSequenceNumForModel = (docNum == lastDocNumOnModelBySequence);
+		ret = ret + docNum + "~lastSequenceModel_l~" + string(lastSequenceNumForModel) + "|";
+	}
+	// *********END OUTPUT DOC LOGIC: Last Doc Num for Model pt 2*************** //
+	//Updating CPQ Line ID
+	ret = ret + docNum + "~cPQLineID_l~" + transactionID_t + "-" + line._group_sequence_number + "|";
+	autoUpdateArr = string[]{
+    "linkedItem_l" 
+};
+
+//CR-64 changes start here by NDas
+/*getLinkedItemJson = jsonget(json(editableTrackerFields_quote),"LINKEDITEM");
+getDiscountTypeJson = jsonget(json(editableTrackerFields_quote),"DISCOUNTTYPE");
+getDiscountAmountJson = jsonget(json(editableTrackerFields_quote),"DISCOUNTAMOUNT");
+
+
+//2!0.0@3!50.0@4!0.0@5!0.0@6!0.0 -
+
+if(find(getLinkedItemJson,docNum+"!"+line.linkedItem_l) == -1 OR find(getDiscountTypeJson,docNum+"!"+line.discounttype_l) == -1 OR find(getDiscountAmountJson,docNum+"!"+string(line.discountAmountt_l)) == -1){
+	getCDate = datetostr(getdate());
+
+	ret = ret + docNum + "~lastUpdatedDate_l~" + getCDate + "|";
+	ret = ret + docNum + "~lastUpdatedBy_l~" + _system_user_first_name +" "+ _system_user_last_name + "|";
+}*/
+/* 
+	if (line.linkedItem_l <> getoldvalue("line.linkedItem_l",atoi(docNum)) OR findinarray(autoUpdateArr, _auto_update_triggered_from) <> -1) {
+		getCDate = datetostr(getdate());
+ 	ret = ret + docNum + "~lastUpdatedDate_l~" + getCDate + "|";
+	ret = ret + docNum + "~lastUpdatedBy_l~" + _system_user_first_name +" "+ _system_user_last_name + "|";
+
+	} */
+}
+	
+//----End of Loop through update Sequence Number
+y=getcurrenttimeinmillis();
+z=y-x;
+
+return ret;

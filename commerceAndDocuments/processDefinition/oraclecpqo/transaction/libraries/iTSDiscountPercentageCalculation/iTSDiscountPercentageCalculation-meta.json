@@ -1,0 +1,11 @@
+{
+  "name" : "ITS Discount Percentage Calculation",
+  "variableName" : "iTSDiscountPercentageCalculation",
+  "description" : "",
+  "libraryFunctions" : [ "commerce.checkForITSItemType" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_model_name", "chargeType_l", "extSRP_l", "extNetPrice_l", "type_l", "_part_number" ],
+  "mainDocAttributes" : [ "totalITSDiscountPercentageOneTime_t", "totalITSDiscountPercentageRecurring_t" ],
+  "systemAttributes" : [ "_system_user_groups" ]
+}

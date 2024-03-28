@@ -1,0 +1,87 @@
+//CHG0078656 : CPQ MS- CPQ Changes deployment//
+
+retVal = "";
+psPartsDataJson = json();
+//psPartsJsonArr = jsonarray();
+
+psPartsRecord = BMQL("select * from _parts where part_number in $partNumberArray");
+for vpartdata in psPartsRecord{
+//psPartsDataJson= json();
+partNumber = get(vpartdata ,"part_number");
+	statusType = get(vpartdata ,"custom_field1");
+	catalogSNOW = get(vpartdata ,"custom_field2");
+	categorySNOW = get(vpartdata ,"custom_field3");
+	fulfillmentGroupSNOW = get(vpartdata ,"custom_field4");
+	nRRPrice = get(vpartdata ,"custom_field5");
+	frozenCost = get(vpartdata ,"custom_field6");
+	listPrice = get(vpartdata ,"custom_field7");
+	recurringPriceFrequency = get(vpartdata ,"custom_field8");
+	typeDetails = get(vpartdata ,"custom_field9");
+	vendorDetails = get(vpartdata ,"custom_field10");
+	workflowSNOW = get(vpartdata ,"custom_field11");
+	gPClassCode = get(vpartdata ,"custom_field12");
+	vendorPartNumber = get(vpartdata ,"custom_field13");
+	organizationOSC = get(vpartdata ,"custom_field14");
+	uMGroup = get(vpartdata ,"custom_field15");
+	lockPrice = get(vpartdata ,"custom_field16");
+	termFactor = get(vpartdata ,"custom_field17");
+	productGroup = get(vpartdata ,"custom_field18");
+	if(productGroup == "VoIP"){
+		productGroup = "cloudSHIFT VoIP";
+	}
+	manufacturer = get(vpartdata ,"custom_field19");
+	manufacturerPartNumber = get(vpartdata ,"custom_field20");
+	minimumOIPercent = get(vpartdata ,"custom_field21");
+	productGroupingOutputDoc = get(vpartdata ,"custom_field22");
+	itemType = get(vpartdata ,"custom_field23");
+	directPortfolioFlag = get(vpartdata ,"custom_field24");
+	priceUpliftCategory = get(vpartdata ,"custom_field25");
+	subscriptionMinimumTerm = get(vpartdata ,"custom_field26");
+	variableItem = get(vpartdata ,"custom_field27");
+	enterpriseService = get(vpartdata ,"custom_field28");
+	itemId = get(vpartdata ,"custom_field29");
+	approvalGroup = get(vpartdata ,"custom_field30");
+	supportTerm = get(vpartdata ,"custom_field278");
+	price = get(vpartdata ,"price");
+	
+jsonput(psPartsDataJson, partNumber + "part_number",partNumber);
+jsonput(psPartsDataJson, partNumber + "custom_field1", statusType);
+jsonput(psPartsDataJson, partNumber + "custom_field2", catalogSNOW);
+jsonput(psPartsDataJson, partNumber + "custom_field3", categorySNOW);
+jsonput(psPartsDataJson, partNumber + "custom_field4", fulfillmentGroupSNOW);
+jsonput(psPartsDataJson, partNumber + "custom_field5", nRRPrice);
+jsonput(psPartsDataJson, partNumber + "custom_field6", frozenCost);
+jsonput(psPartsDataJson, partNumber + "custom_field7", listPrice);
+jsonput(psPartsDataJson, partNumber + "custom_field8", recurringPriceFrequency);
+jsonput(psPartsDataJson, partNumber + "custom_field9", typeDetails);
+jsonput(psPartsDataJson, partNumber + "custom_field10", vendorDetails);
+jsonput(psPartsDataJson, partNumber + "custom_field11", workflowSNOW);
+jsonput(psPartsDataJson, partNumber + "custom_field12", gPClassCode);
+jsonput(psPartsDataJson, partNumber + "custom_field13", vendorPartNumber);
+jsonput(psPartsDataJson, partNumber + "custom_field14", organizationOSC);
+jsonput(psPartsDataJson, partNumber + "custom_field15", uMGroup);
+jsonput(psPartsDataJson, partNumber + "custom_field16", lockPrice);
+jsonput(psPartsDataJson, partNumber + "custom_field17", termFactor);
+jsonput(psPartsDataJson, partNumber + "custom_field18", productGroup);
+jsonput(psPartsDataJson, partNumber + "custom_field19", manufacturer);
+jsonput(psPartsDataJson, partNumber + "custom_field20", manufacturerPartNumber);
+jsonput(psPartsDataJson, partNumber + "custom_field21", minimumOIPercent);
+jsonput(psPartsDataJson, partNumber + "custom_field22", productGroupingOutputDoc);
+jsonput(psPartsDataJson, partNumber + "custom_field23", itemType);
+jsonput(psPartsDataJson, partNumber + "custom_field24", directPortfolioFlag);
+jsonput(psPartsDataJson, partNumber + "custom_field25", priceUpliftCategory);
+jsonput(psPartsDataJson, partNumber + "custom_field26", subscriptionMinimumTerm);
+jsonput(psPartsDataJson, partNumber + "custom_field27", variableItem);
+jsonput(psPartsDataJson, partNumber + "custom_field28", enterpriseService);
+jsonput(psPartsDataJson, partNumber + "custom_field29", itemId);
+jsonput(psPartsDataJson, partNumber + "custom_field30", approvalGroup);
+jsonput(psPartsDataJson, partNumber + "custom_field278", supportTerm);
+jsonput(psPartsDataJson, partNumber + "price", price);
+
+//jsonarrayappend(psPartsJsonArr,psPartsDataJson);
+          
+}
+//retVal = jsonarraytostr(psPartsJsonArr);
+retVal = jsontostr(psPartsDataJson);
+
+return retVal;

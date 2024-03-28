@@ -1,0 +1,11 @@
+{
+  "name" : "Pricing Main - Backup 01.24.17",
+  "variableName" : "pricingMainBackup012417",
+  "description" : "Main Pricing Function - return all calculation values in this function",
+  "libraryFunctions" : [ "commerce.contractedPricing", "util.decodeNameValuePairs", "util.safeGetFloat", "util.safeGetString" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_part_number", "_document_number", "_parent_doc_number", "locationName_l", "_part_custom_field9", "netAmount_l", "netAmountNRR_l", "_part_custom_field18", "finalListUnitPrice_l", "finalListUnitPriceExt_l", "finalListUnitPriceNRRExt_l", "_sequence_number", "finalListUnitPriceNRR_l", "lastSequenceModel_l", "_line_item_comment", "locationID_l", "customDiscountValue_l", "customDiscountType_l" ],
+  "mainDocAttributes" : [ "customerID_t", "transactionID_t" ],
+  "systemAttributes" : [ ]
+}

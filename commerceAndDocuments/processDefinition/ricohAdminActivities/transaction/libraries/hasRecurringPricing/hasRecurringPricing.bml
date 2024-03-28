@@ -1,0 +1,25 @@
+for line in transactionLine {
+	if(line.priceType_l == "Recurring" OR line.priceType_l == "Usage") {
+		return true;
+	} else {
+		chargeArraySet = line._chargeSet;
+		chargesSize = 0;
+		if(isnull(chargeArraySet) <> true) {
+ 	   		chargesSize = jsonarraysize(chargeArraySet);
+		}
+		itr = string[chargesSize];
+		if(chargesSize > 0) {
+			chargecount = 0;
+    			for i in itr {
+	            		charge = jsonArrayget(chargeArraySet, chargecount, "json");
+	            		chargePriceType = jsonget(charge,"_chargeSet_priceType", "string");
+	            		if(chargePriceType == "Recurring" or chargePriceType == "Usage") {
+	            			return true;
+	            		}
+	            		chargecount  = chargecount + 1;
+			}
+		}
+	}
+}
+
+return false;

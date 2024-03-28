@@ -1,0 +1,24 @@
+//************************************************************************************************************
+//** Function:    Determine Next Order Step (determineNextOrderStep)
+//** Type:        Utility Library Function   
+//**
+//** Description: Helper function to determine the next step to transition from pending for approval to approved.
+//**              This helper function was created in order to have one place to store this logic, as it is
+//**              refenced in both step transitions and on the Quote Step attribute's modify.
+//** 
+//** Param:       actionVarName 	- FUTURE USE: variable name of the action that was called.
+//**              creditCheckRequired	- Flag that is true if this quote requires some level of credit approval
+//**              creditCheckAlreadyApproved - string of values blank/TRUE/FALSE. TRUE if the quote has already received
+//**                                           prior approval (if the quote were to be revised. Not a use case at time of function creation)
+//**
+//** Return type: String - next step variable name
+//**
+//** History:     Date     Author       Comment 
+//**              INITIAL  RConaghan    Initial Creation 
+//************************************************************************************************************
+
+if(creditCheckRequired == false OR creditCheckAlreadyApproved == "TRUE") {
+	return "orderedBeingFulfilled";
+} else {
+	return "pendingCreditApproval";
+}

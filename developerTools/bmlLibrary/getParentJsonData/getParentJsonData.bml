@@ -1,0 +1,10 @@
+res = "";
+
+if(jsonpathcheck(ChildJson, Key)){
+
+res = jsonget(ChildJson, Key);
+
+}
+
+
+return res;

@@ -1,0 +1,15 @@
+{
+  "name" : "Safe Get - String",
+  "variableName" : "safeGetString",
+  "description" : "Safer version of get function. Auto-handles nulls",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "inputDict",
+    "type" : "String Dictionary"
+  }, {
+    "name" : "key",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

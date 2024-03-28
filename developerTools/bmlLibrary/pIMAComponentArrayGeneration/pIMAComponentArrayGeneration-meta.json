@@ -1,0 +1,24 @@
+{
+  "name" : "PIMA Component Array Generation",
+  "variableName" : "pIMAComponentArrayGeneration",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "sectionName",
+    "type" : "String"
+  }, {
+    "name" : "Item",
+    "type" : "String"
+  }, {
+    "name" : "PricingDict",
+    "type" : "Float Dictionary"
+  }, {
+    "name" : "componentName",
+    "type" : "String"
+  }, {
+    "name" : "MSLaborPIMAJson",
+    "type" : "Json"
+  } ],
+  "attributes" : [ ]
+}

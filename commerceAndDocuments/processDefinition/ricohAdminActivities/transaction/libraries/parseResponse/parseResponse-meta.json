@@ -1,0 +1,17 @@
+{
+  "name" : "parseResponse",
+  "variableName" : "parseResponse",
+  "description" : "Parses response json and returns Attribute's value from response json",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "response",
+    "type" : "String"
+  }, {
+    "name" : "Attribute",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

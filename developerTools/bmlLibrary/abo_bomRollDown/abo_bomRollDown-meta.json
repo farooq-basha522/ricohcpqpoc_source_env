@@ -1,0 +1,12 @@
+{
+  "name" : "abo_bomRollDown",
+  "variableName" : "abo_bomRollDown",
+  "description" : "This util library is invoked from abo_loadAsset to derive information based on BOM hierarchy which is not present in asset, such as exploded-qty.",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_getContext" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "baseBom",
+    "type" : "Json"
+  } ],
+  "attributes" : [ ]
+}

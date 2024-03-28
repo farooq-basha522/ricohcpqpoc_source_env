@@ -1,0 +1,104 @@
+//FunctionName: abo_loadAsset
+//   input: assetKey(String)
+//   output: baseBom(Json)
+//Description:
+//   This utility is used to load asset data from local asset repository 
+//   and convert to the BOM structure to be used in ABO flow.
+
+ATTRIBUTES = "attributes";
+
+abocontext = util.abo_getContext();
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true);  
+callContext="loadAsset";
+
+//Step1: Query asset service for the flattened asset hierarchy.
+fieldArr =  "&fields=assetKey,parentAsset,quantity,partNumber,displayKey,attributes" 
+           + ",descendantAssets.assetKey,descendantAssets.parentAsset,descendantAssets.quantity"
+           + ",descendantAssets.partNumber,descendantAssets.displayKey,descendantAssets.attributes";
+queryParam = "?q={assetKey:{$eq:'" + assetKey + "'}}" + fieldArr + "&expand=descendantAssets";
+
+responseJson = util.abo_invokeAssetService("", "Get", queryParam, json());
+
+//extract asset data
+itemArr =  jsonarray();
+itemArr = jsonget(responseJson, "items", "jsonArray");
+assetJson = json();
+if(jsonarraysize(itemArr)==0){ //Asset doesn't exist. This is expected with the Follow-On Order scenario
+  return assetJson;
+}
+if (jsonarraysize(itemArr) >1)
+{
+  errMsg="Fail to load product instance, there are more than one instance returned.";
+  if(not bDiagnosisOff) {
+     errMsg=errMsg+"====loadAsset: assetkey="+assetKey+",queryParam="+queryParam;
+     dummy=util.abo_addDiagnosticInfo(errMsg+",response=",responseJson,"");
+  }
+  throwerror(errMsg);
+}
+assetJson =  jsonarrayget(itemArr, 0, "json");
+if(not bDiagnosisOff) {
+  dummy=util.abo_addDiagnosticInfo(callContext+"_assetBom",assetJson,"addToSummary");
+}
+
+//Step 2: Convert asset to BOM structure
+//Create a new BOM: baseBom. Read AssetKey from assetBom to Id, parentAssetKey to ParentId.  
+
+baseBom=json();
+childArrayBaseBom =  jsonArray();
+childArrayAssetBom = jsonpathgetsingle(assetJson, "$.descendantAssets.items", "jsonarray",jsonarray());
+sizeofChildArrayAssetBom =  jsonarraysize(childArrayAssetBom) ;
+
+if (sizeofChildArrayAssetBom >0){
+   childArrayBaseBom =  jsonput(baseBom, "children", childArrayBaseBom);               
+}
+   
+traverseAssetBom =  string[sizeofChildArrayAssetBom+1]; //one added for processing root
+index = -1;
+for oneAsset in traverseAssetBom{
+     oneBaseNode = json(); 
+     oneAssetNode =  json();
+        
+     if(index == -1 ){
+         oneAssetNode = assetJson;           
+         oneBaseNode=basebom;
+     }else{
+       
+          oneAssetNode= jsonarrayget(childArrayAssetBom, index, "json");           
+          oneBaseNode = jsonarrayappend(childArrayBaseBom, oneBaseNode);
+     }
+     index =  index+1;
+    
+     astKey = jsonget(oneAssetNode, "assetKey", "string", "");
+     jsonput(oneBaseNode, "id", astKey);
+     
+     parentAssetjson = jsonget(oneAssetNode, "parentAsset", "json", json());
+     parentAssetKey ="";
+     if(util.abo_isjsonnull(parentAssetJson, "id")<>true){
+        parentAssetKey =  jsonget(parentAssetJson, "assetKey", "string");
+      }  
+     jsonput(oneBaseNode, "parentId", parentAssetKey);
+    
+     quantity =  jsonget(oneAssetNode, "quantity", "string");
+     flQty =  atof(quantity);
+     jsonput(oneBaseNode, "quantity", flQty);
+     partNumber =  jsonget(oneAssetNode, "partNumber", "string");
+     jsonput(oneBaseNode, "partNumber", partNumber);   
+     itemInstName =  jsonget(oneAssetNode, "displayKey", "string");
+     fields =  json();
+     jsonput(fields, "itemInstanceName_l", itemInstName); 
+     jsonput(oneBaseNode, "fields", fields);
+     XAString =   jsonget(oneAssetNode, ATTRIBUTES, "string");
+     XAJson =  json(XAString);
+     jsonput(oneBaseNode, ATTRIBUTES, XAJson); 
+      //PLACEHOLDER for adding additional field for mapping fom assetBom to baseBom in quote structure  
+     
+}//end for loop through items in asset hierarchy
+
+//Step 3: Roll down info based on BOM hierarchy, such as populating exploded quantity
+dummy =  util.abo_bomRollDown(baseBom);
+
+if(not bDiagnosisOff) {
+  dummy=util.abo_addDiagnosticInfo(callContext+" after bom rolldown",baseBom,"");
+}
+
+return baseBom;

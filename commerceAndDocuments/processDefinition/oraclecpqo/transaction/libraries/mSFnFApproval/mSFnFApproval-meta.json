@@ -1,0 +1,14 @@
+{
+  "name" : "MS FnF Approval(NOT USING)",
+  "variableName" : "mSFnFApproval",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "param1",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ "_line_bom_attributes", "laborType_l" ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

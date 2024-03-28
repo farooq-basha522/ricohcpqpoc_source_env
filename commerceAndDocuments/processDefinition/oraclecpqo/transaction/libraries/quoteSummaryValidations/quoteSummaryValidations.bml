@@ -1,0 +1,131 @@
+quoteWorkbenchJSONArray = jsonarray(quoteWorkbench_t);
+quoteWorkbenchItemsArrayIndex = range(jsonarraysize(quoteWorkbenchJSONArray));
+selectedItemsArray_Cust = string[];
+unselectedItemsArray = string[];
+retJson = json();
+selectAll_QuoteWorkbench = "false";
+selectAll_QuoteWorkbenchcount = 0;
+conditioncheck = false;
+submitOneOffApproval  = "false";
+submitToVendor = "false";
+itemCreation = "false";
+designRejected="false";
+countdict = dict("string");
+countselectdict = dict("string");
+count = 0;
+requestToQuoteItemsArray = string[]{"Quote Received", "submitted to vendor","Submitted for One-off approval","Item Creation","Design Approved - Item Available","Design Rejected"};
+//Get the vendor product Number, EDP COde and Item type to check valid and get the associated fields
+//arraysize = range(quoteWorkbenchItemsArrayIndex(selectedItemsJSONArray));
+for arr in quoteWorkbenchItemsArrayIndex{
+	searchResultRow = jsonarrayget(quoteWorkbenchJSONArray,arr);
+	searchResultJson = json(searchResultRow);
+	selectAll_QuoteWorkbench_t = jsonget(searchResultJson,"selectAll_QuoteWorkbench_t");
+	vendorRequestStatus_QuoteWorkbench_t = trim(jsonget(searchResultJson,"vendorRequestStatus_QuoteWorkbench_t"));
+	ricohEDPCode_QuoteWorkbench_t = jsonget(searchResultJson,"ricohEDPCode_QuoteWorkbench_t");
+	vendorQuoteNumbers_QuoteWorkbench_t = jsonget(searchResultJson,"vendorQuoteNumbers_QuoteWorkbench_t");
+	count=0;
+if(selectAll_QuoteWorkbench_t == "false") {
+	selectAll_QuoteWorkbench = "true";
+	}
+	else {
+		selectAll_QuoteWorkbench = "false";
+		selectAll_QuoteWorkbenchcount =selectAll_QuoteWorkbenchcount +1;
+		}
+		
+	if(findinarray(requestToQuoteItemsArray,(vendorRequestStatus_QuoteWorkbench_t))>-1) {
+		append(unselectedItemsArray,vendorQuoteNumbers_QuoteWorkbench_t);	
+	}
+
+	if(isnull(get(countdict ,(vendorQuoteNumbers_QuoteWorkbench_t)))) {
+		count = count+1;
+		put(countdict ,vendorQuoteNumbers_QuoteWorkbench_t,string(count));
+		}
+		else{
+			count =atoi(get(countdict ,(vendorQuoteNumbers_QuoteWorkbench_t)));
+			count= count  +1;
+			put(countdict,vendorQuoteNumbers_QuoteWorkbench_t,string(count));
+			}
+		}
+
+if(selectAll_QuoteWorkbenchcount > 0) {
+	for arr in quoteWorkbenchItemsArrayIndex{
+				countselect=0;
+	searchResultRow = jsonarrayget(quoteWorkbenchJSONArray,arr);
+	searchResultJson = json(searchResultRow);
+	selectAll_QuoteWorkbench_t = jsonget(searchResultJson,"selectAll_QuoteWorkbench_t");
+	vendorRequestStatus_QuoteWorkbench_t = trim(jsonget(searchResultJson,"vendorRequestStatus_QuoteWorkbench_t"));
+	ricohEDPCode_QuoteWorkbench_t = jsonget(searchResultJson,"ricohEDPCode_QuoteWorkbench_t");
+	vendorQuoteNumbers_QuoteWorkbench_t = jsonget(searchResultJson,"vendorQuoteNumbers_QuoteWorkbench_t");
+			
+if(NOT ISNULL(selectAll_QuoteWorkbench_t) AND selectAll_QuoteWorkbench_t == "true") {
+
+if(isnull(get(countselectdict ,(vendorQuoteNumbers_QuoteWorkbench_t)))) {
+		countselect= countselect+1;
+		put(countselectdict,vendorQuoteNumbers_QuoteWorkbench_t,string(countselect));
+		}
+		else {
+			countselect =atoi(get(countselectdict ,(vendorQuoteNumbers_QuoteWorkbench_t)));
+			countselect = countselect  +1;
+			put(countselectdict,vendorQuoteNumbers_QuoteWorkbench_t,string(countselect));
+			}
+			
+		if(find(lower(vendorRequestStatus_QuoteWorkbench_t),"quote received")<>-1) {
+			conditioncheck  = true;
+			}
+			
+		if(find((vendorRequestStatus_QuoteWorkbench_t),"Design Approved - Item Available")<>-1) {
+			conditioncheck  = true;
+			}
+	
+		if(find(lower(vendorRequestStatus_QuoteWorkbench_t),"submitted to vendor")<>-1){
+			jsonput(retJson,"submitToVendor","true");
+			submitToVendor = "true";
+			conditioncheck  = true;
+			}
+		
+		elif(vendorRequestStatus_QuoteWorkbench_t == "Submitted for One-off approval"){
+			jsonput(retJson,"submitOneOffApproval","true");
+			submitOneOffApproval="true";
+			conditioncheck  = true;
+			}
+
+		elif(find(lower(vendorRequestStatus_QuoteWorkbench_t),"item creation")<>-1 AND ricohEDPCode_QuoteWorkbench_t == "MAP-GENERIC"){
+			jsonput(retJson,"itemCreation","true");
+			itemCreation = "true";
+			conditioncheck  = true;
+			}
+		
+		elif(vendorRequestStatus_QuoteWorkbench_t == "Design Rejected"){
+			jsonput(retJson,"designRejected","true");
+			designRejected="true";
+			conditioncheck  = true;
+			}
+			
+		if(selectAll_QuoteWorkbench_t =="true") {
+			append(selectedItemsArray_Cust,vendorQuoteNumbers_QuoteWorkbench_t);
+			}
+		}
+	}
+}
+
+unSelectedAllQuoteItems = false;
+//unselectedItemsArrayStr = join(unselectedItemsArray,"##");
+
+for each in selectedItemsArray_Cust{
+	count_select = get(countselectdict,each );
+	
+	arrcount = get(countdict,each );
+
+		if(count_select <> arrcount and atoi(arrcount) >1 ) {
+			unSelectedAllQuoteItems = true;
+			}
+		}
+	if(unSelectedAllQuoteItems and submitOneOffApproval <> "true" AND submitToVendor <> "true" AND itemCreation <> "true" AND designRejected <> "true"){
+		jsonput(retJson,"selectAllItems","true");
+		}
+		
+	if(selectAll_QuoteWorkbenchcount == 0) {
+		jsonput(retJson,"selectAllItemsNo","true");
+		}
+		
+return jsontostr(retJson);

@@ -1,0 +1,14 @@
+{
+  "name" : "custom_calculations_processMainDocAttributes",
+  "variableName" : "custom_calculations_processMainDocAttributes",
+  "description" : "This function is invoked before any line items are processed. It can overridden to add any logic as needed at this point in the system processing.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "mainDocDict",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

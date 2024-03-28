@@ -1,0 +1,177 @@
+//CHG0078656 : CPQ MS- CPQ Changes deployment//
+isDebug = true;
+retString = "";
+rowDelim = "@$@";
+appName = "";
+appArr = String[];
+levelFactor = 0;
+levelToCheck = "";
+ArrIndex = 0;
+index = 1;
+marginQuoteSummary = "";
+marginFactor = 0;
+yearParam = "";
+apporvalTypeParam = "";
+locationParam = "";
+isLevelMatch = false;
+isUserActive = false;
+isUserExistsinGroup = false;
+isExistsinHRMS = false;
+isActiveinHRMS = false;
+APPROVER_GROUP = "ricohPricingApprover";
+rowDelim = "@$@";
+colDelim = "#$#";
+pimaMarginDict = dict("string");
+
+if(containskey(paramDict, "Year")){
+	//yearParam = get(paramDict, "Year","string")+"_MSTotalArraySet";
+	yearParam = get(paramDict, "Year","string");
+}
+if(containskey(paramDict, "Location")){
+	locationParam = get(paramDict, "Location","string");
+}
+/*
+arraysize = range(jsonarraysize(mSTotalDealSectionArray_t));
+for each in arraysize {
+	if(NOT isnull(jsonget(json(jsonarrayget(mSTotalDealSectionArray_t, each)),yearParam))){
+		marginQuoteSummary = jsonget(json(jsonarrayget(mSTotalDealSectionArray_t, each)),yearParam);
+	}
+}
+if(marginQuoteSummary <> ""){
+	marginFactor = atof(marginQuoteSummary);
+}*/
+if(mSTotalDealSectionArrayString_t <> ""){
+	pimaArrayRow = split(mSTotalDealSectionArrayString_t, colDelim);
+	for pimaArray in pimaArrayRow {
+		yearVal = split(pimaArray, rowDelim);
+		put(pimaMarginDict , yearVal[0] , yearVal[1] );
+	}
+}
+marginQuoteSummary = get(pimaMarginDict, yearParam);
+if(NOT isnull(marginQuoteSummary) AND marginQuoteSummary<> ""){
+	marginFactor = atof(marginQuoteSummary);
+} 
+
+if(containskey(paramDict, "ApporvalType")){
+	apporvalTypeParam = get(paramDict, "ApporvalType","string");
+	if(apporvalTypeParam == "Escalation" AND variableAnnualRevenueEscalation_t == false){
+		marginFactor = annualRevenueEscalation_t;
+	}
+	elif(apporvalTypeParam == "Escalation" AND variableAnnualRevenueEscalation_t  == true){
+		marginFactorString = (jsonget(json(jsonarrayget(variableAnnualEscalationArraySet_t, 0)),yearParam));
+		if(marginFactorString  <> "" AND not(isnull(marginFactorString))){
+			marginFactor  = atof(marginFactorString );
+		}
+	
+	}
+	
+}
+
+if(isDebug){
+	print apporvalTypeParam;
+	print marginFactor ;
+}
+//-------------------- Find Level Factor based on year deal---------------
+approverTable = BMQL("SELECT ApprovalType, LowerMargin, UpperMargin FROM MS_ApprovalMrg where ApprovalType = $apporvalTypeParam");
+if(isDebug){
+	print approverTable ;
+}
+for eachRow in approverTable {
+	lowerMargin = get(eachRow, "LowerMargin");
+	upperMargin = get(eachRow, "UpperMargin");
+	if(lowerMargin <> "" AND lowerMargin <>""){
+		if(marginFactor > atof(lowerMargin) AND marginFactor <= atof(upperMargin)){
+			print index;
+			levelFactor = index;
+			break;
+		}
+	}
+	index = index + 1;
+}
+//-------------------- Find Level Factor based on year deal---------------	
+
+if(containskey(paramDict, "Level")){
+	levelToCheck = get(paramDict, "Level","string");
+}
+
+if(isDebug){
+	print "Level Factor: "+String(levelFactor);
+}
+//------------Level Checking----------------
+if(levelToCheck  == "Level "+String(levelFactor)){
+	isLevelMatch = true;
+}else{
+	print "Level NOT Matched";
+}
+//----------------------------
+appString = "";
+if(isLevelMatch ){
+	appString = commerce.generateMSApproversList("Level "+String(levelFactor), mSTransactionType_t, apporvalTypeParam );
+}
+print appString ;
+splitRes = split(appString ,"#!#");
+if(isDebug){
+	print splitRes;
+}
+for eachName in splitRes{
+	isUserActive = commerce.isUserActive(eachName);
+	isUserExistsinGroup = commerce.isUserExistsinGroup(eachName, APPROVER_GROUP);
+	approverName = "";
+	emailParam = lower(eachName);
+	querryAppTable = BMQL("SELECT FirstName, MiddleName, LastName, EmployeeStatus FROM RAC_HRMS where EmailAddress = $emailParam");
+	for eachRow in querryAppTable{
+		if(get(eachRow, "EmployeeStatus") == "Active"){
+			isActiveinHRMS = true;
+		}
+		approverName = get(eachRow, "FirstName");
+		if(get(eachRow, "MiddleName") <> ""){
+			approverName = approverName + " "+get(eachRow, "MiddleName");
+		}
+		approverName = approverName + " "+ get(eachRow, "LastName");
+		isExistsinHRMS = true;
+	}
+if(locationParam == "Action"){
+		if(isUserActive  AND isUserExistsinGroup AND isActiveinHRMS AND isExistsinHRMS){
+//retString = "1~" + eachName + "~" + _system_supplier_company_name;
+			//START Post MVP CR#81 description by Namrata.
+			if(apporvalTypeParam == "Deal"){
+			//retString = retString  + "|"+ "1~pricingApprover_t~test"+ "|";
+
+			retString = retString +emailParam ;
+			}
+			if(apporvalTypeParam == "Escalation"){
+			retString = retString +emailParam ;
+			}
+			//END Post MVP CR#81 description by Namrata.
+
+		} 
+	}
+}
+if(isDebug){
+	print "Approver :"+appString;
+	print "isUserActive "+string(isUserActive);
+	print "isUserExistsinGroup "+string(isUserExistsinGroup);
+	print "isActiveinHRMS "+string(isActiveinHRMS);
+	print "isExistsinHRMS "+string(isExistsinHRMS);
+	print "Approver :"+retString ;
+}
+/*
+
+splitRes = split(appString ,"#!#");
+if(locationParam == "Action"){
+	if(splitRes[ArrIndex] <> "" AND NOT(ISNULL(splitRes[ArrIndex]))){
+		appName = splitRes[ArrIndex];
+		retString = "1~" + appName + "~" + _system_supplier_company_name ;
+	}
+}elif(locationParam == "Condition"){
+	retString = "false";
+	if(splitRes[ArrIndex] <> "" AND NOT(ISNULL(splitRes[ArrIndex]))){
+		retString = "true";
+	}
+}elif(locationParam == "Name"){
+	if(splitRes[ArrIndex] <> "" AND NOT(ISNULL(splitRes[ArrIndex]))){
+		appName = splitRes[ArrIndex];
+		retString = ""+appName ;
+	}
+}*/
+return retString ;

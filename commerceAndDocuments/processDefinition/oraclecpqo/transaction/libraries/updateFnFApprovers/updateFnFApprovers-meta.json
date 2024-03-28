@@ -1,0 +1,14 @@
+{
+  "name" : "update FnF Approvers",
+  "variableName" : "updateFnFApprovers",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "param1",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "fFParticipantArraySet_t", "selectedDRTeamMemberArraySet_t", "bypassReason_t", "quoteProduct_t" ],
+  "systemAttributes" : [ ]
+}

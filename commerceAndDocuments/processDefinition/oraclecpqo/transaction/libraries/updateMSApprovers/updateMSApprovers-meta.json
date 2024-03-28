@@ -1,0 +1,14 @@
+{
+  "name" : "Update MS Approvers",
+  "variableName" : "updateMSApprovers",
+  "description" : "created by Namrata to update \nPricing Approvers",
+  "libraryFunctions" : [ "commerce.generateMSApproversList", "commerce.isUserActive", "commerce.isUserExistsinGroup" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "paramDict",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "mSTotalDealSectionArrayString_t", "variableAnnualRevenueEscalation_t", "variableAnnualEscalationArraySet_t", "annualRevenueEscalation_t", "mSTransactionType_t" ],
+  "systemAttributes" : [ "_system_supplier_company_name" ]
+}

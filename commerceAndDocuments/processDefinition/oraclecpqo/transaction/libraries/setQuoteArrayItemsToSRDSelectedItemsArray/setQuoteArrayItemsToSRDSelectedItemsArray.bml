@@ -1,0 +1,114 @@
+retVal = "";
+quoteWorkbenchArray = quoteWorkbench_VQt; 
+if(containsKey(attrDict,"quoteWorkBenchArray")){
+	quoteWorkbenchArray = jsonarray(get(attrDict,"quoteWorkBenchArray","string"));
+}
+statusWorkBenchDict = dict("string");
+if(containsKey(attrDict,"statusQuoteworkbench")){
+	statusWorkBenchDict = get(attrDict,"statusQuoteworkbench","dict<string>");
+}
+notesWorkBenchDict = dict("string");
+if(containsKey(attrDict,"notesQuoteworkbench")){
+	notesWorkBenchDict = get(attrDict,"notesQuoteworkbench","dict<string>");
+}
+
+
+selectedItemsArrayIndex = integer[];
+searchItemsArrayIndex = integer[];
+
+
+//Total Items Array
+selectedItemsJSONArray = selectedItemsArray;
+selectedItemsArrayIndex = range(jsonarraysize(selectedItemsJSONArray));
+
+
+//search Items Array
+searchItemsJSONArray = selectedItemsBasedOnVendorQuoteNumberArray;
+searchItemsArrayIndex = range(jsonarraysize(searchItemsJSONArray));
+finalUpdated_SelectedJsonArray = jsonarray();
+finalUpdated_SearchJsonArray = jsonarray();
+
+for eachIndex in selectedItemsArrayIndex{
+	eachSelectedJSON = jsonarrayget(selectedItemsJSONArray,eachIndex,"json");
+	lineID_selecteditemArray = jsonget(eachSelectedJSON,"lineID_selecteditemArray");//Line Id for Total Items
+	vendorRequestNumber_selectedItemsArray = jsonget(eachSelectedJSON,"vendorRequestNumber_selectedItemsArray");//Ricoh Vendor quote request number
+	quoteRequestedBy_selectedItemsArray = jsonget(eachSelectedJSON,"quoteRequestedBy_selectedItemsArray");//Quote requested by
+	quoteRequestedEmail_selecteditemArray = jsonget(eachSelectedJSON,"quoteRequestedEmail_selecteditemArray");//Quote requested Email
+	vendorRequestNumber_NonRicoh_selectedItemsArray = jsonget(eachSelectedJSON,"vendorRequestNumber_NonRicoh_selectedItemsArray");//Vendor quote request number
+	vendorQuoteRequestName_selectedItemsArray = jsonget(eachSelectedJSON,"vendorQuoteRequestName_selectedItemsArray");//Vendor quote request name
+	quoteExpirationDate_selectedItemsArray = jsonget(eachSelectedJSON,"quoteExpirationDate_selectedItemsArray");//Quote Expiration date
+	vendorName_selectedItemsArray = jsonget(eachSelectedJSON,"vendorName_selectedItemsArray");//Vendor Name
+	vendorEmail_selectedItemsArray = jsonget(eachSelectedJSON,"vendorEmail_selectedItemsArray");//Vendor Email
+	vendorProductNumber_selectedItemsArray = trim(jsonget(eachSelectedJSON,"vendorProductNumber_selectedItemsArray"));//Vendor Product Number
+	itemType_selectedItemsArray = jsonget(eachSelectedJSON,"itemType_selectedItemsArray");//Item Type
+		vendorProductDescription_selectedItemsArray = jsonget(eachSelectedJSON,"vendorProductDescription_selectedItemsArray");//Vendor Product 
+	ricohEDPCode_selectedItemsArray = jsonget(eachSelectedJSON,"ricohEDPCode_selectedItemsArray");//Ricoh EDP COde
+		quantity_selectedItemsArray = jsonget(eachSelectedJSON,"quantity_selectedItemsArray");//Quantity
+	unitCost_selectedItemsArray = jsonget(eachSelectedJSON,"unitCost_selectedItemsArray");//Unit Cost
+	unitMSRP_selectedItemsArray = jsonget(eachSelectedJSON,"unitMSRP_selectedItemsArray");//Unit MSRP
+	extSRP_selectedItemsArray = jsonget(eachSelectedJSON,"extSRP_selectedItemsArray");//EXT SRP
+	extCost_selectedItemsArray = jsonget(eachSelectedJSON,"extCost_selectedItemsArray");//EXT COST
+	instructions_selectedItemsArray_t_c = jsonget(eachSelectedJSON,"instructions_selectedItemsArray_t_c");//Instructions
+	approvalType_selectedItemsArray = jsonget(eachSelectedJSON,"approvalType_selectedItemsArray");//Approval Type
+	itemCreation_selectedItemsArray = jsonget(eachSelectedJSON,"itemCreation_selectedItemsArray");//Item Creation Flag
+	processGroup_selectedItemsArray = jsonget(eachSelectedJSON,"processGroup_selectedItemsArray");//Process Group
+	portfolioFlag_selectedItemsArray_t = jsonget(eachSelectedJSON,"portfolioFlag_selectedItemsArray_t");//Portfolio Flag
+	//Added by Nupur for PS pricing changes 8/31/2023 
+	geoAdjuster_selectedItemsArray = jsonget(eachSelectedJSON,"geoAdjuster_selectedItemsArray");
+	zeroCost_selectedItemsArray = jsonget(eachSelectedJSON,"zeroCost_selectedItemsArray");
+	status_selectedItemsArray = jsonget(eachSelectedJSON,"status_selectedItemsArray");//Status
+		ricohEDPCodeDescription_selectedItemsArray = jsonget(eachSelectedJSON,"ricohEDPCodeDescription_selectedItemsArray");//Status
+		select_selecteditemArray = jsonget(eachSelectedJSON,"select_selecteditemArray");
+
+
+	
+	
+		final_selectedJson = json();
+		jsonput(final_selectedJson,"vendorRequestNumber_selectedItemsArray",vendorRequestNumber_selectedItemsArray);
+		jsonput(final_selectedJson,"select_selecteditemArray",select_selecteditemArray);
+		jsonput(final_selectedJson,"quoteRequestedBy_selectedItemsArray",quoteRequestedBy_selectedItemsArray);
+		jsonput(final_selectedJson,"quoteRequestedEmail_selecteditemArray",quoteRequestedEmail_selecteditemArray);
+		jsonput(final_selectedJson,"vendorRequestNumber_NonRicoh_selectedItemsArray",vendorRequestNumber_NonRicoh_selectedItemsArray);
+		jsonput(final_selectedJson,"vendorQuoteRequestName_selectedItemsArray",vendorQuoteRequestName_selectedItemsArray);
+		jsonput(final_selectedJson,"quoteExpirationDate_selectedItemsArray",quoteExpirationDate_selectedItemsArray);
+		jsonput(final_selectedJson,"vendorName_selectedItemsArray",vendorName_selectedItemsArray);
+		jsonput(final_selectedJson,"vendorEmail_selectedItemsArray",vendorEmail_selectedItemsArray);
+		jsonput(final_selectedJson,"itemType_selectedItemsArray",itemType_selectedItemsArray);
+		jsonput(final_selectedJson,"vendorProductNumber_selectedItemsArray",vendorProductNumber_selectedItemsArray);
+		jsonput(final_selectedJson,"vendorProductDescription_selectedItemsArray",vendorProductDescription_selectedItemsArray);
+		jsonput(final_selectedJson,"ricohEDPCode_selectedItemsArray",ricohEDPCode_selectedItemsArray);
+		jsonput(final_selectedJson,"ricohEDPCodeDescription_selectedItemsArray",ricohEDPCodeDescription_selectedItemsArray);
+		jsonput(final_selectedJson,"quantity_selectedItemsArray",quantity_selectedItemsArray);
+		jsonput(final_selectedJson,"unitCost_selectedItemsArray",unitCost_selectedItemsArray);
+		jsonput(final_selectedJson,"unitMSRP_selectedItemsArray",unitMSRP_selectedItemsArray);
+		jsonput(final_selectedJson,"extSRP_selectedItemsArray",extSRP_selectedItemsArray);
+		jsonput(final_selectedJson,"extCost_selectedItemsArray",extCost_selectedItemsArray);
+		jsonput(final_selectedJson,"instructions_selectedItemsArray_t_c",instructions_selectedItemsArray_t_c);
+		jsonput(final_selectedJson,"itemCreation_selectedItemsArray",itemCreation_selectedItemsArray);
+		jsonput(final_selectedJson,"processGroup_selectedItemsArray",processGroup_selectedItemsArray);
+		jsonput(final_selectedJson,"portfolioFlag_selectedItemsArray_t",portfolioFlag_selectedItemsArray_t); 
+		//Added by Nupur for PS pricing changes 8/31/2023 
+		jsonput(final_selectedJson,"geoAdjuster_selectedItemsArray",geoAdjuster_selectedItemsArray); 
+		jsonput(final_selectedJson,"zeroCost_selectedItemsArray",zeroCost_selectedItemsArray); 
+			jsonput(final_selectedJson,"status_selectedItemsArray",status_selectedItemsArray);
+						jsonput(final_selectedJson,"lineID_selecteditemArray",lineID_selecteditemArray);
+
+
+		if(NOT ISNULL(lineID_selecteditemArray) AND containsKey(statusWorkBenchDict,lineID_selecteditemArray)){
+		jsonput(final_selectedJson,"status_selectedItemsArray",get(statusWorkBenchDict,lineID_selecteditemArray));
+		}
+		
+		if(NOT ISNULL(lineID_selecteditemArray) AND containsKey(notesWorkBenchDict,lineID_selecteditemArray)){
+		jsonput(final_selectedJson,"instructions_selectedItemsArray_t_c",get(notesWorkBenchDict,lineID_selecteditemArray));
+		}
+		
+		jsonarrayappend(finalUpdated_SelectedJsonArray,final_selectedJson);
+
+	
+}
+	retVal = retVal + "1~selectedItemsArray~" + jsonarraytostr(finalUpdated_SelectedJsonArray)+ "|" ;
+
+
+
+
+return retVal;

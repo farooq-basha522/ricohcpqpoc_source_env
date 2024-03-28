@@ -1,0 +1,21 @@
+{
+  "name" : "abo_invokeAssetService",
+  "variableName" : "abo_invokeAssetService",
+  "description" : "This utility function is used to execute get/post rest service calls on Asset Local Repository",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_getContext" ],
+  "returnType" : "Json",
+  "parameters" : [ {
+    "name" : "subUrl",
+    "type" : "String"
+  }, {
+    "name" : "method",
+    "type" : "String"
+  }, {
+    "name" : "queryParam",
+    "type" : "String"
+  }, {
+    "name" : "payLoadJson",
+    "type" : "Json"
+  } ],
+  "attributes" : [ ]
+}

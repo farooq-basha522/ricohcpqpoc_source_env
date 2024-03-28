@@ -1,0 +1,11 @@
+{
+  "name" : "Check if Customer Result Array Project Numbers are Numeric",
+  "variableName" : "checkIfCustomerResultArrayProjectNumbersAreNumeric",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "customerAccountResult_t", "engagementType_l" ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,27 @@
+{
+  "name" : "Create Single Select Menu",
+  "variableName" : "createSingleSelectMenu",
+  "description" : "Converts an HTML Attribute into a menu, and stores the selection into a (hidden) text field.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "menuVarName",
+    "type" : "String"
+  }, {
+    "name" : "menuOptionLabelsArr",
+    "type" : "String[]"
+  }, {
+    "name" : "menuOptionValuesArr",
+    "type" : "String[]"
+  }, {
+    "name" : "currentSelectedVal",
+    "type" : "String"
+  }, {
+    "name" : "autoUpdate",
+    "type" : "Boolean"
+  }, {
+    "name" : "callingProcess",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

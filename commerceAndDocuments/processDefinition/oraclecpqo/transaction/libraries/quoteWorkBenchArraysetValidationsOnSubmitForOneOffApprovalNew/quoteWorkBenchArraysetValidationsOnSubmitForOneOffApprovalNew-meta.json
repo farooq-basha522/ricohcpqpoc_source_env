@@ -1,0 +1,20 @@
+{
+  "name" : "Quote WorkBench Arrayset Validations on submit for one off Approval New",
+  "variableName" : "quoteWorkBenchArraysetValidationsOnSubmitForOneOffApprovalNew",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Anytype Dictionary",
+  "parameters" : [ {
+    "name" : "inputJsonArray",
+    "type" : "JsonArray"
+  }, {
+    "name" : "actionName",
+    "type" : "String"
+  }, {
+    "name" : "inputDict",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "quoteWorkbench_VQt", "requestToQuoteItemsArray_VQt", "sendSelectedQuoteArraySetValidationFlag" ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,14 @@
+{
+  "name" : "Check for ITS Item Type",
+  "variableName" : "checkForITSItemType",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Boolean",
+  "parameters" : [ {
+    "name" : "conditionType",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ "type_l", "_group_sequence_number" ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

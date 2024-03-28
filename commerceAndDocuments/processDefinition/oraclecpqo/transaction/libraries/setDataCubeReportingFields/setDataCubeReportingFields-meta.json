@@ -1,0 +1,11 @@
+{
+  "name" : "Set DataCube Reporting fields",
+  "variableName" : "setDataCubeReportingFields",
+  "description" : "It has the reporting data which cannot be mapped directly to the data cube. Eg: Transaction Arrays",
+  "libraryFunctions" : [ "util.convertTransactionArrayIntoADelimitedString" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "quoteSummaryArraySet_t", "selectedDRTeamMemberArraySet_t", "bs_id", "transactionID_t", "version_t", "firstMonthBillingArraySet_t", "mSTotalDealSectionArray_t", "mSlaborPIMADescriptionArray_t", "mPSlaborPIMADescriptionArray_t", "iTSPIMADescriptionArray_t", "tASSPIMADescriptionArray_t", "vehiclePIMADescriptionArray_t", "tRACPIMADescriptionArray_t", "otherSerPIMADescriptionArray_t", "otherSerNTPIMA_Array", "pSPIMADescriptionArray_t", "mailRoomPIMADescriptionArray_t", "rebateArray_t", "areaCostArray_t", "termMonths_t", "contractOtherTerm_t" ],
+  "systemAttributes" : [ ]
+}

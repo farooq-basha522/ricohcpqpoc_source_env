@@ -1,0 +1,22 @@
+rollupStr = stringbuilder();
+rollupDeltaPriceMap = get(quoteData, "rollupDeltaPriceMap", "dict<anytype>");
+deltaPriceMap = get(quoteData, "deltaPriceMap", "dict<anytype>");
+
+//
+// print delta prices 
+//
+docNumbers = keys(deltaPriceMap);
+for docNumber in docNumbers {
+    price = get(deltaPriceMap, docNumber, "float");
+    sbappend(rollupStr, docNumber, "~_delta_price~", string(price), "|");
+}
+//
+// print rollup delta prices for all root items.
+//
+docNumbers = keys(rollupDeltaPriceMap);
+for docNumber in docNumbers {
+    price = get(rollupDeltaPriceMap, docNumber, "float");
+    sbappend(rollupStr, docNumber, "~_rollup_delta_price~", string(price), "|");
+}
+  
+return sbtostring(rollupStr);

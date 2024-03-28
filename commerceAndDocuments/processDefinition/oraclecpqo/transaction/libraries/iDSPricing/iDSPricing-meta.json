@@ -1,0 +1,11 @@
+{
+  "name" : "IDS Pricing",
+  "variableName" : "iDSPricing",
+  "description" : "",
+  "libraryFunctions" : [ "util.getMutliplteCustomFieldValuesForselectedParts", "util.getProcessGroup" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_part_number", "_model_variable_name", "_parent_doc_number", "_config_attr_info", "extSRP_l", "unitSRP_l", "_price_quantity", "_document_number", "extNetPrice_l", "listPrice_l", "unitNetPrice_l", "configCommentsNew_l", "_line_item_comment", "discountAmountt_l", "discounttype_l", "_part_custom_field23", "_part_custom_field16", "_part_custom_field7" ],
+  "mainDocAttributes" : [ "transactionID_t" ],
+  "systemAttributes" : [ ]
+}

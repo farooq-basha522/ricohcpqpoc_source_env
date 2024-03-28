@@ -1,0 +1,201 @@
+/*
+    @name                   :    Generate Solution Configuration Summary
+    @author                 :    Shaik Farooq Basha
+    @created                :    10-Feb-2024
+   
+    This function will return the Solution COnfiguration Summary Price data which been used in xsl files to generate output xsl documents        -    		   
+*/
+
+/*Summary report quick requirements walk through*/
+
+//Ext. Standard Cost = Sum of each item’s qty*Unit Standard Cost
+//If there is no LIG data, the report will still be able to be generated but all the dollar amounts will be $0.00.
+//Any items associated to an Intelligent Delivery Services Model shall be excluded from the PS Summary Report
+
+/*get All solution summary data from table Solution_Config_Type*/
+/*TESTING D-T-IT FROM CLI COMMAND*/
+rs = bmql("select Category,Item_Type from Solution_Config_Type");
+category_Array  = string[];
+itemType_Array = string[];
+configSummaryDict = dict("string");
+summaryTotalSRPDict = dict("float");
+summaryTotalSellingPriceDict = dict("float");
+summaryTotalStandardCostDict = dict("float");
+totalEXTSRP = 0.0;
+totalEXTSALESCOST = 0.0;
+totalEXTSELLINGPRICE = 0.0;
+for each in rs{
+	append(category_Array,get(each,"Category"));
+	append(itemType_Array,get(each,"Item_Type"));
+	put(configSummaryDict,get(each,"Item_Type"),get(each,"Category"));
+}
+
+//print configSummaryDict;
+/* Store all items types and model related data in dictionaries/jsons structures*/
+productsEXSRP = 0.0;
+supportEXSRP = 0.0;
+installationEXSRP=0.0;
+productsJsonArray = jsonarray();
+productsJson = json();
+productTempJson = json();
+idsParentDocNum = "";
+for line in transactionLine{
+	//Any items associated to an Intelligent Delivery Services Model shall be excluded from the PS Summary Report
+    if(line._model_name == "Intelligent Delivery Services"){
+		idsParentDocNum = line._document_number;
+	}else{
+		if((idsParentDocNum <> line._parent_doc_number AND line.type_l <> "" AND findinarray(itemType_Array,line.type_l) <> -1) OR (line._model_name == "" AND line._parent_doc_number == "")){
+		 
+		 if(NOT startswith(line._part_number,"FIPS") AND containskey(configSummaryDict,line.type_l)){
+			 
+			/*ex.srp logic start here*/
+			if(containskey(summaryTotalSRPDict, get(configSummaryDict,line.type_l))){
+				getSummarySRPValue = line.extSRP_l + get(summaryTotalSRPDict, get(configSummaryDict,line.type_l));
+				//print "before - totalEXTSRP";
+				//print totalEXTSRP;
+				totalEXTSRP = totalEXTSRP +line.extSRP_l;
+				//print totalEXTSRP;
+				//print getSummarySRPValue;
+				//print line.extSRP_l ;
+				put(summaryTotalSRPDict,get(configSummaryDict,line.type_l),getSummarySRPValue);
+				
+				
+			}else{
+				put(summaryTotalSRPDict,get(configSummaryDict,line.type_l),line.extSRP_l);
+				totalEXTSRP = totalEXTSRP +line.extSRP_l;
+				//print "62";
+				//print totalEXTSRP;
+
+			}	
+			/*ex srp logic end here*/
+			
+			/*Selling price ext start here*/
+			
+			if(containskey(summaryTotalSellingPriceDict, get(configSummaryDict,line.type_l))){
+					getSummarySellingPriceValue = line.extSellingPrice_l + get(summaryTotalSellingPriceDict, get(configSummaryDict,line.type_l));
+					totalEXTSELLINGPRICE = totalEXTSELLINGPRICE+line.extSellingPrice_l;
+				put(summaryTotalSellingPriceDict,get(configSummaryDict,line.type_l),getSummarySellingPriceValue);
+				
+				
+			}else{
+				put(summaryTotalSellingPriceDict,get(configSummaryDict,line.type_l),line.extSellingPrice_l);
+				totalEXTSELLINGPRICE = totalEXTSELLINGPRICE+line.extSellingPrice_l;
+
+			}
+			
+			/*selling price ext end here*/
+
+
+          /*Ext sales cost logic start here*/
+			
+			if(containskey(summaryTotalStandardCostDict, get(configSummaryDict,line.type_l))){
+				extStandardCost = line.unitSalesCost_l*line._price_quantity;
+				getSummarySellingPriceValue = extStandardCost + get(summaryTotalStandardCostDict, get(configSummaryDict,line.type_l));
+				totalEXTSALESCOST = totalEXTSALESCOST+extStandardCost;
+				put(summaryTotalStandardCostDict,get(configSummaryDict,line.type_l),getSummarySellingPriceValue);	
+			}else{
+				extStandardCost = line.unitSalesCost_l*line._price_quantity;
+				totalEXTSALESCOST = totalEXTSALESCOST+extStandardCost;
+				put(summaryTotalStandardCostDict,get(configSummaryDict,line.type_l),extStandardCost);
+			}
+			
+          /*Ext Standard cost logic End here*/
+			
+		 }
+		 elif(NOT startswith(line._part_number,"FIPS") AND (find(line.type_l,"SOLUTIONS-")<>-1 AND NOT containskey(configSummaryDict,line.type_l))){
+
+             /*ex.srp logic start here*/
+			if(containskey(summaryTotalSRPDict, "Exceptions")){
+				getSummarySRPValue = line.extSRP_l + get(summaryTotalSRPDict, "Exceptions");
+				totalEXTSRP = totalEXTSRP+line.extSRP_l;
+
+				put(summaryTotalSRPDict,"Exceptions",getSummarySRPValue);
+				
+				
+			}else{
+				put(summaryTotalSRPDict,"Exceptions",line.extSRP_l);
+				totalEXTSRP = totalEXTSRP+line.extSRP_l;
+
+			}	
+			/*ex srp logic end here*/
+			
+			/*Selling price ext start here*/
+			
+			if(containskey(summaryTotalSellingPriceDict, "Exceptions")){
+				getSummarySellingPriceValue = line.extSellingPrice_l + get(summaryTotalSellingPriceDict, "Exceptions");
+				totalEXTSELLINGPRICE = totalEXTSELLINGPRICE+line.extSellingPrice_l;
+
+				put(summaryTotalSellingPriceDict,"Exceptions",getSummarySellingPriceValue);
+				
+				
+			}else{
+				put(summaryTotalSellingPriceDict,"Exceptions",line.extSellingPrice_l);
+				totalEXTSELLINGPRICE = totalEXTSELLINGPRICE+line.extSellingPrice_l;
+
+			}
+			
+			/*selling price ext end here*/
+ 
+			  
+			  
+            /*Ext Standard cost logic start here*/
+			
+			if(containskey(summaryTotalStandardCostDict, "Exceptions")){
+				extStandardCost = line.unitSalesCost_l*line._price_quantity;
+				getSummarySellingPriceValue = extStandardCost + get(summaryTotalStandardCostDict, "Exceptions");
+				totalEXTSALESCOST  = totalEXTSALESCOST+extStandardCost;
+
+				put(summaryTotalStandardCostDict,"Exceptions",getSummarySellingPriceValue);	
+			}else{
+				extStandardCost = line.unitSalesCost_l*line._price_quantity;
+				totalEXTSALESCOST  = totalEXTSALESCOST+extStandardCost;
+				put(summaryTotalStandardCostDict,"Exceptions",extStandardCost);
+			}
+			
+          /*Ext Standard cost logic End here*/
+			
+
+				 
+			 } 
+		 }	
+			
+		}		
+	}	
+
+sb=stringbuilder();
+//print summaryTotalSRPDict;
+if(containskey(summaryTotalSRPDict,"Products")){
+sbappend(sb,"Products#",string(get(summaryTotalSRPDict,"Products")),"@");
+sbappend(sb,string(get(summaryTotalStandardCostDict,"Products")),"@",string(get(summaryTotalSellingPriceDict,"Products")),"@");
+}
+
+if(containskey(summaryTotalSRPDict,"Installation/Services")){
+
+sbappend(sb,"Installation/Services#",string(get(summaryTotalSRPDict,"Installation/Services")),"@");
+sbappend(sb,string(get(summaryTotalStandardCostDict,"Installation/Services")),"@",string(get(summaryTotalSellingPriceDict,"Installation/Services")),"@");
+}
+
+if(containskey(summaryTotalSRPDict,"Support")){
+
+sbappend(sb,"Support#",string(get(summaryTotalSRPDict,"Support")),"@");
+sbappend(sb,string(get(summaryTotalStandardCostDict,"Support")),"@",string(get(summaryTotalSellingPriceDict,"Support")),"@");
+}
+
+if(containskey(summaryTotalSRPDict,"Exceptions")){
+
+sbappend(sb,"Exceptions#",string(get(summaryTotalSRPDict,"Exceptions")),"@");
+sbappend(sb,string(get(summaryTotalStandardCostDict,"Exceptions")),"@",string(get(summaryTotalSellingPriceDict,"Exceptions")),"@");
+}
+/*//print sb;
+
+//print summaryTotalSRPDict;
+//print summaryTotalSellingPriceDict;
+//print summaryTotalStandardCostDict;*/
+
+sbappend(sb,"Totals#",string(totalEXTSRP),"@");
+sbappend(sb,string(totalEXTSALESCOST),"@",string(totalEXTSELLINGPRICE),"@");
+//print sb;
+
+ret = "1~solutionConfigurationSummaryData_c~"+sbtostring(sb)+"|";
+
+return ret;

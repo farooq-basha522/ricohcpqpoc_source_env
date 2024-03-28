@@ -1,0 +1,18 @@
+result="";
+quantity="";docNum ="";
+for eachLine in transactionLine{
+	partNumber = eachLine._part_number;
+	docNum = eachLine._document_number; 
+	
+if(partNumber <> ""){
+bundleName = getconfigattrvalue(docNum,"bundleName_t") ;
+  if (startswith(bundleName,"Modern Work")) {
+  quantity=getconfigattrvalue(docNum,"numberOfUsers");
+}
+else{
+quantity=getconfigattrvalue(docNum,"bundleQuantity");
+}
+}
+}
+result = result  + docNum + "~qty_l~" + quantity+ "|";
+return result;

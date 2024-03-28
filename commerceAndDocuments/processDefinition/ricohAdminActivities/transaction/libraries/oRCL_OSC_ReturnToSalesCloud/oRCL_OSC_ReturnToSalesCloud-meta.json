@@ -1,0 +1,11 @@
+{
+  "name" : "OSC Return to Sales Cloud",
+  "variableName" : "oRCL_OSC_ReturnToSalesCloud",
+  "description" : "Determines to which Oracle Sales Cloud screen the user should be redirected. If the transaction has an associated opportunity, the user is redirected back to that opportunity's quotes page. If the transaction has an associated customer account and no opportunity, the user is redirected back to that account's quotes page. If neither value is present on the quote, the user is redirected back to the Sales Cloud homepage.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "opportunityID_t", "_transaction_customer_id" ],
+  "systemAttributes" : [ ]
+}

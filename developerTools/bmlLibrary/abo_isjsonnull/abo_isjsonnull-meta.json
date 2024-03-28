@@ -1,0 +1,15 @@
+{
+  "name" : "abo_isjsonnull",
+  "variableName" : "abo_isjsonnull",
+  "description" : "Utility function which returns  true if key does not exist or input json is null,",
+  "libraryFunctions" : [ ],
+  "returnType" : "Boolean",
+  "parameters" : [ {
+    "name" : "inputjson",
+    "type" : "Json"
+  }, {
+    "name" : "key",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

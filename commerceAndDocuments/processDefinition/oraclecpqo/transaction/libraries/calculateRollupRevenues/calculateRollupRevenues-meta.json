@@ -1,0 +1,11 @@
+{
+  "name" : "Calculate Rollup Revenues",
+  "variableName" : "calculateRollupRevenues",
+  "description" : "Calculate Rollup Revenues for Root Lines. These values are passed to CX Sales when root quote lines are integrated.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_document_number", "_parent_doc_number", "_group_sequence_number", "priceType_l", "priceRecurFrequency_l", "contractedPeriods_l", "listPrice_l", "requestedQuantity_l", "recurringRevSummable_l", "nonRecurRevSummable_l", "usageRevSummable_l", "contractValue_l", "monthlyRecurRevSummable_l", "monthlyUsageRevSummable_l", "contractListValue_l", "lineType_l" ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,82 @@
+//BML for HTML conversion
+
+//KEYWORDS
+SCHEMA_ = "schema";
+COLUMNS_ = "columns";
+VARIABLENAME_ = "variableName";
+NAME_ = "name";
+DATATYPE_ = "dataType";
+DATA_ = "data";
+CURRENCYCODE_ = "currencyCode";
+VALUE_ = "value";
+CURRENCY_DATATYPE = "Currency";
+
+// HTML tags
+TABLE_OPEN_TAG = "<table style=\"border-collapse: collapse;\">";
+TABLE_CLOSE_TAG = "</table>";
+ROW_OPEN_TAG = "<tr style=\"border:solid 1px;\">";
+ROW_CLOSE_TAG = "</tr>";
+COLUMN_OPEN_TAG = "<td style=\"border:solid 1px;\">";
+COLUMN_CLOSE_TAG = "</td>";
+
+html = "";
+if(NOT(isnull(rateCardStructure))){
+	html = "<figure class=\"table\">";
+	html = html + TABLE_OPEN_TAG;
+	schema = jsonget(rateCardStructure, SCHEMA_, "json");
+	columns = jsonget(schema, COLUMNS_, "jsonarray");
+	colsSize = jsonarraysize(columns);
+	// Array to store all column variable names
+	keyCols = string[colsSize]; 
+	// Array to store all column datatypes
+	datatype = string[colsSize];
+	colRange = integer[colsSize] ;
+	colCounter = 0;
+	html = html + "<tbody>";
+	html = html + ROW_OPEN_TAG;
+	for col in colRange{
+		column = jsonarrayget(columns,colCounter,"json");
+		// store column's variable name and datatype
+		keyCols[colCounter] = jsonget(column, VARIABLENAME_ );
+		datatype[colCounter] = jsonget(column, DATATYPE_ );
+		// display column name in table header
+		html = html + COLUMN_OPEN_TAG + "<b>" + jsonget(column, NAME_ ) + "</b>"+COLUMN_CLOSE_TAG;
+		colCounter = colCounter + 1;
+	}
+	html = html + ROW_CLOSE_TAG;	
+	
+	// get data rows for the Rate card
+	data = jsonget(rateCardStructure, DATA_ , "jsonarray");
+	rowSize = jsonarraysize(data);
+	rowRange = integer[rowSize];
+	rowCounter = 0;
+	for row in rowRange{
+		rowData = jsonarrayget(data,rowCounter,"json");
+		html = html + ROW_OPEN_TAG;
+		colCounter = 0;
+		for col in colRange{
+			rowValue = "";
+			val = jsonget(rowData, keyCols[colCounter]);
+			if(datatype[colCounter] == CURRENCY_DATATYPE){				
+				if(NOT(isnull(val))){
+					curJson=json(val);					
+					code = jsonget(curJson, CURRENCYCODE_);
+					value = jsonget(curJson, VALUE_);
+					rowValue = code +" "+value; 
+				}
+			} else {
+				if(NOT(isnull(val))){
+					rowValue=val;
+				}
+			}
+			html = html + COLUMN_OPEN_TAG + rowValue + COLUMN_CLOSE_TAG;
+			colCounter = colCounter + 1;
+		}
+		html = html + ROW_CLOSE_TAG;
+		rowCounter = rowCounter + 1;
+	}		
+	
+	html = html + "</tbody>";
+	html = html + TABLE_CLOSE_TAG + "</figure>";
+}
+return html;

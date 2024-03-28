@@ -1,0 +1,13 @@
+delimitedString = "";
+transaction_jsonarray = range(jsonarraysize(transactionArraySet));
+for eachIndex in transaction_jsonarray{
+	eachIndexJSON = jsonarrayget(transactionArraySet,eachIndex,"json");
+	if(NOT(isnull(jsonget(eachIndexJSON,jsonKey)))){
+		if(delimitedString == ""){
+			delimitedString = jsonget(eachIndexJSON,jsonKey);
+		}else{
+			delimitedString = delimitedString + "$,$" + jsonget(eachIndexJSON,jsonKey);
+		}
+	}
+}
+return delimitedString;

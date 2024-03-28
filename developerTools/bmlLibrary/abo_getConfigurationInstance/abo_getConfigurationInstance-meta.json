@@ -1,0 +1,21 @@
+{
+  "name" : "abo_getConfigurationInstance",
+  "variableName" : "abo_getConfigurationInstance",
+  "description" : "This is entry  BML for ABO Modify flow, will be invoked as getConfigurationInstance operation on asset resource.",
+  "libraryFunctions" : [ "util.abo_addDiagnosticInfo", "util.abo_initializeContext", "util.abo_isjsonnull", "util.abo_prepareConfigurationInstance" ],
+  "returnType" : "String Dictionary",
+  "parameters" : [ {
+    "name" : "assetKey",
+    "type" : "String"
+  }, {
+    "name" : "transactionDate",
+    "type" : "Date"
+  }, {
+    "name" : "transactionId",
+    "type" : "Integer"
+  }, {
+    "name" : "commerceProcess",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

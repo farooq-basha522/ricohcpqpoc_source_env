@@ -1,0 +1,3 @@
+jobj=json(response);
+cpqresp = jsonget(jobj,Attribute);
+return cpqresp;

@@ -1,0 +1,11 @@
+{
+  "name" : "Common Vendor Quoting Item Creation",
+  "variableName" : "commonVendorQuotingItemCreation",
+  "description" : "",
+  "libraryFunctions" : [ "util.getProcessGroup" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "quoteExpirationDate_VQt", "quoteWorkbench_VQt", "transactionID_t", "vendorQuoteSubmittedUserMailId_t", "selectedItemsArray", "vendorNames_VQt" ],
+  "systemAttributes" : [ ]
+}

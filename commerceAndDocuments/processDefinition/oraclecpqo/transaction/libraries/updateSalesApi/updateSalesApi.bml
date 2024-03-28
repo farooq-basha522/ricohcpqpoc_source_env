@@ -1,0 +1,19 @@
+resultData ="";
+requestJson =json();
+//Endpoint Call to create Revenue Lines//
+endPointURLPost="https://cbha-dev3.fa.us2.oraclecloud.com/crmRestApi/resources/latest/salesOrders/";
+//Authentication and Headers Parse//
+headerDict = dict("string");
+put(headerDict, "Content-Type", "application/json");
+put(headerDict, "Authorization", "Basic "+encodebase64("cpqintegration:Ricoh1234"));
+jsonput(requestJson ,"CurrencyCode",currency_t);
+jsonput(requestJson ,"ExternalReferenceNumber",bs_id);
+jsonput(requestJson ,"Name",transactionID_t);
+jsonput(requestJson ,"OptyId",opportunityID_t);
+jsonput(requestJson ,"OrderTotal",string(totalContractValue_t));
+jsonput(requestJson ,"ExternalSystemReferenceCode","BMQUOTE");
+jsonput(requestJson ,"Status",status_t);
+jsonput(requestJson ,"WinStatusCode","ZCA_IN_PROGRESS");
+jsonput(requestJson ,"ActiveVersionFlag","true");
+resultData = urldatabypost(endPointURLPost, jsontostr(requestJson), "", headerDict, true);
+return "";

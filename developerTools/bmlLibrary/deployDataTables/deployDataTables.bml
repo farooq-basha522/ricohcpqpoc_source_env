@@ -1,0 +1,39 @@
+// Miguel/Taylor - deploy data tables
+ret = "";
+siteName = lower(_company_name);
+endpointURL = "https://" + _company_name + ".bigmachines.com/rest/v14";
+
+username = "";
+userpwd = "";
+
+apiUserCred = bmql("SELECT Username, Password FROM INT_SYSTEM_DETAILS WHERE API_NAME = 'UserLogin' AND InstancesName = $siteName");
+
+for each in apiUserCred{
+	username = get(each,"Username");
+	userpwd = get(each,"Password");
+}
+
+authenticate = encodebase64(username + ":" + userpwd);
+
+header = dict("string");
+put(header, "Authorization", "Basic " + authenticate);
+put(header, "Accept", "application/json");
+put(header,"Content-Type","application/json");
+
+endpointURLdeploy = endpointURL + "/datatables/actions/deploy";
+deploypayload = json();
+selectionarr = jsonarray();
+
+tableArray = split(tableNames, ",");
+for table in tableArray {
+	jsonarrayappend(selectionarr, table);
+}
+jsonput(deploypayload,"selections", selectionarr);
+
+//print deploypayload;
+schemaresponse = urldata(endpointURLdeploy,"POST", header, jsontostr(deploypayload), 500);
+
+//print "Deploy Table response";
+//print schemaresponse;
+
+return schemaresponse;

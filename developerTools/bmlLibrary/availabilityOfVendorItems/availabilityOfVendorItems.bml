@@ -1,0 +1,35 @@
+quoteWorkbenchArray = jsonarray();
+recordSet = bmql("select ITEM_HEADER,ITEM_VALUE from where RICOH_VENDOR_STATUS");
+mainDict = dict("anytype");
+keyValue = "";
+itemsArray = string[];
+for each in recordSet{
+	if(get(each,"ITEM_HEADER") <> "" AND get(each,"ITEM_VALUE") == ""){
+		keyValue =  get(each,"ITEM_HEADER");	
+		itemsArray = string[];
+	}
+if(get(each,"ITEM_VALUE") <> ""){append(itemsArray,get(each,"ITEM_VALUE"));}
+	put(mainDict,keyValue,itemsArray);
+}
+
+finalArray = get(mainDict,param,"string[]");
+finalStr = join(finalArray,"##");
+
+
+arraysize = range(jsonarraysize(quoteWorkbenchItemsJson));
+for arr in arraysize{
+		selectedItemsRow = jsonarrayget(quoteWorkbenchItemsJson,arr);
+		selectedItemsJson = json(selectedItemsRow);
+	     status = jsonget(selectedItemsJson,"vendorRequestStatus_QuoteWorkbench_t");
+	        
+		 ricohEDP = jsonget(selectedItemsJson,"ricohEDPCode_QuoteWorkbench_t");
+
+		 if(ricohEDP <> "MAP-GENERIC" AND (find(finalStr,status) <> -1 OR find(finalStr,status) <> -1)){
+			 return false;
+		 }
+		  elif((find(finalStr,status) <> -1)){
+			 return false;
+		 }
+	
+}
+return true;

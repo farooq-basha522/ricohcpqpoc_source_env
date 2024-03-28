@@ -1,0 +1,21 @@
+//Util Functione: abo_generatePAC
+//   input: assetKey(String), transactionDate(Date), transactionId(Integer)
+//      optional: lineNum_to_exclude(Integer), requestAction(String)
+//   output: resultBom(Json)
+//Description:
+//    This utility function is for generating projected asset cache(PAC) BOM.
+//    It loads asset and open order lines to the specified date and apply open order changes to asset 
+//    to calculate a projected state of the asset as of requested date.
+//Logic :
+//    1: Load Asset & convert same to BOM structure
+//    2: Load open quote in BOM structure
+//    3: Invoke apply to prepare PAC BOM
+
+baseBom =  util.abo_loadAsset(assetKey);
+
+arrBomtoApply =  jsonarray();
+arrBomtoApply = util.abo_getQuoteBoms(assetKey, transactionDate, transactionId, lineNum_to_exclude, requestAction);
+
+resultBom = util.abo_apply(baseBom, arrBomtoApply);
+
+return resultBom;

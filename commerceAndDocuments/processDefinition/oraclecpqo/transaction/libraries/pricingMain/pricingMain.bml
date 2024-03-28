@@ -1,0 +1,253 @@
+//*****************************************************************************************************
+//** Function:    Pricing Main Function
+//** Type:        After-Formulas
+//**
+//** Description: Pricing Formulas. Line Item Grid will be used by formulas for auto calculations
+//**                                                                                               
+//** History:	Date		Author     	Comment
+//**				HHo		Initial Implementation
+//**            01.25.17        RConaghan       Split Sequencing into its own function
+//**            03.01.17        RConaghan       Commented out quote Prod Type totals as those are now in Formulas
+//**            04.21.17        RConaghan       Minor cleanup and fix of contracted pricing (replaced elements of delim string with array)a
+//**            04.24.17        RConaghan       Removed all contracted pricing logic as that is in its own function now.
+//*****************************************************************************************************
+
+//----Declaration
+//MC-95, Pricing
+ret			= "";
+partNum 		= ""; 
+lastPricedDate 		= ""; //Blank = empty (optional). YYYY-MM-DD format
+lineCommentNameValDelim = "@@";
+lineCommentPairDelim = "##";
+
+//MC-97, Total MRR/NRR Fields
+totalQuoteNetMRR	= 0; //Quote total net MRR
+totalQuoteUnitMRR	= 0;
+totalQuoteNetNRR	= 0; //Quote total net NRR
+totalQuoteUnitNRR	= 0;
+totalMRR_MRR		= 0; //total monthly recurring component for parts in the "MRR" category
+totalMRR_NRR		= 0; //total NRR component for parts in the "MRR" category
+totalInstall_MRR	= 0; //total monthly recurring component for parts in the "INSTALL" category
+totalInstall_NRR	= 0; //total NRR component for parts in the "INSTALL" category
+totalHWSW_MRR		= 0; //total monthly recurring component for parts in the "EQUIP" category
+totalHWSW_NRR		= 0; //total NRR component for parts in the "EQUIP" category
+totalProServ_MRR	= 0; //total monthly recurring component for parts in the "PROSERV" category
+totalProServ_NRR	= 0; //total NRR component for parts in the "PROSERV" category
+totalOther_MRR		= 0; //total monthly recurring component for parts in the "MRR" category
+totalOther_NRR 		= 0; //total NRR component for parts not in one of the specified categories
+totalQuoteNetNRRLessInstall = 0.0;
+totalQuoteUnitNRRLessInstall = 0.0;
+quoteNRRDiscountPctLessInstall = 0.0;
+
+
+//MC-318, Installation
+installDict	 	= dict("float"); //hold table bmql
+install_rate		= 0.0;
+installPriceDict 	= dict("float"); //installation fees
+installPrice		= 0.0;
+
+//Discounts Total
+quoteMRRDiscountPct = 0.0;
+quoteNRRDiscountPct = 0.0;
+partNumberArray=string[];
+
+extraInputsDict = dict("string"); //Dictionary passed into decodeNameValuePairs util.
+	put(extraInputsDict, "nameValDelim", lineCommentNameValDelim);
+	put(extraInputsDict, "pairDelim", lineCommentPairDelim);
+//----End of Declaration
+
+//TABLE CALLS - Installation Fees
+installation = bmql("SELECT Product_Group, Install_Multiplier FROM Install_Multipliers");
+
+for rates in installation {
+	prodGroup = get(rates, "Product_Group");
+	installRate = getFloat(rates, "Install_Multiplier");
+	put(installDict,prodGroup,installRate);
+}
+	
+//Loop 1 rewrite
+//In loop 1, we will build dictionaries for later line-level outputs, as well as writing to quote-level variables.
+for line in transactionLine{
+	//START 06_11_2023 Added if condition for not to run for MPS lines and run for all other process groups #CHG0085215 by Vasundhara
+	if(line._price_calculation_info == ""){
+		docNum = line._document_number;
+		parentDocNum = line._parent_doc_number;
+		currentSeqNum = line._sequence_number;
+		locId = line.locationID_l;
+		parentId = "";
+		lineId = "";
+		
+		//Assign category totals
+		//partType = line._part_custom_field9;
+		//partGroup = line._part_custom_field18;
+		partNum = line._part_number; 
+		append(partNumberArray,partNum);
+		partCustomFieldDict=util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+		partType = "";
+		partGroup = "";
+		if(containskey(partCustomFieldDict,partNum+"custom_field9")) {
+			partType = get(partCustomFieldDict,partNum+"custom_field9");
+		}
+		if(containskey(partCustomFieldDict,partNum+"custom_field18")) {
+			partGroup = get(partCustomFieldDict,partNum+"custom_field18");
+		}
+		/*
+		if(partType == "MRR"){
+			totalMRR_MRR = totalMRR_MRR + line.netAmount_l;
+			totalMRR_NRR = totalMRR_NRR + line.netAmountNRR_l;
+		}
+		elif(partType == "INSTALL"){
+			totalInstall_MRR = totalInstall_MRR + line.netAmount_l;
+			totalInstall_NRR = totalInstall_NRR + line.netAmountNRR_l;
+		}
+		elif(partType == "EQUIP"){
+			totalHWSW_MRR = totalHWSW_MRR + line.netAmount_l;
+			totalHWSW_NRR = totalHWSW_NRR + line.netAmountNRR_l;
+		}
+		elif(partType == "PROSERV"){
+			totalProServ_MRR = totalProServ_MRR + line.netAmount_l;
+			totalProServ_NRR = totalProServ_NRR + line.netAmountNRR_l;
+		}
+		else{ //"Other" part categories
+			partType = "OTHER";
+			totalOther_MRR = totalOther_MRR + line.netAmount_l;
+			totalOther_NRR = totalOther_NRR + line.netAmountNRR_l;
+		}
+		*/
+			
+		if(line._part_number <> ""){ //part
+			docNumToWriteTo = parentDocNum;
+			if(parentDocNum == ""){
+				docNumToWriteTo = docNum;
+			}
+			ret = ret + line._document_number + "~qty_l~" + String( line.requestedQuantity_l) + "|";
+			ret = ret + line._document_number + "~promoCodeId~" + line._part_number + "|"; 
+			//Logic done regardless of category
+				//Installation Fees
+			if(line.finalListUnitPrice_l <> 0){ //if part's MRR unit price is non-zero
+				modelInstallPrice = util.safeGetFloat(installPriceDict, docNumToWriteTo);
+				install_rate = util.safeGetFloat(installDict, partGroup);
+
+				//modelInstallPrice = modelInstallPrice + (line.finalListUnitPrice_l * install_rate);
+				modelInstallPrice = modelInstallPrice + (line.finalListUnitPriceExt_l * install_rate);
+				put(installPriceDict, docNumToWriteTo, modelInstallPrice);
+			}
+			
+				//Totals Pricing
+			totalQuoteNetMRR = totalQuoteNetMRR + line.netAmount_l;
+			totalQuoteUnitMRR = totalQuoteUnitMRR + line.finalListUnitPriceExt_l;
+					
+			totalQuoteNetNRR = totalQuoteNetNRR + line.netAmountNRR_l;
+			totalQuoteUnitNRR = totalQuoteUnitNRR + line.finalListUnitPriceNRRExt_l;
+
+			//NRR w/o install
+			if(partType <> "INSTALL" AND (line.netAmountNRR_l <> 0 OR line.finalListUnitPriceNRRExt_l <> 0)){
+				totalQuoteNetNRRLessInstall = totalQuoteNetNRRLessInstall + line.netAmountNRR_l;
+				totalQuoteUnitNRRLessInstall = totalQuoteUnitNRRLessInstall + line.finalListUnitPriceNRRExt_l;
+			}
+		}
+	}
+}
+
+//----Loop through line #2 to build return string
+getJsonString = json();
+Modelflag = false;
+skipDuplicateFlag = false;
+for line in transactionLine {
+	uom = line._part_units;
+	skipDuplicateFlag = false;
+	itemNum = line._part_number; 
+	append(partNumberArray,partNum);
+	partCustomFieldDict=util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+	approvalGroup = "";
+	partType = "";
+	if(containskey(partCustomFieldDict,itemNum+"custom_field9")) {
+		partType = get(partCustomFieldDict,itemNum+"custom_field9");
+	}
+	if(containskey(partCustomFieldDict,itemNum+"custom_field30")) {
+		approvalGroup = get(partCustomFieldDict,itemNum+"custom_field30");
+	}
+	ret = ret + line._document_number + "~approvalGroup_l~" + approvalGroup + "|"
+			  + line._document_number + "~UOM_l~" + uom+ "|";
+	//START 06_11_2023 Added if condition for not to run for MPS lines and run for all other process groups #CHG0085215 by Vasundhara
+	if(line._price_calculation_info == ""){
+		docNum = line._document_number;
+		docNumNRR = docNum + "NRR";
+		locationId = line.locationID_l;
+		//partNum = line._part_number; 
+		//approvalGroup =line._part_custom_field30;
+		
+		//itemNum = line._part_number; 
+		if(line._parent_doc_number == "" AND line._model_name == "Service Advantage Model"){
+			Modelflag = true;
+			getJsonString =  json(getconfigattrvalue(line._document_number,"RIstring_SA"));
+		}
+		if(Modelflag){
+		getJsonKeys = jsonkeys(getJsonString);
+			for each in getJsonKeys{
+				if(find(each,line._part_number)<>-1 AND NOT skipDuplicateFlag){
+					Qty = jsonget(getJsonString,each);
+					QtyStr = string(round(atof(Qty),2));
+					ret = ret + line._document_number + "~quantitySA_l~" + QtyStr + "|";
+					jsonremove(getJsonString,each);
+					skipDuplicateFlag = true;
+				}
+			}
+		}
+		category ="";
+		services = BMQL("SELECT ServiceCategory FROM RAC_SA_ItemCondition  where ItemCode=$itemNum");
+		for service in services{
+			category = get(service,"ServiceCategory");
+		}
+		ret = ret + line._document_number + "~itemCategory_l~" + category + "|";
+		//Installation Fees
+		if(partType== "INSTALL" AND _auto_update_triggered_from <> "showColumns_t"){
+			installPrice = util.safeGetFloat(installPriceDict, line._parent_doc_number);
+			installNetAmt = installPrice;
+			if(_auto_update_triggered_from <> "termMonths_t"){ //Do not fire this on auto-update as it conflicts with formulas
+				ret = ret 
+					+ line._document_number + "~finalListUnitPriceNRR_l~" + string(installPrice) + "|"
+					+ line._document_number + "~listPriceNRR_l~" + string(installPrice) + "|";
+			}
+			
+			if(line.customDiscountType_l == "Percent Off") {
+				installNetAmt = installNetAmt * (100 - line.customDiscountValue_l) / 100;
+			} elif (line.customDiscountType_l == "Amount Off") {
+				installNetAmt = installNetAmt - line.customDiscountValue_l;
+			} elif (line.customDiscountType_l == "Price Override") {
+				installNetAmt = line.customDiscountValue_l;
+			} 
+			
+			ret = ret 
+				+ line._document_number + "~netPriceNRR_l~" + string(installNetAmt) + "|"
+				+ line._document_number + "~netAmountNRR_l~" + string(installNetAmt * line.requestedQuantity_l) + "|"
+				+ line._document_number + "~customDiscountAppliedTo_l~NRR|";
+		}
+	}
+}
+
+//----End of loop through line#2 to build return string
+
+//----Final Quote-level calculations
+if(totalQuoteUnitNRR <> 0) {
+	quoteNRRDiscountPct = (100 * (1 - totalQuoteNetNRR/totalQuoteUnitNRR));
+}
+if(totalQuoteUnitMRR <> 0) {
+	quoteMRRDiscountPct = (100 * (1 - totalQuoteNetMRR/totalQuoteUnitMRR));
+}
+if(totalQuoteUnitNRRLessInstall <> 0){
+	quoteNRRDiscountPctLessInstall = (100 * (1 - totalQuoteNetNRRLessInstall/totalQuoteUnitNRRLessInstall));
+}
+
+//----Non-loop return string (Commerce Quote level)
+ret = ret
+	+ "1~totalOneTimeUnitAmount_t~" + string(totalQuoteUnitNRR) + "|"
+	+ "1~totalMonthlyUnitAmount_t~" + string(totalQuoteUnitMRR) + "|"
+	+ "1~totalOneTimeDiscountPct_t~" + string(quoteNRRDiscountPct) + "|"
+	+ "1~totalMonthlyDiscountPct_t~" + string(quoteMRRDiscountPct) + "|"
+	+ "1~totalOneTimeUnitAmountLessInstall_t~" + string(totalQuoteUnitNRRLessInstall) + "|"
+	+ "1~totalOneTimeNetAmountLessInstall_t~" + string(totalQuoteUnitNRRLessInstall) + "|"
+	+ "1~totalOneTimeDiscountPctLessInstall_t~" + string(quoteNRRDiscountPctLessInstall) + "|";
+//----End of Non-loop return string
+	
+return ret;

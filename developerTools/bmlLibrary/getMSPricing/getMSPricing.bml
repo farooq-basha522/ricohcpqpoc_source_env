@@ -1,0 +1,1576 @@
+//CHG0078656 : CPQ MS- CPQ Changes deployment//
+result = "";
+FTEHours = 0.0;
+implementationCost = 0.0;
+laborHoursConstant = 40;
+minGPPercentage = 0.0;
+productFloor = 0.0;
+sgaSegement = 0.0;
+hardwareTargetPrice = 0.0;
+fSRPercentage = 0.0;
+priceUpliftCategory = "ACCESSORY.MFP";
+priceList = "";
+partNumber = "";
+containsCustomerSegment = false;
+minGPPercentageStr = "";
+productFloorStr = "";
+sgaSegmentStr = "";
+hardwareTargetPriceStr = "";
+processGroup = "";
+upliftDict = dict("string");
+fyCustomerStartTypeException = "N";
+containsMapGenericItemInQuote = false;
+containsMapGenericNotsubmittedItemsForCreation = false;
+DEBUG_FLAG = true;
+partNumber = "";
+if(containskey(msInputDict,"partNumber")){
+	partNumber = get(msInputDict,"partNumber");
+}
+
+
+quantity = 0;
+if(containskey(msInputDict,"quantity") AND isnumber(get(msInputDict,"quantity"))){
+	quantity = integer(atof(get(msInputDict,"quantity")));
+}
+transactionType = "";
+if(containskey(msInputDict,"transactionType")){
+	transactionType = get(msInputDict,"transactionType");
+}
+termMonthInNumber = 0.0;
+if(containskey(msInputDict,"termMonthInNumber") AND isnumber(get(msInputDict,"termMonthInNumber"))){
+	termMonthInNumber = atof(get(msInputDict,"termMonthInNumber"));
+}
+segmentLevel = "";
+if(containskey(msInputDict,"segmentLevel_t")){
+	segmentLevel = get(msInputDict,"segmentLevel_t");
+}
+marketPlace = "";
+if(containskey(msInputDict,"marketplace_t")){
+	marketPlace = get(msInputDict,"marketplace_t");
+}
+fyCustomerStartType = "";
+if(containskey(msInputDict,"fYStartCustomerType_t")){
+	fyCustomerStartType = get(msInputDict,"fYStartCustomerType_t");
+}
+fYStartProductionZBA = "";
+if(containskey(msInputDict,"fYStartProductionZBA_t")){
+	fYStartProductionZBA = get(msInputDict,"fYStartProductionZBA_t");
+}
+customerSegment = "";
+if(containskey(msInputDict,"segment_t")){
+	customerSegment = get(msInputDict,"segment_t");
+	
+}
+priceUpliftCategory = "";
+if(containskey(msInputDict,"priceUpliftCategory")){
+	priceUpliftCategory = get(msInputDict,"priceUpliftCategory");
+}
+lineBOMStr = "";
+if(containskey(msInputDict,"lineBOMJson")){
+	lineBOMStr = get(msInputDict,"lineBOMJson");
+}
+documentNumber = "";
+if(containskey(msInputDict,"documentNumber")){
+	documentNumber = get(msInputDict,"documentNumber");
+}
+//START Added by vasundhara
+costOfMoney = 0.0;
+if(containskey(msInputDict,"CostOfMoney") AND isnumber(get(msInputDict,"CostOfMoney"))){
+	costOfMoney = atof(get(msInputDict,"CostOfMoney"));
+}
+ctrlAttr_Labor = 0;
+if(containskey(msInputDict,"ctrlAttr_Labor_MS") AND isnumber(get(msInputDict,"ctrlAttr_Labor_MS"))){
+	ctrlAttr_Labor = integer(atof(get(msInputDict,"ctrlAttr_Labor_MS")));
+}
+ctrlAttr_Vehicle_MS = 0;
+if(containskey(msInputDict,"ctrlAttr_Vehicle_MS") AND isnumber(get(msInputDict,"ctrlAttr_Vehicle_MS"))){
+	ctrlAttr_Vehicle_MS = integer(atof(get(msInputDict,"ctrlAttr_Vehicle_MS")));
+}
+ctrlAttr_MailEquip_MS = 0;
+if(containskey(msInputDict,"ctrlAttr_MailEquip_MS") AND isnumber(get(msInputDict,"ctrlAttr_MailEquip_MS"))){
+	ctrlAttr_MailEquip_MS = integer(atof(get(msInputDict,"ctrlAttr_MailEquip_MS")));
+}
+ctrlAttr_TR_AC_MS = 0;
+if(containskey(msInputDict,"ctrlAttr_TR_AC_MS") AND isnumber(get(msInputDict,"ctrlAttr_TR_AC_MS"))){
+	ctrlAttr_TR_AC_MS = integer(atof(get(msInputDict,"ctrlAttr_TR_AC_MS")));
+}
+geoZone_MS = "";
+if(containskey(msInputDict,"geoZone_MS")){
+	geoZone_MS = get(msInputDict,"geoZone_MS");
+}
+city_MS = "";
+if(containskey(msInputDict,"city_MS")){
+	city_MS = get(msInputDict,"city_MS");
+}
+state_MS = "";
+if(containskey(msInputDict,"state_MS")){
+	state_MS = get(msInputDict,"state_MS");
+}
+noOfFTE_MS = 0;
+if(containskey(msInputDict,"noOfFTE_MS") AND isnumber(get(msInputDict,"noOfFTE_MS"))){
+	noOfFTE_MS = integer(atof(get(msInputDict,"noOfFTE_MS")));
+}
+federalHoursMS_Boolean = "";
+if(containskey(msInputDict,"federalHoursMS_Boolean")){
+	federalHoursMS_Boolean = get(msInputDict,"federalHoursMS_Boolean");
+}
+
+//Uplift Category Dict
+HaW_MS_Federal = 0.0;
+if(containskey(upliftCategoryDict,"HaW_MS_Federal")){
+	HaW_MS_Federal = get(upliftCategoryDict,"HaW_MS_Federal");
+}
+HaW_MS_NonFederal = 0.0;
+if(containskey(upliftCategoryDict,"HaW_MS_NonFederal")){
+	HaW_MS_NonFederal = get(upliftCategoryDict,"HaW_MS_NonFederal");
+}
+HaW_MPS = 0.0;
+if(containskey(upliftCategoryDict,"HaW_MPS")){
+	HaW_MPS = get(upliftCategoryDict,"HaW_MPS");
+}
+HaW_TASS = 0.0;
+if(containskey(upliftCategoryDict,"HaW_TASS")){
+	HaW_TASS = get(upliftCategoryDict,"HaW_TASS");
+}
+HaW_ITS = 0.0;
+if(containskey(upliftCategoryDict,"HaW_ITS")){
+	HaW_ITS = get(upliftCategoryDict,"HaW_ITS");
+}
+SalesCost_Uplift_TRAC = 0.0;
+if(containskey(upliftCategoryDict,"SalesCost_Uplift_TRAC")){
+	SalesCost_Uplift_TRAC = get(upliftCategoryDict,"SalesCost_Uplift_TRAC")/100;
+}
+Target_Price_config = 0.0;
+if(containskey(upliftCategoryDict,"Target_Price_config")){
+	Target_Price_config = get(upliftCategoryDict,"Target_Price_config")/100;
+}
+Target_Margin_Vehicle = 0.0;
+if(containskey(upliftCategoryDict,"Target_Margin_Vehicle")){
+	Target_Margin_Vehicle = get(upliftCategoryDict,"Target_Margin_Vehicle")/100;
+}
+SalesCost_Uplift_Vehicle = 0.0;
+if(containskey(upliftCategoryDict,"SalesCost_Uplift_Vehicle")){
+	SalesCost_Uplift_Vehicle = get(upliftCategoryDict,"SalesCost_Uplift_Vehicle")/100;
+}
+Target_Margin_TRAC = 0.0;
+if(containskey(upliftCategoryDict,"Target_Margin_TRAC")){
+	Target_Margin_TRAC = get(upliftCategoryDict,"Target_Margin_TRAC")/100;
+}
+Target_Price_Const_OtherService = 0.0;
+if(containskey(upliftCategoryDict,"Target_Price_Const_OtherService")){
+	Target_Price_Const_OtherService = get(upliftCategoryDict,"Target_Price_Const_OtherService")/100;
+}
+SalesCost_Uplift_OtherService = 0.0;
+if(containskey(upliftCategoryDict,"SalesCost_Uplift_OtherService")){
+	SalesCost_Uplift_OtherService = get(upliftCategoryDict,"SalesCost_Uplift_OtherService")/100;
+}
+FSR_LARGE = 0.0;
+if(containskey(upliftCategoryDict,"FSR_LARGE")){
+	FSR_LARGE = get(upliftCategoryDict,"FSR_LARGE")/100;
+}
+FSR_SMALL = 0.0;
+if(containskey(upliftCategoryDict,"FSR_SMALL")){
+	FSR_SMALL = get(upliftCategoryDict,"FSR_SMALL")/100;
+}
+FSR_TASS = 0.0;
+if(containskey(upliftCategoryDict,"FSR_TASS")){
+	FSR_TASS = get(upliftCategoryDict,"FSR_TASS")/100;
+}
+FTE_LARGE = 0.0;
+if(containskey(upliftCategoryDict,"FTE_LARGE")){
+	FTE_LARGE = get(upliftCategoryDict,"FTE_LARGE");
+}
+AOM_NON_TASS = 0.0;
+if(containskey(upliftCategoryDict,"AOM_NON_TASS")){
+	AOM_NON_TASS = get(upliftCategoryDict,"AOM_NON_TASS")/100;
+}
+AOM_TASS = 0.0;
+if(containskey(upliftCategoryDict,"AOM_TASS")){
+	AOM_TASS = get(upliftCategoryDict,"AOM_TASS")/100;
+}
+CONST_52 = 0.0;
+if(containskey(upliftCategoryDict,"CONST_52")){
+	CONST_52 = get(upliftCategoryDict,"CONST_52");
+}
+STAT_PAYROLL_CONST = 0.0;
+if(containskey(upliftCategoryDict,"STAT_PAYROLL_CONST")){
+	STAT_PAYROLL_CONST = get(upliftCategoryDict,"STAT_PAYROLL_CONST")/100;
+}
+Turn_Over_Morethan_3FTE = 0.0;
+if(containskey(upliftCategoryDict,"Turn_Over_Morethan_3FTE")){
+	Turn_Over_Morethan_3FTE = get(upliftCategoryDict,"Turn_Over_Morethan_3FTE");
+}
+TurnOver_50_Percent = 0.0;
+if(containskey(upliftCategoryDict,"TurnOver_50_Percent")){
+	TurnOver_50_Percent = get(upliftCategoryDict,"TurnOver_50_Percent");
+}
+TurnOver_Percent_UPLIFT = 0.0;
+if(containskey(upliftCategoryDict,"TurnOver_Percent_UPLIFT")){
+	TurnOver_Percent_UPLIFT = get(upliftCategoryDict,"TurnOver_Percent_UPLIFT")/100;
+}
+ACTUAL_HOURLY_UPLIFT = 0.0;
+if(containskey(upliftCategoryDict,"ACTUAL_HOURLY_UPLIFT")){
+	ACTUAL_HOURLY_UPLIFT = get(upliftCategoryDict,"ACTUAL_HOURLY_UPLIFT");
+}
+fTE_Hours_per_Year = 0.0;
+if(containskey(upliftCategoryDict,"FTE_Hours_per_Year")){
+	fTE_Hours_per_Year = get(upliftCategoryDict,"FTE_Hours_per_Year");
+}
+federalFTE_Hours_per_Year = 0.0;
+if(containskey(upliftCategoryDict,"FederalFTE_Hours_per_Year")){
+	federalFTE_Hours_per_Year = get(upliftCategoryDict,"FederalFTE_Hours_per_Year");
+}
+SHIFT_1 = 0.0;
+if(containskey(upliftCategoryDict,"SHIFT_1")){
+	SHIFT_1 = get(upliftCategoryDict,"SHIFT_1")/100;
+}
+SHIFT_2 = 0.0;
+if(containskey(upliftCategoryDict,"SHIFT_2")){
+	SHIFT_2 = get(upliftCategoryDict,"SHIFT_2")/100;
+}
+SHIFT_3 = 0.0;
+if(containskey(upliftCategoryDict,"SHIFT_3")){
+	SHIFT_3 = get(upliftCategoryDict,"SHIFT_3")/100;
+}
+CONST_12 = 0.0;
+if(containskey(upliftCategoryDict,"CONST_12")){
+	CONST_12 = get(upliftCategoryDict,"CONST_12");
+}
+Weekly_Hours = 0.0;
+if(containskey(upliftCategoryDict,"Weekly_Hours")){
+	Weekly_Hours = get(upliftCategoryDict,"Weekly_Hours");
+}
+TRAINING_RECOG = 0.0;
+if(containskey(upliftCategoryDict,"TRAINING_RECOG")){
+	TRAINING_RECOG = get(upliftCategoryDict,"TRAINING_RECOG")/100;
+}
+LaborCost_Const_WA_State = 0.0;
+if(containskey(upliftCategoryDict,"LaborCost_Const_WA_State")){
+	LaborCost_Const_WA_State = get(upliftCategoryDict,"LaborCost_Const_WA_State");
+}
+SHIRTS_DollarAmount = 0.0;
+if(containskey(upliftCategoryDict,"SHIRTS_DollarAmount")){
+	SHIRTS_DollarAmount = get(upliftCategoryDict,"SHIRTS_DollarAmount");
+}
+BACKGROUND_Check_Standard = 0.0;
+if(containskey(upliftCategoryDict,"BACKGROUND_Check_Standard")){
+	BACKGROUND_Check_Standard = get(upliftCategoryDict,"BACKGROUND_Check_Standard");
+}
+Target_Margin_MS_Labor = 0.0;
+if(containskey(upliftCategoryDict,"Target_Margin_MS_Labor")){
+	Target_Margin_MS_Labor = get(upliftCategoryDict,"Target_Margin_MS_Labor")/100;
+}
+Target_Margin_MPS_Labor = 0.0;
+if(containskey(upliftCategoryDict,"Target_Margin_MPS_Labor")){
+	Target_Margin_MPS_Labor = get(upliftCategoryDict,"Target_Margin_MPS_Labor")/100;
+}
+Target_Margin_TASS_Labor = 0.0;
+if(containskey(upliftCategoryDict,"Target_Margin_TASS_Labor")){
+	Target_Margin_TASS_Labor = get(upliftCategoryDict,"Target_Margin_TASS_Labor")/100;
+}
+Target_Margin_ITS_Labor = 0.0;
+if(containskey(upliftCategoryDict,"Target_Margin_ITS_Labor")){
+	Target_Margin_ITS_Labor = get(upliftCategoryDict,"Target_Margin_ITS_Labor")/100;
+}
+Target_Margin_3rdParty = 0.0;
+if(containskey(upliftCategoryDict,"Target_Margin_3rdParty")){
+	Target_Margin_3rdParty = get(upliftCategoryDict,"Target_Margin_3rdParty")/100;
+}
+Target_Margin_Passthrough = 0.0;
+if(containskey(upliftCategoryDict,"Target_Margin_Passthrough")){
+	Target_Margin_Passthrough = get(upliftCategoryDict,"Target_Margin_Passthrough")/100;
+}
+Target_Price_Const_MS = 0.0;
+if(containskey(upliftCategoryDict,"Target_Price_Const_MS")){
+	Target_Price_Const_MS = get(upliftCategoryDict,"Target_Price_Const_MS");
+}
+Target_Price_Const_MPS = 0.0;
+if(containskey(upliftCategoryDict,"Target_Price_Const_MPS")){
+	Target_Price_Const_MPS = get(upliftCategoryDict,"Target_Price_Const_MPS");
+}
+Target_Price_Const_TASS = 0.0;
+if(containskey(upliftCategoryDict,"Target_Price_Const_TASS")){
+	Target_Price_Const_TASS = get(upliftCategoryDict,"Target_Price_Const_TASS");
+}
+Target_Price_Const_ITS = 0.0;
+if(containskey(upliftCategoryDict,"Target_Price_Const_ITS")){
+	Target_Price_Const_ITS = get(upliftCategoryDict,"Target_Price_Const_ITS");
+}
+//CR-24 START  -  Added by Vasundhara
+SalesCost_Uplift_Labor_MS = 0.0;
+if(containskey(upliftCategoryDict,"SalesCost_Uplift_Labor_MS")){
+	SalesCost_Uplift_Labor_MS = get(upliftCategoryDict,"SalesCost_Uplift_Labor_MS")/100;
+}
+SalesCost_Uplift_Labor_MPS = 0.0;
+if(containskey(upliftCategoryDict,"SalesCost_Uplift_Labor_MPS")){
+	SalesCost_Uplift_Labor_MPS = get(upliftCategoryDict,"SalesCost_Uplift_Labor_MPS")/100;
+}
+SalesCost_Uplift_Labor_ITS = 0.0;
+if(containskey(upliftCategoryDict,"SalesCost_Uplift_Labor_ITS")){
+	SalesCost_Uplift_Labor_ITS = get(upliftCategoryDict,"SalesCost_Uplift_Labor_ITS")/100;
+}
+SalesCost_Uplift_Labor_TASS = 0.0;
+if(containskey(upliftCategoryDict,"SalesCost_Uplift_Labor_TASS")){
+	SalesCost_Uplift_Labor_TASS = get(upliftCategoryDict,"SalesCost_Uplift_Labor_TASS")/100;
+}
+//CR-24 END  -  Added by Vasundhara
+//Implementation cost changes
+
+//START_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.Code commented as part of CR.
+/*
+IMPLEMENT_COST_MS_Variable = 0.0;
+if(containskey(upliftCategoryDict,"IMPLEMENT_COST_MS_Variable")){
+	IMPLEMENT_COST_MS_Variable = get(upliftCategoryDict,"IMPLEMENT_COST_MS_Variable");
+}
+IMPLEMENT_COST_MPS_Variable = 0.0;
+if(containskey(upliftCategoryDict,"IMPLEMENT_COST_MPS_Variable")){
+	IMPLEMENT_COST_MPS_Variable = get(upliftCategoryDict,"IMPLEMENT_COST_MPS_Variable");
+}
+*/
+implementationCostVariable =0.0;
+if(containskey(upliftCategoryDict,"IMPLEMENT_COST_Variable")){
+	implementationCostVariable = get(upliftCategoryDict,"IMPLEMENT_COST_Variable");
+}
+//END_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+
+if(lineBOMStr == "{}"){
+	//Phone/AdminPC/VirtualDesktop Logic
+	if(containskey(ancillaryCostDict,partNumber) AND isnumber(get(ancillaryCostDict,partNumber))){
+		salesCost_Uplift = 0.0;
+		if(containskey(upliftCategoryDict,"SalesCost_Uplift_"+partNumber)){
+			salesCost_Uplift = get(upliftCategoryDict,"SalesCost_Uplift_"+partNumber)/100;
+		}
+		target_Margin = 0.0;
+		if(containskey(upliftCategoryDict,"Target_Margin_"+partNumber)){
+			target_Margin = get(upliftCategoryDict,"Target_Margin_"+partNumber)/100;
+		}
+		target_Price_Const = 0.0;
+		if(containskey(upliftCategoryDict,"Target_Price_Const_"+partNumber)){
+			target_Price_Const = get(upliftCategoryDict,"Target_Price_Const_"+partNumber)/100;
+		}
+		
+		unitStandardCost = atof(get(ancillaryCostDict,partNumber));
+		unitSalesCost = unitStandardCost * (1 + salesCost_Uplift);
+		//unitContractOrTargetPrice = unitStandardCost * (1 + target_Margin);
+		//Commented above for the defect -16613 - Subha-1/22
+		unitContractOrTargetPrice = unitStandardCost/(1 - target_Margin);
+		unitSRP = unitContractOrTargetPrice * (1 + target_Price_Const);
+		extSRP = quantity * unitSRP;
+					
+		//START_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+		implementationCost_Ancillary = (unitStandardCost) * CONST_12 * implementationCostVariable;
+		//END_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+
+		result = result + documentNumber + "~unitCost_l~" + string(round(unitStandardCost,2)) + "|";
+		result = result + documentNumber + "~unitSalesCost_l~" + string(round(unitSalesCost,2)) + "|";
+		result = result + documentNumber + "~contractedUnitPrice_l~" + string(round(unitContractOrTargetPrice,2)) + "|";
+		result = result + documentNumber + "~unitSRP_l~" + string(round(unitSRP,2)) + "|";
+		result = result + documentNumber + "~extSRP_l~" + string(round(extSRP,2)) + "|";
+		result = result + documentNumber + "~implementationCost_l~" + string(implementationCost_Ancillary) + "|"; //Implementation Cost Changes
+
+		//Added for defaulting on mslabortype_l for Phone/Admin PC-Subha-03/17/2023 //
+		result = result + documentNumber + "~mSLaborType_l~" + "MS" + "|";
+		if(DEBUG_FLAG){
+			print "---------------------------";
+			print "documentNumber: " + documentNumber;
+			print "PartNumber: " + partNumber;
+			print "salesCost_Uplift: " +string(salesCost_Uplift);
+			print "target_Price_Const: " +string(target_Price_Const);
+			print "unitStandardCost: " +string(unitStandardCost);
+			print "unitSalesCost: " +string(unitSalesCost);
+			print "unitContractOrTargetPrice: " +string(unitContractOrTargetPrice);
+			print "unitSRP: " +string(unitSRP);
+			print "extSRP: " +string(extSRP);
+		}
+	}
+}
+if(lineBOMStr <> "{}"){
+	LineBOMJSON = json(lineBOMStr);
+	
+	jobTitle_Labor_MS = "";
+	if(jsonpathcheck(LineBOMJSON, "$.JobTitle.value")){
+	
+		laborComponent = true;
+		wACost = 0.0;
+		jobTitle_Labor_MS = jsonpathgetsingle(LineBOMJSON, "$.JobTitle.value", "string");
+		if(laborComponent AND jobTitle_Labor_MS <> "" AND NOT isnull(jobTitle_Labor_MS)){
+			
+			actualHourly_Labor_MS = 0.0;
+			if(jsonpathcheck(LineBOMJSON, "$.ActualHourly.value")){
+				actualHourly_Labor_MS = jsonpathgetsingle(LineBOMJSON, "$.ActualHourly.value", "float");
+			}
+			laborType_Labor_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.LaborType.value")){
+				laborType_Labor_MS = jsonpathgetsingle(LineBOMJSON, "$.LaborType.value", "string");
+			}
+			laborHoursWeekly_Labor_MS = 0.0;
+			if(jsonpathcheck(LineBOMJSON, "$.LaborHoursWeekly.value")){
+				laborHoursWeekly_Labor_MS = jsonpathgetsingle(LineBOMJSON, "$.LaborHoursWeekly.value", "float");
+			}
+			jobGrade_Labor_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.JobGrade.value")){
+				jobGrade_Labor_MS = jsonpathgetsingle(LineBOMJSON, "$.JobGrade.value", "string");
+			}
+			shift_Labor_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.Shift.value")){
+				shift_Labor_MS = jsonpathgetsingle(LineBOMJSON, "$.Shift.value", "string");
+			}
+			salaryBased_Labor_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.SalaryBasis.value")){
+				salaryBased_Labor_MS = jsonpathgetsingle(LineBOMJSON, "$.SalaryBasis.value", "string");
+			}
+			LicenseSoft_Labor_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.LicenseSoftware.value")){
+				LicenseSoft_Labor_MS = jsonpathgetsingle(LineBOMJSON, "$.LicenseSoftware.value", "string");
+			}
+			backgroundCheckType_Labor_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.BackgroundCheckType.value")){
+				backgroundCheckType_Labor_MS = jsonpathgetsingle(LineBOMJSON, "$.BackgroundCheckType.value", "string");
+			}
+			backgroundCheckAmount_Labor_MS = 0.0;
+			if(jsonpathcheck(LineBOMJSON, "$.BackgroundCheckAmount.value")){
+				backgroundCheckAmount_Labor_MS = jsonpathgetsingle(LineBOMJSON, "$.BackgroundCheckAmount.value", "float");
+			}
+			phoneMS_Boolean = false;
+			if(jsonpathcheck(LineBOMJSON, "$.Phone.value")){
+				phoneMS_Boolean = jsonpathgetsingle(LineBOMJSON, "$.Phone.value", "boolean");
+			}
+			shirtsIncludedMS_Boolean = false;
+			if(jsonpathcheck(LineBOMJSON, "$.Shirts.value")){
+				shirtsIncludedMS_Boolean = jsonpathgetsingle(LineBOMJSON, "$.Shirts.value", "boolean");
+			}
+			adminPCMS_Boolean = false;
+			if(jsonpathcheck(LineBOMJSON, "$.AdminPC.value")){
+				adminPCMS_Boolean = jsonpathgetsingle(LineBOMJSON, "$.AdminPC.value", "boolean");
+			}
+			backgroundCheckMS_Boolean = false;
+			if(jsonpathcheck(LineBOMJSON, "$.BackgroundCheck.value")){
+				backgroundCheckMS_Boolean = jsonpathgetsingle(LineBOMJSON, "$.BackgroundCheck.value", "boolean");
+			}
+			fSRCoverageMS_Boolean = false;
+			if(jsonpathcheck(LineBOMJSON, "$.fSRCoverage.value")){
+				fSRCoverageMS_Boolean = jsonpathgetsingle(LineBOMJSON, "$.fSRCoverage.value", "boolean");
+			}
+			aOMCoverageMS_Boolean = false;
+			if(jsonpathcheck(LineBOMJSON, "$.aOMCoverage.value")){
+				aOMCoverageMS_Boolean = jsonpathgetsingle(LineBOMJSON, "$.aOMCoverage.value", "boolean");
+			}
+			midpointActual_Labor_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.MidpointOrActual.value")){
+				midpointActual_Labor_MS = jsonpathgetsingle(LineBOMJSON, "$.MidpointOrActual.value", "string");
+			}
+			
+			laborHours = 0.0;
+			ItemNameOfOfscLicense = "OFSC License";
+			laborHours = laborHoursWeekly_Labor_MS;
+			
+			//START_CR85_AddedByVasundhara_07-12-2023_Remote field to be considered for Remote JobTitle
+			remoteStr = "";
+			if(laborType_Labor_MS == "TASS" and containskey(jobTitlesDict,jobTitle_Labor_MS+"-"+laborType_Labor_MS+"-Remote")){
+				remoteStr = get(jobTitlesDict,jobTitle_Labor_MS+"-"+laborType_Labor_MS+"-Remote");
+			}
+			//END_CR85_AddedByVasundhara_07-12-2023_Remote field to be considered for Remote JobTitle
+			
+			//MidPoint Calculation without hourly basis
+			midpointCal = 0.0;
+			priceBasedOnGradeAndGeoZone = 0.0;
+			print "priceBasedOnGradeAndGeoZone";
+			print geoZone_MS + "_" + jobGrade_Labor_MS;
+			if(containskey(gradeAndGeoZoneDict, geoZone_MS + "_" + jobGrade_Labor_MS)){
+				
+				//START_CR85_AddedByVasundhara_07-12-2023_Remote field to be considered for Remote JobTitle
+				if(remoteStr == "Yes"){ 
+					geoZone_MS = "C";
+				}
+				print geoZone_MS + "_" + jobGrade_Labor_MS;
+				//END_CR85_AddedByVasundhara_07-12-2023_Remote field to be considered for Remote JobTitle
+				priceBasedOnGradeAndGeoZone = get(gradeAndGeoZoneDict, geoZone_MS + "_" + jobGrade_Labor_MS);
+			}
+			if(jobTitle_Labor_MS <> "" AND shift_Labor_MS == "1" AND jobGrade_Labor_MS <> "" AND geoZone_MS <> ""){
+				midpointCal = (priceBasedOnGradeAndGeoZone * SHIFT_1);
+			}elif(jobTitle_Labor_MS <> "" AND shift_Labor_MS == "2" AND jobGrade_Labor_MS <> "" AND geoZone_MS <> ""){
+				midpointCal = (priceBasedOnGradeAndGeoZone * SHIFT_2);
+			}elif(jobTitle_Labor_MS <> "" AND shift_Labor_MS == "3" AND jobGrade_Labor_MS <> "" AND geoZone_MS <> ""){
+				midpointCal = (priceBasedOnGradeAndGeoZone * SHIFT_3);
+			}
+			//MidPoint Calculation with Hourly Basis
+			midpointHourly = 0.0; 
+			if(federalHoursMS_Boolean == "true" AND federalFTE_Hours_per_Year > 0){
+				midpointHourly = midpointCal / federalFTE_Hours_per_Year;
+				FTEHours = federalFTE_Hours_per_Year;
+			}elif(federalHoursMS_Boolean <> "true" AND fTE_Hours_per_Year > 0){
+				midpointHourly = midpointCal / fTE_Hours_per_Year;
+				FTEHours = fTE_Hours_per_Year;
+			}
+			//Actual Hourly Calculation
+			hourlyBase = 0.0;
+			actualHourlyCost = 0.0;
+			actualHourlyLabor = actualHourly_Labor_MS;
+			
+			//Commented below for Defect 17761
+			/* if(((salaryBased_Labor_MS == "Actuals") AND actualHourlyLabor == 0.0) OR (salaryBased_Labor_MS == "> of Midpoint or Actuals" AND midpointActual_Labor_MS == "Actuals")){
+				actualHourlyCost = midpointHourly;
+			}else{
+				actualHourlyCost = actualHourlyLabor * ACTUAL_HOURLY_UPLIFT;
+			} */
+			//START - Defect 17761 Add below changes by Vasundhara
+			if(salaryBased_Labor_MS == "Actuals" AND actualHourlyLabor == 0.0){
+				actualHourlyCost = midpointHourly;
+			}else{
+				actualHourlyCost = actualHourlyLabor * ACTUAL_HOURLY_UPLIFT;
+			} 
+			//END - Defect 17761 Add below changes by Vasundhara
+			hourlyBase = actualHourlyCost;
+			
+			//Midpoint Over/Under Calculation
+			turnOverUpliftInPercentage = 0.0;
+			midpointOverUnderCost = 0.0;
+			turnOverPercent = 0.0; 
+			nationalAverageRate = 0.0;
+			if(salaryBased_Labor_MS == "Actuals+Turnover%" AND midpointHourly > 0 AND actualHourlyCost > 0 AND (midpointHourly > actualHourlyCost)){
+				midpointOverUnderCost = midpointHourly - actualHourlyCost;
+				//midpointOverUnderCost = midpointHourly - actualHourlyCost;
+				if(containskey(maxTurnOverRatioDict,upper(city_MS) + "$$" + state_MS + "$$maxTurnOverRatio")){
+					turnOverPercent = get(maxTurnOverRatioDict,upper(city_MS) + "$$" + state_MS + "$$maxTurnOverRatio");
+					nationalAverageRate = get(maxTurnOverRatioDict,upper(city_MS) + "$$" + state_MS + "$$NationalAverageRate");
+				}
+				if(turnOverPercent < nationalAverageRate){
+					turnOverPercent = nationalAverageRate;
+				}
+				if(turnOverPercent > 100){
+					turnOverPercent = TurnOver_50_Percent;
+				}
+				turnOverUpliftInPercentage = turnOverPercent + (turnOverPercent * TurnOver_Percent_UPLIFT);
+				hourlyBase = actualHourlyCost + (midpointOverUnderCost * (turnOverUpliftInPercentage / 100));
+			}
+			
+			//Hourly Base Calculation
+			if(salaryBased_Labor_MS == "> of Midpoint or Actuals" AND midpointActual_Labor_MS == "Midpoint"){
+				hourlyBase = midpointHourly;
+			}elif(salaryBased_Labor_MS == "Max Salary" OR salaryBased_Labor_MS == "Default"){
+				maxSalaryArray = float[]{actualHourlyCost,midpointHourly};
+				hourlyBase = max(maxSalaryArray);
+			}
+			
+			//STI Bonus Calculation
+			sTI = 0.0;
+			if(containskey(jobTitlesDict,jobTitle_Labor_MS+"-STI")){
+				if(isnumber(get(jobTitlesDict,jobTitle_Labor_MS+"-STI"))){
+					sTI = atof(get(jobTitlesDict,jobTitle_Labor_MS+"-STI"));
+				}
+			}
+			sTIBonus = (hourlyBase * sTI);
+			
+			monthlyBaseSalary = 0.0;
+			if(CONST_12 > 0){
+				monthlyBaseSalary = (hourlyBase + sTIBonus) * (laborHours * (CONST_52/CONST_12));//Monthly Base Salary Calculation
+			}
+			statPayroll = (monthlyBaseSalary ) * STAT_PAYROLL_CONST; //Stat Payroll Calculation
+			
+			//FSR Calculation
+			fSRPercentage = 0.0;
+			fSRCal_TASS = 0.0;
+			fSRCal_LARGE = 0.0;
+			fSRCal_SMALL = 0.0;
+			fSRCal = 0.0;
+			if(laborType_Labor_MS == "TASS" AND fSRCoverageMS_Boolean){
+				fSRPercentage = FSR_TASS;
+				fSRCal = monthlyBaseSalary * fSRPercentage;
+			}elif(find(transactionType,"Expansion") <> -1 AND fSRCoverageMS_Boolean){
+				fSRPercentage = FSR_LARGE;
+				fSRCal = monthlyBaseSalary * fSRPercentage;
+			}elif(noOfFTE_MS > FTE_LARGE AND fSRCoverageMS_Boolean){
+				fSRPercentage = FSR_LARGE;
+				fSRCal = monthlyBaseSalary * fSRPercentage;
+			}elif((noOfFTE_MS < FTE_LARGE OR noOfFTE_MS == FTE_LARGE) AND find(transactionType,"Expansion") == -1 AND fSRCoverageMS_Boolean){
+				fSRPercentage = FSR_SMALL;
+				fSRCal = monthlyBaseSalary * fSRPercentage;
+			}
+			
+			//AOM Calculation
+			aOMPercentage = 0.0;
+			aOMCal = 0.0;
+			if(aOMCoverageMS_Boolean){
+				if(laborType_Labor_MS == "TASS"){
+					aOMPercentage = AOM_TASS;
+				}elif(laborType_Labor_MS <> "TASS"){
+					aOMPercentage = AOM_NON_TASS;
+				}
+				aOMCal = monthlyBaseSalary * aOMPercentage;
+			}
+			
+			//Haw - pending
+			HaW_const = 0.0;
+			hawCal = 0.0;
+			if(Weekly_Hours > 0){
+				if(federalHoursMS_Boolean == "true" AND laborType_Labor_MS == "MS"){
+					HaW_const = HaW_MS_Federal;
+				}elif(federalHoursMS_Boolean <> "true" AND laborType_Labor_MS == "MS"){
+					HaW_const = HaW_MS_NonFederal;
+				}elif(laborType_Labor_MS == "MPS"){
+					HaW_const = HaW_MPS;
+				}elif(laborType_Labor_MS == "TASS"){
+					HaW_const = HaW_TASS;
+				}elif(laborType_Labor_MS == "ITS"){
+					HaW_const = HaW_ITS;
+				}
+				//hawCal = (HaW_const / CONST_12);
+				//if((laborHours < Haw_Hours_perWeek_Const OR laborHours == Haw_Hours_perWeek_Const)){
+				if((laborHours <>0.0 AND Weekly_Hours<>0.0 AND CONST_12<>0)){
+
+					//hawCal = (laborHours / Weekly_Hours) * HaW_const;
+					hawCal = (HaW_const/CONST_12/Weekly_Hours) * laborHours;
+				}
+			}
+			
+			//Traning & Recreation
+			traningAndRecreation = (monthlyBaseSalary + fSRCal + statPayroll + aOMCal + hawCal) * TRAINING_RECOG;
+			
+			// Cost for WA State
+			if(remoteStr <> "Yes"){
+				wACost = 0.0;
+				if(state_MS == "WA"){
+				if(CONST_12 <> 0 AND CONST_12 > 0 AND NOT ISNULL(CONST_12)){
+					wACost = LaborCost_Const_WA_State / CONST_12; 
+					}
+				}
+			}
+			
+			//License/Software
+			ofSCLicenseCostCal = 0.0;
+			if(laborType_Labor_MS == "MPS" AND LicenseSoft_Labor_MS == ItemNameOfOfscLicense AND containskey(ancillaryCostDict,ItemNameOfOfscLicense + "-costPerMonth") AND isnumber(get(ancillaryCostDict,ItemNameOfOfscLicense + "-costPerMonth"))){
+				ofSCLicenseCostCal = atof(get(ancillaryCostDict,ItemNameOfOfscLicense + "-costPerMonth"));
+			}
+			
+			//Shirts
+			shirtsCal = 0.0;
+			if(shirtsIncludedMS_Boolean){
+				shirtsCal = SHIRTS_DollarAmount;
+			}
+			
+			//Background Check
+			backgroundCheckCal = 0.0;
+			if(backgroundCheckMS_Boolean AND termMonthInNumber > 0){
+				backgroundCheckCal = BACKGROUND_Check_Standard/termMonthInNumber;
+
+				if((find(transactionType,"Net New") <> -1 OR find(transactionType,"Expansion") <> -1) AND backgroundCheckType_Labor_MS == "Non-Standard"){
+
+					backgroundCheckCal = backgroundCheckAmount_Labor_MS/termMonthInNumber;
+				}
+			}
+			
+			//Salary Cost
+			costForAPAC_EMEA = 0.0;
+			containsAPAC_EMEA = false;
+			if(containskey(jobTitlesDict,jobTitle_Labor_MS+"-"+laborType_Labor_MS+"-Cost") AND isnumber(get(jobTitlesDict,jobTitle_Labor_MS+"-"+laborType_Labor_MS+"-Cost"))){
+				containsAPAC_EMEA = true;
+				costForAPAC_EMEA = atof(get(jobTitlesDict,jobTitle_Labor_MS+"-"+laborType_Labor_MS+"-Cost"));
+				//START_CR85_AddedByVasundhara_07-12-2023_Remote field to be considered for APAC AND EMEA calculation
+				if(remoteStr == "Yes" AND containskey(jobTitlesDict,jobTitle_Labor_MS+" - "+geoZone_MS) AND costForAPAC_EMEA == 0.0){
+					costForAPAC_EMEA = atof(get(jobTitlesDict,jobTitle_Labor_MS+" - "+geoZone_MS));
+				}
+				//END_CR85_AddedByVasundhara_07-12-2023_Remote field to be considered for APAC AND EMEA calculation
+			}
+			
+			salaryCost = 0.0;
+			if((find(jobTitle_Labor_MS,"EMEA") <> -1 OR find(jobTitle_Labor_MS,"APAC") <> -1) AND containsAPAC_EMEA){
+				salaryCost = costForAPAC_EMEA;
+				if(laborType_Labor_MS <> "TASS"){
+					salaryCost = (costForAPAC_EMEA * laborHours) / laborHoursConstant;
+				}
+			}else{
+				salaryCost = monthlyBaseSalary + statPayroll + fSRCal + aOMCal + traningAndRecreation + wACost + shirtsCal + backgroundCheckCal + hawCal + ofSCLicenseCostCal;
+			}
+			
+			//Target Price
+			targetMargin = 0.0;
+			targetPriceConst = 0.0;
+			SalesCost_Uplift_Labor = 0.0;
+			if(laborType_Labor_MS == "MS"){
+				targetMargin = Target_Margin_MS_Labor;
+				targetPriceConst = Target_Price_Const_MS;
+				SalesCost_Uplift_Labor = SalesCost_Uplift_Labor_MS; //CR24- Added by Vasundhara
+			}elif(laborType_Labor_MS == "MPS"){
+				targetMargin = Target_Margin_MPS_Labor;
+				targetPriceConst = Target_Price_Const_MPS;
+				SalesCost_Uplift_Labor = SalesCost_Uplift_Labor_MPS; //CR24- Added by Vasundhara
+			}elif(laborType_Labor_MS == "TASS"){
+				targetMargin = Target_Margin_TASS_Labor;
+				targetPriceConst = Target_Price_Const_TASS;
+				SalesCost_Uplift_Labor = SalesCost_Uplift_Labor_TASS; //CR24- Added by Vasundhara
+			}elif(laborType_Labor_MS == "ITS"){
+				targetMargin = Target_Margin_ITS_Labor;
+				targetPriceConst = Target_Price_Const_ITS;
+				SalesCost_Uplift_Labor = SalesCost_Uplift_Labor_ITS; //CR24- Added by Vasundhara
+			}
+			dividedBy = 1 - targetMargin;
+			targetPrice = 0.0;
+
+			flatRateInJobTitlesDT = get(jobTitlesDict, jobTitle_Labor_MS+"-FlatRate");
+			if(flatRateInJobTitlesDT <> "Yes"){
+				if(dividedBy > 0){
+					targetPrice = round(salaryCost/dividedBy,2);
+				}
+			}else{
+				if(isnumber(get(jobTitlesDict,jobTitle_Labor_MS+" - "+geoZone_MS))){
+					targetPrice = atof(get(jobTitlesDict,jobTitle_Labor_MS+" - "+geoZone_MS));
+				}
+			}
+			
+			//implementation Cost
+			//Start_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata. Code commented as part of CR.
+			//implementationCostVariable = 0.0;			
+			//if(find(transactionType,"Net New") <> -1 OR find(transactionType,"Expansion") <> -1){
+/* 				if(laborType_Labor_MS == "MS"){
+					implementationCostVariable = IMPLEMENT_COST_MS_Variable;
+				}elif(laborType_Labor_MS == "MPS"){
+					implementationCostVariable = IMPLEMENT_COST_MPS_Variable;
+				} */
+			//}
+			//END_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+			//Start_BAU-CHG#CHG0087642_MS_JOB_TITLE_SPECIFIC_SALES_COST_UPLIFT_PERCENT_by Gowtham P
+			SalesCost_Uplift_Labor_Jobtitle =0.0;
+			
+			if(laborType_Labor_MS == "TASS" and containskey(jobTitlesDict,jobTitle_Labor_MS+"-"+laborType_Labor_MS+"-SalesCost_UpliftCust")){
+				SalesCost_Uplift_Labor_Jobtitle = atof(get(jobTitlesDict,jobTitle_Labor_MS+"-"+laborType_Labor_MS+"-SalesCost_UpliftCust"))/100;
+			if(SalesCost_Uplift_Labor_Jobtitle > 0.0){
+				SalesCost_Uplift_Labor = SalesCost_Uplift_Labor_Jobtitle;
+				
+				}
+			}
+			if(laborType_Labor_MS == "MS" and containskey(jobTitlesDict,jobTitle_Labor_MS+"-"+laborType_Labor_MS+"-SalesCost_UpliftCust")){
+				SalesCost_Uplift_Labor_Jobtitle = atof(get(jobTitlesDict,jobTitle_Labor_MS+"-"+laborType_Labor_MS+"-SalesCost_UpliftCust"))/100;
+			if(SalesCost_Uplift_Labor_Jobtitle > 0.0){
+				SalesCost_Uplift_Labor = SalesCost_Uplift_Labor_Jobtitle;
+				print "SalesCost_Uplift_Labor_Jobtitle ms";
+				print SalesCost_Uplift_Labor;
+				
+				}
+			}
+			if(laborType_Labor_MS == "MPS" and containskey(jobTitlesDict,jobTitle_Labor_MS+"-"+laborType_Labor_MS+"-SalesCost_UpliftCust")){
+				SalesCost_Uplift_Labor_Jobtitle = atof(get(jobTitlesDict,jobTitle_Labor_MS+"-"+laborType_Labor_MS+"-SalesCost_UpliftCust"))/100;
+			if(SalesCost_Uplift_Labor_Jobtitle > 0.0){
+				SalesCost_Uplift_Labor = SalesCost_Uplift_Labor_Jobtitle;
+				
+				}
+			}
+			
+			if(laborType_Labor_MS == "ITS" and containskey(jobTitlesDict,jobTitle_Labor_MS+"-"+laborType_Labor_MS+"-SalesCost_UpliftCust")){
+				SalesCost_Uplift_Labor_Jobtitle = atof(get(jobTitlesDict,jobTitle_Labor_MS+"-"+laborType_Labor_MS+"-SalesCost_UpliftCust"))/100;
+			if(SalesCost_Uplift_Labor_Jobtitle > 0.0){
+				SalesCost_Uplift_Labor = SalesCost_Uplift_Labor_Jobtitle;
+				
+				}
+			}
+			//End_BAU-CHG#CHG0087642_MS_JOB_TITLE_SPECIFIC_SALES_COST_UPLIFT_PERCENT_by Gowtham P
+			unitStandardCost_Labor = salaryCost;
+			unitContractOrTargetPrice_Labor = targetPrice;
+			unitSalesCost_Labor = salaryCost * (1 + SalesCost_Uplift_Labor);
+			unitSRP_Labor = targetPrice * (1 + targetPriceConst);
+			extSRP_Labor = unitSRP_Labor * quantity;
+			
+			//CR64 - implementationCost = (salaryCost - hawCal) * CONST_12 * implementationCostVariable;
+			if(laborType_Labor_MS == "MS" OR laborType_Labor_MS == "MPS" ){
+				implementationCost = (unitStandardCost_Labor) * CONST_12 * implementationCostVariable;
+			}
+			
+			result = result + documentNumber + "~unitCost_l~" + string(round(unitStandardCost_Labor,2)) + "|";
+			result = result + documentNumber + "~unitSalesCost_l~" + string(round(unitSalesCost_Labor,2)) + "|";
+			result = result + documentNumber + "~contractedUnitPrice_l~" + string(round(unitContractOrTargetPrice_Labor,2)) + "|";
+			result = result + documentNumber + "~unitSRP_l~" + string(round(unitSRP_Labor,2)) + "|";
+			result = result + documentNumber + "~extSRP_l~" + string(round(extSRP_Labor,2)) + "|";
+			result = result + documentNumber + "~mSLaborType_l~" + laborType_Labor_MS + "|";
+			result = result + documentNumber + "~implementationCost_l~" + string(implementationCost) + "|"; //Implementation Cost Changes
+			
+			//START_Added below lines for POST_MVP_Requirment1 by Vasundhara.
+			result = result + documentNumber + "~actualHourlyCostLabor_l~" + string(actualHourlyCost) + "|";
+			result = result + documentNumber + "~backgroundCheckCost_l~" + string(backgroundCheckCal) + "|";
+			result = result + documentNumber + "~shirtsCost_l~" + string(shirtsCal) + "|";
+			result = result + documentNumber + "~ofSCLicenseCost_l~" + string(ofSCLicenseCostCal) + "|";
+			result = result + documentNumber + "~wACost_l~" + string(wACost) + "|";
+			result = result + documentNumber + "~traningAndRecreation_l~" + string(traningAndRecreation) + "|";
+			result = result + documentNumber + "~hawCost_l~" + string(hawCal) + "|";
+			result = result + documentNumber + "~aOMCost_l~" + string(aOMCal) + "|";
+			result = result + documentNumber + "~aCSCCost_l~" + string(fSRCal) + "|";
+			result = result + documentNumber + "~statPayrollCost_l~" + string(statPayroll) + "|";
+			result = result + documentNumber + "~sTIBonus_l~" + string(sTIBonus) + "|";
+			result = result + documentNumber + "~hourlyBase_l~" + string(hourlyBase) + "|";
+			result = result + documentNumber + "~midpointHourly_l~" + string(midpointHourly) + "|";
+			result = result + documentNumber + "~monthlyBaseSalary_l~" + string(monthlyBaseSalary) + "|";
+			result = result + documentNumber + "~turnOverUpliftInPercentage_l~" + string(turnOverUpliftInPercentage) + "|";
+			result = result + documentNumber + "~targetPriceUpliftPercent_l~" + string(targetPriceConst) + "|";
+			result = result + documentNumber + "~fSRPercentage_l~" + string(fSRPercentage) + "|";
+			result = result + documentNumber + "~aOMUplift_l~" + string(aOMPercentage) + "|";
+			//END_Added below lines for POST_MVP_Requirment1 by Vasundhara.
+			
+			if(DEBUG_FLAG){
+				print "---------------------------";
+				print "transactionType:" + transactionType;
+				print "city_MS:" + city_MS;
+				print "state_MS:" + state_MS;
+				print "documentNumber: " + documentNumber;
+				print "PartNumber: " + partNumber;
+				print "JobTitles: " + jobTitle_Labor_MS;
+				print "salaryBased_Labor_MS: " + salaryBased_Labor_MS;
+				print "costForAPAC_EMEA: " + string(costForAPAC_EMEA);
+				print "nationalAverageRate:" + string(nationalAverageRate);
+				//print "maxTurnOverRatio:" + string(get(maxTurnOverRatioDict,upper(city_MS) + "$$" + state_MS + "$$maxTurnOverRatio"));
+				print "turnOverUpliftInPercentage:" + string(turnOverUpliftInPercentage);
+				print "FederalFTE_Hours_per_Year:" + string(FederalFTE_Hours_per_Year);
+				print "fTE_Hours_per_Year :" + string(fTE_Hours_per_Year);
+				print "SHIFT_1:" + string(SHIFT_1);
+				print "SHIFT_2:" + string(SHIFT_2);
+				print "SHIFT_3:" + string(SHIFT_3);
+				print "ACTUAL_HOURLY_UPLIFT:" + string(ACTUAL_HOURLY_UPLIFT);
+				print "Turn_Over_Morethan_3FTE:" + string(Turn_Over_Morethan_3FTE);
+				print "STAT_PAYROLL_CONST:" + string(STAT_PAYROLL_CONST);
+				print "CONST_52:" + string(CONST_52);
+				print "CONST_12:" + string(CONST_12);
+				print "FSR_LARGE:" + string(FSR_LARGE);
+				print "FSR_SMALL:" + string(FSR_SMALL);
+				print "FSR_TASS:" + string(FSR_TASS);
+				print "noOfFTE_MS:" + string(noOfFTE_MS);
+				print "FTE_LARGE:" + string(FTE_LARGE);
+				print "AOM_TASS:" + string(AOM_TASS);
+				print "AOM_NON_TASS:" + string(AOM_NON_TASS);
+				print "TRAINING_RECOG:" + string(TRAINING_RECOG);
+				print "LaborCost_Const_WA_State:" + string(LaborCost_Const_WA_State);
+				print "SHIRTS_DollarAmount:" + string(SHIRTS_DollarAmount);
+				print "HaW_MS_NonFederal:" + string(HaW_MS_NonFederal);
+				print "HaW_MS_Federal:" + string(HaW_MS_Federal);
+				print "HaW_MPS:" + string(HaW_MPS);
+				print "HaW_TASS:" + string(HaW_TASS);
+				print "HaW_ITS:" + string(HaW_ITS);
+				print "SalesCost_Uplift_Labor:" + string(SalesCost_Uplift_Labor);
+				print "Weekly_Hours:" + string(Weekly_Hours);
+				print "BACKGROUND_Check_Standard:" + string(BACKGROUND_Check_Standard);
+				print "HaW_MPS:" + string(HaW_MPS);
+				print "priceBasedOnGradeAndGeoZone:" + string(priceBasedOnGradeAndGeoZone);
+				print "midpointCal:" + string(midpointCal);
+				print "midpointHourly:" + string(midpointHourly);
+				print "actualHourlyCost:" + string(actualHourlyCost);
+				print "turnOverPercent:" + string(turnOverPercent);
+				print "hourlyBase:" + string(hourlyBase);
+				print "sTI:" + string(sTI);
+				print "sTIBonus:" + string(sTIBonus);
+				print "monthlyBaseSalary:" + string(monthlyBaseSalary);
+				print "laborHours:" + string(laborHours);
+				print "statPayroll:" + string(statPayroll);
+				print "fSRPercentage:" + string(fSRPercentage);
+				print "fSRCal:" + string(fSRCal);
+				print "aOMCoverageMS:" + string(aOMCoverageMS_Boolean);
+				print "laborType_Labor_MS: " + laborType_Labor_MS;
+				print "federalHoursMS_Boolean: " + federalHoursMS_Boolean;
+				print "aOMPercentage:" + string(aOMPercentage);
+				print "aOMCal:" + string(aOMCal);
+				print "HaW_const:" + string(HaW_const);
+				print "hawCal:" + string(hawCal);
+				print "traningAndRecreation:" + string(traningAndRecreation);
+				print "wACost:" + string(wACost);
+				print "ofSCLicenseCostCal:" + string(ofSCLicenseCostCal);
+				print "shirtsCal:" + string(shirtsCal);
+				print "backgroundCheckMS_Boolean:" + string(backgroundCheckMS_Boolean);
+				print "fSRCoverageMS_Boolean:" + string(fSRCoverageMS_Boolean);
+				print "backgroundCheckType_Labor_MS:" + backgroundCheckType_Labor_MS;
+				print "backgroundCheckCal:" + string(backgroundCheckCal);
+				print "Target_Price_Const_MS:" + string(Target_Price_Const_MS);
+				print "Target_Price_Const_MPS:" + string(Target_Price_Const_MPS);
+				print "Target_Price_Const_ITS:" + string(Target_Price_Const_ITS);
+				print "Target_Price_Const_TASS:" + string(Target_Price_Const_TASS);
+				print "unitStandardCost_Labor:" + string(unitStandardCost_Labor);
+				print "unitStandardCost_Labor:" + string(unitSalesCost_Labor);
+				print "unitContractOrTargetPrice_Labor:" + string(unitContractOrTargetPrice_Labor);
+				print "unitSRP_Labor:" + string(unitSRP_Labor);
+				print "extSRP_Labor:" + string(extSRP_Labor);
+			}
+		}
+	}
+	elif(jsonpathcheck(LineBOMJSON, "$.VehicleType.value")){
+		vehicleComponent = true;
+		if(vehicleComponent){
+			vehicleType_Vehicle_MS = jsonpathgetsingle(LineBOMJSON, "$.VehicleType.value", "string");
+			leaseCost_Vehicle_MS = 0.0;
+			if(jsonpathcheck(LineBOMJSON, "$.LeaseCost.value")){
+				leaseCost_Vehicle_MS = jsonpathgetsingle(LineBOMJSON, "$.LeaseCost.value", "float");
+			}
+			fuelCost_Vehicle_MS = 0.0;
+			if(jsonpathcheck(LineBOMJSON, "$.FuelCost.value")){
+				fuelCost_Vehicle_MS = jsonpathgetsingle(LineBOMJSON, "$.FuelCost.value", "float");
+			}
+			milesPerMonth_Vehicle_MS = 0.0;
+			if(jsonpathcheck(LineBOMJSON, "$.MilesPerMonth.value")){
+				milesPerMonth_Vehicle_MS = jsonpathgetsingle(LineBOMJSON, "$.MilesPerMonth.value", "float");
+			}
+			maintProg_Vehicle_MS = 0.0;
+			if(jsonpathcheck(LineBOMJSON, "$.MaintProg.value")){
+				maintProg_Vehicle_MS = jsonpathgetsingle(LineBOMJSON, "$.MaintProg.value", "float");
+			}
+			//Added as a part of Defect# 17861 by Nupur --START--
+			if(vehicleType_Vehicle_MS == "Other"){
+				maint_Prog_Vehicle_MS = maintProg_Vehicle_MS * milesPerMonth_Vehicle_MS;
+			}else{
+				maint_Prog_Vehicle_MS = maintProg_Vehicle_MS;
+			}
+			//Added as a part of Defect# 17861 by Nupur --END--
+			
+			insuranceCost_Vehicle_MS = 0.0;
+			if(jsonpathcheck(LineBOMJSON, "$.InsuranceCost.value")){
+				insuranceCost_Vehicle_MS = jsonpathgetsingle(LineBOMJSON, "$.InsuranceCost.value", "float");
+			}
+			laborType_Vehicle_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.LaborType.value")){
+				laborType_Vehicle_MS = jsonpathgetsingle(LineBOMJSON, "$.LaborType.value", "string");
+			}
+			TotalMonthlyCost_Vehicle = fuelCost_Vehicle_MS + maint_Prog_Vehicle_MS + insuranceCost_Vehicle_MS + leaseCost_Vehicle_MS;
+			
+			
+			//START derivation for Target Price -Vehicle
+			targetMargin_Vehicle = Target_Margin_Vehicle;
+			dividedBy = 1 - targetMargin_Vehicle;
+			targetPrice_Vehicle = 0.0;
+			if(dividedBy > 0){
+				targetPrice_Vehicle = round(TotalMonthlyCost_Vehicle/dividedBy,2);
+			}else{
+				targetPrice_Vehicle = 0.0;
+			}
+			//END derivation for Target Price -Vehicle
+				
+			//Sales Cost, Target Price, Standard Cost, Unit SRP, Ext SRP for Vehicle
+			unitStandardCost_Vehicle = TotalMonthlyCost_Vehicle;
+			unitContractOrTargetPrice_Vehicle = targetPrice_Vehicle;
+			unitSalesCost_Vehicle = TotalMonthlyCost_Vehicle * (1 + SalesCost_Uplift_Vehicle);
+			unitSRP_Vehicle = targetPrice_Vehicle * (1 + Target_Price_config);
+			extSRP_Vehicle = unitSRP_Vehicle * quantity;
+			
+			//START_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+			implementationCost_Vehicle = (unitStandardCost_Vehicle) * CONST_12 * implementationCostVariable;
+			//END_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+
+
+			
+			result = result + documentNumber + "~unitCost_l~" + string(round(unitStandardCost_Vehicle,2)) + "|";
+			result = result + documentNumber + "~unitSalesCost_l~" + string(round(unitSalesCost_Vehicle,2)) + "|";
+			result = result + documentNumber + "~contractedUnitPrice_l~" + string(round(unitContractOrTargetPrice_Vehicle,2)) + "|";
+			result = result + documentNumber + "~unitSRP_l~" + string(round(unitSRP_Vehicle,2)) + "|";
+			result = result + documentNumber + "~extSRP_l~" + string(round(extSRP_Vehicle,2)) + "|";
+			result = result + documentNumber + "~mSLaborType_l~" + laborType_Vehicle_MS + "|";
+			result = result + documentNumber + "~implementationCost_l~" + string(implementationCost_Vehicle) + "|"; //Implementation Cost Changes
+
+		}
+	}
+		elif(jsonpathcheck(LineBOMJSON, "$.ProductDescription.value")){
+		ThirdPartyComponent = true;
+		if(ThirdPartyComponent){
+			productDescription_3rdParty_MS = jsonpathgetsingle(LineBOMJSON, "$.ProductDescription.value", "string");
+			expenseType_3rdParty_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.ExpenseType.value")){
+				expenseType_3rdParty_MS = jsonpathgetsingle(LineBOMJSON, "$.ExpenseType.value", "string");
+			}
+			cost_3rdParty_MS = 0.0;
+			if(jsonpathcheck(LineBOMJSON, "$.Cost.value")){
+				cost_3rdParty_MS = jsonpathgetsingle(LineBOMJSON, "$.Cost.value", "float");
+			}
+			laborType_OtherServices_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.LaborType.value")){
+				laborType_OtherServices_MS = jsonpathgetsingle(LineBOMJSON, "$.LaborType.value", "string");
+			}
+			//Added by OCS Team - CCE - 12/30/22
+			passthrough_3rdParty_MS = false;
+			if(jsonpathcheck(LineBOMJSON, "$.Passthrough.value")){
+				passthrough_3rdParty_MS = jsonpathgetsingle(LineBOMJSON, "$.Passthrough.value", "boolean");
+			}
+			
+			//Added by Chakri - CR 28 - 03/07/23
+			cER_3rdParty_MS = false;
+			if(jsonpathcheck(LineBOMJSON, "$.CERCheckbox.value")){
+				cER_3rdParty_MS = jsonpathgetsingle(LineBOMJSON, "$.CERCheckbox.value", "boolean");
+			}
+			
+			cERNumber_3rdParty_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.CERNumber.value")){
+				cERNumber_3rdParty_MS = jsonpathgetsingle(LineBOMJSON, "$.CERNumber.value", "string");
+			}
+			
+			//ContractTerm - Added for Managed Services
+		    /*CostOfMoney=0.0;
+            CostFactorRecordSet = bmql("SELECT TermMonths, CostOfMoney FROM RAC_CostOfMoney WHERE TermMonths = $termMonthInNumber");
+                for each in CostFactorRecordSet{
+	                CostOfMoney = getfloat(each,"CostOfMoney");
+	            }*/
+			//Standard Cost
+			 if (expenseType_3rdParty_MS == "Monthly"){
+                StandardCost = cost_3rdParty_MS ;
+            }
+            if (expenseType_3rdParty_MS == "Annual"){
+                StandardCost = cost_3rdParty_MS/12 ;
+            }
+             if (expenseType_3rdParty_MS == "Purchase"){
+	
+                StandardCost = cost_3rdParty_MS*costOfMoney;
+            }
+				
+			//Target Price
+			if(passthrough_3rdParty_MS == false) {
+				targetMargin_OtherSer = Target_Margin_3rdParty;
+			}
+			if(passthrough_3rdParty_MS == true) {
+				targetMargin_OtherSer = Target_Margin_Passthrough;
+			}
+			dividedBy = 1 - targetMargin_OtherSer;
+			targetPrice_OS = 0.0;
+			if(dividedBy > 0){
+				targetPrice_OS = round(StandardCost/dividedBy,2);
+			}else{
+				targetPrice_OS = 0.0;
+			}
+			//Sales Cost, Target Price, Standard Cost, Unit SRP, Ext SRP for Vehicle
+			unitStandardCost_OtherServices = StandardCost;
+			unitContractOrTargetPrice_OtherServices = targetPrice_OS;
+			unitSalesCost_OtherServices = StandardCost * (1 + SalesCost_Uplift_OtherService);
+			unitSRP_OtherServices = targetPrice_OS* (1 + Target_Price_Const_OtherService);
+			extSRP_OtherServices = unitSRP_OtherServices * quantity;
+			
+			//START_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+			implementationCost_OtherServices = (unitStandardCost_OtherServices) * CONST_12 * implementationCostVariable;
+			//END_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+			
+			result = result + documentNumber + "~unitCost_l~" + string(round(unitStandardCost_OtherServices,2)) + "|";
+			result = result + documentNumber + "~unitSalesCost_l~" + string(round(unitSalesCost_OtherServices,2)) + "|";
+			result = result + documentNumber + "~contractedUnitPrice_l~" + string(round(unitContractOrTargetPrice_OtherServices,2)) + "|";
+			result = result + documentNumber + "~unitSRP_l~" + string(round(unitSRP_OtherServices,2)) + "|";
+			result = result + documentNumber + "~extSRP_l~" + string(round(extSRP_OtherServices,2)) + "|";
+			result = result + documentNumber + "~mSLaborType_l~" + laborType_OtherServices_MS + "|";
+			result = result + documentNumber + "~implementationCost_l~" + string(implementationCost_OtherServices) + "|"; //Implementation Cost Changes
+
+			//Added by OCS Team - CCE - 12/30/22
+			result = result + documentNumber + "~passthroughFlag_l~" + string(passthrough_3rdParty_MS) + "|";
+			
+			/*if (cER_3rdParty_MS == true){
+				//result = result + documentNumber + "~mSCER_t~" + cERNumber_3rdParty_MS + "|";
+				result = result + "1~mSCER_t~"+ cERNumber_3rdParty_MS + "|";
+
+            }*/
+			
+			if(DEBUG_FLAG){
+				print "---------------------------";
+				print "laborType_OtherServices_MS :" + laborType_OtherServices_MS;
+				}
+				
+				
+		}
+	}
+		elif(jsonpathcheck(LineBOMJSON, "$.ItemDescription.value")){
+			
+		ItemDescription = true;
+		if(ItemDescription){
+			itemDescrion_MailEquip_MS = jsonpathgetsingle(LineBOMJSON, "$.ItemDescription.value", "string");
+			expenseType_MailEquip_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.ExpenseType.value")){
+				expenseType_MailEquip_MS = jsonpathgetsingle(LineBOMJSON, "$.ExpenseType.value", "string");
+			}
+			laborType_MailRoom_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.LaborType.value")){
+				laborType_MailRoom_MS = jsonpathgetsingle(LineBOMJSON, "$.LaborType.value", "string");
+			}
+                
+		    //START derivation for Standard Cost/Unit SRP -Mailroom Equipment
+            partSalesCost =util.getPartPrice("custom_field7", partNumber);
+		    partSRP = util.getPartPrice("price", partNumber);		  
+			
+		    if (expenseType_MailEquip_MS == "Monthly"){
+                partStdCost = partSalesCost ;
+            }
+            if (expenseType_MailEquip_MS == "Annual"){
+                partStdCost = partSalesCost/12 ;
+            }
+			
+		    if (expenseType_MailEquip_MS == "Monthly"){
+                partSRPCost = partSRP ;
+            }
+            if (expenseType_MailEquip_MS == "Annual"){
+                partSRPCost = partSRP/12 ;
+            }
+			
+			//END derivation for Standard Cost/Unit SRP -Mailroom Equipment
+			currentDateInNumber = 0;
+            currentDatewithTimeStamp = getstrdate();
+
+            currentDateStrArr = split(currentDatewithTimeStamp," ");
+            currentDate = strtojavadate(datetostr(strtojavadate(currentDateStrArr[0],"MM/dd/yyyy"),"MM-dd-yyyy"),"MM-dd-yyyy");
+            priceListRecordSet1 = bmql("select CashPrice,SMA, ActiveStartDate, ActiveEndDate from RAC_PL_CASH where PriceListName = $priceList AND EDPCode = $partNumber AND ActiveFlag = 'Y'");
+                for eachRow in priceListRecordSet1{
+	            activeStartDateInNumber = 0;
+	            activeStartDateInStr = "";
+	            activeStartDate = getdate();
+	            activeStartDatewithTimeStamp = get(eachRow,"ActiveStartDate");
+	        if(activeStartDatewithTimeStamp <> ""){
+		    activeStartDateStrArr = split(activeStartDatewithTimeStamp," ");
+		    activeStartDateInStr = activeStartDateStrArr[0];
+		    activeStartDate = strtojavadate(activeStartDateInStr, "MM-dd-yyyy");
+	        }
+	activeEndDateInNumber = 0;
+	activeEndDateInStr = "";
+	activeEndDate = getdate();
+	activeEndDatewithTimeStamp = get(eachRow,"ActiveEndDate");
+	if(activeEndDatewithTimeStamp <> ""){
+		activeEndDateStrArr = split(activeEndDatewithTimeStamp," ");
+		activeEndDateInStr = activeEndDateStrArr[0];
+		activeEndDate = strtojavadate(activeEndDateInStr, "MM-dd-yyyy");
+	}
+	compareStartAndCurrentDate = comparedates(activeStartDate,currentDate);
+	compareCurrentAndEndDate = comparedates(currentDate,activeEndDate);
+	pickThisRecord = false;
+
+	if(activeStartDateInStr <> "" AND activeEndDateInStr <> "" AND (compareStartAndCurrentDate == 1 OR compareStartAndCurrentDate == 0) AND (compareCurrentAndEndDate == 1 OR compareCurrentAndEndDate == 0)){
+		pickThisRecord = true;
+	}elif(activeStartDateInStr <> "" AND activeEndDateInStr == "" AND (compareStartAndCurrentDate == -1 OR compareStartAndCurrentDate == 0)){
+		pickThisRecord = true;
+	}
+}
+//Customer Segment Derivation
+if(customerSegment == "" OR isnull(customerSegment) OR customerSegment == "NA" OR customerSegment == "N/A"){
+	customerSegment = "Targeted";
+}
+upliftRecordSet = bmql("select SegmentLevel,ProductCategory4,PsMinGp,ProductFloor,SgaSegment,HwTargetPrice,MarketPlace,FyStartCustomerType,FyStartProductionZba,CustomerSegment,ProductCategory4,ActiveStartDate,ActiveEndDate from RAC_UPLIFT");
+
+minGPPercentageQueryStr = "";
+for eachRow in upliftRecordSet{
+	CustomerSegmentFromTable = get(eachRow,"CustomerSegment");
+	ProductCategory4FromTable = get(eachRow,"ProductCategory4");
+	
+	//START - Active Start Date and End Date
+	activeStartDateInNumber = 0;
+	activeStartDateInStr = "";
+	activeStartDate = getdate();
+	activeStartDatewithTimeStamp = get(eachRow,"ActiveStartDate");
+	if(activeStartDatewithTimeStamp <> ""){
+		activeStartDateStrArr = split(activeStartDatewithTimeStamp," ");
+		activeStartDateInStr = activeStartDateStrArr[0];
+		activeStartDate = strtojavadate(activeStartDateInStr, "MM-dd-yyyy");
+	}
+	activeEndDateInNumber = 0;
+	activeEndDateInStr = "";
+	activeEndDate = getdate();
+	activeEndDatewithTimeStamp = get(eachRow,"ActiveEndDate");
+	if(activeEndDatewithTimeStamp <> ""){
+		activeEndDateStrArr = split(activeEndDatewithTimeStamp," ");
+		activeEndDateInStr = activeEndDateStrArr[0];
+		activeEndDate = strtojavadate(activeEndDateInStr, "MM-dd-yyyy");
+	}
+	compareStartAndCurrentDate = comparedates(activeStartDate,currentDate);
+	compareCurrentAndEndDate = comparedates(currentDate,activeEndDate);
+	pickThisRecord = false;
+
+	if(activeStartDateInStr <> "" AND activeEndDateInStr <> "" AND (compareStartAndCurrentDate == 1 OR compareStartAndCurrentDate == 0) AND (compareCurrentAndEndDate == 1 OR compareCurrentAndEndDate == 0)){
+		pickThisRecord = true;
+	}elif(activeStartDateInStr <> "" AND activeEndDateInStr == "" AND (compareStartAndCurrentDate == -1 OR compareStartAndCurrentDate == 0)){
+		pickThisRecord = true;
+	}
+	//END - Active Start Date and End Date
+	if(pickThisRecord){
+		if(lower(CustomerSegmentFromTable) == lower(customerSegment) AND lower(ProductCategory4FromTable) == lower(priceUpliftCategory)){
+		containsCustomerSegment = true;
+		segmentLevelCondition = false;
+		priceUpliftCategoryCondition = false;
+		marketPlaceCondition = false;
+		fyCustomerStartTypeCondition = false;
+		fyCustomerStartTypeZBACondition = false;
+		conditonStr = "";
+		
+		segmentLevelStr = get(eachRow,"SegmentLevel");
+		productCategory4Str = get(eachRow,"ProductCategory4");
+		minGPPercentageQueryStr = get(eachRow,"PsMinGp");
+		productFloorQueryStr = get(eachRow,"ProductFloor");
+		sgaSegmentQueryStr = get(eachRow,"SgaSegment");
+		hardwareTargetPriceQueryStr = get(eachRow,"HwTargetPrice");
+		marketPlaceStr = get(eachRow,"MarketPlace");
+		fyCustomerStartTypeStr = get(eachRow,"FyStartCustomerType");
+		fyCustomerStartTypeZBAStr = get(eachRow,"FyStartProductionZba");
+		
+		if((segmentLevelStr <> "" AND NOT isnull(segmentLevelStr) AND segmentLevelStr == segmentLevel)){
+			segmentLevelCondition = true;
+		}
+		if(productCategory4Str <> "" AND NOT isnull(productCategory4Str) AND productCategory4Str == priceUpliftCategory){
+			priceUpliftCategoryCondition = true;
+		}
+		if(marketPlaceStr <> "" AND NOT isnull(marketPlaceStr) AND marketPlaceStr == marketPlace){
+			marketPlaceCondition = true;
+		}
+		if(fyCustomerStartTypeStr <> "" AND NOT isnull(fyCustomerStartTypeStr) AND fyCustomerStartTypeStr == fyCustomerStartType){
+			fyCustomerStartTypeCondition = true;
+		}
+		if(fyCustomerStartTypeZBAStr <> "" AND NOT isnull(fyCustomerStartTypeZBAStr) AND fyCustomerStartTypeZBAStr == fYStartProductionZBA){
+			fyCustomerStartTypeZBACondition = true;
+		}
+		
+		
+		if(segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Contains Segement Level/Price Uplift Category/MarketPlace/FY Customer Start Type/FY Customer Start Type Exception
+			conditonStr = "condition1";
+		}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains SegmentLevel and Contains Price Uplift Category/MarketPlace/FY Customer Start Type/FY Customer Start Type Exception
+			conditonStr = "condition2";
+		}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category and Contains SegmentLevel/MarketPlace/FY Customer Start Type/FY Customer Start Type Exception
+			conditonStr = "condition3";
+		}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains  MarketPlace and Contains SegmentLevel/Price Uplift Category/FY Customer Start Type/FY Customer Start Type Exception
+			conditonStr = "condition4";
+		}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains  FY Customer Start Type and Contains SegmentLevel/Price Uplift Category/MarketPlace/FY Customer Start Type Exception
+			conditonStr = "condition5";
+		}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains FY Customer Start Type Exception and Contains Segement Level/Price Uplift Category/MarketPlace/FY Customer Start Type
+			conditonStr = "condition6";
+		}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category and Contains MarketPlace/FY Customer Start Type/FY Customer Start Type Exception
+			conditonStr = "condition7";
+		}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/MarketPlace and Contains Price Uplift Category/FY Customer Start Type/FY Customer Start Type Exception
+			conditonStr = "condition8";
+		}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/FY Customer Start Type and Contains MarketPlace/Price Uplift Category/FY Customer Start Type Exception
+			conditonStr = "condition9";
+		}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/FY Customer Start Type Exception and Contains Price Uplift Category/MarketPlace/FY Customer Start Type
+			conditonStr = "condition10";
+		}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category/MarketPlace and Contains Segement Level/FY Customer Start Type/FY Customer Start Type Exception
+			conditonStr = "condition11";
+		}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category/FY Customer Start Type and Contains Segement Level/MarketPlace/FY Customer Start Type Exception
+			conditonStr = "condition12";
+		}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category/FY Customer Start Type Exception and Contains Segement Level/MarketPlace/FY Customer Start Type
+			conditonStr = "condition13";
+		}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains MarketPlace/FY Customer Start Type and Contains Segement Level/Price Uplift Category/FY Customer Start Type Exception
+			conditonStr = "condition14";
+		}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains MarketPlace/FY Customer Start Type EXception and Contains Segement Level/Price Uplift Category/FY Customer Start Type
+			conditonStr = "condition15";
+		}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains FY Customer Start Type/FY Customer Start Type Exception and Contains Segement Level/Price Uplift Category/MarketPlace
+			conditonStr = "condition16";
+		}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/MarketPlace and Contains FY Customer Start Type/FY Customer Start Type Exception
+			conditonStr = "condition17";
+		}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/FY Customer Start Type and Contains MarketPlace/FY Customer Start Type Exception
+			conditonStr = "condition18";
+		}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/FY Customer Start Type Exception and Contains MarketPlace/FY Customer Start Type
+			conditonStr = "condition19";
+		}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/FY Customer Start Type/MarketPlace and Contains Price Uplift Category/FY Customer Start Type Exception
+			conditonStr = "condition20";
+		}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/MarketPlace/FY Customer Start Type Exception and Contains Price Uplift Category/FY Customer Start Type
+			conditonStr = "condition21";
+		}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/FY Customer Start Type/FY Customer Start Type Exception and Contains MarketPlace/Price Uplift Category
+			conditonStr = "condition22";
+		}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category/MarketPlace/FY Customer Start Type and Contains Segement Level/FY Customer Start Type Exception
+			conditonStr = "condition23";
+		}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category/FY Customer Start Type/FY Customer Start Type Exception and Contains Segement Level/MarketPlace
+			conditonStr = "condition24";
+		}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Price Uplift Category/MarketPlace/FY Customer Start Type Exception and Contains Segement Level/FY Customer Start Type
+			conditonStr = "condition25";
+		}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains MarketPlace/FY Customer Start Type/FY Customer Start Type Exception and Contains Segement Level/Price Uplift Category
+			conditonStr = "condition26";
+		}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category/MarketPlace/FY Customer Start Type/FY Customer Start Type Exception and Contains Segement Level
+			conditonStr = "condition27";
+		}
+		elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/MarketPlace/FY Customer Start Type/FY Customer Start Type Exception and Contains Price Uplift Category
+			conditonStr = "condition28";
+		}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/FY Customer Start Type/FY Customer Start Type Exception and Contains MarketPlace
+			conditonStr = "condition29";
+		}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/MarketPlace/FY Customer Start Type Exception and Contains FY Customer Start Type
+			conditonStr = "condition30";
+		}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/MarketPlace/FY Customer Start Type and Contains FY Customer Start Type Exception
+			conditonStr = "condition31";
+		}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/MarketPlace/FY Customer Start Type and Contains FY Customer Start Type Exception
+			conditonStr = "condition32";
+		}
+		put(upliftDict,conditonStr+"minGPPercentageStr",minGPPercentageQueryStr);
+		put(upliftDict,conditonStr+"productFloorStr",productFloorQueryStr);
+		put(upliftDict,conditonStr+"sgaSegmentStr",sgaSegmentQueryStr);
+		put(upliftDict,conditonStr+"hardwareTargetPriceStr",hardwareTargetPriceQueryStr);
+		put(upliftDict,conditonStr+"marketPlaceStr",marketPlaceStr);
+		put(upliftDict,conditonStr+"fyCustomerStartTypeStr",fyCustomerStartTypeStr);
+		put(upliftDict,conditonStr+"fyCustomerStartTypeZBAStr",fyCustomerStartTypeZBAStr);
+	}
+	}
+}
+if(containsCustomerSegment == false){
+	customerSegment = "Targeted";
+	upliftRecordSet = bmql("select SegmentLevel,ProductCategory4,PsMinGp,ProductFloor,SgaSegment,HwTargetPrice,MarketPlace,FyStartCustomerType,FyStartProductionZba,CustomerSegment,ProductCategory4,ActiveStartDate,ActiveEndDate from RAC_UPLIFT");
+
+	for eachRow in upliftRecordSet{
+		CustomerSegmentFromTable = get(eachRow,"CustomerSegment");
+		ProductCategory4FromTable = get(eachRow,"ProductCategory4");
+		
+		//START - Active Start Date and End Date
+		activeStartDateInNumber = 0;
+		activeStartDateInStr = "";
+		activeStartDate = getdate();
+		activeStartDatewithTimeStamp = get(eachRow,"ActiveStartDate");
+		if(activeStartDatewithTimeStamp <> ""){
+			activeStartDateStrArr = split(activeStartDatewithTimeStamp," ");
+			activeStartDateInStr = activeStartDateStrArr[0];
+			activeStartDate = strtojavadate(activeStartDateInStr, "MM-dd-yyyy");
+		}
+		activeEndDateInNumber = 0;
+		activeEndDateInStr = "";
+		activeEndDate = getdate();
+		activeEndDatewithTimeStamp = get(eachRow,"ActiveEndDate");
+		if(activeEndDatewithTimeStamp <> ""){
+			activeEndDateStrArr = split(activeEndDatewithTimeStamp," ");
+			activeEndDateInStr = activeEndDateStrArr[0];
+			activeEndDate = strtojavadate(activeEndDateInStr, "MM-dd-yyyy");
+		}
+		compareStartAndCurrentDate = comparedates(activeStartDate,currentDate);
+		compareCurrentAndEndDate = comparedates(currentDate,activeEndDate);
+		pickThisRecord = false;
+
+		if(activeStartDateInStr <> "" AND activeEndDateInStr <> "" AND (compareStartAndCurrentDate == 1 OR compareStartAndCurrentDate == 0) AND (compareCurrentAndEndDate == 1 OR compareCurrentAndEndDate == 0)){
+			pickThisRecord = true;
+		}elif(activeStartDateInStr <> "" AND activeEndDateInStr == "" AND (compareStartAndCurrentDate == -1 OR compareStartAndCurrentDate == 0)){
+			pickThisRecord = true;
+		}
+		//END - Active Start Date and End Date
+		if(pickThisRecord){
+			if(lower(CustomerSegmentFromTable) == lower(customerSegment) AND lower(ProductCategory4FromTable) == lower(priceUpliftCategory)){
+			containsCustomerSegment = true;
+			segmentLevelCondition = false;
+			priceUpliftCategoryCondition = false;
+			marketPlaceCondition = false;
+			fyCustomerStartTypeCondition = false;
+			fyCustomerStartTypeZBACondition = false;
+			conditonStr = "";
+			
+			segmentLevelStr = get(eachRow,"SegmentLevel");
+			productCategory4Str = get(eachRow,"ProductCategory4");
+			minGPPercentageQueryStr = get(eachRow,"PsMinGp");
+			productFloorQueryStr = get(eachRow,"ProductFloor");
+			sgaSegmentQueryStr = get(eachRow,"SgaSegment");
+			hardwareTargetPriceQueryStr = get(eachRow,"HwTargetPrice");
+			marketPlaceStr = get(eachRow,"MarketPlace");
+			fyCustomerStartTypeStr = get(eachRow,"FyStartCustomerType");
+			fyCustomerStartTypeZBAStr = get(eachRow,"FyStartProductionZba");
+			
+			if((segmentLevelStr <> "" AND NOT isnull(segmentLevelStr) AND segmentLevelStr == segmentLevel)){
+				segmentLevelCondition = true;
+			}
+			if(productCategory4Str <> "" AND NOT isnull(productCategory4Str) AND productCategory4Str == priceUpliftCategory){
+				priceUpliftCategoryCondition = true;
+			}
+			if(marketPlaceStr <> "" AND NOT isnull(marketPlaceStr) AND marketPlaceStr == marketPlace){
+				marketPlaceCondition = true;
+			}
+			if(fyCustomerStartTypeStr <> "" AND NOT isnull(fyCustomerStartTypeStr) AND fyCustomerStartTypeStr == fyCustomerStartType){
+				fyCustomerStartTypeCondition = true;
+			}
+			if(fyCustomerStartTypeZBAStr <> "" AND NOT isnull(fyCustomerStartTypeZBAStr) AND fyCustomerStartTypeZBAStr == fYStartProductionZBA){
+				fyCustomerStartTypeZBACondition = true;
+			}
+			
+			
+			if(segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Contains Segement Level/Price Uplift Category/MarketPlace/FY Customer Start Type/FY Customer Start Type Exception
+				conditonStr = "condition1";
+			}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains SegmentLevel and Contains Price Uplift Category/MarketPlace/FY Customer Start Type/FY Customer Start Type Exception
+				conditonStr = "condition2";
+			}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category and Contains SegmentLevel/MarketPlace/FY Customer Start Type/FY Customer Start Type Exception
+				conditonStr = "condition3";
+			}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains  MarketPlace and Contains SegmentLevel/Price Uplift Category/FY Customer Start Type/FY Customer Start Type Exception
+				conditonStr = "condition4";
+			}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains  FY Customer Start Type and Contains SegmentLevel/Price Uplift Category/MarketPlace/FY Customer Start Type Exception
+				conditonStr = "condition5";
+			}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains FY Customer Start Type Exception and Contains Segement Level/Price Uplift Category/MarketPlace/FY Customer Start Type
+				conditonStr = "condition6";
+			}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category and Contains MarketPlace/FY Customer Start Type/FY Customer Start Type Exception
+				conditonStr = "condition7";
+			}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/MarketPlace and Contains Price Uplift Category/FY Customer Start Type/FY Customer Start Type Exception
+				conditonStr = "condition8";
+			}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/FY Customer Start Type and Contains MarketPlace/Price Uplift Category/FY Customer Start Type Exception
+				conditonStr = "condition9";
+			}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/FY Customer Start Type Exception and Contains Price Uplift Category/MarketPlace/FY Customer Start Type
+				conditonStr = "condition10";
+			}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category/MarketPlace and Contains Segement Level/FY Customer Start Type/FY Customer Start Type Exception
+				conditonStr = "condition11";
+			}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category/FY Customer Start Type and Contains Segement Level/MarketPlace/FY Customer Start Type Exception
+				conditonStr = "condition12";
+			}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category/FY Customer Start Type Exception and Contains Segement Level/MarketPlace/FY Customer Start Type
+				conditonStr = "condition13";
+			}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains MarketPlace/FY Customer Start Type and Contains Segement Level/Price Uplift Category/FY Customer Start Type Exception
+				conditonStr = "condition14";
+			}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains MarketPlace/FY Customer Start Type EXception and Contains Segement Level/Price Uplift Category/FY Customer Start Type
+				conditonStr = "condition15";
+			}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains FY Customer Start Type/FY Customer Start Type Exception and Contains Segement Level/Price Uplift Category/MarketPlace
+				conditonStr = "condition16";
+			}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/MarketPlace and Contains FY Customer Start Type/FY Customer Start Type Exception
+				conditonStr = "condition17";
+			}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/FY Customer Start Type and Contains MarketPlace/FY Customer Start Type Exception
+				conditonStr = "condition18";
+			}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/FY Customer Start Type Exception and Contains MarketPlace/FY Customer Start Type
+				conditonStr = "condition19";
+			}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/FY Customer Start Type/MarketPlace and Contains Price Uplift Category/FY Customer Start Type Exception
+				conditonStr = "condition20";
+			}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/MarketPlace/FY Customer Start Type Exception and Contains Price Uplift Category/FY Customer Start Type
+				conditonStr = "condition21";
+			}elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/FY Customer Start Type/FY Customer Start Type Exception and Contains MarketPlace/Price Uplift Category
+				conditonStr = "condition22";
+			}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category/MarketPlace/FY Customer Start Type and Contains Segement Level/FY Customer Start Type Exception
+				conditonStr = "condition23";
+			}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category/FY Customer Start Type/FY Customer Start Type Exception and Contains Segement Level/MarketPlace
+				conditonStr = "condition24";
+			}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Price Uplift Category/MarketPlace/FY Customer Start Type Exception and Contains Segement Level/FY Customer Start Type
+				conditonStr = "condition25";
+			}elif(segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains MarketPlace/FY Customer Start Type/FY Customer Start Type Exception and Contains Segement Level/Price Uplift Category
+				conditonStr = "condition26";
+			}elif(segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Price Uplift Category/MarketPlace/FY Customer Start Type/FY Customer Start Type Exception and Contains Segement Level
+				conditonStr = "condition27";
+			}
+			elif(NOT segmentLevelCondition AND priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/MarketPlace/FY Customer Start Type/FY Customer Start Type Exception and Contains Price Uplift Category
+				conditonStr = "condition28";
+			}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/FY Customer Start Type/FY Customer Start Type Exception and Contains MarketPlace
+				conditonStr = "condition29";
+			}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/MarketPlace/FY Customer Start Type Exception and Contains FY Customer Start Type
+				conditonStr = "condition30";
+			}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/MarketPlace/FY Customer Start Type and Contains FY Customer Start Type Exception
+				conditonStr = "condition31";
+			}elif(NOT segmentLevelCondition AND NOT priceUpliftCategoryCondition AND NOT marketPlaceCondition AND NOT fyCustomerStartTypeCondition AND NOT fyCustomerStartTypeZBACondition){ // Not Contains Segement Level/Price Uplift Category/MarketPlace/FY Customer Start Type and Contains FY Customer Start Type Exception
+				conditonStr = "condition32";
+			}
+			put(upliftDict,conditonStr+"minGPPercentageStr",minGPPercentageQueryStr);
+			put(upliftDict,conditonStr+"productFloorStr",productFloorQueryStr);
+			put(upliftDict,conditonStr+"sgaSegmentStr",sgaSegmentQueryStr);
+			put(upliftDict,conditonStr+"hardwareTargetPriceStr",hardwareTargetPriceQueryStr);
+			put(upliftDict,conditonStr+"marketPlaceStr",marketPlaceStr);
+			put(upliftDict,conditonStr+"fyCustomerStartTypeStr",fyCustomerStartTypeStr);
+			put(upliftDict,conditonStr+"fyCustomerStartTypeZBAStr",fyCustomerStartTypeZBAStr);
+		}
+		}
+	}
+}
+
+conditionArray = string[]{"condition1","condition2","condition3","condition4","condition5","condition6","condition7","condition8","condition9","condition10",
+				"condition11","condition12","condition13","condition14","condition15","condition16","condition17","condition18","condition19","condition20",
+				"condition21","condition22","condition23","condition24","condition25","condition26","condition27","condition28","condition29","condition30",
+				"condition31","condition32"};
+for each in conditionArray{
+	if(containskey(upliftDict,each+"minGPPercentageStr")){
+		minGPPercentageStr = get(upliftDict,each+"minGPPercentageStr");
+		productFloorStr = get(upliftDict,each+"productFloorStr");
+		sgaSegmentStr = get(upliftDict,each+"sgaSegmentStr");
+		hardwareTargetPriceStr = get(upliftDict,each+"hardwareTargetPriceStr");
+		marketPlaceStr = get(upliftDict,each+"marketPlaceStr");
+		fyCustomerStartTypeStr = get(upliftDict,each+"fyCustomerStartTypeStr");
+		fyCustomerStartTypeZBAStr = get(upliftDict,each+"fyCustomerStartTypeZBAStr");
+		
+
+		break;
+	}
+}
+    if(isnumber(productFloorStr)){
+	    productFloor = atof(productFloorStr);
+    }
+    if(isnumber(sgaSegmentStr)){
+	    sgaSegement = atof(sgaSegmentStr);
+    }
+    if(isnumber(hardwareTargetPriceStr)){
+	     hardwareTargetPrice = atof(hardwareTargetPriceStr);
+    }
+	        //START Sales Cost & target Price derivation
+			finalSalesCost = 0.0;		
+				initialSalesCost = partStdCost * (1 + productFloor + sgaSegement); 
+					
+	            if(partSRPCost <> 0.0 AND initialSalesCost <> 0.0){
+		            salesCostArray = float[]{partSRPCost,initialSalesCost};	
+		            finalSalesCost = min(salesCostArray);			
+	            }elif(partSRPCost == 0.0 AND initialSalesCost <> 0.0){
+		            finalSalesCost = initialSalesCost;
+	            }elif(partSRPCost <> 0.0 AND initialSalesCost == 0.0){
+		            finalSalesCost = partSRPCost;
+	            }
+			finalTargetPrice = 0.0;
+			    contractedPrice = finalSalesCost * (1 + hardwareTargetPrice);
+
+
+                if(partSRPCost <> 0.0 AND contractedPrice <> 0.0){
+			        contractedPriceArray = float[]{partSRPCost,contractedPrice};
+
+			        finalTargetPrice = min(contractedPriceArray);	
+		            }elif(partSRPCost <> 0.0 AND contractedPrice == 0.0){
+			        finalTargetPrice = partSRPCost;
+
+		            }
+			//START Sales Cost & target Price derivation
+			//Sales Cost, Target Price, Standard Cost, Unit SRP, Ext SRP for Vehicle
+			unitStandardCost_MailRoom = partStdCost;
+
+			unitContractOrTargetPrice_MailRoom = finalTargetPrice;
+
+			unitSalesCost_MailRoom = finalSalesCost;
+
+			unitSRP_mailRoom = partSRPCost;
+
+			extSRP_MailRoom = unitSRP_mailRoom * quantity;
+			//START_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+			implementationCost_Mailroom = (unitStandardCost_MailRoom) * CONST_12 * implementationCostVariable;
+			//END_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+			
+			result = result + documentNumber + "~unitCost_l~" + string(round(unitStandardCost_MailRoom,2)) + "|";
+			result = result + documentNumber + "~unitSalesCost_l~" + string(round(unitSalesCost_MailRoom,2)) + "|";
+			result = result + documentNumber + "~contractedUnitPrice_l~" + string(round(unitContractOrTargetPrice_MailRoom,2)) + "|";
+			result = result + documentNumber + "~unitSRP_l~" + string(round(unitSRP_mailRoom,2)) + "|";
+			result = result + documentNumber + "~extSRP_l~" + string(round(extSRP_MailRoom,2)) + "|";
+			result = result + documentNumber + "~mSLaborType_l~" + laborType_MailRoom_MS + "|";
+			result = result + documentNumber + "~implementationCost_l~" + string(implementationCost_Mailroom) + "|"; //Implementation Cost Changes
+
+		}
+	}
+		elif(jsonpathcheck(LineBOMJSON, "$.TRACComponent.value")){
+		TRACComponent = true;
+		if(TRACComponent){
+			tRACComponent_TRAC_MS = jsonpathgetsingle(LineBOMJSON, "$.TRACComponent.value", "string");
+			monthlyCost_TRAC_MS = 0.0;
+			if(jsonpathcheck(LineBOMJSON, "$.MonthlyCost.value")){
+				monthlyCost_TRAC_MS = jsonpathgetsingle(LineBOMJSON, "$.MonthlyCost.value", "float");
+			}
+			oneTimeCost_TRAC_MS = 0.0;
+			if(jsonpathcheck(LineBOMJSON, "$.OneTimeCost.value")){
+				oneTimeCost_TRAC_MS = jsonpathgetsingle(LineBOMJSON, "$.OneTimeCost.value", "float");
+			}
+			laborType_TRAC_MS = "";
+			if(jsonpathcheck(LineBOMJSON, "$.LaborType.value")){
+				laborType_TRAC_MS = jsonpathgetsingle(LineBOMJSON, "$.LaborType.value", "string");
+			}
+                
+		    //START derivation for TotalMonthlyCost -TRAC
+		   /* CostOfMoney=0.0;
+            CostFactorRecordSet = bmql("SELECT TermMonths, CostOfMoney FROM RAC_CostOfMoney WHERE TermMonths = $termMonthInNumber");
+                for each in CostFactorRecordSet{
+	                CostOfMoney = getfloat(each,"CostOfMoney");
+	            }	*/
+			
+			TotalMonthlyCost_TRAC = monthlyCost_TRAC_MS + (oneTimeCost_TRAC_MS * costOfMoney) ;
+            //END derivation for TotalMonthlyCost -TRAC
+				
+			//START derivation for Target Price -Vehicle
+				
+			targetMargin_TRAC = Target_Margin_TRAC;
+			dividedBy = 1 - targetMargin_TRAC;
+			targetPrice_TRAC = 0.0;
+			if(dividedBy > 0){
+				targetPrice_TRAC = round(TotalMonthlyCost_TRAC/dividedBy,2);
+			}else{
+				targetPrice_TRAC = 0.0;
+			}
+			//END derivation for Target Price -Vehicle
+				
+			//Sales Cost, Target Price, Standard Cost, Unit SRP, Ext SRP for Vehicle
+			unitStandardCost_TRAC = TotalMonthlyCost_TRAC;
+			unitContractOrTargetPrice_TRAC = targetPrice_TRAC;
+			unitSalesCost_TRAC = TotalMonthlyCost_TRAC * (1 + SalesCost_Uplift_TRAC);
+			unitSRP_TRAC = targetPrice_TRAC * (1 + Target_Price_config);
+			extSRP_TRAC = unitSRP_TRAC * quantity;
+			//START_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+			implementationCost_TRAC = (unitStandardCost_TRAC) * CONST_12 * implementationCostVariable;
+			//END_Post MVP-CR_CHG#0082000_CR#64_Description_by Namrata.
+
+			
+			result = result + documentNumber + "~unitCost_l~" + string(round(unitStandardCost_TRAC,2)) + "|";
+			result = result + documentNumber + "~unitSalesCost_l~" + string(round(unitSalesCost_TRAC,2)) + "|";
+			result = result + documentNumber + "~contractedUnitPrice_l~" + string(round(unitContractOrTargetPrice_TRAC,2)) + "|";
+			result = result + documentNumber + "~unitSRP_l~" + string(round(unitSRP_TRAC,2)) + "|";
+			result = result + documentNumber + "~extSRP_l~" + string(round(extSRP_TRAC,2)) + "|";
+			result = result + documentNumber + "~mSLaborType_l~" + laborType_TRAC_MS + "|";
+			result = result + documentNumber + "~implementationCost_l~" + string(implementationCost_TRAC) + "|"; //Implementation Cost Changes
+
+		}
+	}
+}
+result = result + "1~noOfFTE_t~" + string(noOfFTE_MS) + "|";//Setting No of FTE for POST_MVP_Requirment1 by Vasundhara.
+result = result + "1~fTEHours_t~" + string(FTEHours) + "|";//Setting No of FTE for POST_MVP_Requirment1 by Vasundhara.
+result = result + "1~implementationCostUplift_t~" + string(implementationCostVariable) + "|";//Setting No of FTE for POST_MVP_Requirment1 by Vasundhara.
+result = result + "1~trainingAndRecognitionUplift_t~" + string(TRAINING_RECOG) + "|"; //Added for POST_MVP_Requirment1 by Vasundhara.
+return result;

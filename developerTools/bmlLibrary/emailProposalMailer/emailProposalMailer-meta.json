@@ -1,0 +1,12 @@
+{
+  "name" : "Email Proposal Mailer",
+  "variableName" : "emailProposalMailer",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "UserProfile",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

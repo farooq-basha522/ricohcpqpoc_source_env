@@ -1,0 +1,11 @@
+{
+  "name" : "Cancel Order",
+  "variableName" : "cancelOrder",
+  "description" : "Cancels order or lines in external system.",
+  "libraryFunctions" : [ "commerce.parseResponse" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "status_l", "_document_number", "cancelReason_l", "_parent_doc_number" ],
+  "mainDocAttributes" : [ "orderKey_t", "cancelReason_t" ],
+  "systemAttributes" : [ "_system_selected_document_number" ]
+}

@@ -1,0 +1,37 @@
+//**************************************************************************************************************
+	//** Function:    Normalize String to X digits (normalizeStringToXDigits)                                                 
+	//** Type:        Utility Library Function                                                                    
+	//**                                                                                                          
+	//** Description: Normalizes a string to a specific size. Echos input if it is greater than size requested
+	//**
+	//**              Inputs: inputStr			- String - string to be normalized.
+	//**                      requestedDigits	- Integer- number of digits to normalize to
+	//**                      placeholderChar	- String - character to append/prepend
+	//**                      appendOrPrepend 	- String - APPEND or PREPEND - appends/prepends the placeholder when needed
+	//**                                                                                              
+	//** History:     Date     Author       Comment   
+	//**		01.20.17   RConaghan	Initial                                                            
+//**************************************************************************************************************
+retVal = inputStr;
+inputLen = len(inputStr);
+appendPrepend = "APPEND"; //default
+
+if(inputLen >= requestedDigits){
+	return inputStr;
+}
+else{
+	if(appendOrPrepend == "PREPEND"){
+		appendPrepend = "PREPEND";
+	}
+	digitsToAdd = requestedDigits - inputLen;
+	digitsArr = range(digitsToAdd);
+	for digit in digitsArr{
+		if(appendPrepend == "APPEND"){
+				retVal = retVal + placeholderChar;
+		}
+		else{
+			retVal = placeholderChar + retVal;
+		}
+	}
+}
+return retVal;

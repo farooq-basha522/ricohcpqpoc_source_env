@@ -1,0 +1,15 @@
+{
+  "name" : "abo_jsonSort",
+  "variableName" : "abo_jsonSort",
+  "description" : "This utility BML is for sorting records in input jsonarray based on input criteria",
+  "libraryFunctions" : [ "util.abo_jsonCompare" ],
+  "returnType" : "JsonArray",
+  "parameters" : [ {
+    "name" : "unsortedJsonArray",
+    "type" : "JsonArray"
+  }, {
+    "name" : "critArray",
+    "type" : "JsonArray"
+  } ],
+  "attributes" : [ ]
+}

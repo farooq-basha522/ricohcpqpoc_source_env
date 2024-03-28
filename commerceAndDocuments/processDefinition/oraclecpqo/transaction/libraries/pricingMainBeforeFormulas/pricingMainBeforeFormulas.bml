@@ -1,0 +1,3305 @@
+//code added by Abhishek for INC2464941/CHG0083007 to fetch UOM for MS
+	MPS_PERFORMA_FLAG = true;
+	RECORDLOGTIME_FLAG = false;
+	DEBUG_FLAG = false;
+	MPS_DEBUG_FLAG = false;
+	isMPS = false;
+	mSModelFlag = false;
+	/*if(RECORDLOGTIME_FLAG){
+		r=getCurrentTimeInMillis();
+		currentDateTime = getstrdate();
+		print "MPS_Performance_PricingMainBeforeFormulas_StartTime1:"+transactionID_t+":" + string(r);
+		print "MPS_Performance_PricingMainBeforeFormulas_DateAndTime1:"+transactionID_t+":" + currentDateTime;
+	}*/
+	retStringDict = dict("string");
+	retIntegerDict = dict("integer");
+	retFloatDict = dict("float");
+	retBooleanDict = dict("boolean");
+	processGroupDict = dict("string");
+	ancillaryCostDict = dict("string");
+	msInputDict = dict("string");
+	parentDocNumDict = dict("string");
+	modelDict = dict("string");
+	ParentNameDict = dict("string");
+	//Start - Added by Vasundhara for Managed Services Pricing //CHG0078656 : CPQ MS- CPQ Changes deployment//
+	upliftCategoryDict = dict("float");
+	gradeAndGeoZoneDict = dict("float");
+	maxTurnOverRatioDict = dict("float");
+	jobTitlesDict = dict("string");
+	locIddict = dict("string");
+	linkeditemdict = dict("integer");
+	linkeditemtypedict = dict("string"); //NT: CR72
+	parentDocNumArray = string[];
+	docNumArray = string[];
+	modelDocNumArray = string[];
+	lineIdArray = string[];
+	partNumberArray = string[];
+	priceUpliftCategoryArray = string[];
+	itemTypeArray = string[];
+	equipmentModelNameDocNumber = string[]; //Added by Vasundhara for Defect 14742
+	cEROnlyArr = string[];
+	vehicleDescArr = string[];
+	result = "";
+	parentModelName = "";
+	quoteProduct = "";
+	derivedFrom = "";
+	vehicleFlag_Vehicle_MS = "";
+	customerSegment = segment_t;
+	segmentLevel = segmentLevel_t;
+	priceListStr = rAC_Pricelist_RISE;
+	marketPlace = marketplace_t;
+	fyCustomerStartType = fYStartCustomerType_t;
+	fyCustomerStartTypeException = fYStartCustomerTypeException_t;
+	fYStartProductionZBA = fYStartProductionZBA_t;
+	applicableProcessGroup = applicableProcessGroup_t;
+	containsMapGenericItemInQuote = false;
+	containsMapGenericNotsubmittedItemsForCreation = false;
+	mapgenericdocunum ="";
+	priceUpliftCategory = "ACCESSORY.MFP";
+	priceList = "";
+	WarningMsg = "";
+	//End - Added by Vasundhara for Managed Services Pricing //CHG0078656 : CPQ MS- CPQ Changes deployment//
+	supportTerm = 0.0; //CR-51
+	validateModel = true;
+	linkedItemFlag = false; //NT: CR72
+	Manufacturer_3rdParty = ""; // added by Namrata for MPS CHG0085215
+	Manufacturer_MICR = ""; //added by Namrata for MPS CHG0085215
+	OtherFlag_MPS = false; //added by Namrata for MPS CHG0085215
+	//START 02_11_2023 MPS Pricing #CHG0085215
+	BW_Ratio = 0.0;
+	CLR_Ratio = 0.0;
+	totalQuantity = 0;
+	totalVolumeBW = 0;
+	totalVolumeColor = 0;
+	MICRtotalVolumeBW = 0;
+	MICRtotalVolumeColor = 0;
+	totalBWSalesCostCPI = 0.0;
+	totalCLRSalesCostCPI = 0.0;
+	totalBWTargetPriceCPI = 0.0;
+	totalColorTargetPriceCPI = 0.0;
+	totalweightedSalesCostBW = 0.0;
+	totalweightedSalesCostColor = 0.0;
+	totalweightedTargetPriceBW = 0.0;
+	totalweightedTargetPriceColor = 0.0;
+	totalweightedBWvolume = 0.0;
+	totalweightedColorvolume = 0.0;
+	originalTotalBWSalesCostCPI = 0.0;
+	originalTotalCLRSalesCostCPI = 0.0;
+	originalTotalBWTargetPriceCPI = 0.0;
+	originalTotalColorTargetPriceCPI = 0.0;
+	//originalTotalBWCommittedSalesCostCPI = 0.0;
+	//originalTotalBWCommittedvolume = 0.0;
+	//originalTotalBWOverageSalesCostCPI = 0.0;
+	//originalTotalweightedBWSalesCost = 0.0;
+	//originalTotalColorCommittedSalesCostCPI = 0.0;
+	//originalTotalColorCommittedvolume = 0.0;
+	//originalTotalColorOverageSalesCostCPI = 0.0;
+	//originalTotalweightedColorSalesCost = 0.0;
+	//originalTotalBWCommittedTargetPricePPI = 0.0;
+	//originalTotalColorCommittedTargetPricePPI = 0.0;
+	//originalTotalBWOverageTargetPricePPI = 0.0;
+	//originalTotalColorOverageTargetPricePPI = 0.0;
+	//originalTotalweightedBWTargetPrice = 0.0;
+	//originalTotalweightedColorTargetPrice = 0.0;
+	originalBWCommittedSalesCostCPI  = 0.0;
+	originalBWCommittedvolume  = 0.0;
+	originalBWOverageSalesCostCPI  = 0.0;
+	originalBWCommittedTargetPricePPI  = 0.0;
+	originalBWOverageTargetPricePPI  = 0.0;
+	originalweightedBWTargetPrice  = 0.0;
+	originalweightedBWSalesCost  = 0.0;
+	calculatedweightedBWTargetPrice = 0.0;
+	calculatedweightedColorTargetPrice = 0.0;
+	originalColorCommittedSalesCostCPI = 0.0;
+	originalColorCommittedvolume = 0.0;
+	originalColorOverageSalesCostCPI = 0.0;
+	OriginalColorWeightedSalesCost = 0.0;
+	originalweightedColorSalesCost = 0.0;
+	originalColorCommittedTargetPricePPI = 0.0;
+	originalColorOverageTargetPricePPI = 0.0;
+	originalweightedColorTargetPrice  = 0.0;
+	//calculatedoriginalTotalweightedBWTargetPrice = 0.0;
+	//calculatedoriginalTotalweightedColorTargetPrice = 0.0;
+	GPSalesCostBWCommitted = 0.0;
+	GPSalesCostBWOverage = 0.0;
+	originalGPSalesCostBWCommitted = 0.0;
+	originalGPSalesCostBWOverage = 0.0;
+	GPSalesCostColorCommitted = 0.0;
+	GPSalesCostColorOverage = 0.0;
+	GPSalesCostColorweightedBase = 0.0;
+	GPSalesCostBWweightedBase = 0.0;
+	originalGPSalesCostColorCommitted = 0.0;
+	originalGPSalesCostColorOverage = 0.0;
+	originalGPSalesCostColorweightedBase = 0.0;
+	originalGPSalesCostBWweightedBase = 0.0;
+	GPSalesCostTotalBase = 0.0;
+	MICRGPSalesCostTotalBase = 0.0;
+	MICRGPSalesCostBWCommitted = 0.0;
+    MICRGPSalesCostBWOverage = 0.0;
+	originalMICRGPSalesCostBWCommitted = 0.0;
+	originalMICRGPSalesCostBWOverage = 0.0;
+	MICRGPSalesCostColorCommitted = 0.0;
+	MICRGPSalesCostColorOverage = 0.0;
+	originalMICRGPSalesCostColorCommitted = 0.0;
+	originalMICRGPSalesCostColorOverage = 0.0;
+	MICRtotalweightedSalesCostBW = 0.0;
+	MICRtotalweightedSalesCostColor = 0.0;
+	MICRtotalweightedTargetPriceBW = 0.0;
+	MICRtotalweightedTargetPriceColor = 0.0;
+	MICRtotalweightedBWvolume = 0.0;
+	MICRtotalweightedColorvolume = 0.0;
+	MICRTotalBaseSalesCost = 0.0;
+	MICRoriginalBWCommittedSalesCostCPI = 0.0;
+	MICRoriginalBWCommittedvolume = 0.0;
+	MICRoriginalBWOverageSalesCostCPI = 0.0;
+	MICRoriginalBWCommittedTargetPricePPI = 0.0;
+	MICRoriginalBWOverageTargetPricePPI= 0.0;
+	MICRoriginalweightedBWTargetPrice = 0.0;
+	MICRoriginalweightedBWSalesCost = 0.0;
+	MICRcalculatedweightedBWTargetPrice = 0.0;
+	MICRoriginalColorCommittedSalesCostCPI = 0.0;
+	MICRoriginalColorCommittedvolume = 0.0;
+	MICRoriginalColorOverageSalesCostCPI = 0.0;
+	MICRoriginalweightedColorSalesCost = 0.0;
+	MICRoriginalColorCommittedTargetPricePPI = 0.0;
+	MICRoriginalColorOverageTargetPricePPI = 0.0;
+	MICRoriginalweightedColorTargetPrice = 0.0;
+	MICRcalculatedweightedColorTargetPrice = 0.0;
+	TotalBaseSalesCost = 0.0;
+	TotalBaseTargetPrice = 0.0;
+	MICRTotalBaseTargetPrice = 0.0;
+	MICRTotalBaseSalesCost = 0.0;
+	OriginalGPSalesCostTotalBase  = 0.0;
+	OriginalMICRGPSalesCostTotalBase = 0.0;
+	//START 12_29_2023 CR#13 Added by Vasundhara
+	if(MPS_PERFORMA_FLAG){
+		mICRTotalQuantity = 0;
+		thirdPartyTotalBWSalesCostCPI = 0.0;
+		thirdPartyTotalCLRSalesCostCPI = 0.0;
+		thirdPartyTotalBWTargetPriceCPI = 0.0;
+		thirdPartyTotalColorTargetPriceCPI = 0.0;
+		thirdPartyOriginalTotalBWSalesCostCPI = 0.0;
+		thirdPartyOriginalTotalCLRSalesCostCPI = 0.0;
+		thirdPartyOriginalTotalBWTargetPriceCPI = 0.0;
+		thirdPartyOriginalTotalColorTargetPriceCPI = 0.0;
+		mICRTotalBWSalesCostCPI = 0.0;
+		mICRTotalCLRSalesCostCPI = 0.0;
+		mICRTotalBWTargetPriceCPI = 0.0;
+		mICRTotalColorTargetPriceCPI = 0.0;
+		mICROriginalTotalBWSalesCostCPI = 0.0;
+		mICROriginalTotalCLRSalesCostCPI = 0.0;
+		mICROriginalTotalBWTargetPriceCPI = 0.0;
+		mICROriginalTotalColorTargetPriceCPI = 0.0;
+		thirdPartyTotalUnitSalesCost = 0.0;
+		thirdPartyTotalUnitNetPrice = 0.0;
+		oThirdPartyTotalUnitSalesCost = 0.0;
+		cThirdPartyTotalUnitSalesCost = 0.0;
+		oThirdPartyTotalUnitNetPrice = 0.0;
+		cThirdPartyTotalUnitNetPrice = 0.0;
+		omICRTotalUnitSalesCost  = 0.0;
+		omICRTotalUnitNetPrice  = 0.0;
+		cmICRTotalUnitSalesCost  = 0.0;
+		cmICRTotalUnitNetPrice  = 0.0;
+		mICRTotalUnitSalesCost = 0.0;
+		mICRTotalUnitNetPrice = 0.0;
+		zebraFleetTotalUnitSalesCost = 0.0;
+		zebraFleetTotalUnitNetPrice = 0.0;
+		ozebraFleetTotalUnitSalesCost = 0.0;
+		ozebraFleetTotalUnitNetPrice = 0.0;
+		czebraFleetTotalUnitSalesCost = 0.0;
+		czebraFleetTotalUnitNetPrice = 0.0;
+		thirdPartyFleetTotalUnitSalesCost = 0.0;
+		thirdPartyFleetTotalUnitNetPrice = 0.0;
+		othirdPartyFleetTotalUnitSalesCost = 0.0;
+		othirdPartyFleetTotalUnitNetPrice = 0.0;
+		cthirdPartyFleetTotalUnitSalesCost = 0.0;
+		cthirdPartyFleetTotalUnitNetPrice = 0.0;
+	}
+	//END 12_29_2023 CR#13 Added by Vasundhara
+	containsMPSFleetlines = false;
+	containsMPSLines = false;
+	entitlementThirdPartyRISE="";
+	entitlementZebraRISE="";
+	rmsscThirdPartyRISE ="";
+	leadPricingStrategyThirdPartyRISE="";
+	rmsscThirdZebraRISE="";
+	assetManagement ="";
+	intelligentDeviceMonitoring ="";
+	mPSProduct = "";
+	serviceImpZebra = "";
+	serviceImp3rdparty = "";
+	tonertype3rdparty = "";
+	leadPricingStrategyZebra="";
+	willThisBeAManagedOnlyQuote = "";
+	leadPriceStrategyArr=string[];
+	rmsscArr=string[];
+	entitlementArr=string[];
+	trackingSoftwareArr=string[];
+	trackingSoftware3rdpartyArr=string[];
+	Comments = "";
+	Manufacturer = "";
+	ModelName = "";
+	//END 02_11_2023 MPS Pricing #CHG0085215
+	//FY Start Customer Type and Exception Logic - 08_10_2023 Added for PS_Pricing logic by Vasundhara.
+	fyCustomerStartTypeVal = "N";
+	if(fyCustomerStartTypeException == "true"){
+		fyCustomerStartTypeVal = "Y";
+	}elif(fyCustomerStartTypeException == "false" AND fyCustomerStartType == "ZBA"){
+		fyCustomerStartTypeVal = "Y";
+	}
+	if(fyCustomerStartTypeException == "true"){
+		fyCustomerStartTypeException = "Y";
+	}
+	fYStartProductionZBA = "N";
+	if(fYStartProductionZBA_t == "true"){
+		fYStartProductionZBA = "Y";
+	}
+	if(segmentLevel_t== "None"){
+		segmentLevel= "";
+	}
+	if(rAC_Pricelist_RISE == ""){
+		priceListStr = priceList_t;
+	}
+	put(retStringDict,"customerSegment",customerSegment);
+	put(retStringDict,"segmentLevel",segmentLevel);
+	//put(retStringDict,"accountCoverage",accountCoverage);
+	put(retStringDict,"priceList",priceListStr);
+	
+	if(containskey(inputDict,"derivedFrom")){
+		derivedFrom= get(inputDict,"derivedFrom");
+	}
+	derivedFromFlag = "";
+	if(containskey(inputDict,"derivedFromFlag")){
+		derivedFromFlag = get(inputDict,"derivedFromFlag");
+	}
+	//START 12_24_2023 Defect#20223 CHG0085215 - DoubleSaveIssue - Added by Vasundhara
+	documentNumberArr = jsonarray();
+	documentNumberStrArr = string[];
+	priceCalculationInfoArr = jsonarray();
+	documentNumberArrToStr = "";
+	if(derivedFromFlag <> "transactionLine" AND containskey(inputDict,"updateLineItemsJson")){
+		updateLineItemsJson = get(inputDict,"updateLineItemsJson");
+		if(updateLineItemsJson <> "" AND updateLineItemsJson <> "null"  AND not(isnull(updateLineItemsJson))){
+		updateLineItemsJsonInJson = json(updateLineItemsJson);
+		documentNumberFound = jsonpathcheck(updateLineItemsJsonInJson,"$..items..calculationInfo..documentNumber");
+		priceCalculationFound = jsonpathcheck(updateLineItemsJsonInJson,"$..items..calculationInfo"); //01_19_2024 updated for MPS_Performance_Code_Changes_by_Vasundhara for CalculatePrice API call
+		if(documentNumberFound){
+			documentNumberArr = jsonpathgetmultiple(updateLineItemsJsonInJson,"$..items..calculationInfo..documentNumber");
+			arraysize = range(jsonarraysize(documentNumberArr));
+			for arr in  arraysize{
+				append(documentNumberStrArr,jsonarrayget(documentNumberArr,arr));
+			}
+		}
+		if(priceCalculationFound){
+			priceCalculationInfoArr = jsonpathgetmultiple(updateLineItemsJsonInJson,"$..items..calculationInfo");//01_19_2024 updated for MPS_Performance_Code_Changes_by_Vasundhara for CalculatePrice API call
+		}
+		}
+	}
+	print "documentNumberStrArr";
+	print documentNumberStrArr;
+	//END 12_24_2023 Defect#20223 CHG0085215 - DoubleSaveIssue - Added by Vasundhara
+	
+	//START - CR28 Defect 17654 Added by Vasundhara
+	triggersOn = "";
+	if(containskey(inputDict,"TriggersOn")){
+		triggersOn = get(inputDict,"TriggersOn");
+	}
+	//END - CR28 Defect 17654 Added by Vasundhara
+	
+	//START - Performance_Code_Changes - Instead of Using util "getMutliplteCustomFieldValuesForselectedParts" using "partsDataText_t" field to get custom field data by Vasundhara //CHG0078656 : CPQ MS- CPQ Changes deployment//
+	modelsContainsInQuote = "";
+	if(containskey(inputDict,"modelsContainsInQuote_t")){
+		modelsContainsInQuote = get(inputDict,"modelsContainsInQuote_t");
+	}
+	partsDataJson = json();
+	partsData  = "";
+	if(containskey(inputDict,"partsDataText_t")){
+		partsData = get(inputDict,"partsDataText_t");
+		if(partsData <> "{}"){
+			partsDataJson = json(partsData);
+	
+		}
+	}
+	//END - Performance_Code_Changes - Instead of Using util "getMutliplteCustomFieldValuesForselectedParts" using "partsDataText_t" field to get custom field data by Vasundhara
+	
+	//Transaction type
+	transactionType =  mSTransactionType_t;
+	
+	//Start - Added by Vasundhara for Managed Services Pricing //CHG0078656 : CPQ MS- CPQ Changes deployment//
+	if(find(modelsContainsInQuote, "Ricoh Managed Services")<>-1){ // 01_03_2024 #CHG0085215 for MPS_Performance_Code_Changes_by_Vasundhara - Added if condition so that below code should not run for MPS
+		//Query Ancillary COst table to fetch standard cost
+		recordSet =bmql("select Item,EDPCode,CostPerMonth from RAC_AncillaryCosts");
+		for record in recordSet{
+			eDPCode = get(record,"EDPCode");
+			item = get(record,"Item");
+			costPerMonth = getfloat(record,"CostPerMonth");//Get standard cost
+			
+			put(ancillaryCostDict,item + "-eDPCode",eDPCode);
+			put(ancillaryCostDict,item + "-costPerMonth",string(costPerMonth));
+			put(ancillaryCostDict,eDPCode,string(costPerMonth));
+		}
+	
+		//Get Price based on Grade and GeoZone
+		priceRecordSet = bmql("SELECT Zone_A, Zone_B, Zone_C, Zone_D, Zone_E, Zone_F, Zone_G, Grade from RAC_Midpoint");
+		for eachRec in priceRecordSet{
+			grade = get(eachRec, "Grade");
+			priceBasedOnGradeAndGeoZone_A = getfloat(eachRec,"Zone_A");
+			priceBasedOnGradeAndGeoZone_B = getfloat(eachRec,"Zone_B");
+			priceBasedOnGradeAndGeoZone_C = getfloat(eachRec,"Zone_C");
+			priceBasedOnGradeAndGeoZone_D = getfloat(eachRec,"Zone_D");
+			priceBasedOnGradeAndGeoZone_E = getfloat(eachRec,"Zone_E");
+			priceBasedOnGradeAndGeoZone_F = getfloat(eachRec,"Zone_F");
+			priceBasedOnGradeAndGeoZone_G = getfloat(eachRec,"Zone_G");
+	
+			put(gradeAndGeoZoneDict,"A" + "_" + grade,priceBasedOnGradeAndGeoZone_A);
+			put(gradeAndGeoZoneDict,"B" + "_" + grade,priceBasedOnGradeAndGeoZone_B);
+			put(gradeAndGeoZoneDict,"C" + "_" + grade,priceBasedOnGradeAndGeoZone_C);
+			put(gradeAndGeoZoneDict,"D" + "_" + grade,priceBasedOnGradeAndGeoZone_D);
+			put(gradeAndGeoZoneDict,"E" + "_" + grade,priceBasedOnGradeAndGeoZone_E);
+			put(gradeAndGeoZoneDict,"F" + "_" + grade,priceBasedOnGradeAndGeoZone_F);
+			put(gradeAndGeoZoneDict,"G" + "_" + grade,priceBasedOnGradeAndGeoZone_G);
+		}
+	
+		//Get Turnover% Ratio
+		turnOverRatioRecordSet = bmql("select Month_1, Month_2, Month_3, Month_4, Month_5, Month_6, NationalAverageRate, City, State from RAC_TurnoverRate");
+	
+		for eachRec in turnOverRatioRecordSet{
+			month_1 = getfloat(eachRec,"Month_1");
+			month_2 = getfloat(eachRec,"Month_2");
+			month_3 = getfloat(eachRec,"Month_3");
+			month_4 = getfloat(eachRec,"Month_4");
+			month_5 = getfloat(eachRec,"Month_5");
+			month_6 = getfloat(eachRec,"Month_6");
+			nationalAverageRate = getfloat(eachRec,"NationalAverageRate");
+			city = get(eachRec,"City");
+			state = get(eachRec,"State");
+			
+			monthsArray = float[]{month_1, month_2, month_3, month_4, month_5, month_6};
+			maxTurnOverRatio = max(monthsArray);
+			
+			put(maxTurnOverRatioDict,upper(city) + "$$" + state + "$$maxTurnOverRatio",maxTurnOverRatio);
+			put(maxTurnOverRatioDict,upper(city) + "$$" + state + "$$NationalAverageRate",nationalAverageRate);
+		}
+	
+		jobTitleRecordSet = bmql("SELECT STI, JobTitles, LaborType, FlatRate, Zone_A, Zone_B, Zone_C, Zone_D, Zone_E, Zone_F, Zone_G, LaborCost, Remote,SalesCost_UpliftCust  from RAC_JobTitle");   //BAU-CHG#CHG0087642_MS_JOB_TITLE_SPECIFIC_SALES_COST_UPLIFT_PERCENT_by Gowtham P_02-22-2024
+		for eachRec in jobTitleRecordSet{
+			jobTitles = get(eachRec, "JobTitles");
+			sTI = get(eachRec, "STI");
+			laborType = get(eachRec, "LaborType");
+			costForAPAC_EMEA = get(eachRec, "LaborCost");//NeedToConfirm
+			flatRate = get(eachRec, "FlatRate");
+			remote = get(eachRec, "Remote"); //CR85_POSTMVP_AddedByVasundhara_07-12-2023
+			SalesCost_UpliftCust  = get(eachRec, "SalesCost_UpliftCust");  //BAU-CHG#CHG0087642_MS_JOB_TITLE_SPECIFIC_SALES_COST_UPLIFT_PERCENT_by Gowtham P_02-22-2024
+			
+			zone_A = get(eachRec,"Zone_A");
+			zone_B = get(eachRec,"Zone_B");
+			zone_C = get(eachRec,"Zone_C");
+			zone_D = get(eachRec,"Zone_D");
+			zone_E = get(eachRec,"Zone_E");
+			zone_F = get(eachRec,"Zone_F");
+			zone_G = get(eachRec,"Zone_G");
+	
+			put(jobTitlesDict,jobTitles + " - A",zone_A);
+			put(jobTitlesDict,jobTitles + " - B",zone_B);
+			put(jobTitlesDict,jobTitles + " - C",zone_C);
+			put(jobTitlesDict,jobTitles + " - D",zone_D);
+			put(jobTitlesDict,jobTitles + " - E",zone_E);
+			put(jobTitlesDict,jobTitles + " - F",zone_F);
+			put(jobTitlesDict,jobTitles + " - G",zone_G);
+			put(jobTitlesDict,jobTitles + "-STI",sTI);
+			put(jobTitlesDict,jobTitles + "-LaborType",LaborType);
+			put(jobTitlesDict,jobTitles + "-" + laborType + "-Cost",costForAPAC_EMEA);
+			put(jobTitlesDict,jobTitles + "-FlatRate",flatRate);
+			put(jobTitlesDict,jobTitles + "-" + laborType + "-Remote",remote); //CR85_POSTMVP_AddedByVasundhara_07-12-2023
+			put(jobTitlesDict,jobTitles + "-" + laborType + "-SalesCost_UpliftCust",SalesCost_UpliftCust);  //BAU-CHG#CHG0087642_MS_JOB_TITLE_SPECIFIC_SALES_COST_UPLIFT_PERCENT_by Gowtham P_02-22-2024
+		}
+	
+		//Get all the constant values required for calculation from table RAC_MS_UPLIFT
+		msUpliftRecordSet = bmql("SELECT Category_Name, Category_Value, Category_ValueType FROM RAC_MS_UPLIFT");
+		for each in msUpliftRecordSet{
+			categoryName = get(each,"Category_Name");
+			categoryValueType = get(each,"Category_ValueType");
+			categoryValue = getfloat(each,"Category_Value");
+			put(upliftCategoryDict,categoryName,categoryValue);
+		}
+	}
+	//Term Month in Number
+	termMonthInNumber = 0;
+	if(isnumber(termMonths_t)){
+		termMonthInNumber = integer(atof(termMonths_t));
+	}elif(termMonths_t == "Other"){
+		termMonthInNumber = contractOtherTerm_t;
+	}
+	
+	//ContractTerm - Added for Managed Services - CR24 by Vasundhara
+	CostOfMoney = 0.0;
+	CostFactorRecordSet = bmql("SELECT TermMonths, CostOfMoney FROM RAC_CostOfMoney WHERE TermMonths = $termMonthInNumber");
+	for each in CostFactorRecordSet{
+		CostOfMoney = getfloat(each,"CostOfMoney");
+	}
+	//End - Added by Vasundhara for Managed Services Pricing //CHG0078656 : CPQ MS- CPQ Changes deployment//
+	// if(DEBUG_FLAG){
+		// print "jobTitlesDict";
+		// print jobTitlesDict;
+		// print "maxTurnOverRatioDict";
+		// print maxTurnOverRatioDict;
+		// print "gradeAndGeoZoneDict";
+		// print gradeAndGeoZoneDict;
+		// print "ancillaryCostDict";
+		// print ancillaryCostDict;
+		// print "upliftCategoryDict";
+		// print upliftCategoryDict;
+	// }
+	/*Start Changes done for ITS-RWA -Supriya*/
+	partItemIDJson=json();
+	if(modelsContainsInQuote <> "Managed Print Services"){ // 01_03_2024 #CHG0085215 for MPS_Performance_Code_Changes_by_Vasundhara - Added if condition so that below code should not run for MPS
+		parentVarname="XaaS";
+		 /*Set the Json-partItemIDJson to store Price related details from standard table-Oracle_BomItemDef2*/
+		recordSet = bmql("select ItemId,PartNumber from Oracle_BomItemDef2 where ParentVariableName = $parentVarname");
+		for eachRow in recordSet{
+			ItemId= get(eachRow,"ItemId");
+			partNumber=get(eachRow,"PartNumber");
+			jsonput(partItemIDJson,partNumber,ItemId);
+		  } 
+		/*End Changes done for ITS-RWA -Supriya*/
+	}
+	
+	//CR89 - Update RAC_ShippingAddress table
+	customerAccountDict = dict("string");
+	if(find(modelsContainsInQuote, "Ricoh Managed Services") <> -1){ // 01_03_2024 #CHG0085215 for MPS_Performance_Code_Changes_by_Vasundhara - Added if condition so that below code should not run for MPS
+		result = result + "1~searchAddressResultWarnings_t~" + commerce.checkIfCustomerResultArrayProjectNumbersAreNumeric() + "|";
+		if(jsonarraysize(customerAccountResult_t)>0 AND (_system_current_step_var=="start_step" OR startswith(_system_current_step_var,"pending_process"))){
+			customerRange = range(jsonarraysize(customerAccountResult_t));
+			for customer in customerRange{
+				
+				customerJSON = jsonarrayget(customerAccountResult_t, customer, "json");
+				siteID = jsonget(customerJSON, "locationSiteID_Result_t","string","");
+				projectNumber = jsonget(customerJSON, "project_Result_t","string","");
+				put(customerAccountDict, siteID, projectNumber);
+				
+				siteRecords = bmql("SELECT ProjectNumber FROM RAC_ShippingAddress WHERE TransactionNumber = $transactionID_t AND LocationSiteID = $siteID");
+				for siteRecord in siteRecords{
+					if(get(siteRecord, "ProjectNumber") <> projectNumber){
+						modifyClause = "ProjectNumber='" + projectNumber + "'";
+						bmql("MODIFY RAC_ShippingAddress SET $modifyClause WHERE TransactionNumber = $transactionID_t AND LocationSiteID = $siteID");
+					}
+				}
+			}
+		}
+	}
+	//START 07_12_2023 AddedPerforma Changes - MPS Pricing #CHG-CHG0085215 by Vasundhara
+	fleetManagmentPerDevice = 0.0;
+	totalFleetManagmentPerDevice = 0.0;
+	orginalFleetManagmentPerDevice = 0.0;
+	orginalTotalFleetManagmentPerDevice = 0.0;
+	calculatedFleetManagmentPerDevice = 0.0;
+	calculatedTotalFleetManagmentPerDevice = 0.0;
+	orginalZebraFleetManagmentPerDevice = 0.0;
+	orginalZebraTotalFleetManagmentPerDevice = 0.0;
+	calculatedZebraFleetManagmentPerDevice = 0.0;
+	calculatedZebraTotalFleetManagmentPerDevice = 0.0;
+	fleetItemsArray = string[]{"MS-MPS-RMSSC-BASIC","MS-MPS-RMSSC-STANDARD","MS-MPS-RMSSC-ADVANCED","MS-MPS-TRAC-ASSET","MS-MPS-FMAUDIT","MS-MPS-IMPLEMENTATION"};
+	ZebraFleetItemsArray = string[]{"MS-MPS-RMSSC-ZEBRA","MS-MPS-TRAC-ASSET","MS-MPS-ZX","MS-MPS-IMPLEMENTATION"};
+	rmSSCLevel = "";
+	trackingSoftwareArray = string[];
+	serviceSolImp = "No";
+	tonerTypeDetails = "";
+	OtherMPSItems = string[];
+	
+	//MPS_Performance_Testing
+	/*if(RECORDLOGTIME_FLAG){
+	t=getCurrentTimeInMillis();
+	currentDateTime = getstrdate();
+	u = t-r;
+	//print "MPS_Performance_PricingMainBeforeFormulas_TimeDiff2:"+transactionID_t+":" + string(u);
+	print "MPS_Performance_PricingMainBeforeFormulas_DateAndTime2:"+transactionID_t+":" + currentDateTime;
+	}*/
+	DocumentNumebrString = ""; 	//Added by Namrata for MPS CHG0085215
+	parentDict = dict("string");
+	zebraLinkedItemDict = dict("string");//added by Namrata CR-24 #CHG0085215
+	PSOneCareArr = string[];//added by Namrata CR-24 #CHG0085215
+	ZebraOneCareArr = string[];//added by Namrata CR-24 #CHG0085215
+	//END 07_12_2023 AddedPerforma Changes - MPS Pricing #CHG-CHG0085215 by Vasundhara
+	for line in transactionLine{
+		//START 02_11_2023 Added if condition for MPS Pricing #CHG0085215 by Vasundhara
+		salesCostBWCPI = 0.0;
+		salesCostColorCPI = 0.0;
+		targetPriceBWPPI = 0.0;
+		targetPriceCLRPPI = 0.0;
+		originalSalesCostBWCPI = 0.0;
+		originalSalesCostColorCPI = 0.0;
+		originalTargetPriceBWPPI = 0.0;
+		originalTargetPriceCLRPPI = 0.0;
+		extSalesCostBWCPI = 0.0;
+		extSalesCostColorCPI = 0.0;
+		extTargetPriceBWPPI = 0.0;
+		extTargetPriceCLRPPI = 0.0;
+		extBWVolume = 0;
+		extColorVolume = 0;
+		Comments = "";
+		Manufacturer = "";
+		ModelName = "";
+		//added by Namrata for CR-20 #CHG0085215
+		ThirdPartyDiscountVar= "";
+		ZebraDiscountVar = "";
+		ThirdPartyDiscount = 0.0;
+		ZebraDiscount= 0.0;
+		set3rdPartyLineDiscount = false; 
+		setZebraLineDiscount = false; 
+		//added by Namrata for CR-20 #CHG0085215
+		partNum = line._part_number;
+		quantity = line._price_quantity;
+		unitStandardCost = 0.0;
+		unitSalesCost = 0.0;
+		unitTargetPrice = 0.0;
+		unitSRP = 0.0;
+		extSRP = 0.0;
+		unitNetPrice = 0.0;
+		extNetPrice = 0.0;
+		unitSellingPrice = 0.0;
+		extSellingPrice = 0.0;
+		salesCostGP = 0.0;
+		standardCostGP = 0.0;
+		BW_Ratio = 0.0;
+		CLR_Ratio = 0.0;
+		ZebraServiceEntity = "";//added by Namrata CR-24 #CHG0085215
+		//setFlag1 = false;
+		//setFlag2 = false;
+		//setFlag3 = false;
+		//added by Namrata for CR-24 #CHG0085215
+		
+		// Start_bau_INC2693072_created_by_gowtham_on_14/12/2023
+		if(not(containskey(parentDict,line._parent_doc_number))){
+			put(parentDict,line._parent_doc_number,line._document_number);
+		}
+		//START 01_03_2024 #CHG0085215 for MPS_Performance_Code_Changes_by_Vasundhara
+		itemType = line._part_custom_field23;
+		partNumber = line._part_number;
+		if((derivedFromFlag <> "transactionLine" )AND (partNumber <> "Ricoh Work Anywhere")){
+			custom_field23 = "$." + partNumber + "custom_field23";
+			if(jsonpathcheck(partsDataJson,custom_field23)){
+				itemType = jsonpathgetsingle(partsDataJson,custom_field23,"string");
+			}
+		}
+		//END 01_03_2024 #CHG0085215 for MPS_Performance_Code_Changes_by_Vasundhara
+		if(line._line_bom_attributes <> "{}" AND itemType == "MANAGED PRINT SVC-RECURRING CHARGE"){//01_03_2024 #CHG0085215 for MPS_Performance_Code_Changes_by_Vasundhara - replaced type_l with itemType
+		lineBOMJson = json(line._line_bom_attributes);
+		
+		thirdPartyManufacturer_PathCheck = jsonpathcheck(LineBOMJSON, "$.ThirdPartyManufacturer.value");//3rdParty
+		mICRManufacturer_PathCheck = jsonpathcheck(LineBOMJSON, "$.MICRManufacturer.value");//MICR
+		zebraManufacturer_PathCheck = jsonpathcheck(LineBOMJSON, "$.ZebraManufacturer.value");//Zebra
+		thirdPartyManufacturer_PathCheck = jsonpathcheck(LineBOMJSON, "$.ThirdPartyManufacturer.value");
+		zebraModelName_PathCheck = jsonpathcheck(LineBOMJSON, "$.ModelName.value");//Zebra
+		thirdPartyModelName_PathCheck = jsonpathcheck(LineBOMJSON, "$.ModelName.value");//3rdParty
+		mICRModelName_PathCheck = jsonpathcheck(LineBOMJSON, "$.ModelName.value");//MICR
+		customerBWVolume_PathCheck = jsonpathcheck(lineBOMJson,"$.CustomerBWVolume.value");
+		customerColorVolume_PathCheck = jsonpathcheck(lineBOMJson,"$.CustomerColorVolume.value");
+		categoryName_PathCheck = jsonpathcheck(lineBOMJson, "$.categoryName.value");//Header EDP Codes
+		tonerType_PathCheck = jsonpathcheck(lineBOMJson, "$.TonerType.value");
+		ThirdPartyComments_PathCheck = jsonpathcheck(lineBOMJson, "$.Comments.value");
+		MICRComments_PathCheck = jsonpathcheck(lineBOMJson, "$.Comments.value");
+		breakFixResponseTime_PathCheck = jsonpathcheck(lineBOMJson, "$.BreakFixResponse.value");
+		
+		if(line._part_number  == "MS-MPS-FLEET-OTHER" ){
+				ThirdPartyComments = "";
+				MICRComments = "";
+				if(ThirdPartyComments_PathCheck and thirdPartyManufacturer_PathCheck){
+					ThirdPartyComments = jsonpathgetsingle(lineBOMJson, "$.Comments.value", "string");
+				}
+				
+				if(MICRComments_PathCheck and mICRManufacturer_PathCheck){
+						MICRComments = jsonpathgetsingle(lineBOMJson, "$.Comments.value", "string");
+				}
+				
+				if(MICRComments <> "" AND not(isnull(MICRComments))){
+						
+						result =  result + line._document_number + "~commentsMPS_l~" + MICRComments + "|";
+						}
+						else{
+						
+						result =  result + line._document_number + "~commentsMPS_l~" + ThirdPartyComments + "|";
+						}
+		}
+		
+		tonerType = "";
+		if(tonerType_PathCheck){
+			tonerType = jsonpathgetsingle(lineBOMJson, "$.TonerType.value", "string");
+		}
+		categoryName = "";
+		if(categoryName_PathCheck){
+			categoryName = jsonpathgetsingle(lineBOMJson, "$.categoryName.value", "string");
+			if(categoryName == "Basic" OR categoryName == "Standard" OR categoryName == "Advanced" OR categoryName == "Toner Replenishment"){
+				rmSSCLevel = categoryName;
+			}
+			if(categoryName == "FM Audit"){
+				append(trackingSoftwareArray,categoryName);
+			}
+			if(categoryName == "Asset Management"){
+				append(trackingSoftwareArray,"TRAC");
+			}
+			if(categoryName == "Service/Solution Implementation"){
+				serviceSolImp = "Yes";
+			}
+		}
+		if(TonerType <> ""){
+			tonerTypeDetails = tonerType;
+		}
+		
+		pricingInfo = json();
+		if(itemType == "MANAGED PRINT SVC-RECURRING CHARGE"){//01_03_2024 #CHG0085215 for MPS_Performance_Code_Changes_by_Vasundhara - replaced type_l with itemType
+			calcInfo = jsonarray();
+			if(line._price_calculation_info <> ""  AND line._price_calculation_info <> "[]"){//Added if condition for Defect 20583 so that calcInfo is taken for MPS Itemtype by Vasundhara
+				calcInfo =  jsonarray(line._price_calculation_info);
+			}
+			//START 12_24_2023 Defect#20223 CHG0085215 - DoubleSaveIssue - Added by Vasundhara
+			if(derivedFromFlag <> "transactionLine"){
+				docIndex = findinarray(documentNumberStrArr,line._document_number);
+				if(docIndex <> -1){
+					calcInfo =  jsonarrayget(priceCalculationInfoArr,docIndex,"jsonarray");
+				}
+			}
+			//END 12_24_2023 Defect#20223 CHG0085215 - DoubleSaveIssue - Added by Vasundhara
+			pricingInfoJson = json();
+			if(jsonarraysize(calcInfo) > 0){
+				pricingInfoJson = jsonarrayget(calcInfo,0,"json");
+			}
+			if(jsonpathcheck(pricingInfoJson, "pricingInfo")){
+				pricingInfo = jsonpathgetsingle(pricingInfoJson, "pricingInfo","json");
+			}
+			// if(MPS_DEBUG_FLAG){
+				// print "PartNumber: " + line._part_number;
+				// print "pricingInfoJson";
+				// print pricingInfoJson;
+			// }
+			//Added by Nupur for CR 010 MPS 
+			if(zebraManufacturer_PathCheck){
+				ZebraManufacturer = jsonpathgetsingle(lineBOMJson, "$.ZebraManufacturer.value", "string");
+				Manufacturer = ZebraManufacturer;
+				ZebraServiceEntity = jsonpathgetsingle(lineBOMJson, "$.ServiceEntity.value", "string"); //added by Namrata for CR-24 MPS #CHG0085215	
+			}
+			
+			//added by Namrata for CR-24 MPS #CHG0085215
+			if(ZebraServiceEntity == "One Care"){
+				put(zebraLinkedItemDict , line._group_sequence_number, line.linkedItem_l);
+				append(ZebraOneCareArr , line._group_sequence_number);
+			}
+			//print ZebraOneCareArr;
+			
+	
+			//added by Namrata for CR-24 MPS #CHG0085215
+	
+			if(zebraModelName_PathCheck){
+				ModelName = jsonpathgetsingle(lineBOMJson, "$.ModelName.value", "string");
+				ModelName = ModelName;
+			}
+			if(partNum == "MS-MPS-FLEET-ZEBRA-SERVICE"){
+			Comments = Manufacturer + "," + ModelName;
+			//added by Namrata for CR-20 #CHG0085215
+			DiscountZebraVar = getconfigattrvalue(line._parent_doc_number , "fleetDiscountZebraChild");
+				if(DiscountZebraVar <> "" AND not(isnull(DiscountZebraVar))){
+					ZebraDiscount = atof(DiscountZebraVar);	
+				}
+				/*if(ZebraDiscount <> 0.0 AND line.discountAmountt_l == 0.0){
+					setZebraLineDiscount = true;
+				}*/
+			}
+			
+			if(thirdPartyManufacturer_PathCheck OR mICRManufacturer_PathCheck){
+				if(containsMPSFleetlines == false){
+					containsMPSFleetlines = true;
+				}
+				customerBWVolume = 0;
+				customerColorVolume = 0;
+				considerBWAMV = 0.0;
+				considerColorAMV = 0.0;
+				breakFixResponseTime = "";
+				if(customerBWVolume_PathCheck){
+					customerBWVolume = jsonpathgetsingle(lineBOMJson, "$.CustomerBWVolume.value", "integer");
+				}
+				if(customerColorVolume_PathCheck){
+					customerColorVolume = jsonpathgetsingle(lineBOMJson, "$.CustomerColorVolume.value", "integer");
+				}
+				if(breakFixResponseTime_PathCheck){
+					breakFixResponseTime = jsonpathgetsingle(lineBOMJson, "$.BreakFixResponse.value", "string");
+					/* if(breakFixResponseTime <> "" AND breakFixResponseTime <> "NBD"){
+						append(breakFixResponseTimeArray, breakFixResponseTime);
+					} */
+				}
+				//Added by Nupur for CR 010 MPS 
+	            if(thirdPartyManufacturer_PathCheck){
+				ThirdPartyManufacturer = jsonpathgetsingle(lineBOMJson, "$.ThirdPartyManufacturer.value", "string");
+				Manufacturer = ThirdPartyManufacturer;
+				}
+				if(thirdPartyModelName_PathCheck){
+					ModelName = jsonpathgetsingle(lineBOMJson, "$.ModelName.value", "string");
+					ModelName = ModelName;
+				}
+				if(mICRManufacturer_PathCheck){
+					MICRManufacturer = jsonpathgetsingle(lineBOMJson, "$.MICRManufacturer.value", "string");
+					Manufacturer = MICRManufacturer;
+				}
+				if(mICRModelName_PathCheck){
+					ModelName = jsonpathgetsingle(lineBOMJson, "$.ModelName.value", "string");
+					ModelName = ModelName;
+				}
+				if (partNum == "MS-MPS-FLEET-3RDPTY-SERVICE" OR partNum == "MS-MPS-FLEET-OTHER" ){
+					Comments = Manufacturer + "," + ModelName;
+					//added by Namrata for CR-20 #CHG0085215
+					ThirdParyDiscountVar = getconfigattrvalue(line._parent_doc_number , "fleetDiscount3rdPartyChild");
+					//added by Namrata for CR-20 #CHG0085215
+					if(ThirdParyDiscountVar <> "" AND not(isnull(ThirdParyDiscountVar))){
+						ThirdPartyDiscount = atof(ThirdParyDiscountVar);
+	
+					}
+					/*if(ThirdPartyDiscount <> 0.0 AND line.discountAmountt_l == 0.0){
+						set3rdPartyLineDiscount = true;
+					}*/
+					if(partNum == "MS-MPS-FLEET-OTHER"){
+						
+						if(Manufacturer == "Select" OR Manufacturer == ""){
+							Comments = "";
+						}
+						append(OtherMPSItems,(line._document_number));
+					}
+	 		    	}
+				if(partNum == "MS-MPS-FLEET-MICR-SERVICE" OR partNum == "MS-MPS-FLEET-OTHER" ){
+					Comments = Manufacturer + "," + ModelName;
+					//added by Namrata for CR-20 #CHG0085215
+					ThirdParyDiscountVar = getconfigattrvalue(line._parent_doc_number , "fleetDiscount3rdPartyChild");
+					if(ThirdParyDiscountVar <> "" AND not(isnull(ThirdParyDiscountVar))){
+						ThirdPartyDiscount = atof(ThirdParyDiscountVar);
+					}
+					if(ThirdPartyDiscount <> 0.0 AND line.discountAmountt_l == 0.0){
+						set3rdPartyLineDiscount = true;
+					}
+					if(partNum == "MS-MPS-FLEET-OTHER"){
+						if(Manufacturer == "Select" OR Manufacturer == ""){
+							Comments = "";
+						}
+						//Added by Namrata for MPS CHG0085215
+						DocumentNumebrString = DocumentNumebrString +"@@"+ line._document_number;
+	 		    	}
+				}
+				
+	
+				unitStandardCost = 0.0;
+				unitSalesCost = 0.0;
+				unitTargetPrice = 0.0;
+				unitSRP = 0.0;
+				extSRP = 0.0;
+				unitNetPrice = 0.0;
+				extNetPrice = 0.0;
+				unitSellingPrice = 0.0;
+				extSellingPrice = 0.0;
+				salesCostGP = 0.0;
+				standardCostGP = 0.0;
+				BW_Ratio = 0.0;
+				CLR_Ratio = 0.0;
+				salesCostBWCPI_PathCheck = jsonpathcheck(pricingInfo, "salesCostBWCPI");
+				salesCostColorCPI_PathCheck = jsonpathcheck(pricingInfo, "salesCostColorCPI");
+				targetPriceBWPPI_PathCheck = jsonpathcheck(pricingInfo, "targetPriceBWPPI");
+				targetPriceCLRPPI_PathCheck = jsonpathcheck(pricingInfo, "targetPriceCLRPPI");
+				originalSalesCostBWCPI_PathCheck = jsonpathcheck(pricingInfo, "originalSalesCostBWCPI");
+				originalSalesCostColorCPI_PathCheck = jsonpathcheck(pricingInfo, "originalSalesCostColorCPI");
+				originalTargetPriceBWPPI_PathCheck = jsonpathcheck(pricingInfo, "originalTargetPriceBWPPI");
+				originalTargetPriceCLRPPI_PathCheck = jsonpathcheck(pricingInfo, "originalTargetPriceCLRPPI");
+				BW_Ratio_PathCheck = jsonpathcheck(pricingInfo, "BW_Ratio");
+				CLR_Ratio_PathCheck = jsonpathcheck(pricingInfo, "CLR_Ratio");
+				if(salesCostBWCPI_PathCheck){
+					salesCostBWCPI = jsonpathgetsingle(pricingInfo,"salesCostBWCPI","float");
+				}
+				if(salesCostColorCPI_PathCheck){
+					salesCostColorCPI = jsonpathgetsingle(pricingInfo,"salesCostColorCPI","float");
+				}
+				if(targetPriceBWPPI_PathCheck){
+					targetPriceBWPPI = jsonpathgetsingle(pricingInfo,"targetPriceBWPPI","float");
+				}
+				if(targetPriceCLRPPI_PathCheck){
+					targetPriceCLRPPI = jsonpathgetsingle(pricingInfo,"targetPriceCLRPPI","float");
+				}
+				if(originalSalesCostBWCPI_PathCheck){
+					originalSalesCostBWCPI = jsonpathgetsingle(pricingInfo,"originalSalesCostBWCPI","float");
+				}
+				if(originalSalesCostColorCPI_PathCheck){
+					originalSalesCostColorCPI = jsonpathgetsingle(pricingInfo,"originalSalesCostColorCPI","float");
+				}
+				if(originalTargetPriceBWPPI_PathCheck){
+					originalTargetPriceBWPPI = jsonpathgetsingle(pricingInfo,"originalTargetPriceBWPPI","float");
+				}
+				if(originalTargetPriceCLRPPI_PathCheck){
+					originalTargetPriceCLRPPI = jsonpathgetsingle(pricingInfo,"originalTargetPriceCLRPPI","float");
+				}
+				if(BW_Ratio_PathCheck){
+					BW_Ratio = jsonpathgetsingle(pricingInfo, "BW_Ratio","float");
+				}
+				if(CLR_Ratio_PathCheck){
+					CLR_Ratio = jsonpathgetsingle(pricingInfo, "CLR_Ratio","float");
+				}
+				considerBWAMV_PathCheck = jsonpathcheck(pricingInfo, "considerBWAMV");
+				considerColorAMV_PathCheck = jsonpathcheck(pricingInfo, "considerColorAMV");
+				if(considerBWAMV_PathCheck){
+					considerBWAMV = jsonpathgetsingle(pricingInfo, "considerBWAMV","float");
+					
+				}
+				if(considerColorAMV_PathCheck){
+					considerColorAMV = jsonpathgetsingle(pricingInfo, "considerColorAMV","float");
+				}
+			}
+			unitStandardCost_PathCheck = jsonpathcheck(pricingInfoJson, "unitStandardCost");
+			unitSalesCost_PathCheck = jsonpathcheck(pricingInfoJson, "unitSalesCost");
+			unitTargetPrice_PathCheck = jsonpathcheck(pricingInfoJson, "unitTargetPrice");
+			unitSRP_PathCheck = jsonpathcheck(pricingInfoJson, "unitSRP");
+			extSRP_PathCheck = jsonpathcheck(pricingInfoJson, "extSRP");
+			unitSellingPrice_PathCheck = jsonpathcheck(pricingInfoJson, "unitSellingPrice");
+			extSellingPrice_PathCheck = jsonpathcheck(pricingInfoJson, "extSellingPrice");
+			unitNetPrice_PathCheck = jsonpathcheck(pricingInfoJson, "unitNetPrice");
+			extNetPrice_PathCheck = jsonpathcheck(pricingInfoJson, "extNetPrice");
+			salesCostGP_PathCheck = jsonpathcheck(pricingInfoJson, "salesCostGP");
+			standardCostGP_PathCheck = jsonpathcheck(pricingInfoJson, "standardCostGP");
+			//unitNetPrice_PathCheck = jsonpathcheck(pricingInfoJson, "unitNetPrice");
+			BW_Ratio_PathCheck = jsonpathcheck(pricingInfoJson, "BW_Ratio");
+			CLR_Ratio_PathCheck = jsonpathcheck(pricingInfoJson, "CLR_Ratio");
+				
+			if(unitStandardCost_PathCheck){
+				unitStandardCost = jsonpathgetsingle(pricingInfoJson, "unitStandardCost","float");
+			}
+			if(unitSalesCost_PathCheck){
+				unitSalesCost = jsonpathgetsingle(pricingInfoJson,"unitSalesCost","float");
+			}
+			if(unitTargetPrice_PathCheck){
+				unitTargetPrice = jsonpathgetsingle(pricingInfoJson, "unitTargetPrice","float");
+			}
+			if(unitSRP_PathCheck){
+				unitSRP = jsonpathgetsingle(pricingInfoJson, "unitSRP","float");
+			}
+			if(extSRP_PathCheck){
+				extSRP = jsonpathgetsingle(pricingInfoJson, "extSRP","float");
+			}
+			if(unitSellingPrice_PathCheck){
+				unitSellingPrice = jsonpathgetsingle(pricingInfoJson, "unitSellingPrice","float");
+			}
+			if(extSellingPrice_PathCheck){
+				extSellingPrice = jsonpathgetsingle(pricingInfoJson, "extSellingPrice","float");
+			}
+			if(unitNetPrice_PathCheck){
+				unitNetPrice = jsonpathgetsingle(pricingInfoJson, "unitNetPrice","float");
+			}
+			if(extNetPrice_PathCheck){
+				extNetPrice = jsonpathgetsingle(pricingInfoJson, "extNetPrice","float");
+			}
+			if(salesCostGP_PathCheck){
+				salesCostGP = jsonpathgetsingle(pricingInfoJson, "salesCostGP","float");
+			}
+			if(standardCostGP_PathCheck){
+				standardCostGP = jsonpathgetsingle(pricingInfoJson, "standardCostGP","float");
+			}
+
+			if(MPS_PERFORMA_FLAG){
+				if(thirdPartyManufacturer_PathCheck){
+					//extBWVolume = customerBWVolume * quantity;
+					weightedSalesCostBW = considerBWAMV * quantity * salesCostBWCPI;
+
+					weightedSalesCostColor = considerColorAMV * quantity * salesCostColorCPI;
+	                //weightedTargetPriceBW = considerBWAMV * quantity * round(targetPriceBWPPI,3);
+					weightedTargetPriceBW = considerBWAMV * quantity * targetPriceBWPPI;
+					//weightedTargetPriceColor = considerColorAMV * quantity * round(targetPriceCLRPPI,3);
+					weightedTargetPriceColor = considerColorAMV * quantity * targetPriceCLRPPI;
+	
+	
+					/*extBWVolume = considerBWAMV * quantity;
+					//extColorVolume = customerColorVolume * quantity;
+					extColorVolume = considerColorAMV * quantity;
+					totalVolumeBW = totalVolumeBW + extBWVolume;
+					totalVolumeColor = totalVolumeColor + extColorVolume;
+					
+					extSalesCostBWCPI = salesCostBWCPI * quantity;
+					extSalesCostColorCPI = salesCostColorCPI * quantity;
+					extTargetPriceBWPPI = targetPriceBWPPI * quantity;
+					extTargetPriceCLRPPI = targetPriceCLRPPI * quantity;
+					
+					originalExtSalesCostBWCPI = originalSalesCostBWCPI * quantity;
+					originalExtSalesCostColorCPI = originalSalesCostColorCPI * quantity;
+					originalExtTargetPriceBWPPI = originalTargetPriceBWPPI * quantity;
+					originalExtTargetPriceCLRPPI = originalTargetPriceCLRPPI * quantity;
+					
+					
+					totalQuantity = totalQuantity + quantity;
+					totalBWSalesCostCPI = totalBWSalesCostCPI + extSalesCostBWCPI;
+					totalCLRSalesCostCPI = totalCLRSalesCostCPI + extSalesCostColorCPI;
+					totalBWTargetPriceCPI = totalBWTargetPriceCPI + extTargetPriceBWPPI;
+					totalColorTargetPriceCPI = totalColorTargetPriceCPI + extTargetPriceCLRPPI;*/
+					
+					/*originalTotalBWSalesCostCPI = originalTotalBWSalesCostCPI + originalExtSalesCostBWCPI;
+					originalTotalCLRSalesCostCPI = originalTotalCLRSalesCostCPI + originalExtSalesCostColorCPI;
+					originalTotalBWTargetPriceCPI = originalTotalBWTargetPriceCPI + originalExtTargetPriceBWPPI;
+					originalTotalColorTargetPriceCPI = originalTotalColorTargetPriceCPI + originalExtTargetPriceCLRPPI;*/
+					
+					//Added by Nupur for CR#13 performa changes
+					totalweightedSalesCostBW = totalweightedSalesCostBW + weightedSalesCostBW;
+					totalweightedSalesCostColor = totalweightedSalesCostColor + weightedSalesCostColor;
+					totalweightedTargetPriceBW = totalweightedTargetPriceBW + weightedTargetPriceBW;
+					totalweightedTargetPriceColor = totalweightedTargetPriceColor + weightedTargetPriceColor;
+					totalweightedBWvolume = totalweightedBWvolume + (considerBWAMV * quantity) ;
+	                totalweightedColorvolume = TotalweightedColorvolume + (considerColorAMV  * quantity);
+					totalweightedvolume = totalweightedBWvolume + totalweightedColorvolume;			
+	                 
+					 					
+					//Description by Namrata adding round off to match the base values in UI and in calcuation
+
+					//totalweightedSalesCostBW = round(totalweightedSalesCostBW,4);
+					totalweightedSalesCostBW = totalweightedSalesCostBW;
+					//totalweightedBWvolume = round(totalweightedBWvolume,4);
+					totalweightedBWvolume = totalweightedBWvolume;
+					//totalweightedTargetPriceBW = round(totalweightedTargetPriceBW,4);
+					totalweightedTargetPriceBW = totalweightedTargetPriceBW;
+					
+					//Added by Nupur for CR#13 performa changes
+					if (totalweightedBWvolume <> 0.0){
+					originalBWCommittedSalesCostCPI = totalweightedSalesCostBW/totalweightedBWvolume;
+					originalBWCommittedvolume = totalweightedBWvolume;
+					originalBWOverageSalesCostCPI = totalweightedSalesCostBW/totalweightedBWvolume;
+					originalBWCommittedTargetPricePPI = totalweightedTargetPriceBW/totalweightedBWvolume;
+					originalBWOverageTargetPricePPI = totalweightedTargetPriceBW/totalweightedBWvolume;
+	
+					//originalweightedBWTargetPrice = totalweightedTargetPriceBW;
+					originalweightedBWTargetPrice = round(originalBWCommittedTargetPricePPI,4) * originalBWCommittedvolume;
+					originalBWCommittedTargetPricePPI = round(originalBWCommittedTargetPricePPI,4);
+
+					//originalweightedBWSalesCost = totalweightedSalesCostBW;
+					originalweightedBWSalesCost = round(originalBWCommittedSalesCostCPI,4) * originalBWCommittedvolume;
+					//calculatedweightedBWTargetPrice = (totalweightedTargetPriceBW/totalweightedBWvolume) * totalweightedBWvolume;
+					calculatedweightedBWTargetPrice = round(originalBWCommittedTargetPricePPI,4) * originalBWCommittedvolume;
+					}
+					calculatedweightedBWTargetPrice = round(calculatedweightedBWTargetPrice,4);
+					//Description by Namrata adding round off to match the GP values in UI and in calcuation
+					
+					//print "originalBWCommittedTargetPricePPI ***";print originalBWCommittedTargetPricePPI ;
+					originalBWCommittedSalesCostCPI = round(originalBWCommittedSalesCostCPI,4);
+				//	print "originalBWCommittedSalesCostCPI "; print originalBWCommittedSalesCostCPI ;
+					originalBWOverageTargetPricePPI = round(originalBWOverageTargetPricePPI,4);
+					originalBWOverageSalesCostCPI = round(originalBWOverageSalesCostCPI,4);
+					calculatedweightedBWTargetPrice = round(calculatedweightedBWTargetPrice,4);
+					originalweightedBWSalesCost = round(originalweightedBWSalesCost,4);
+					originalweightedColorSalesCost = round(originalweightedColorSalesCost,4);
+					originalweightedColorTargetPrice = round(originalweightedColorTargetPrice,4);
+					
+					if(originalBWCommittedTargetPricePPI <> 0.0){
+					originalGPSalesCostBWCommitted = (1 - (originalBWCommittedSalesCostCPI/originalBWCommittedTargetPricePPI));
+				    }
+					if(originalBWOverageTargetPricePPI <> 0.0){
+					originalGPSalesCostBWOverage = (1 - (originalBWOverageSalesCostCPI/originalBWOverageTargetPricePPI));
+				    }
+					if(originalweightedBWTargetPrice <> 0.0){
+					originalGPSalesCostBWweightedBase = (1 - (originalweightedBWSalesCost/originalweightedBWTargetPrice));
+				    }
+					if(originalBWCommittedTargetPricePPI <> 0.0){
+					GPSalesCostBWCommitted = (1 - (originalBWCommittedSalesCostCPI/originalBWCommittedTargetPricePPI));
+				    }
+					if(originalBWOverageTargetPricePPI <> 0.0){
+					GPSalesCostBWOverage = (1 - (originalBWOverageSalesCostCPI/originalBWOverageTargetPricePPI));
+				    }
+					if(calculatedweightedBWTargetPrice <> 0.0){
+					GPSalesCostBWweightedBase = (1 - (originalweightedBWSalesCost/calculatedweightedBWTargetPrice));
+				    }
+				    totalweightedSalesCostColor = totalweightedSalesCostColor;
+					totalweightedColorvolume = totalweightedColorvolume;
+					totalweightedTargetPriceColor = totalweightedTargetPriceColor;
+					
+					if(totalweightedColorvolume <> 0.0){
+	               	originalColorCommittedSalesCostCPI = totalweightedSalesCostColor/totalweightedColorvolume;
+					originalColorCommittedvolume = totalweightedColorvolume;		
+					originalColorOverageSalesCostCPI = totalweightedSalesCostColor/totalweightedColorvolume;
+					//originalweightedColorSalesCost = totalweightedSalesCostColor;
+					originalweightedColorSalesCost = (round(originalColorCommittedSalesCostCPI,4) * totalweightedColorvolume);
+					originalColorCommittedTargetPricePPI = totalweightedTargetPriceColor/totalweightedColorvolume;
+					originalColorOverageTargetPricePPI = totalweightedTargetPriceColor/totalweightedColorvolume;
+	                //originalweightedColorTargetPrice = totalweightedTargetPriceColor;
+					originalweightedColorTargetPrice = (round(originalColorCommittedTargetPricePPI,4) * totalweightedColorvolume);
+					//calculatedweightedColorTargetPrice = (totalweightedTargetPriceColor/totalweightedColorvolume) * totalweightedColorvolume;
+					calculatedweightedColorTargetPrice = (round(originalColorCommittedTargetPricePPI,4) * originalColorCommittedvolume);
+					}
+					
+					//Description by Namrata adding round off to match the GP values in UI and in calcuation
+					
+					originalColorCommittedTargetPricePPI = round(originalColorCommittedTargetPricePPI,4);
+					originalColorCommittedSalesCostCPI = round(originalColorCommittedSalesCostCPI,4);
+					originalColorOverageTargetPricePPI = round(originalColorOverageTargetPricePPI,4);
+					originalColorOverageSalesCostCPI = round(originalColorOverageSalesCostCPI,4);
+					calculatedweightedBWTargetPrice = round(calculatedweightedBWTargetPrice,4);
+					originalweightedBWSalesCost = round(originalweightedBWSalesCost,4);
+					originalweightedColorSalesCost = round(originalweightedColorSalesCost,4);
+					originalweightedBWTargetPrice = round(originalweightedBWTargetPrice,4);
+					originalweightedColorTargetPrice = round(originalweightedColorTargetPrice,4);
+					
+					TotalBaseSalesCost = originalweightedBWSalesCost + originalweightedColorSalesCost;
+					TotalBaseTargetPrice = originalweightedBWTargetPrice + originalweightedColorTargetPrice;
+			        
+					
+					if(originalColorCommittedTargetPricePPI <> 0.0){
+					originalGPSalesCostColorCommitted = (1 - (originalColorCommittedSalesCostCPI/originalColorCommittedTargetPricePPI));
+				    }
+					if(originalColorOverageTargetPricePPI <> 0.0){
+					originalGPSalesCostColorOverage = (1 - (originalColorOverageSalesCostCPI/originalColorOverageTargetPricePPI));
+				    }
+					if(originalweightedColorTargetPrice <> 0.0){
+					originalGPSalesCostColorweightedBase = (1 - (originalweightedColorSalesCost/originalweightedColorTargetPrice));
+				    }
+					if(originalColorCommittedTargetPricePPI <> 0.0){
+					GPSalesCostColorCommitted = (1 - (originalColorCommittedSalesCostCPI/originalColorCommittedTargetPricePPI));
+				    }
+					if(originalColorOverageTargetPricePPI <> 0.0){
+					GPSalesCostColorOverage = (1 - (originalColorOverageSalesCostCPI/originalColorOverageTargetPricePPI));
+				    }					
+					if(calculatedweightedColorTargetPrice <> 0.0){
+					GPSalesCostColorweightedBase = (1 - (originalweightedColorSalesCost/calculatedweightedColorTargetPrice));
+				    }
+					
+			
+					if(TotalBaseTargetPrice <> 0.0){
+					OriginalGPSalesCostTotalBase = (1 - (TotalBaseSalesCost/TotalBaseTargetPrice));
+				    }
+					//Total Original Values for B&W/Color totalweightedTargetPriceBW
+					//originalTotalBWCommittedSalesCostCPI = originalTotalBWCommittedSalesCostCPI + originalBWCommittedSalesCostCPI;
+					//originalTotalBWCommittedvolume = originalTotalBWCommittedvolume + originalBWCommittedvolume;
+					//originalTotalBWOverageSalesCostCPI = originalTotalBWOverageSalesCostCPI + originalBWOverageSalesCostCPI;
+					//originalTotalweightedBWSalesCost =  originalTotalweightedBWSalesCost + originalweightedBWSalesCost;
+					//originalTotalColorCommittedSalesCostCPI = originalTotalColorCommittedSalesCostCPI + 	originalColorCommittedSalesCostCPI;		
+	                //originalTotalColorCommittedvolume = originalTotalColorCommittedvolume + 		originalColorCommittedvolume;
+					//originalTotalColorOverageSalesCostCPI = originalTotalColorOverageSalesCostCPI + originalColorOverageSalesCostCPI;
+					//originalTotalweightedColorSalesCost = originalTotalweightedColorSalesCost +originalweightedColorSalesCost;
+					//originalTotalBWCommittedTargetPricePPI = originalTotalBWCommittedTargetPricePPI + originalBWCommittedTargetPricePPI;
+					//originalTotalColorCommittedTargetPricePPI = originalTotalColorCommittedTargetPricePPI + originalColorCommittedTargetPricePPI;
+					//originalTotalBWOverageTargetPricePPI = originalTotalBWOverageTargetPricePPI + originalBWOverageTargetPricePPI;
+					//originalTotalColorOverageTargetPricePPI = originalTotalColorOverageTargetPricePPI + originalColorOverageTargetPricePPI;
+					//originalTotalweightedBWTargetPrice = originalTotalweightedBWTargetPrice + originalweightedBWTargetPrice;
+					//originalTotalweightedColorTargetPrice = originalTotalweightedColorTargetPrice + originalweightedColorTargetPrice;			
+					//Calculated B&W and Color Weighted Values
+					//calculatedoriginalTotalweightedBWTargetPrice = calculatedoriginalTotalweightedBWTargetPrice + calculatedweightedBWTargetPrice;
+					//calculatedoriginalTotalweightedColorTargetPrice = calculatedoriginalTotalweightedColorTargetPrice + calculatedweightedColorTargetPrice;
+					
+					//Sales GP Calculation GP%(Sales Cost)
+	                //TotalGPSalesCostBWCommitted = TotalGPSalesCostBWCommitted + GPSalesCostBWCommitted;
+					//TotalGPSalesCostBWOverage = TotalGPSalesCostBWOverage + GPSalesCostBWOverage;
+					//TotalGPSalesCostColorCommitted = TotalGPSalesCostColorCommitted + GPSalesCostColorCommitted;
+					//TotalGPSalesCostColorOverage = TotalGPSalesCostColorOverage + GPSalesCostColorOverage;
+			
+					//Sales GP Calculation required fields
+					if(modifyPricingScenario_t <> "CPI" AND modifyPricingScenario_t <> "Total Base"){
+						thirdPartyTotalUnitSalesCost = thirdPartyTotalUnitSalesCost + unitSalesCost;
+						thirdPartyTotalUnitNetPrice = thirdPartyTotalUnitNetPrice + unitNetPrice;
+					}elif(modifyPricingScenario_t == "CPI" OR modifyPricingScenario_t == "Total Base"){
+						oThirdPartyTotalUnitSalesCost = oThirdPartyTotalUnitSalesCost + line.originalUnitSalesCost_l_c;
+						oThirdPartyTotalUnitNetPrice = oThirdPartyTotalUnitNetPrice + line.originalUnitNetPrice_l_c;
+						cThirdPartyTotalUnitSalesCost = cThirdPartyTotalUnitSalesCost + unitSalesCost;
+						cThirdPartyTotalUnitNetPrice = cThirdPartyTotalUnitNetPrice + unitNetPrice;
+					}
+	
+				}elif(mICRManufacturer_PathCheck){ //START 12_29_2023 CR#13 Added by Vasundhara
+					
+					MICRweightedSalesCostBW = considerBWAMV * quantity * salesCostBWCPI;
+					MICRweightedSalesCostColor = considerColorAMV * quantity * salesCostColorCPI;
+	                //MICRweightedTargetPriceBW = considerBWAMV * quantity * round(targetPriceBWPPI,3);
+					MICRweightedTargetPriceBW = considerBWAMV * quantity * targetPriceBWPPI;
+					//MICRweightedTargetPriceColor = considerColorAMV * quantity * round(targetPriceCLRPPI,3);
+					MICRweightedTargetPriceColor = considerColorAMV * quantity * targetPriceCLRPPI;
+					
+					//Added by Nupur for CR#13 performa changes
+					MICRtotalweightedSalesCostBW = MICRtotalweightedSalesCostBW + MICRweightedSalesCostBW;
+					MICRtotalweightedSalesCostColor = MICRtotalweightedSalesCostColor + MICRweightedSalesCostColor;
+					MICRtotalweightedTargetPriceBW = MICRtotalweightedTargetPriceBW + MICRweightedTargetPriceBW;
+					MICRtotalweightedTargetPriceColor = MICRtotalweightedTargetPriceColor + MICRweightedTargetPriceColor;
+					MICRtotalweightedBWvolume = MICRtotalweightedBWvolume + (considerBWAMV * quantity);
+	                MICRtotalweightedColorvolume = MICRtotalweightedColorvolume + (considerColorAMV * quantity);
+					MICRtotalweightedvolume = MICRtotalweightedBWvolume + MICRtotalweightedColorvolume;	
+					
+					//Description by Namrata adding round off to match the base values in UI and in calcuation
+
+					MICRtotalweightedSalesCostBW = MICRtotalweightedSalesCostBW;
+					MICRtotalweightedBWvolume = MICRtotalweightedBWvolume;
+					MICRtotalweightedTargetPriceBW = MICRtotalweightedTargetPriceBW;
+					
+					//Added by Nupur for CR#13 performa changes
+					if (MICRtotalweightedBWvolume <> 0.0){
+					MICRoriginalBWCommittedSalesCostCPI = MICRtotalweightedSalesCostBW/MICRtotalweightedBWvolume;
+					MICRoriginalBWCommittedvolume = MICRtotalweightedBWvolume;
+					MICRoriginalBWOverageSalesCostCPI = MICRtotalweightedSalesCostBW/MICRtotalweightedBWvolume;
+					MICRoriginalBWCommittedTargetPricePPI = MICRtotalweightedTargetPriceBW/MICRtotalweightedBWvolume;
+					MICRoriginalBWOverageTargetPricePPI = MICRtotalweightedTargetPriceBW/MICRtotalweightedBWvolume;
+					MICRoriginalweightedBWTargetPrice = MICRtotalweightedTargetPriceBW;
+					MICRoriginalweightedBWTargetPrice = (round(MICRoriginalBWCommittedTargetPricePPI,4) * MICRtotalweightedBWvolume);
+					//MICRoriginalweightedBWSalesCost = MICRtotalweightedSalesCostBW;
+					MICRoriginalweightedBWSalesCost = (round(MICRoriginalBWCommittedSalesCostCPI,4) * MICRtotalweightedBWvolume);
+					//MICRcalculatedweightedBWTargetPrice = (MICRtotalweightedTargetPriceBW/MICRtotalweightedBWvolume) *MICRtotalweightedBWvolume;
+					MICRcalculatedweightedBWTargetPrice = (round(MICRoriginalBWCommittedTargetPricePPI, 4) * MICRtotalweightedBWvolume);
+					}
+					
+					MICRcalculatedweightedBWTargetPrice = round(MICRcalculatedweightedBWTargetPrice,4);
+					//Description by Namrata adding round off to match the GP values in UI and in calcuation
+
+					MICRoriginalBWCommittedTargetPricePPI = round(MICRoriginalBWCommittedTargetPricePPI,4);
+					MICRoriginalBWCommittedSalesCostCPI = round(MICRoriginalBWCommittedSalesCostCPI,4);
+					MICRoriginalBWOverageTargetPricePPI = round(MICRoriginalBWOverageTargetPricePPI,4);
+					MICRoriginalBWOverageSalesCostCPI = round(MICRoriginalBWOverageSalesCostCPI,4);
+		
+					if(MICRoriginalBWCommittedSalesCostCPI <> 0.0){
+					originalMICRGPSalesCostBWCommitted = ((MICRoriginalBWCommittedTargetPricePPI - MICRoriginalBWCommittedSalesCostCPI)/MICRoriginalBWCommittedSalesCostCPI);
+				    }
+					if(MICRoriginalBWOverageSalesCostCPI <> 0.0){
+					originalMICRGPSalesCostBWOverage = ((MICRoriginalBWOverageTargetPricePPI - MICRoriginalBWOverageSalesCostCPI)/MICRoriginalBWOverageSalesCostCPI);
+				    }
+					if(MICRoriginalBWCommittedSalesCostCPI <> 0.0){
+					MICRGPSalesCostBWCommitted = ((MICRoriginalBWCommittedTargetPricePPI - MICRoriginalBWCommittedSalesCostCPI)/MICRoriginalBWCommittedSalesCostCPI);
+				    }
+					if(MICRoriginalBWOverageSalesCostCPI <> 0.0){
+					MICRGPSalesCostBWOverage = ((MICRoriginalBWOverageTargetPricePPI - MICRoriginalBWOverageSalesCostCPI)/MICRoriginalBWOverageSalesCostCPI);
+				    }
+		
+		
+		
+					MICRtotalweightedSalesCostColor = MICRtotalweightedSalesCostColor;
+					MICRtotalweightedColorvolume = MICRtotalweightedColorvolume;
+					MICRtotalweightedTargetPriceColor = MICRtotalweightedTargetPriceColor;
+					
+					if(MICRtotalweightedColorvolume <> 0.0){
+	               	MICRoriginalColorCommittedSalesCostCPI = MICRtotalweightedSalesCostColor/MICRtotalweightedColorvolume;
+					MICRoriginalColorCommittedvolume = MICRtotalweightedColorvolume;		
+					MICRoriginalColorOverageSalesCostCPI = MICRtotalweightedSalesCostColor/MICRtotalweightedColorvolume;
+					//MICRoriginalweightedColorSalesCost = MICRtotalweightedSalesCostColor;
+					MICRoriginalweightedColorSalesCost = (round(MICRoriginalColorCommittedSalesCostCPI,4) * MICRtotalweightedColorvolume);
+					MICRoriginalColorCommittedTargetPricePPI = MICRtotalweightedTargetPriceColor/MICRtotalweightedColorvolume;
+					MICRoriginalColorOverageTargetPricePPI = MICRtotalweightedTargetPriceColor/MICRtotalweightedColorvolume;
+	               // MICRoriginalweightedColorTargetPrice = MICRtotalweightedTargetPriceColor;
+				    MICRoriginalweightedColorTargetPrice = (round(MICRoriginalColorCommittedTargetPricePPI,4) * MICRtotalweightedColorvolume);
+					//MICRcalculatedweightedColorTargetPrice = (MICRtotalweightedTargetPriceColor/MICRtotalweightedColorvolume) * MICRtotalweightedColorvolume;
+					MICRcalculatedweightedColorTargetPrice = (round(MICRoriginalColorCommittedTargetPricePPI,4) * MICRtotalweightedColorvolume);
+					}
+					
+					MICRcalculatedweightedColorTargetPrice = round(MICRcalculatedweightedColorTargetPrice,4);
+//Description by Namrata adding round off to match the GP values in UI and in calcuation
+
+					MICRoriginalweightedBWSalesCost = round(MICRoriginalweightedBWSalesCost,4);
+					MICRoriginalweightedColorSalesCost = round(MICRoriginalweightedColorSalesCost,4);
+					MICRoriginalweightedBWTargetPrice = round(MICRoriginalweightedBWTargetPrice,4);
+					MICRoriginalweightedColorTargetPrice = round(MICRoriginalweightedColorTargetPrice,4);
+					MICRoriginalColorCommittedTargetPricePPI = round(MICRoriginalColorCommittedTargetPricePPI,4);
+					MICRoriginalColorCommittedSalesCostCPI = round(MICRoriginalColorCommittedSalesCostCPI,4);
+					MICRoriginalColorOverageTargetPricePPI = round(MICRoriginalColorOverageTargetPricePPI,4);
+					MICRoriginalColorOverageSalesCostCPI = round(MICRoriginalColorOverageSalesCostCPI,4);
+					
+					MICRTotalBaseSalesCost = MICRoriginalweightedBWSalesCost + MICRoriginalweightedColorSalesCost;
+					MICRTotalBaseTargetPrice = MICRoriginalweightedBWTargetPrice + MICRoriginalweightedColorTargetPrice;
+					
+					if(MICRoriginalColorCommittedSalesCostCPI <> 0.0){
+					originalMICRGPSalesCostColorCommitted = ((MICRoriginalColorCommittedTargetPricePPI - MICRoriginalColorCommittedSalesCostCPI)/MICRoriginalColorCommittedSalesCostCPI);
+				    }
+					if(MICRoriginalColorOverageSalesCostCPI <> 0.0){
+					originalMICRGPSalesCostColorOverage = ((MICRoriginalColorOverageTargetPricePPI - MICRoriginalColorOverageSalesCostCPI)/MICRoriginalColorOverageSalesCostCPI);
+				    }
+					if(MICRoriginalColorCommittedSalesCostCPI <> 0.0){
+					MICRGPSalesCostColorCommitted = ((MICRoriginalColorCommittedTargetPricePPI - MICRoriginalColorCommittedSalesCostCPI)/MICRoriginalColorCommittedSalesCostCPI);
+				    }
+					if(MICRoriginalColorOverageSalesCostCPI <> 0.0){
+					MICRGPSalesCostColorOverage = ((MICRoriginalColorOverageTargetPricePPI - MICRoriginalColorOverageSalesCostCPI)/MICRoriginalColorOverageSalesCostCPI);
+				    }
+					if(MICRTotalBaseSalesCost <> 0.0){
+					OriginalMICRGPSalesCostTotalBase = ((MICRTotalBaseTargetPrice - MICRTotalBaseSalesCost)/MICRTotalBaseSalesCost);
+				    }
+
+					//Total Original Values for B&W/Color totalweightedTargetPriceBW
+					//MICRoriginalTotalBWCommittedSalesCostCPI = MICRoriginalTotalBWCommittedSalesCostCPI + MICRoriginalBWCommittedSalesCostCPI;
+					//MICRoriginalTotalBWCommittedvolume = MICRoriginalTotalBWCommittedvolume + MICRoriginalBWCommittedvolume;
+					//MICRoriginalTotalBWOverageSalesCostCPI = MICRoriginalTotalBWOverageSalesCostCPI + MICRoriginalBWOverageSalesCostCPI;
+					//MICRoriginalTotalweightedBWSalesCost =  MICRoriginalTotalweightedBWSalesCost + MICRoriginalweightedBWSalesCost;
+					//MICRoriginalTotalColorCommittedSalesCostCPI = MICRoriginalTotalColorCommittedSalesCostCPI + 	MICRoriginalColorCommittedSalesCostCPI;		
+	                		//MICRoriginalTotalColorCommittedvolume = MICRoriginalTotalColorCommittedvolume + 		MICRoriginalColorCommittedvolume;
+					//MICRoriginalTotalColorOverageSalesCostCPI = MICRoriginalTotalColorOverageSalesCostCPI + MICRoriginalColorOverageSalesCostCPI;
+					//MICRoriginalTotalweightedColorSalesCost = MICRoriginalTotalweightedColorSalesCost +MICRoriginalweightedColorSalesCost;
+					//MICRoriginalTotalBWCommittedTargetPricePPI = MICRoriginalTotalBWCommittedTargetPricePPI + MICRoriginalBWCommittedTargetPricePPI;
+					//MICRoriginalTotalColorCommittedTargetPricePPI = MICRoriginalTotalColorCommittedTargetPricePPI + MICRoriginalColorCommittedTargetPricePPI;
+					//MICRoriginalTotalBWOverageTargetPricePPI = MICRoriginalTotalBWOverageTargetPricePPI + MICRoriginalBWOverageTargetPricePPI;
+					//MICRoriginalTotalColorOverageTargetPricePPI = MICRoriginalTotalColorOverageTargetPricePPI + MICRoriginalColorOverageTargetPricePPI;
+					//MICRoriginalTotalweightedBWTargetPrice = MICRoriginalTotalweightedBWTargetPrice + MICRoriginalweightedBWTargetPrice;
+					//MICRoriginalTotalweightedColorTargetPrice = MICRoriginalTotalweightedColorTargetPrice + MICRoriginalweightedColorTargetPrice;				
+					//Calculated B&W and Color Weighted Values
+					//MICRcalculatedoriginalTotalweightedBWTargetPrice = MICRcalculatedoriginalTotalweightedBWTargetPrice + MICRcalculatedweightedBWTargetPrice;
+					//MICRcalculatedoriginalTotalweightedColorTargetPrice = MICRcalculatedoriginalTotalweightedColorTargetPrice + MICRcalculatedweightedColorTargetPrice;
+					
+					//Sales GP Calculation GP%(Sales Cost)
+	                //MICRTotalGPSalesCostBWCommitted = MICRTotalGPSalesCostBWCommitted + MICRGPSalesCostBWCommitted;
+					//MICRTotalGPSalesCostBWOverage = MICRTotalGPSalesCostBWOverage + MICRGPSalesCostBWOverage;
+					//MICRTotalGPSalesCostColorCommitted = MICRTotalGPSalesCostColorCommitted + MICRGPSalesCostColorCommitted;
+					//MICRTotalGPSalesCostColorOverage = MICRTotalGPSalesCostColorOverage + MICRGPSalesCostColorOverage;
+					
+					
+					/*MICRextBWVolume = customerBWVolume * quantity;
+					MICRextColorVolume = customerColorVolume * quantity;
+					MICRtotalVolumeBW = MICRtotalVolumeBW + MICRextBWVolume;
+					MICRtotalVolumeColor = MICRtotalVolumeColor + MICRextColorVolume;
+					
+					mICRExtSalesCostBWCPI = salesCostBWCPI * quantity;
+					mICRExtSalesCostColorCPI = salesCostColorCPI * quantity;
+					mICRExtTargetPriceBWPPI = targetPriceBWPPI * quantity;
+					mICRExtTargetPriceCLRPPI = targetPriceCLRPPI * quantity;
+					
+					mICROriginalExtSalesCostBWCPI = originalSalesCostBWCPI * quantity;
+					mICROriginalExtSalesCostColorCPI = originalSalesCostColorCPI * quantity;
+					mICROriginalExtTargetPriceBWPPI = originalTargetPriceBWPPI * quantity;
+					mICROriginalExtTargetPriceCLRPPI = originalTargetPriceCLRPPI * quantity;
+					
+					mICRTotalQuantity = mICRTotalQuantity + quantity;
+					mICRTotalBWSalesCostCPI = mICRTotalBWSalesCostCPI + mICRExtSalesCostBWCPI;
+					mICRTotalCLRSalesCostCPI = mICRTotalCLRSalesCostCPI + mICRExtSalesCostColorCPI;
+					mICRTotalBWTargetPriceCPI = mICRTotalBWTargetPriceCPI + mICRExtTargetPriceBWPPI;
+					mICRTotalColorTargetPriceCPI = mICRTotalColorTargetPriceCPI + mICRExtTargetPriceCLRPPI;
+					
+					mICROriginalTotalBWSalesCostCPI = mICROriginalTotalBWSalesCostCPI + mICROriginalExtSalesCostBWCPI;
+					mICROriginalTotalCLRSalesCostCPI = mICROriginalTotalCLRSalesCostCPI + mICROriginalExtSalesCostColorCPI;
+					mICROriginalTotalBWTargetPriceCPI = mICROriginalTotalBWTargetPriceCPI + mICROriginalExtTargetPriceBWPPI;
+					mICROriginalTotalColorTargetPriceCPI = mICROriginalTotalColorTargetPriceCPI + mICROriginalExtTargetPriceCLRPPI;*/
+					
+					//Sales GP Calculation required fields
+					if(modifyPricingScenario_MICR_c <> "CPI" AND modifyPricingScenario_MICR_c <> "Total Base"){
+						mICRTotalUnitSalesCost = mICRTotalUnitSalesCost + unitSalesCost;
+						mICRTotalUnitNetPrice = mICRTotalUnitNetPrice + unitNetPrice;
+					}elif(modifyPricingScenario_MICR_c == "CPI" OR modifyPricingScenario_MICR_c == "Total Base"){
+						omICRTotalUnitSalesCost = omICRTotalUnitSalesCost + line.originalUnitSalesCost_l_c;
+						omICRTotalUnitNetPrice = omICRTotalUnitNetPrice + line.originalUnitNetPrice_l_c;
+						cmICRTotalUnitSalesCost = cmICRTotalUnitSalesCost + unitSalesCost;
+						cmICRTotalUnitNetPrice = cmICRTotalUnitNetPrice + unitNetPrice;
+					}
+				}elif(findinarray(fleetItemsArray,line._part_number) <> -1 AND line.configCommentsNew_l == "3rd Party/MICR"){
+					//Sales GP Calculation for 3rd Party Fleet
+					if(modifyPricingScenarioFleetManagement3rdPartyMICR_c == "Revert to Original"){
+						thirdPartyFleetTotalUnitSalesCost = thirdPartyFleetTotalUnitSalesCost + unitSalesCost;
+						thirdPartyFleetTotalUnitNetPrice = thirdPartyFleetTotalUnitNetPrice + unitNetPrice;
+					}elif(modifyPricingScenarioFleetManagement3rdPartyMICR_c <> "Revert to Original"){
+						othirdPartyFleetTotalUnitSalesCost = othirdPartyFleetTotalUnitSalesCost + line.originalUnitSalesCost_l_c;
+						othirdPartyFleetTotalUnitNetPrice = othirdPartyFleetTotalUnitNetPrice + line.originalUnitNetPrice_l_c;
+						cthirdPartyFleetTotalUnitSalesCost = cthirdPartyFleetTotalUnitSalesCost + unitSalesCost;
+						cthirdPartyFleetTotalUnitNetPrice = cthirdPartyFleetTotalUnitNetPrice + unitNetPrice;
+					}
+				}elif(findinarray(ZebraFleetItemsArray,line._part_number) <> -1 AND line.configCommentsNew_l == "ZEBRA"){
+					//Sales GP Calculation required fields
+					if(modifyPricingScenarioFleetManagementZebra_t_c == "Revert to Original"){
+						zebraFleetTotalUnitSalesCost = zebraFleetTotalUnitSalesCost + unitSalesCost;
+						zebraFleetTotalUnitNetPrice = zebraFleetTotalUnitNetPrice + unitNetPrice;
+					}elif(modifyPricingScenarioFleetManagementZebra_t_c <> "Revert to Original"){
+						ozebraFleetTotalUnitSalesCost = ozebraFleetTotalUnitSalesCost + line.originalUnitSalesCost_l_c;
+						ozebraFleetTotalUnitNetPrice = ozebraFleetTotalUnitNetPrice + line.originalUnitNetPrice_l_c;
+						czebraFleetTotalUnitSalesCost = czebraFleetTotalUnitSalesCost + unitSalesCost;
+						czebraFleetTotalUnitNetPrice = czebraFleetTotalUnitNetPrice + unitNetPrice;
+					}
+				}
+				//END 12_29_2023 CR#13 Added by Vasundhara
+				//Original values fields setting for SalesCost, TargetPrice, NetPrice for 3rd Party/MICR
+				if((modifyPricingScenario_t <> "CPI" AND modifyPricingScenario_t <> "Total Base" AND thirdPartyManufacturer_PathCheck) OR (modifyPricingScenario_MICR_c <> "CPI" AND modifyPricingScenario_MICR_c <> "Total Base" AND mICRManufacturer_PathCheck) OR (modifyPricingScenarioFleetManagement3rdPartyMICR_c == "Revert to Original" AND findinarray(fleetItemsArray,line._part_number) <> -1 AND line.configCommentsNew_l == "3rd Party/MICR") OR (modifyPricingScenarioFleetManagementZebra_t_c == "Revert to Original" AND findinarray(ZebraFleetItemsArray,line._part_number) <> -1 AND line.configCommentsNew_l == "ZEBRA")){
+					setattributevalue(line._document_number,"originalUnitTargetPrice_l_c",unitTargetPrice);
+					setattributevalue(line._document_number,"originalUnitNetPrice_l_c",unitNetPrice);
+					result = result + line._document_number + "~originalUnitTargetPrice_l_c~" + string(round(unitTargetPrice,2)) + "|";
+					result = result + line._document_number + "~originalUnitNetPrice_l_c~" + string(round(unitNetPrice,2)) + "|";
+					result = result + line._document_number + "~originalUnitSalesCost_l_c~" + string(round(unitSalesCost,2)) + "|";
+					//print "unitNetPriceTest: " + string(unitNetPrice);
+				}
+				if(findinarray(fleetItemsArray,line._part_number) <> -1 AND line.configCommentsNew_l == "3rd Party/MICR"){
+					if(modifyPricingScenarioFleetManagement3rdPartyMICR_c == "Revert to Original"){
+						orginalFleetManagmentPerDevice = orginalFleetManagmentPerDevice + unitNetPrice;
+						orginalTotalFleetManagmentPerDevice = orginalTotalFleetManagmentPerDevice + (unitNetPrice * quantity);
+					}elif(modifyPricingScenarioFleetManagement3rdPartyMICR_c <> "Revert to Original"){
+						orginalFleetManagmentPerDevice = orginalFleetManagmentPerDevice + line.originalUnitNetPrice_l_c;
+						orginalTotalFleetManagmentPerDevice = orginalTotalFleetManagmentPerDevice + (line.originalUnitNetPrice_l_c * quantity);
+						calculatedFleetManagmentPerDevice = calculatedFleetManagmentPerDevice + unitNetPrice;
+						calculatedTotalFleetManagmentPerDevice = calculatedTotalFleetManagmentPerDevice + (unitNetPrice * quantity);
+					}
+				}elif(findinarray(ZebraFleetItemsArray,line._part_number) <> -1 AND line.configCommentsNew_l == "ZEBRA"){ //START 01_04_2024 CR#13 Added elif for Zebra by Vasundhara
+					if(modifyPricingScenarioFleetManagementZebra_t_c == "Revert to Original"){
+						orginalZebraFleetManagmentPerDevice = orginalZebraFleetManagmentPerDevice + unitNetPrice;
+						orginalZebraTotalFleetManagmentPerDevice = orginalZebraTotalFleetManagmentPerDevice + (unitNetPrice * quantity);
+						
+					}elif(modifyPricingScenarioFleetManagementZebra_t_c <> "Revert to Original"){
+						orginalZebraFleetManagmentPerDevice = orginalZebraFleetManagmentPerDevice + line.originalUnitNetPrice_l_c;
+						orginalZebraTotalFleetManagmentPerDevice = orginalZebraTotalFleetManagmentPerDevice + (line.originalUnitNetPrice_l_c * quantity);
+						calculatedZebraFleetManagmentPerDevice = calculatedZebraFleetManagmentPerDevice + unitNetPrice;
+						calculatedZebraTotalFleetManagmentPerDevice = calculatedZebraTotalFleetManagmentPerDevice + (unitNetPrice * quantity);
+					}
+				}
+			}
+			//END 01_04_2024 CR#13 Added elif for Zebra by Vasundhara
+			// if(MPS_DEBUG_FLAG){
+				// print "salesCostBWCPI: " + string(salesCostBWCPI);
+				// print "salesCostColorCPI: " + string(salesCostColorCPI);
+				// print "targetPriceBWPPI: " + string(targetPriceBWPPI);
+				// print "extTargetPriceBWPPI: " + string(extTargetPriceBWPPI);
+				// print "originalSalesCostBWCPI: " + string(originalSalesCostBWCPI);
+				// print "originalSalesCostColorCPI: " + string(originalSalesCostColorCPI);
+				// print "originalTargetPriceBWPPI: " + string(originalTargetPriceBWPPI);
+				// print "originalTargetPriceCLRPPI: " + string(originalTargetPriceCLRPPI);
+				// print "totalBWTargetPriceCPI: " + string(totalBWTargetPriceCPI);
+				// print "totalQuantity: " + string(totalQuantity);
+				// print "targetPriceCLRPPI: " + string(targetPriceCLRPPI);
+				// print "extTargetPriceCLRPPI: " + string(extTargetPriceCLRPPI);
+				// print "totalColorTargetPriceCPI: " + string(totalColorTargetPriceCPI);
+				// print "unitStandardCost: " + string(unitStandardCost);
+				// print "unitSalesCost: " + string(unitSalesCost);
+				// print "unitTargetPrice: " + string(unitTargetPrice);
+				// print "unitSRP: " + string(unitSRP);
+				// print "extSRP: " + string(extSRP);
+				// print "unitSellingPrice: " + string(unitSellingPrice);
+				// print "extSellingPrice: " + string(extSellingPrice);
+				// print "unitNetPrice: " + string(unitNetPrice);
+				// print "extNetPrice: " + string(extNetPrice);
+				// print "salesCostGP: " + string(salesCostGP);
+				// print "standardCostGP: " + string(standardCostGP);
+				// print "BW_Ratio: " + string(BW_Ratio);
+				// print "CLR_Ratio: " + string(CLR_Ratio);
+				// print "fleetManagmentPerDevice: " + string(fleetManagmentPerDevice);
+				// print "totalFleetManagmentPerDevice: " + string(totalFleetManagmentPerDevice);
+				
+				// print "orginalTotalFleetManagmentPerDevice: " + string(orginalTotalFleetManagmentPerDevice);
+			// }
+			
+			setattributevalue(line._document_number,"mPSPricingInfo_l",jsontostr(pricingInfo));
+			setattributevalue(line._document_number,"unitSRP_l",unitSRP);
+			setattributevalue(line._document_number,"extSRP_l",extSRP);
+			setattributevalue(line._document_number,"unitSalesCost_l",unitSalesCost);
+			setattributevalue(line._document_number,"unitCost_l",unitStandardCost);
+			setattributevalue(line._document_number,"contractedUnitPrice_l",unitTargetPrice);
+			setattributevalue(line._document_number,"unitSellingPrice_l",unitSellingPrice);
+			setattributevalue(line._document_number,"extSellingPrice_l",extSellingPrice);
+			setattributevalue(line._document_number,"unitNetPrice_l",unitNetPrice);
+			setattributevalue(line._document_number,"extNetPrice_l",extNetPrice);
+			setattributevalue(line._document_number,"marginPercentagesalescost_l",salesCostGP);
+			setattributevalue(line._document_number,"marginPercentagestdscost_l",standardCostGP);
+			if(Comments <> "" AND partNum <> "MS-MPS-FLEET-OTHER"){
+			result = result + line._document_number + "~configCommentsNew_l~" + Comments + "|";
+			}elif(partNum == "MS-MPS-FLEET-OTHER"){
+			result = result + line._document_number + "~configCommentsNew_l~" + Comments + "|";	
+			}
+			//START added by Namrata for CR-20 #CHG0085215
+			/*if(ThirdPartyDiscount > 0.0 ){
+			result = result +"1~a3rdPartyHeaderDiscount_t_c~" + string(ThirdPartyDiscount) + "|";
+			}*/
+			if(ThirdPartyDiscount>0){
+			result = result + line._document_number + "~discountAmountt_l~" + string(ThirdPartyDiscount) + "|";
+			result = result + line._document_number + "~discounttype_l~" + "Percent" + "|";
+			}
+			/*if(ZebraDiscount > 0.0){
+			result = result + "1~zebraHeaderDiscount_t_c~" + string(ZebraDiscount ) + "|";
+			}*/
+			if(ZebraDiscount>0){
+			result = result + line._document_number + "~discountAmountt_l~" + string(ZebraDiscount) + "|";
+			result = result + line._document_number + "~discounttype_l~" + "Percent" + "|";
+			}
+			//END added by Namrata for CR-20 #CHG0085215
+			result = result + line._document_number + "~mPSPricingInfo_l~" + jsontostr(pricingInfo) + "|";
+			//START 11_27_2023 Defect #19793 CHG-CHG0085215 Added round function to below fields by Vasundhara
+			result = result + line._document_number + "~unitSRP_l~" + string(round(unitSRP,2)) + "|";
+			result = result + line._document_number + "~extSRP_l~" + string(round(extSRP,2)) + "|";
+			result = result + line._document_number + "~unitSalesCost_l~" + string(round(unitSalesCost,2)) + "|";
+			result = result + line._document_number + "~unitCost_l~" + string(round(unitStandardCost,2)) + "|";
+			result = result + line._document_number + "~contractedUnitPrice_l~" + string(round(unitTargetPrice,2)) + "|";
+			result = result + line._document_number + "~unitSellingPrice_l~" + string(round(unitSellingPrice,2)) + "|";
+			result = result + line._document_number + "~extSellingPrice_l~" + string(round(extSellingPrice,2)) + "|";
+			result = result + line._document_number + "~unitNetPrice_l~" + string(round(unitNetPrice,2)) + "|";
+			result = result + line._document_number + "~extNetPrice_l~" + string(round(extNetPrice,2)) + "|";
+			//END Defect #19793 CHG-CHG0085215 Added round function to below fields by Vasundhara
+			result = result + line._document_number + "~marginPercentagesalescost_l~" + string(salesCostGP) + "|";
+			result = result + line._document_number + "~marginPercentagestdscost_l~" + string(standardCostGP) + "|";
+		
+			if(containsMPSLines == false){
+				containsMPSLines = true; //this flag used to determines the MPS Lines
+			}
+			//END 02_11_2023 Added above if condition for MPS Pricing #CHG0085215 and added remaining code as else it run for other lines by Vasundhara
+			}
+		//End_bau_INC2693072_created_by_gowtham_on_14/12/2023
+		
+		}else{
+			partNumber = line._part_number;
+			grpseqnum = line._group_sequence_number;
+			linequantity = line._price_quantity;
+			ThirdPartyManufacturer  =""; //added by Namrata for MPS
+			ThirdPartyComments  = ""; //added by Namrata for MPS
+			MICRManufacturer  = ""; //added by Namrata for MPS
+			MICRComments  = ""; //added by Namrata for MPS
+			//code added by Abhishek for INC2464941/CHG0083007 for UOM
+			uom = line._part_units;
+			if(findinarray(docNumArray,line._document_number) == -1 AND line._parent_doc_number == ""){
+				if(line._model_name <> ""){
+					append(modelDocNumArray,line._document_number);
+				}else{
+					append(docNumArray,line._document_number);
+				}
+			}
+			if(line._parent_doc_number <> ""){
+					append(parentDocNumArray,line._parent_doc_number);	
+				}
+			if(line._model_name <> ""){
+				//dictionary to set the parent model name at line level. created in Transaction line loop 1 and used in transaction line loop2 to populate child parent model name //CHG0078656 : CPQ MS- CPQ Changes deployment//
+				put(ParentNameDict,line._document_number,line._model_name);
+				if(find(line._model_name,"Managed Services") <> -1){
+					quoteProduct = "Managed Services";
+					mSModelFlag = true;  // added as part of Incident.... CHG0088839-INC-MPS v 1
+					
+				}
+				if(find(line._model_name,"Managed Print Services") <> -1){
+				isMPS = true;
+				}
+			}
+			//START - Added by Vasundhara for Manager Services Pricing //CHG0078656 : CPQ MS- CPQ Changes deployment//
+			if(line._parent_doc_number <> "" AND line._part_number <> ""){
+				put(parentDocNumDict,line._document_number,line._parent_doc_number);
+			}
+			if(line._model_name == "Managed Services" AND line._parent_doc_number <> "" AND line._document_number <> ""){
+				ctrlAttr_Labor_MS = "";
+				ctrlAttr_Vehicle_MS = "";
+				ctrlAttr_TR_AC_MS = "";
+				ctrlAttr_3rdParty_MS = "";
+				geoZone_MS = "";
+				city_MS = "";
+				state_MS = "";
+				noOfFTE_MS = "";
+				federalHoursMS_Boolean = "";
+				vehicleFlag_Vehicle_MS = "";
+				
+				configJsonString = getconfigattrvalue(line._document_number ,"configData_MS");
+				
+				//Start- Added by Chakri CR 28- To populate CER #
+				cER_3rdParty_MS = getconfigattrvalue(line._document_number ,"cER_3rdParty_MS");
+				cERNumber_3rdParty_MS = getconfigattrvalue(line._document_number ,"cERNumber_3rdParty_MS");
+				cER_3rdParty_MS_Array = split(cER_3rdParty_MS, "$,$");
+				cERNumber_3rdParty_MS_Array = split(cERNumber_3rdParty_MS, "$,$");
+				if(Not isnull(cER_3rdParty_MS_Array)) {
+					cERRange = range(sizeofarray(cER_3rdParty_MS_Array));		 
+					for cer in cERRange {
+						if(cER_3rdParty_MS_Array[cer] == "true") {
+							append(cEROnlyArr, cERNumber_3rdParty_MS_Array[cer]);
+						}  
+					}
+				 }
+				//End- Added by Chakri CR 28- To populate CER #
+				 
+				//Start- Added by Nupur - To populate Vehicle Description
+				
+				vehicleDescription_Vehicle_MS = getconfigattrvalue(line._document_number ,"vehicleDescription_Vehicle_MS");
+						vehicleDesc_Vehicle_MS_Array = split(vehicleDescription_Vehicle_MS, "$,$");
+				
+				if(Not isnull(vehicleDesc_Vehicle_MS_Array)) {
+				vehicleRange = range(sizeofarray(vehicleDesc_Vehicle_MS_Array));		 
+				 for each in vehicleRange {
+					append(vehicleDescArr, vehicleDesc_Vehicle_MS_Array[each]);
+					}  
+				}
+				
+				//END- Added by Nupur - To populate Vehicle Description
+				if(configJsonString <> "{}" AND configJsonString<>"" AND NOT(ISNULL(configJsonString))){
+					configJson = json(configJsonString);
+					ctrlAttr_Labor_MS = jsonget(configJson, "ctrlAttr_Labor_MS");
+					ctrlAttr_Vehicle_MS = jsonget(configJson,"ctrlAttr_Vehicle_MS");
+					ctrlAttr_TR_AC_MS = jsonget(configJson, "ctrlAttr_TR_AC_MS");
+					ctrlAttr_3rdParty_MS = jsonget(configJson, "ctrlAttr_3rdParty_MS");
+					geoZone_MS = jsonget(configJson, "geoZone_MS");
+					city_MS = jsonget(configJson, "city_MS");
+					state_MS = jsonget(configJson, "state_FromRootConfiguration");
+					noOfFTE_MS = jsonget(configJson, "noOfFTE_MS");
+					federalHoursMS_Boolean = jsonget(configJson, "federalHoursMS_Boolean");
+					vehicleFlag_Vehicle_MS = jsonget(configJson, "vehicleFlag_Vehicle_MS");
+					put(modelDict,line._document_number + "ctrlAttr_Labor_MS",ctrlAttr_Labor_MS);
+					put(modelDict,line._document_number + "ctrlAttr_Vehicle_MS",ctrlAttr_Vehicle_MS);
+					put(modelDict,line._document_number + "ctrlAttr_TR_AC_MS",ctrlAttr_TR_AC_MS);
+					put(modelDict,line._document_number + "ctrlAttr_3rdParty_MS",ctrlAttr_3rdParty_MS);
+					put(modelDict,line._document_number + "geoZone_MS",geoZone_MS);
+					put(modelDict,line._document_number + "city_MS",city_MS);
+					put(modelDict,line._document_number + "state_MS",state_MS);
+					put(modelDict,line._document_number + "noOfFTE_MS",noOfFTE_MS);
+					put(modelDict,line._document_number + "federalHoursMS_Boolean",federalHoursMS_Boolean);
+					put(modelDict,line._document_number + "vehicleFlag_Vehicle_MS",vehicleFlag_Vehicle_MS);
+					put(modelDict,line._document_number + "modelName",line._model_name);
+				}
+	
+			}
+			//END - Added by Vasundhara for Manager Services Pricing //CHG0078656 : CPQ MS- CPQ Changes deployment//
+				
+			//START_Added by Namrata for MPS //CHG0085215  
+			// Added by Nupur_01_02_2024
+			if(line._model_name == "Managed Print Services" AND line.isChildExist_c <> true){
+				//print "here";
+				//Added by Subha for RISE Mapping//
+				if( getconfigattrvalue(line._document_number ,"mPSProduct_MPS")<>"" AND NOT(ISNULL( getconfigattrvalue(line._document_number ,"mPSProduct_MPS")))){
+					mPSProduct = getconfigattrvalue(line._document_number ,"mPSProduct_MPS");
+				}
+				
+				if(find(mPSProduct,"3rd Party/MICR") <> -1){
+	            
+				if( getconfigattrvalue(line._document_number ,"rMSSCLevelMenu")<>"" AND NOT(ISNULL( getconfigattrvalue(line._document_number ,"rMSSCLevelMenu")))){
+					rmsscThirdPartyRISE= getconfigattrvalue(line._document_number ,"rMSSCLevelMenu");
+					if(findinarray(rmsscArr,rmsscThirdPartyRISE) == -1){
+						append(rmsscArr,rmsscThirdPartyRISE);
+					}
+				}
+				if( getconfigattrvalue(line._document_number ,"intelligentDeviceMonitoring")<>"" AND NOT(ISNULL( getconfigattrvalue(line._document_number ,"intelligentDeviceMonitoring")))){
+					intelligentDeviceMonitoring3rdparty = getconfigattrvalue(line._document_number ,"intelligentDeviceMonitoring");
+						if(findinarray(trackingSoftware3rdpartyArr,intelligentDeviceMonitoring3rdparty) == -1){
+							append(trackingSoftware3rdpartyArr,intelligentDeviceMonitoring3rdparty);
+						}
+	
+				}	
+				if( getconfigattrvalue(line._document_number ,"assetManagement")<>"" AND NOT(ISNULL( getconfigattrvalue(line._document_number ,"assetManagement")))){
+				assetManagement3rdparty = getconfigattrvalue(line._document_number ,"assetManagement");
+						if(findinarray(trackingSoftware3rdpartyArr,assetManagement3rdparty) == -1){
+							append(trackingSoftware3rdpartyArr,assetManagement3rdparty);
+						}
+	
+				}
+	            if( getconfigattrvalue(line._document_number ,"tonerType")<>"" AND NOT(ISNULL( getconfigattrvalue(line._document_number ,"tonerType")))){
+				tonertype3rdparty = getconfigattrvalue(line._document_number ,"tonerType");			
+				}
+				
+				serviceSolutionImplementation3rdparty = getconfigattrvalue(line._document_number ,"serviceSolutionImplementation");
+				if(serviceSolutionImplementation3rdparty == "true"){
+	                  	  serviceImp3rdparty = "Yes";
+	            		}else{
+	                    	serviceImp3rdparty = "No";
+				}
+				leadPricingStrategyThirdPartyRISE=leadingPricingStrategy_t;
+				if(findinarray(leadPriceStrategyArr, leadPricingStrategyThirdPartyRISE) ==-1){
+					append(leadPriceStrategyArr,leadPricingStrategyThirdPartyRISE);
+				}
+			
+			}
+			}
+			//if(line.configCommentsNew_l == "3rd Party/MICR"){
+				if(find(mPSProduct,"3rd Party/MICR") <> -1){
+					if( getconfigattrvalue(line._document_number ,"entitlement_ConfigurationHeader")<>"" AND NOT(ISNULL( getconfigattrvalue(line._document_number ,"entitlement_ConfigurationHeader")))){
+					entitlementThirdPartyRISE= getconfigattrvalue(line._document_number ,"entitlement_ConfigurationHeader");
+					if(findinarray(entitlementArr,entitlementThirdPartyRISE) == -1){
+					append(entitlementArr,entitlementThirdPartyRISE);
+					}
+					}
+				}
+			//}
+	
+			/*if(line._model_name == "3rd Party/MICR"){
+				configMPSJsonString = getconfigattrvalue(line._document_number ,"configDataMPS");
+				if(configMPSJsonString <> "{}" AND configMPSJsonString <>"" AND NOT(ISNULL(configMPSJsonString))){
+					configJsonMPS = json(configMPSJsonString);
+					Manufacturer_3rdParty = jsonget(configJsonMPS, "PrinterManufacturer_3rdParty");
+					put(modelDict,line._document_number + "PrinterManufacturer_3rdParty",Manufacturer_3rdParty);
+					Manufacturer_MICR = jsonget(configJsonMPS, "PrinterManufacturer_MICR");
+					put(modelDict,line._document_number + "PrinterManufacturer_MICR",Manufacturer_MICR);
+					}
+				}*/
+			
+			
+			//Added by Subha for RISE Mapping//
+			// Added by Nupur_01_02_2024
+			if(line._model_name == "Managed Print Services" AND line.isChildExist_c <> true){
+				if(find(mPSProduct,"ZEBRA") <> -1){
+				if( getconfigattrvalue(line._document_number ,"entitlement_header_zebra")<>"" AND NOT(ISNULL( getconfigattrvalue(line._document_number ,"entitlement_header_zebra")))){
+					entitlementZebraRISE= getconfigattrvalue(line._document_number ,"entitlement_header_zebra");
+						if(findinarray(entitlementArr,entitlementZebraRISE) == -1){
+							append(entitlementArr,entitlementZebraRISE);
+						}
+	
+				}
+				if( getconfigattrvalue(line._document_number ,"rMSSCLevel_header_zebra")<>"" AND NOT(ISNULL( getconfigattrvalue(line._document_number ,"rMSSCLevel_header_zebra")))){
+					rmsscThirdZebraRISE= getconfigattrvalue(line._document_number ,"rMSSCLevel_header_zebra");
+						if(findinarray(rmsscArr,rmsscThirdZebraRISE) == -1){
+							append(rmsscArr,rmsscThirdZebraRISE);
+						}
+	
+				}	
+				if( getconfigattrvalue(line._document_number ,"intelligentDeviceMonitoring_header_zebra")<>"" AND NOT(ISNULL( getconfigattrvalue(line._document_number ,"intelligentDeviceMonitoring_header_zebra")))){
+					intelligentDeviceMonitoring = getconfigattrvalue(line._document_number ,"intelligentDeviceMonitoring_header_zebra");
+						if(findinarray(trackingSoftwareArr,intelligentDeviceMonitoring) == -1){
+							append(trackingSoftwareArr,intelligentDeviceMonitoring);
+						}
+	
+				}	
+				if( getconfigattrvalue(line._document_number ,"assetManagement_header_zebra")<>"" AND NOT(ISNULL( getconfigattrvalue(line._document_number ,"assetManagement_header_zebra")))){
+					assetManagement = getconfigattrvalue(line._document_number ,"assetManagement_header_zebra");
+						if(findinarray(trackingSoftwareArr,assetManagement) == -1){
+							append(trackingSoftwareArr,assetManagement);
+						}
+	
+				}
+	            
+				serviceSolutionImplementation = getconfigattrvalue(line._document_number ,"serviceSolutionImplementation_header_zebra");
+				if(serviceSolutionImplementation == "true"){
+	                  	  serviceImpZebra = "Yes";
+	            		}else{
+	                    	serviceImpZebra = "No";
+				}										
+				//print "serviceImpZebraserviceImpZebraserviceImpZebraserviceImpZebraserviceImpZebra";
+				//print serviceImpZebra;
+				if(getconfigattrvalue(line._document_number ,"willThisBeAManagedOnlyQuote_MPS")<>"" AND NOT(ISNULL( getconfigattrvalue(line._document_number ,"willThisBeAManagedOnlyQuote_MPS")))){
+				willThisBeAManagedOnlyQuote = getconfigattrvalue(line._document_number ,"willThisBeAManagedOnlyQuote_MPS");
+				}													
+				if(willThisBeAManagedOnlyQuote == "false"){
+				if(getconfigattrvalue(line._document_number ,"leadingPricingStrategy_header_zebra")<>"" AND NOT(ISNULL( getconfigattrvalue(line._document_number ,"leadingPricingStrategy_header_zebra")))){
+				leadPricingStrategyZebra=getconfigattrvalue(line._document_number ,"leadingPricingStrategy_header_zebra");
+					if(findinarray(leadPriceStrategyArr, leadPricingStrategyZebra) ==-1){
+					append(leadPriceStrategyArr,leadPricingStrategyZebra);
+					}
+				}
+				}
+				}
+				}
+				
+				//End_Added by Namrata for MPS //CHG0085215 
+				
+				//START_Added by Namrata for MPS //CHG0085215 
+	
+				
+					lineBOMStr = line._line_bom_attributes;
+					if(lineBOMStr <> "{}" AND not(isnull(lineBOMStr)) AND lineBOMStr <> "") {
+						LineBOMJSON = json(lineBOMStr);
+						if(line._part_number  == "MS-MPS-FLEET-OTHER"){
+			
+							if(jsonpathcheck(LineBOMJSON, "$.ThirdPartyManufacturer.value")){
+								ThirdPartyManufacturer  = jsonpathgetsingle(LineBOMJSON,"$.ThirdPartyManufacturer.value");
+							}
+							/*if(jsonpathcheck(LineBOMJSON, "$.Comments.value")){
+								ThirdPartyComments  = jsonpathgetsingle(LineBOMJSON,"$.Comments.value");
+							}*/
+						
+							if(jsonpathcheck(LineBOMJSON, "$.MICRManufacturer.value")){
+								MICRManufacturer  = jsonpathgetsingle(LineBOMJSON,"$.MICRManufacturer.value");
+							}
+							/*if(jsonpathcheck(LineBOMJSON, "$.Comments.value")){
+								MICRComments  = jsonpathgetsingle(LineBOMJSON,"$.Comments.value");
+							}*/
+							
+						if(MICRManufacturer <> "" AND not(isnull(MICRManufacturer ))){
+						result =  result + line._document_number + "~printerManufacturerMPS_l~" + "MICR"+ "|";
+						}
+						else{
+						result =  result + line._document_number + "~printerManufacturerMPS_l~" + "Third Party"+ "|";
+	
+						}
+						/*if(MICRComments <> "" AND not(isnull(MICRComments ))){
+	
+						result =  result + line._document_number + "~commentsMPS_l~" + MICRComments + "|";
+						}
+						else{
+						result =  result + line._document_number + "~commentsMPS_l~" + ThirdPartyComments + "|";
+						}*/
+			
+						}
+					
+					}
+				
+				//End_Added by Namrata for MPS //CHG0085215 
+	
+	
+			//START 08_16_2023 PERFORMANCE_ACTIVITIES added by Vasundhara
+			if(partNumber <> ""){
+				priceUpliftCategory = line._part_custom_field25;
+				custom_field25 = "$." + partNumber + "custom_field25";
+				if(jsonpathcheck(partsDataJson,custom_field25)){
+					priceUpliftCategory = jsonpathgetsingle(partsDataJson,custom_field25,"string");
+				}
+				if(findinarray(partNumberArray,partNumber) == -1){
+					append(partNumberArray,partNumber);
+				}
+				productCategory4Str = lower(priceUpliftCategory);
+				productCategory4Str = replace(productCategory4Str,".","_");
+				productCategory4Str = replace(productCategory4Str," ","_");
+				if(findinarray(priceUpliftCategoryArray,productCategory4Str) == -1 AND NOT isnull(productCategory4Str) AND productCategory4Str <> ""){
+					append(priceUpliftCategoryArray,productCategory4Str);
+					put(retStringDict,productCategory4Str,productCategory4Str);
+				}
+			}
+			//END 08_16_2023 PERFORMANCE_ACTIVITIES added by Vasundhara
+			
+			//NT: 09-19-2022 : CR72 -start
+			partType = line.type_l;
+			linkedItems = line.linkedItem_l;
+			//START_08_14_2023 Added by Vasundhara for PERFORMANCE_ACTIVITIES
+			if(partNumber <> "" and findinarray(itemTypeArray,line._part_custom_field23) == -1){
+				append(itemTypeArray,line._part_custom_field23);
+			}
+			//END_08_14_2023 Added by Vasundhara for PERFORMANCE_ACTIVITIES
+			
+			put(linkeditemtypedict,linkedItems,partType);
+			if((partType == "SOLUTIONS-SUPPORT" OR partType == "SOLUTIONS-SUPPORT REQ LIC KEY") AND linkedItems ==  ""){
+				linkedItemFlag = true;
+			}
+			//NT: 09-19-2022 CR72 - end
+			
+			put(linkeditemdict,grpseqnum,linequantity);
+			//START - Added by Vasundhara for Defect 14742
+			if(line._model_name == "Equipment"){
+				append(equipmentModelNameDocNumber,line._document_number); 
+			}
+			//END - Added by Vasundhara for Defect 14742
+			
+			//added by Namrata for CR-24 CHG0085215
+			PartNumberCheck = false;
+			
+			PSOneCare_Records = BMQL("select EDPCode from PS_OnceCare_EDPCodes where EDPCode = $partNumber ");
+			for PSRecord in PSOneCare_Records {
+				if(get(PSRecord , "EDPCode") <> "" AND not(isnull(get(PSRecord , "EDPCode"))))
+				{
+					PartNumberCheck = true;
+				}
+			}
+			if(PartNumberCheck )
+			{
+				append(PSOneCareArr , line._group_sequence_number);
+	
+			}
+			/*custom_field23 = "$." + partNumber + "custom_field23"  ;
+			if(jsonpathcheck(partsDataJson,custom_field23)){
+				val1= jsonpathgetsingle(partsDataJson,custom_field23,"string");
+				if(val1 == "SOLUTIONS-SUPPORT"){
+				 setFlag1 = true;
+				 }
+			}
+			custom_field25 = "$." + partNumber + "custom_field25" ;
+			if(jsonpathcheck(partsDataJson,custom_field23)){
+				val2= jsonpathgetsingle(partsDataJson,custom_field25,"string");
+				if(val2 == "PS.SUPPORT_3RD"){
+				 setFlag2 = true;
+				 }
+			}
+			if(startswith(partNumber ,"Z"))
+			{
+				setFlag3 = true;
+			}
+			
+			if(setFlag1 AND setFlag1 AND setFlag1)
+			{ */
+			//}
+			//added by Namrata for CR-24 CHG0085215
+			
+			//START - Added by Chakri CR 16 - To populate Address details for PS Lines
+			LocationSiteId = line.locationSiteID_l;
+			IncludeInMSAddress = line.includeInMSAddress_l;
+			if(line.includeInMS_l == true AND line.includeInMSAddress_l <> "") {
+				recordSet = bmql("select AddressLine1, LocationName, LocationSiteID, ProjectNumber from RAC_ShippingAddress WHERE TransactionNumber =$transactionID_t AND LocationSiteID = $IncludeInMSAddress");
+	
+				ShippingAddress = "";
+				LocationName = "";
+				LocationSiteIDRecord = "";
+				ProjectNumber = "";
+				for eachrecordSet in recordSet {
+					ShippingAddress = get(eachrecordSet ,"AddressLine1");
+					LocationName = get(eachrecordSet ,"LocationName");
+					LocationSiteIDRecord = get(eachrecordSet ,"LocationSiteID");
+					ProjectNumber = get(eachrecordSet ,"ProjectNumber");
+				}
+				result =  result + line._document_number + "~shippingAddress_l~" + ShippingAddress + "|";
+				result =  result +  line._document_number + "~locationSiteID_l~" + LocationSiteIDRecord + "|";
+				result =  result +  line._document_number + "~locationNames_l~" + LocationName + "|";
+				if(ProjectNumber == "" OR ProjectNumber == "null") {
+					result =  result +  line._document_number + "~projectNumber_l~" + "" + "|";
+				}else{
+					result =  result +  line._document_number + "~projectNumber_l~" + ProjectNumber + "|";
+				}
+			}
+				
+			if(line.includeInMS_l == false AND line.includeInMSAddress_l <> "") {
+				result =  result + line._document_number + "~shippingAddress_l~" + "" + "|";
+				result =  result +  line._document_number + "~locationSiteID_l~" + "" + "|";
+				result =  result +  line._document_number + "~locationNames_l~" + "" + "|";
+				result =  result +  line._document_number + "~projectNumber_l~" + "" + "|";
+				result =  result +  line._document_number + "~includeInMSAddress_l~" + "" + "|";
+			}
+			
+			/*CR89 - Update line Item Project #'s*/ 
+			if(line._model_name=="" AND line.locationSiteID_l<>"" AND containskey(customerAccountDict, line.locationSiteID_l) AND (_system_current_step_var=="start_step" OR startswith(_system_current_step_var,"pending_process"))){
+				projectNumber = get(customerAccountDict, line.locationSiteID_l);
+				if(projectNumber <> line.projectNumber_l){
+					result =  result +  line._document_number + "~projectNumber_l~" + projectNumber + "|";
+				}
+			}
+			
+			//START - Added by Chakri CR 35- PS Pricing logic in CPQ
+			if(line.includeInMS_l == true) {
+				result =  result + line._document_number + "~discounttype_l~" + "" + "|";
+				//result =  result + line._document_number + "~discountAmountt_l~" + "0.0" + "|";
+			}
+			
+			//START - Added by Chakri CR 68- CPQ MS Price Editing Capabilities
+			//Resetting Discount and Promotion when Lock Price is selected for MS
+			/*if(line.lockPriceMS_l == true) {
+				result =  result + line._document_number + "~discounttype_l~" + "" + "|";
+				result =  result + line._document_number + "~promoCode_l~" + "" + "|";
+			}*/
+			//End- Added by Chakri CR 68- CPQ MS Price Editing Capabilities
+			//End- Added by Chakri CR 35- PS Pricing logic in CPQ
+			//END- Added by Chakri CR 16 - To populate Address details for PS Lines
+			//code added by Abhishek for INC2464941/CHG0083007 for UOM
+			result =  result + line._document_number + "~UOM_l~" + uom+ "|";
+			
+		}
+			/*CR05 - Update line Item Project # for MPS*/ 
+			type = itemType;//01_03_2024 #CHG0085215 for MPS_Performance_Code_Changes_by_Vasundhara - replaced type_l with itemType
+			projectNumber = mPSProject_c;
+	                if (type == "MANAGED PRINT SVC-RECURRING CHARGE"){
+				result =  result +  line._document_number + "~projectNumber_l~" + projectNumber + "|";
+				}
+			result = result + line._document_number + "~cPQLineID_l~" + transactionID_t + "-" + line._group_sequence_number + "|";//Added by Namrata for MPS CHG0085215 
+	
+	}
+	//MPS_Performance_Testing
+	/*if(RECORDLOGTIME_FLAG){
+	t1=getCurrentTimeInMillis();
+	currentDateTime = getstrdate();
+	u = t1-t;
+	print "MPS_Performance_PricingMainBeforeFormulas_TimeDiff3:"+transactionID_t+":" + string(u);
+	print "MPS_Performance_PricingMainBeforeFormulas_DateAndTime3:"+transactionID_t+":" + currentDateTime;
+	}*/
+	
+	//START 02_11_2023 Added below logic for Performa calculations - MPS Pricing #CHG0085215 by Vasundhara
+	if(MPS_PERFORMA_FLAG){
+		performaJson = json();
+		blendedBWSalesCostCPI = 0.0;
+		blendedCLRSalesCostCPI = 0.0;
+		blendedBWTargetPriceCPI = 0.0;
+		blendedColorTargetPriceCPI = 0.0;
+		originalBlendedBWSalesCostCPI = 0.0;
+		originalBlendedCLRSalesCostCPI = 0.0;
+		originalBlendedBWTargetPriceCPI = 0.0;
+		originalBlendedColorTargetPriceCPI = 0.0;
+		originalBase = 0.0;
+		totalVolume = 0.0;
+		MICRtotalVolume = 0.0;
+		//START 12_29_2023 CR#13 Added by Vasundhara
+		mICROriginalBase = 0.0;
+		mICROriginalBlendedBWTargetPriceCPI = 0.0;
+		mICROriginalBlendedColorTargetPriceCPI = 0.0;
+		originalThirdPartySalesGPPercentage=0.0;
+		calculatedThirdPartySalesGPPercentage = 0.0;
+		blendedCPI = 0.0;
+		//END 12_29_2023 CR#13 Added by Vasundhara
+		if(find(modelsContainsInQuote,"Managed Print Services") <> -1){ // 01_03_2024 #CHG0085215 for MPS_Performance_Code_Changes_by_Vasundhara - Added if condition so that below code run for MPS
+			if(totalQuantity > 0){
+				blendedBWSalesCostCPI = totalBWSalesCostCPI/totalQuantity;
+				blendedCLRSalesCostCPI = totalCLRSalesCostCPI/totalQuantity;
+				blendedBWTargetPriceCPI = totalBWTargetPriceCPI/totalQuantity;
+				blendedColorTargetPriceCPI = totalColorTargetPriceCPI/totalQuantity;
+				//originalBase = (totalVolumeBW * blendedBWTargetPriceCPI) + (totalVolumeColor * blendedColorTargetPriceCPI);
+				totalVolume = totalVolumeBW + totalVolumeColor;
+				MICRtotalVolume = MICRtotalVolumeBW + MICRtotalVolumeColor;
+				
+				originalBlendedBWSalesCostCPI = originalTotalBWSalesCostCPI/totalQuantity;
+				originalBlendedCLRSalesCostCPI = originalTotalCLRSalesCostCPI/totalQuantity;
+				originalBlendedBWTargetPriceCPI = originalTotalBWTargetPriceCPI/totalQuantity;
+				originalBlendedColorTargetPriceCPI = originalTotalColorTargetPriceCPI/totalQuantity;
+				originalBase = (totalVolumeBW * originalBlendedBWTargetPriceCPI) + (totalVolumeColor * originalBlendedColorTargetPriceCPI);
+				
+				//Sales GP%
+				originalThirdPartySalesGPPercentage = 0.0;
+				calculatedThirdPartySalesGPPercentage = 0.0;
+				/* result = result + "1~originalThirdPartyTotalUnitSalesCost_t_c~" + string(originalThirdPartyTotalUnitSalesCost_t_c) + "|";
+				result = result + "1~originalThirdPartyTotalUnitNetPrice_t_c~" + string(originalThirdPartyTotalUnitNetPrice_t_c) + "|";
+				result = result + "1~calculatedThirdPartyTotalUnitSalesCost_t_c~" + string(calculatedThirdPartyTotalUnitSalesCost_t_c) + "|";
+				result = result + "1~calculatedThirdPartyTotalUnitNetPrice_t_c~" + string(calculatedThirdPartyTotalUnitNetPrice_t_c) + "|"; */
+				if(modifyPricingScenario_t <> "CPI" AND modifyPricingScenario_t <> "Total Base"){
+					if(thirdPartyTotalUnitNetPrice > 0){
+						originalThirdPartySalesGPPercentage = ((thirdPartyTotalUnitNetPrice - thirdPartyTotalUnitSalesCost)/thirdPartyTotalUnitNetPrice) * 100;
+						calculatedThirdPartySalesGPPercentage = originalThirdPartySalesGPPercentage;
+					}
+					/* result = result + "1~originalThirdPartyTotalUnitSalesCost_t_c~" + string(thirdPartyTotalUnitSalesCost) + "|";
+					result = result + "1~originalThirdPartyTotalUnitNetPrice_t_c~" + string(thirdPartyTotalUnitNetPrice) + "|"; */
+				}elif(modifyPricingScenario_t == "CPI" OR modifyPricingScenario_t == "Total Base"){
+					if(OThirdPartyTotalUnitNetPrice > 0){
+						originalThirdPartySalesGPPercentage = ((OThirdPartyTotalUnitNetPrice - OThirdPartyTotalUnitSalesCost)/OThirdPartyTotalUnitNetPrice) * 100;
+					}
+					if(cThirdPartyTotalUnitNetPrice > 0){
+						calculatedThirdPartySalesGPPercentage = ((cThirdPartyTotalUnitNetPrice - cThirdPartyTotalUnitSalesCost)/cThirdPartyTotalUnitNetPrice) * 100;
+					}
+				}
+					/* result = result + "1~calculatedThirdPartyTotalUnitSalesCost_t_c~" + string(thirdPartyTotalUnitSalesCost) + "|";
+					result = result + "1~calculatedThirdPartyTotalUnitNetPrice_t_c~" + string(thirdPartyTotalUnitNetPrice) + "|"; */
+			}
+			//START 12_29_2023 CR#13 Added by Vasundhara - MICR
+			originalMICRSalesGPPercentage = 0.0;
+			calculatedMICRSalesGPPercentage = 0.0;
+			if(mICRTotalQuantity > 0){
+				mICROriginalBlendedBWTargetPriceCPI = mICROriginalTotalBWTargetPriceCPI / mICRTotalQuantity;
+				mICROriginalBlendedColorTargetPriceCPI =  mICROriginalTotalColorTargetPriceCPI / mICRTotalQuantity;
+				mICROriginalBase = (MICRtotalVolumeBW * mICROriginalBlendedBWTargetPriceCPI) + (MICRtotalVolumeColor * mICROriginalBlendedColorTargetPriceCPI);
+				
+				//Sales GP%
+				/* result = result + "1~originalMICRTotalUnitSalesCost_t_c~" + string(originalMICRTotalUnitSalesCost_t_c) + "|";
+				result = result + "1~originalMICRTotalUnitNetPrice_t_c~" + string(originalMICRTotalUnitNetPrice_t_c) + "|";
+				result = result + "1~calculatedMICRTotalUnitSalesCost_c~" + string(calculatedMICRTotalUnitSalesCost_c) + "|";
+				result = result + "1~calculatedMICRTotalUnitNetPrice_t_c~" + string(calculatedMICRTotalUnitNetPrice_t_c) + "|"; */
+				if(modifyPricingScenario_MICR_c <> "CPI" AND modifyPricingScenario_MICR_c <> "Total Base"){
+					if(mICRTotalUnitNetPrice > 0){
+						originalMICRSalesGPPercentage = ((mICRTotalUnitNetPrice - mICRTotalUnitSalesCost)/mICRTotalUnitNetPrice) * 100;
+						calculatedMICRSalesGPPercentage = originalMICRSalesGPPercentage;
+					}
+					//result = result + "1~originalMICRTotalUnitSalesCost_t_c~" + string(mICRTotalUnitSalesCost) + "|";
+					//result = result + "1~originalMICRTotalUnitNetPrice_t_c~" + string(mICRTotalUnitNetPrice) + "|";
+				}elif(modifyPricingScenario_MICR_c == "CPI" OR modifyPricingScenario_MICR_c == "Total Base"){
+					if(omICRTotalUnitNetPrice > 0){
+						originalMICRSalesGPPercentage = ((omICRTotalUnitNetPrice - omICRTotalUnitSalesCost)/omICRTotalUnitNetPrice) * 100;
+					}
+					if(cmICRTotalUnitNetPrice > 0){
+						calculatedMICRSalesGPPercentage = ((cmICRTotalUnitNetPrice - cmICRTotalUnitSalesCost)/cmICRTotalUnitNetPrice) * 100;
+					}
+					//result = result + "1~calculatedMICRTotalUnitSalesCost_c~" + string(mICRTotalUnitSalesCost) + "|";
+					//result = result + "1~calculatedMICRTotalUnitNetPrice_t_c~" + string(mICRTotalUnitNetPrice) + "|";
+				}
+	
+			}
+			//3rdParty/MICR FLeet Sales GP% Calculation
+			originalthirdPartyFleetSalesGPPercentage = 0.0;
+			calculatedthirdPartyFleetSalesGPPercentage = 0.0;
+			if(modifyPricingScenarioFleetManagement3rdPartyMICR_c == "Revert to Original"){
+				if(thirdPartyFleetTotalUnitNetPrice > 0){
+					originalthirdPartyFleetSalesGPPercentage = ((thirdPartyFleetTotalUnitNetPrice - thirdPartyFleetTotalUnitSalesCost)/thirdPartyFleetTotalUnitNetPrice) * 100;
+					calculatedthirdPartyFleetSalesGPPercentage = originalthirdPartyFleetSalesGPPercentage;
+				}
+			}elif(modifyPricingScenarioFleetManagement3rdPartyMICR_c <> "Revert to Original"){
+				if(othirdPartyFleetTotalUnitNetPrice > 0){
+					originalthirdPartyFleetSalesGPPercentage = ((othirdPartyFleetTotalUnitNetPrice - othirdPartyFleetTotalUnitSalesCost)/othirdPartyFleetTotalUnitNetPrice) * 100;
+				}
+				if(cthirdPartyFleetTotalUnitNetPrice > 0){
+					calculatedthirdPartyFleetSalesGPPercentage = ((cthirdPartyFleetTotalUnitNetPrice - cthirdPartyFleetTotalUnitSalesCost)/cthirdPartyFleetTotalUnitNetPrice) * 100;
+				}
+			}
+	
+			//Zebra FLeet Sales GP% Calculation
+			originalZebraFleetSalesGPPercentage = 0.0;
+			calculatedZebraFleetSalesGPPercentage = 0.0;
+			if(modifyPricingScenarioFleetManagementZebra_t_c == "Revert to Original"){
+				if(zebraFleetTotalUnitNetPrice > 0){
+					originalZebraFleetSalesGPPercentage = ((zebraFleetTotalUnitNetPrice - zebraFleetTotalUnitSalesCost)/zebraFleetTotalUnitNetPrice) * 100;
+					calculatedZebraFleetSalesGPPercentage = originalZebraFleetSalesGPPercentage;
+				}
+			}elif(modifyPricingScenarioFleetManagementZebra_t_c <> "Revert to Original"){
+				if(ozebraFleetTotalUnitNetPrice > 0){
+					originalZebraFleetSalesGPPercentage = ((ozebraFleetTotalUnitNetPrice - ozebraFleetTotalUnitSalesCost)/ozebraFleetTotalUnitNetPrice) * 100;
+				}
+				if(czebraFleetTotalUnitNetPrice > 0){
+					calculatedZebraFleetSalesGPPercentage = ((czebraFleetTotalUnitNetPrice - czebraFleetTotalUnitSalesCost)/czebraFleetTotalUnitNetPrice) * 100;
+				}
+			}
+			//END 12_29_2023 CR#13 Added by Vasundhara - MICR
+			//3rdParty		
+			
+			//jsonput(performaJson,"OriginalBWCommittedCPI",originalBlendedBWTargetPriceCPI);
+			//jsonput(performaJson,"OriginalBWCommittedVolume",totalVolumeBW);
+			//jsonput(performaJson,"OriginalBWOverageCPI",originalBlendedBWTargetPriceCPI);
+			//jsonput(performaJson,"OriginalColorCommittedCPI",originalBlendedColorTargetPriceCPI);
+			//jsonput(performaJson,"OriginalColorCommittedVolume",totalVolumeColor);
+			//jsonput(performaJson,"OriginalColorOverageCPI",originalBlendedColorTargetPriceCPI);
+			//Added by Nupur for CR13 Sales Cost Original Value Dervitaions
+			jsonput(performaJson,"OriginalBWCommittedCPI",originalBWCommittedSalesCostCPI);
+			jsonput(performaJson,"OriginalBWCommittedVolume",originalBWCommittedvolume);
+			jsonput(performaJson,"OriginalBWOverageCPI",originalBWOverageSalesCostCPI);
+			jsonput(performaJson,"OriginalBWWeightedSalesCost",originalweightedBWSalesCost);
+			jsonput(performaJson,"OriginalColorCommittedCPI",originalColorCommittedSalesCostCPI);
+			jsonput(performaJson,"OriginalColorCommittedVolume",originalColorCommittedvolume);
+			jsonput(performaJson,"OriginalColorOverageCPI",originalColorOverageSalesCostCPI);		
+			jsonput(performaJson,"OriginalColorWeightedSalesCost",originalweightedColorSalesCost);
+			jsonput(performaJson,"OriginalTotalBaseSalesCost",TotalBaseSalesCost);
+			
+			//Added by Nupur for CR13 Target price Original Value Dervitaions
+			jsonput(performaJson,"OriginalTargetBWCommittedCPI",originalBWCommittedTargetPricePPI);
+			jsonput(performaJson,"OriginalTargetBWCommittedVolume",originalBWCommittedvolume);
+			jsonput(performaJson,"OriginalTargetBWOverageCPI",originalBWOverageTargetPricePPI);
+			jsonput(performaJson,"OriginalTargetBWWeighted",originalweightedBWTargetPrice);
+			jsonput(performaJson,"OriginalTargetColorCommittedCPI",originalColorCommittedTargetPricePPI);
+			jsonput(performaJson,"OriginalTargetColorCommittedVolume",originalColorCommittedvolume);
+			jsonput(performaJson,"OriginalTargetColorOverageCPI",originalColorOverageTargetPricePPI);
+			jsonput(performaJson,"OriginalTargetColorWeighted",originalweightedColorTargetPrice);
+			jsonput(performaJson,"OriginalTotalBaseTargetPrice",TotalBaseTargetPrice);
+			
+						
+			//description by Namrata setting attributes to display in Extract and in Performa Tab CR-13 
+			previousLeadPricingStrategy = getoldvalue("leadPricingStratergy_RISE_c",1);
+			
+			if(bWCommittedCPI_t== 0.0 OR modifyPricingScenario_t == "Revert to Original" OR previousLeadPricingStrategy <> leadPricingStratergy_RISE_c){ 
+				result = result  + "1~bWCommittedCPI_t~" + string(round(originalBWCommittedTargetPricePPI,4)) + "|";
+			}
+			if(colorCommittedCPI_t== 0.0 OR modifyPricingScenario_t == "Revert to Original" OR previousLeadPricingStrategy <> leadPricingStratergy_RISE_c){ 
+				result = result  + "1~colorCommittedCPI_t~" + string(round(originalColorCommittedTargetPricePPI,4)) + "|";
+			}
+				
+			if(bWOverragePPI_ThirdParty_c== 0.0 OR modifyPricingScenario_t == "Revert to Original" OR previousLeadPricingStrategy <> leadPricingStratergy_RISE_c){ 
+				result = result  + "1~bWOverragePPI_ThirdParty_c~" + string(round(originalBWOverageTargetPricePPI,4)) + "|";
+
+			}
+			if(colorOverragePPI_thirdParty_c== 0.0 OR modifyPricingScenario_t == "Revert to Original" OR previousLeadPricingStrategy <> leadPricingStratergy_RISE_c){ 
+				result = result  + "1~colorOverragePPI_thirdParty_c~" + string(round(originalColorOverageTargetPricePPI,4)) + "|";
+			}
+
+			if(bWOverragePPI_ThirdParty_c == 0.0 ){ 
+				result = result  + "1~bWOverragePPIReadOnly_ThirdParty_c~" + string(round(originalBWOverageTargetPricePPI,4)) + "|";
+			}else{
+				bWOverragePPIval = bWOverragePPI_ThirdParty_c;
+					result = result  + "1~bWOverragePPIReadOnly_ThirdParty_c~" + string(round(bWOverragePPIval,4)) + "|";
+			}
+			if(colorOverragePPI_thirdParty_c == 0.0 ){ 
+			result = result  + "1~ColorOverragePPIReadOnly_ThirdParty_c~" + string(round(originalColorOverageTargetPricePPI,4)) + "|";
+
+			}else{
+				colorOverragePPIval = colorOverragePPI_thirdParty_c;
+					result = result  + "1~ColorOverragePPIReadOnly_ThirdParty_c~" + string(round(colorOverragePPIval,4)) + "|";
+			}
+
+			//description by Namrata setting attributes to display in Extract and in Performa Tab 
+	        
+			//Added by Nupur for CR13 Net Selling Price (PPI) Calculated Value Dervitaions
+			jsonput(performaJson,"CalculatedBWCommittedCPI",originalBWCommittedTargetPricePPI);
+			jsonput(performaJson,"CalculatedBWCommittedVolume",originalBWCommittedvolume);
+			jsonput(performaJson,"CalculatedBWOverageCPI",originalBWOverageTargetPricePPI);
+			jsonput(performaJson,"CalculatedTargetBWWeighted",calculatedweightedBWTargetPrice);
+			jsonput(performaJson,"CalculatedColorCommittedCPI",originalColorCommittedTargetPricePPI);
+			jsonput(performaJson,"CalculatedColorCommittedVolume",originalColorCommittedvolume);
+			jsonput(performaJson,"CalculatedColorOverageCPI",originalColorOverageTargetPricePPI);
+			jsonput(performaJson,"CalculatedTargetColorWeighted",calculatedweightedColorTargetPrice);
+			jsonput(performaJson,"CalculatedTotalBaseTargetPrice",TotalBaseTargetPrice);
+			
+			//Added by Nupur for CR13 GP%(Sales Cost Original) Calculated Value Dervitaions
+			jsonput(performaJson,"OriginalGPSalesBWCommitted",originalGPSalesCostBWCommitted);
+			jsonput(performaJson,"OriginalGPSalesBWOverage",originalGPSalesCostBWOverage);
+			jsonput(performaJson,"OriginalGPSalesBWweightedBase",originalGPSalesCostBWweightedBase);
+			jsonput(performaJson,"OriginalGPSalesColorCommitted",originalGPSalesCostColorCommitted);
+			jsonput(performaJson,"OriginalGPSalesColorOverage",originalGPSalesCostColorOverage);
+			jsonput(performaJson,"OriginalGPSalesColorweightedBase",originalGPSalesCostColorweightedBase);
+			jsonput(performaJson,"OriginalGPSalesTotalBase",OriginalGPSalesCostTotalBase);
+			
+			GPSalesCostTotalBase = OriginalGPSalesCostTotalBase;
+			//Added by Nupur for CR13 GP%(Sales Cost) Calculated Value Dervitaions
+			jsonput(performaJson,"GPSalesBWCommitted",GPSalesCostBWCommitted);
+			jsonput(performaJson,"GPSalesBWOverage",GPSalesCostBWOverage);
+			jsonput(performaJson,"GPSalesBWWeighted",GPSalesCostBWweightedBase);
+			jsonput(performaJson,"GPSalesColorCommitted",GPSalesCostColorCommitted);
+			jsonput(performaJson,"GPSalesColorOverage",GPSalesCostColorOverage);
+			jsonput(performaJson,"GPSalesColorWeighted",GPSalesCostColorweightedBase);
+			jsonput(performaJson,"GPSalesTotalBase",GPSalesCostTotalBase);
+			
+			
+			//END 2_9_2024 CR#13 Added by Nupur 
+			
+			//START 12_29_2023 CR#13 Added by Vasundhara - MICR
+			/*jsonput(performaJson,"mICROriginalBWCommittedCPI",mICROriginalBlendedBWTargetPriceCPI);
+			jsonput(performaJson,"mICROriginalBWCommittedVolume",MICRtotalVolumeBW);
+			jsonput(performaJson,"mICROriginalBWOverageCPI",mICROriginalBlendedBWTargetPriceCPI);
+			jsonput(performaJson,"mICROriginalColorCommittedCPI",mICROriginalBlendedColorTargetPriceCPI);
+			jsonput(performaJson,"mICROriginalColorCommittedVolume",MICRtotalVolumeColor);
+			jsonput(performaJson,"mICROriginalColorOverageCPI",mICROriginalBlendedColorTargetPriceCPI);
+			jsonput(performaJson,"mICRbase",mICROriginalBase);
+			jsonput(performaJson,"originalMICRSalesGPPercentage",originalMICRSalesGPPercentage);*/
+			
+			
+		    //Added by Nupur for CR13 Sales Cost Original Value Dervitaions - MICR
+			jsonput(performaJson,"mICROriginalBWCommittedCPI",MICRoriginalBWCommittedSalesCostCPI);
+			jsonput(performaJson,"mICROriginalBWCommittedVolume",MICRoriginalBWCommittedvolume);
+			jsonput(performaJson,"mICROriginalBWOverageCPI",MICRoriginalBWOverageSalesCostCPI);
+			jsonput(performaJson,"mICROriginalColorCommittedCPI",MICRoriginalColorCommittedSalesCostCPI);
+			jsonput(performaJson,"mICROriginalColorCommittedVolume",MICRoriginalColorCommittedvolume);
+			jsonput(performaJson,"mICROriginalColorOverageCPI",MICRoriginalColorOverageSalesCostCPI);
+			jsonput(performaJson,"mICROriginalBWWeightedSalesCost",MICRoriginalweightedBWSalesCost);
+			jsonput(performaJson,"mICROriginalColorWeightedSalesCost",MICRoriginalweightedColorSalesCost);
+			jsonput(performaJson,"mICRriginalTotalBaseSalesCost",MICRTotalBaseSalesCost);
+			
+			
+			//Added by Nupur for CR13 Target price Original Value Dervitaions - MICR
+			jsonput(performaJson,"mICROriginalTargetBWCommittedCPI",MICRoriginalBWCommittedTargetPricePPI);
+			jsonput(performaJson,"mICROriginalTargetBWCommittedVolume",MICRoriginalBWCommittedvolume);
+			jsonput(performaJson,"mICROriginalTargetBWOverageCPI",MICRoriginalBWOverageTargetPricePPI);
+			jsonput(performaJson,"mICROriginalTargetBWWeighted",MICRoriginalweightedBWTargetPrice);
+			jsonput(performaJson,"mICROriginalTargetColorCommittedCPI",MICRoriginalColorCommittedTargetPricePPI);
+			jsonput(performaJson,"mICROriginalTargetColorCommittedVolume",MICRoriginalColorCommittedvolume);
+			jsonput(performaJson,"mICROriginalTargetColorOverageCPI",MICRoriginalColorOverageTargetPricePPI);
+			jsonput(performaJson,"mICROriginalTargetColorWeighted",MICRoriginalweightedColorTargetPrice);
+			jsonput(performaJson,"mICROriginalTotalBaseTargetPrice",MICRTotalBaseTargetPrice);
+			
+			//description by Namrata setting attributes to display in Extract and in Performa Tab 
+
+
+			if(bWCommittedCPI_MICR_c == 0.0 OR modifyPricingScenario_MICR_c == "Revert to Original" OR previousLeadPricingStrategy <> leadPricingStratergy_RISE_c){
+				result = result  + "1~bWCommittedCPI_MICR_c~" + string(round(MICRoriginalBWCommittedTargetPricePPI,4)) + "|";
+			}
+			if(colorCommittedCPI_MICR_c == 0.0 OR modifyPricingScenario_MICR_c == "Revert to Original" OR previousLeadPricingStrategy <> leadPricingStratergy_RISE_c){
+				result = result  + "1~colorCommittedCPI_MICR_c~" + string(round(MICRoriginalColorCommittedTargetPricePPI,4)) + "|";
+			}
+			if(bWOverragePPI_MICR_c == 0.0 OR modifyPricingScenario_MICR_c == "Revert to Original" OR previousLeadPricingStrategy <> leadPricingStratergy_RISE_c){
+				result = result  + "1~bWOverragePPI_MICR_c~" + string(round(MICRoriginalBWOverageTargetPricePPI,4)) + "|";
+			}
+			if(colorOveragePPI_MICR_C == 0.0 OR modifyPricingScenario_MICR_c == "Revert to Original" OR previousLeadPricingStrategy <> leadPricingStratergy_RISE_c){
+				result = result  + "1~colorOveragePPI_MICR_C~" + string(round(MICRoriginalColorOverageTargetPricePPI,4)) + "|";
+			}
+			if(bWOverragePPI_MICR_c == 0.0 ){
+				result = result  + "1~bWOveragePPIMICR_ReaOnly_c~" + string(round(MICRoriginalBWOverageTargetPricePPI,4)) + "|";
+			}else{
+				bWOverragePPIMICRval = bWOverragePPI_MICR_c;
+				result = result  + "1~bWOveragePPIMICR_ReaOnly_c~" + string(round(bWOverragePPIMICRval,4)) + "|";
+			}
+			if(colorOveragePPI_MICR_C == 0.0 ){
+				result = result  + "1~ColorOveragePPIMICR_ReaOnly_c~" + string(round(MICRoriginalColorOverageTargetPricePPI,4)) + "|";
+			}else{
+				colorOverragePPIMICRval = colorOveragePPI_MICR_C;
+					result = result  + "1~ColorOveragePPIMICR_ReaOnly_c~" + string(round(colorOverragePPIMICRval,4)) + "|";
+			}
+			
+			//description by Namrata setting attributes to display in Extract and in Performa Tab 
+			
+			//Added by Nupur for CR13 Net Selling Price (PPI) Calculated Value Dervitaions - MICR
+			jsonput(performaJson,"mICRCalculatedBWCommittedCPI",MICRoriginalBWCommittedTargetPricePPI);
+			jsonput(performaJson,"mICRCalculatedBWCommittedVolume",MICRoriginalBWCommittedvolume);
+			jsonput(performaJson,"mICRCalculatedBWOverageCPI",MICRoriginalBWOverageTargetPricePPI);
+			jsonput(performaJson,"mICRCalculatedTargetBWWeighted",MICRcalculatedweightedBWTargetPrice);
+			jsonput(performaJson,"mICRCalculatedColorCommittedCPI",MICRoriginalColorCommittedTargetPricePPI);
+			jsonput(performaJson,"mICRCalculatedColorCommittedVolume",MICRoriginalColorCommittedvolume);
+			jsonput(performaJson,"mICRCalculatedColorOverageCPI",MICRoriginalColorOverageTargetPricePPI);
+			jsonput(performaJson,"mICRCalculatedTargetColorWeighted",MICRcalculatedweightedColorTargetPrice);
+			jsonput(performaJson,"mICRCalculatedTotalBaseTargetPrice",mICRTotalBaseTargetPrice);
+			
+			//Added by Nupur for CR13 GP%(Sales Cost) Calculated Value Dervitaions - MICR
+			jsonput(performaJson,"OriginalmICRGPSalesBWCommitted",originalMICRGPSalesCostBWCommitted);
+			jsonput(performaJson,"OriginalmICRGPSalesBWOverage",originalMICRGPSalesCostBWOverage);
+			jsonput(performaJson,"OriginalmICRGPSalesColorCommitted",originalMICRGPSalesCostColorCommitted);
+			jsonput(performaJson,"OriginalmICRGPSalesColorOverage",originalMICRGPSalesCostColorOverage);
+			jsonput(performaJson,"OriginalmICRGPSalesTotalBase",OriginalMICRGPSalesCostTotalBase);
+			
+			MICRGPSalesCostTotalBase = OriginalMICRGPSalesCostTotalBase;
+			//Added by Nupur for CR13 GP%(Sales Cost) Calculated Value Dervitaions - MICR
+			jsonput(performaJson,"mICRGPSalesBWCommitted",MICRGPSalesCostBWCommitted);
+			jsonput(performaJson,"mICRGPSalesBWOverage",MICRGPSalesCostBWOverage);
+			jsonput(performaJson,"mICRGPSalesColorCommitted",MICRGPSalesCostColorCommitted);
+			jsonput(performaJson,"mICRGPSalesColorOverage",MICRGPSalesCostColorOverage);
+			jsonput(performaJson,"mICRGPSalesTotalBase",MICRGPSalesCostTotalBase);
+			
+			
+			//END 2_9_2024 CR#13 Added by Nupur - MICR
+	        
+
+			//3rdParty
+			originalBWCommittedvolume = round(originalBWCommittedvolume,4);
+			originalColorCommittedvolume = round(originalColorCommittedvolume,4);
+			
+			if(modifyPricingScenario_t == "CPI"){//CPI
+				
+				if(bWCommittedCPI_t <>0.0){
+			    calculatedweightedBWTargetPrice = (bWCommittedCPI_t * originalBWCommittedvolume);
+				if(colorCommittedCPI_t <> 0.0){
+					calculatedweightedColorTargetPrice = (colorCommittedCPI_t * originalColorCommittedvolume);
+				}
+				TotalBaseTargetPrice = calculatedweightedBWTargetPrice + calculatedweightedColorTargetPrice;
+				jsonput(performaJson,"CalculatedBWCommittedCPI",bWCommittedCPI_t);
+				if(TotalBaseTargetPrice >0){
+					GPSalesCostTotalBase = (1 - (TotalBaseSalesCost/TotalBaseTargetPrice));
+				}
+				if(bWCommittedCPI_t <> 0.0){
+				GPSalesCostBWCommitted = (1 - (originalBWCommittedSalesCostCPI/bWCommittedCPI_t));
+				}
+				if(originalColorCommittedSalesCostCPI <> 0.0 and colorCommittedCPI_t <> 0.0){
+				GPSalesCostColorCommitted = (1 - (originalColorCommittedSalesCostCPI/colorCommittedCPI_t));
+				}
+				jsonput(performaJson,"CalculatedBWCommittedVolume",originalBWCommittedvolume);
+				jsonput(performaJson,"CalculatedBWOverageCPI",originalBWOverageTargetPricePPI);
+				jsonput(performaJson,"CalculatedTargetBWWeighted",calculatedweightedBWTargetPrice);
+				if(colorCommittedCPI_t <> 0.0){
+				jsonput(performaJson,"CalculatedColorCommittedCPI",colorCommittedCPI_t);
+				}
+				jsonput(performaJson,"CalculatedColorCommittedVolume",originalColorCommittedvolume);
+				jsonput(performaJson,"CalculatedColorOverageCPI",originalColorOverageTargetPricePPI);
+				jsonput(performaJson,"CalculatedTargetColorWeighted",calculatedweightedColorTargetPrice);
+			    jsonput(performaJson,"CalculatedTotalBaseTargetPrice",TotalBaseTargetPrice);
+				jsonput(performaJson,"GPSalesBWCommitted",GPSalesCostBWCommitted);
+				jsonput(performaJson,"GPSalesColorCommitted",GPSalesCostColorCommitted);
+				jsonput(performaJson,"GPSalesTotalBase",GPSalesCostTotalBase);
+				}
+					
+			}elif(modifyPricingScenario_t == "Overage"){
+				if(bWCommittedCPI_t <>0.0){
+				calculatedweightedBWTargetPrice = (bWCommittedCPI_t * originalBWCommittedvolume);
+				
+				if(colorCommittedCPI_t<>0.0){
+				calculatedweightedColorTargetPrice = (colorCommittedCPI_t * originalColorCommittedvolume);
+				}
+				TotalBaseTargetPrice = calculatedweightedBWTargetPrice + calculatedweightedColorTargetPrice;
+				if(originalBWOverageSalesCostCPI <> 0.0){
+				GPSalesCostBWOverage = (1 - (originalBWOverageSalesCostCPI/bWOverragePPI_ThirdParty_c));
+				}			
+				if(colorOverragePPI_thirdParty_c <> 0.0 ){
+				GPSalesCostColorOverage = (1 - (originalColorOverageSalesCostCPI/colorOverragePPI_thirdParty_c));
+				}
+				if(bWCommittedCPI_t <> 0.0){
+				GPSalesCostBWCommitted = (1 - (originalBWCommittedSalesCostCPI/bWCommittedCPI_t));
+				}
+				if(originalColorCommittedSalesCostCPI <> 0.0 AND colorCommittedCPI_t <>0.0){
+				GPSalesCostColorCommitted = (1 - (originalColorCommittedSalesCostCPI/colorCommittedCPI_t));
+				}
+				if(TotalBaseTargetPrice >0){
+				GPSalesCostTotalBase = (1 - (TotalBaseSalesCost/TotalBaseTargetPrice));
+				}
+				jsonput(performaJson,"CalculatedBWCommittedCPI",bWCommittedCPI_t);
+				jsonput(performaJson,"CalculatedBWCommittedVolume",originalBWCommittedvolume);
+				jsonput(performaJson,"CalculatedBWOverageCPI",bWOverragePPI_ThirdParty_c);
+				jsonput(performaJson,"CalculatedTargetBWWeighted",calculatedweightedBWTargetPrice);
+				if(colorCommittedCPI_t <> 0.0){
+				jsonput(performaJson,"CalculatedColorCommittedCPI",colorCommittedCPI_t);
+				}
+				jsonput(performaJson,"CalculatedColorCommittedVolume",originalColorCommittedvolume);
+				jsonput(performaJson,"CalculatedColorOverageCPI",colorOverragePPI_thirdParty_c);
+				jsonput(performaJson,"CalculatedTargetColorWeighted",calculatedweightedColorTargetPrice);
+			    jsonput(performaJson,"CalculatedTotalBaseTargetPrice",TotalBaseTargetPrice);
+				jsonput(performaJson,"GPSalesBWOverage",GPSalesCostBWOverage);
+				jsonput(performaJson,"GPSalesColorOverage",GPSalesCostColorOverage);		
+				jsonput(performaJson,"GPSalesBWCommitted",GPSalesCostBWCommitted);
+				jsonput(performaJson,"GPSalesColorCommitted",GPSalesCostColorCommitted);
+				jsonput(performaJson,"GPSalesTotalBase",GPSalesCostTotalBase);				
+			}	
+		}
+			//show values in Perfporma extract
+			if(jsonpathcheck(performaJson, "CalculatedBWOverageCPI")){
+				CalculatedBWOverageExt = jsonpathgetsingle(performaJson, "CalculatedBWOverageCPI","float");
+				result = result  + "1~bWOveragePPIExtract_c~" + string(round(CalculatedBWOverageExt,4)) + "|";
+			}
+			if(jsonpathcheck(performaJson, "CalculatedColorOverageCPI")){
+				CalculatedColorOverageExt = jsonpathgetsingle(performaJson, "CalculatedColorOverageCPI","float");
+				result = result  + "1~colorOveragePPIExtract_c~" + string(round(CalculatedColorOverageExt,4)) + "|";
+			}
+			if(jsonpathcheck(performaJson, "CalculatedTargetBWWeighted")){
+				CalculatedTargetBWWExt = jsonpathgetsingle(performaJson, "CalculatedTargetBWWeighted","float");
+				result = result  + "1~bWBasePPIExtract_t_c~" + string(round(CalculatedTargetBWWExt,4)) + "|";
+			}
+			if(jsonpathcheck(performaJson, "CalculatedTargetColorWeighted")){
+				CalculatedTargetColorWExt = jsonpathgetsingle(performaJson, "CalculatedTargetColorWeighted","float");
+				result = result  + "1~colorBasePPIExtract_t_c~" + string(round(CalculatedTargetColorWExt,4)) + "|";
+			}
+			if(jsonpathcheck(performaJson, "CalculatedTotalBaseTargetPrice")){
+				CalculatedTotalBaseExt = jsonpathgetsingle(performaJson, "CalculatedTotalBaseTargetPrice","float");
+				result = result  + "1~totalBasePPIExtract_t_c~" + string(round(CalculatedTotalBaseExt,4)) + "|";
+			}
+			if(jsonpathcheck(performaJson, "OriginalTotalBaseTargetPrice")){
+				OriginalTotalBaseExt = jsonpathgetsingle(performaJson, "OriginalTotalBaseTargetPrice","float");
+				result = result  + "1~totalBaseOriginalNew_c~" + string(round(OriginalTotalBaseExt,4)) + "|";
+			}
+			if(jsonpathcheck(performaJson, "CalculatedBWCommittedVolume")){
+				BWCalVolume = jsonpathgetsingle(performaJson, "CalculatedBWCommittedVolume","float");
+				result = result  + "1~bWVolume_t_c~" + string(round(BWCalVolume,4)) + "|";
+			}
+			if(jsonpathcheck(performaJson, "CalculatedColorCommittedVolume")){
+				ColorCalVolume = jsonpathgetsingle(performaJson, "CalculatedColorCommittedVolume","float");
+				result = result  + "1~colorVolume_t_c~" + string(round(ColorCalVolume ,4)) + "|";
+			}
+			
+
+			/*elif(modifyPricingScenario_t == "Total Base"){//Total Base Not Required for CR13
+				totalVolumeWithRatio = totalVolumeBW;
+				if(totalVolumeColor > 0){
+					totalVolumeWithRatio = (totalVolumeBW * BW_Ratio) + (totalVolumeColor * CLR_Ratio);
+				}
+				if(totalVolumeWithRatio > 0){
+					blendedCPI = totalBase_t/totalVolumeWithRatio;
+				}
+				totalBaseBWCommittedCPI = blendedCPI;
+				totalBaseColorCommittedCPI = 0.0;
+				if(totalVolumeColor > 0){
+					totalBaseBWCommittedCPI = blendedCPI * BW_Ratio;
+					totalBaseColorCommittedCPI = blendedCPI * CLR_Ratio;
+				}
+				jsonput(performaJson,"totalBaseBWCommittedCPI",totalBaseBWCommittedCPI);
+				jsonput(performaJson,"totalBaseBWCommittedVolume",totalVolumeBW);
+				jsonput(performaJson,"totalBaseBWOverageCPI",originalBlendedBWTargetPriceCPI);
+				jsonput(performaJson,"totalBaseColorCommittedCPI",totalBaseColorCommittedCPI);
+				jsonput(performaJson,"totalBaseColorCommittedVolume",totalVolumeColor);
+				jsonput(performaJson,"totalBaseColorOverageCPI",originalBlendedColorTargetPriceCPI);
+				jsonput(performaJson,"totalBase",totalBase_t);
+				jsonput(performaJson,"calculatedThirdPartySalesGPPercentage",calculatedThirdPartySalesGPPercentage);
+			}*/
+			
+			
+	
+			//MICR
+			MICRoriginalBWCommittedvolume = round(MICRoriginalBWCommittedvolume,4);
+			MICRoriginalColorCommittedvolume = round(MICRoriginalColorCommittedvolume,4);
+			
+			if(modifyPricingScenario_MICR_c == "CPI"){//
+				if(bWCommittedCPI_MICR_c <> 0.0){
+			    MICRcalculatedweightedBWTargetPrice = (bWCommittedCPI_MICR_c * MICRoriginalBWCommittedvolume);
+				if(colorCommittedCPI_MICR_c <> 0.0){
+				MICRcalculatedweightedColorTargetPrice = (colorCommittedCPI_MICR_c * MICRoriginalColorCommittedvolume);
+				}
+				mICRTotalBaseTargetPrice = MICRcalculatedweightedBWTargetPrice + MICRcalculatedweightedColorTargetPrice;
+				if(MICRTotalBaseSalesCost >0){
+				MICRGPSalesCostTotalBase = ((mICRTotalBaseTargetPrice - MICRTotalBaseSalesCost)/MICRTotalBaseSalesCost);
+				}
+				if(MICRoriginalBWCommittedSalesCostCPI <> 0.0){
+				MICRGPSalesCostBWCommitted = ((bWCommittedCPI_MICR_c - MICRoriginalBWCommittedSalesCostCPI)/MICRoriginalBWCommittedSalesCostCPI);
+				}
+				if(MICRoriginalColorCommittedSalesCostCPI <> 0.0 AND colorCommittedCPI_MICR_c<> 0.0){
+				MICRGPSalesCostColorCommitted = ((colorCommittedCPI_MICR_c - MICRoriginalColorCommittedSalesCostCPI)/MICRoriginalColorCommittedSalesCostCPI);
+				}
+				jsonput(performaJson,"mICRCalculatedBWCommittedCPI",bWCommittedCPI_MICR_c);
+				jsonput(performaJson,"mICRCalculatedBWCommittedVolume",MICRoriginalBWCommittedvolume);
+				jsonput(performaJson,"mICRCalculatedBWOverageCPI",MICRoriginalBWOverageTargetPricePPI);
+				jsonput(performaJson,"mICRCalculatedTargetBWWeighted",MICRcalculatedweightedBWTargetPrice);
+				if(colorCommittedCPI_MICR_c <> 0.0){
+				jsonput(performaJson,"mICRCalculatedColorCommittedCPI",colorCommittedCPI_MICR_c);
+				}
+				jsonput(performaJson,"mICRCalculatedColorCommittedVolume",MICRoriginalColorCommittedvolume);
+				jsonput(performaJson,"mICRCalculatedColorOverageCPI",MICRoriginalColorOverageTargetPricePPI);
+				jsonput(performaJson,"mICRCalculatedTargetColorWeighted",MICRcalculatedweightedColorTargetPrice);
+				jsonput(performaJson,"mICRCalculatedTotalBaseTargetPrice",mICRTotalBaseTargetPrice);
+				jsonput(performaJson,"mICRGPSalesBWCommitted",MICRGPSalesCostBWCommitted);
+				jsonput(performaJson,"mICRGPSalesColorCommitted",MICRGPSalesCostColorCommitted);
+				jsonput(performaJson,"mICRGPSalesTotalBase",MICRGPSalesCostTotalBase);
+				}
+			}elif(modifyPricingScenario_MICR_c == "Overage"){
+			if(bWCommittedCPI_MICR_c <> 0.0){
+				MICRcalculatedweightedBWTargetPrice = (bWCommittedCPI_MICR_c * MICRoriginalBWCommittedvolume);
+			if(colorCommittedCPI_MICR_c <> 0.0){
+				MICRcalculatedweightedColorTargetPrice = (colorCommittedCPI_MICR_c * MICRoriginalColorCommittedvolume);
+			}
+				mICRTotalBaseTargetPrice = MICRcalculatedweightedBWTargetPrice + MICRcalculatedweightedColorTargetPrice;
+				
+			if(MICRoriginalBWOverageSalesCostCPI >0){
+				MICRGPSalesCostBWOverage = ((bWOverragePPI_MICR_c - MICRoriginalBWOverageSalesCostCPI)/MICRoriginalBWOverageSalesCostCPI);
+			if(MICRoriginalColorOverageSalesCostCPI>0){
+				MICRGPSalesCostColorOverage = ((colorOveragePPI_MICR_C - MICRoriginalColorOverageSalesCostCPI)/MICRoriginalColorOverageSalesCostCPI);
+				}
+			    if(MICRoriginalBWCommittedSalesCostCPI <> 0.0){
+				MICRGPSalesCostBWCommitted = ((bWCommittedCPI_MICR_c - MICRoriginalBWCommittedSalesCostCPI)/MICRoriginalBWCommittedSalesCostCPI);
+				}
+				if(MICRoriginalColorCommittedSalesCostCPI <> 0.0 AND colorCommittedCPI_MICR_c <>0.0){
+				MICRGPSalesCostColorCommitted = ((colorCommittedCPI_MICR_c - MICRoriginalColorCommittedSalesCostCPI)/MICRoriginalColorCommittedSalesCostCPI);
+				}
+				if(MICRTotalBaseSalesCost >0){
+				MICRGPSalesCostTotalBase = ((mICRTotalBaseTargetPrice - MICRTotalBaseSalesCost)/MICRTotalBaseSalesCost);
+				}
+				}jsonput(performaJson,"mICRCalculatedBWCommittedCPI",bWCommittedCPI_MICR_c);
+				jsonput(performaJson,"mICRCalculatedBWCommittedVolume",MICRoriginalBWCommittedvolume);
+				jsonput(performaJson,"mICRCalculatedBWOverageCPI",bWOverragePPI_MICR_c);
+				jsonput(performaJson,"mICRCalculatedTargetBWWeighted",MICRcalculatedweightedBWTargetPrice);
+				if(colorCommittedCPI_MICR_c <>0.0){
+				jsonput(performaJson,"mICRCalculatedColorCommittedCPI",colorCommittedCPI_MICR_c);
+				}
+				jsonput(performaJson,"mICRCalculatedColorCommittedVolume",MICRoriginalColorCommittedvolume);
+				jsonput(performaJson,"mICRCalculatedColorOverageCPI",colorOveragePPI_MICR_C);
+				jsonput(performaJson,"mICRCalculatedTargetColorWeighted",MICRcalculatedweightedColorTargetPrice);
+				jsonput(performaJson,"mICRCalculatedTotalBaseTargetPrice",mICRTotalBaseTargetPrice);	
+				jsonput(performaJson,"mICRGPSalesBWOverage",MICRGPSalesCostBWOverage);
+				jsonput(performaJson,"mICRGPSalesColorOverage",MICRGPSalesCostColorOverage);
+				jsonput(performaJson,"mICRGPSalesBWCommitted",MICRGPSalesCostBWCommitted);
+				jsonput(performaJson,"mICRGPSalesColorCommitted",MICRGPSalesCostColorCommitted);
+				jsonput(performaJson,"mICRGPSalesTotalBase",MICRGPSalesCostTotalBase);
+			}		
+			}
+			/*elif(modifyPricingScenario_MICR_c == "Total Base"){//Total Base
+				totalVolumeWithRatio = MICRtotalVolumeBW;
+				if(MICRtotalVolumeColor > 0){
+					totalVolumeWithRatio = (MICRtotalVolumeBW * BW_Ratio) + (MICRtotalVolumeColor * CLR_Ratio);
+				}
+				if(totalVolumeWithRatio > 0){
+					blendedCPI = totalBase_MICR_c/totalVolumeWithRatio;
+				}
+				mICRTotalBaseBWCommittedCPI = blendedCPI;
+				mICRTotalBaseColorCommittedCPI = 0.0;
+				if(MICRtotalVolumeColor > 0){
+					mICRTotalBaseBWCommittedCPI = blendedCPI * BW_Ratio;
+					mICRTotalBaseColorCommittedCPI = blendedCPI * CLR_Ratio;
+				}
+				jsonput(performaJson,"mICRTotalBaseBWCommittedCPI",mICRTotalBaseBWCommittedCPI);
+				jsonput(performaJson,"mICRTotalBaseBWCommittedVolume",MICRtotalVolumeBW);
+				jsonput(performaJson,"mICRTotalBaseBWOverageCPI",mICROriginalBlendedBWTargetPriceCPI);
+				jsonput(performaJson,"mICRTotalBaseColorCommittedCPI",mICRTotalBaseColorCommittedCPI);
+				jsonput(performaJson,"mICRTotalBaseColorCommittedVolume",MICRtotalVolumeColor);
+				jsonput(performaJson,"mICRTotalBaseColorOverageCPI",mICROriginalBlendedColorTargetPriceCPI);
+				jsonput(performaJson,"mICRTotalBase",totalBase_MICR_c);
+				jsonput(performaJson,"calculatedMICRSalesGPPercentage",calculatedMICRSalesGPPercentage);
+			}*/
+	
+				//show values in Perfporma extract
+
+			if(jsonpathcheck(performaJson, "mICRCalculatedBWOverageCPI")){
+				CalculatedBWOverageMICRExt = jsonpathgetsingle(performaJson, "mICRCalculatedBWOverageCPI","float");
+				result = result  + "1~bWOveragePPIMICRExtract_c~" + string(round(CalculatedBWOverageMICRExt,4)) + "|";
+			}
+			if(jsonpathcheck(performaJson, "mICRCalculatedColorOverageCPI")){
+				CalculatedColorOverageMICRExt = jsonpathgetsingle(performaJson, "mICRCalculatedColorOverageCPI","float");
+				result = result  + "1~colorOveragePPIMICRExtract_c~" + string(round(CalculatedColorOverageMICRExt,4)) + "|";
+			}
+			if(jsonpathcheck(performaJson, "mICRCalculatedTargetBWWeighted")){
+				CalculatedTargetBWWMICRExt = jsonpathgetsingle(performaJson, "mICRCalculatedTargetBWWeighted","float");
+				result = result  + "1~bWBasePPIMICRExtract_c~" + string(round(CalculatedTargetBWWMICRExt,4)) + "|";
+			}
+			if(jsonpathcheck(performaJson, "mICRCalculatedTargetColorWeighted")){
+				CalculatedTargetColorMICRWExt = jsonpathgetsingle(performaJson, "mICRCalculatedTargetColorWeighted","float");
+				result = result  + "1~colorBasePPIMICRExtract_c~" + string(round(CalculatedTargetColorMICRWExt,4)) + "|";
+			}
+			if(jsonpathcheck(performaJson, "mICRCalculatedTotalBaseTargetPrice")){
+				CalculatedTotalBaseMICRExt = jsonpathgetsingle(performaJson, "mICRCalculatedTotalBaseTargetPrice","float");
+				result = result  + "1~totalBaseMICRExtract_t_C~" + string(round(CalculatedTotalBaseMICRExt,4)) + "|";
+			}
+			if(jsonpathcheck(performaJson, "mICROriginalTotalBaseTargetPrice")){
+				OriginalTotalBaseMICRExt = jsonpathgetsingle(performaJson, "mICROriginalTotalBaseTargetPrice","float");
+				result = result  + "1~totalBaseOriginalMICRNew_c~" + string(round(OriginalTotalBaseMICRExt,4)) + "|";
+			}
+			
+			if(jsonpathcheck(performaJson, "mICRCalculatedBWCommittedVolume")){
+				BWCalVolumeMICR = jsonpathgetsingle(performaJson, "mICRCalculatedBWCommittedVolume","float");
+				result = result  + "1~bWVolumeMICR_t_c~" + string(round(BWCalVolumeMICR ,4)) + "|";
+			}
+			if(jsonpathcheck(performaJson, "mICRCalculatedColorCommittedVolume")){
+				ColorCalVolumeMICR = jsonpathgetsingle(performaJson, "mICRCalculatedColorCommittedVolume","float");
+				result = result  + "1~colorVolumeMICR_t_c~" + string(round(ColorCalVolumeMICR ,4)) + "|";
+			}
+			//3rdParty/MICR Fleet Management
+			jsonput(performaJson,"orginalFleetManagmentPerDevice",orginalFleetManagmentPerDevice);
+			jsonput(performaJson,"orginalTotalFleetManagmentPerDevice",orginalTotalFleetManagmentPerDevice);
+			jsonput(performaJson,"calculatedFleetManagmentPerDevice",calculatedFleetManagmentPerDevice);
+			jsonput(performaJson,"calculatedTotalFleetManagmentPerDevice",calculatedTotalFleetManagmentPerDevice);
+			jsonput(performaJson,"originalthirdPartyFleetSalesGPPercentage",originalthirdPartyFleetSalesGPPercentage);
+			jsonput(performaJson,"calculatedthirdPartyFleetSalesGPPercentage",calculatedthirdPartyFleetSalesGPPercentage);
+	
+			//Zebra Fleet Management
+			jsonput(performaJson,"orginalZebraFleetManagmentPerDevice",orginalZebraFleetManagmentPerDevice);
+			jsonput(performaJson,"orginalZebraTotalFleetManagmentPerDevice",orginalZebraTotalFleetManagmentPerDevice);
+			jsonput(performaJson,"calculatedZebraFleetManagmentPerDevice",calculatedZebraFleetManagmentPerDevice);
+			jsonput(performaJson,"calculatedZebraTotalFleetManagmentPerDevice",calculatedZebraTotalFleetManagmentPerDevice);
+			jsonput(performaJson,"originalZebraFleetSalesGPPercentage",originalZebraFleetSalesGPPercentage);
+			jsonput(performaJson,"calculatedZebraFleetSalesGPPercentage",calculatedZebraFleetSalesGPPercentage);
+	         
+			performaJsonInString = jsontostr(performaJson);
+			result = result  + "1~performaData_t~" + performaJsonInString + "|";
+			
+			/*if(modifyPricingScenario_t <> "CPI"){
+				result = result  + "1~bWCommittedCPI_t~" + string(originalBlendedBWTargetPriceCPI) + "|";
+				result = result  + "1~colorCommittedCPI_t~" + string(originalBlendedColorTargetPriceCPI) + "|";
+			}
+			//START 12_29_2023 CR#13 Added by Vasundhara
+			if(modifyPricingScenario_MICR_c <> "CPI"){
+				result = result  + "1~bWCommittedCPI_MICR_c~" + string(mICROriginalBlendedBWTargetPriceCPI) + "|";
+				result = result  + "1~colorCommittedCPI_MICR_c~" + string(mICROriginalBlendedColorTargetPriceCPI) + "|";
+			}
+			//END 12_29_2023 CR#13 Added by Vasundhara
+			if(modifyPricingScenario_t <> "Total Base"){
+				result = result  + "1~totalBase_t~" + string(originalBase) + "|";
+			}
+			//START 12_29_2023 CR#13 Added by Vasundhara
+			if(modifyPricingScenario_MICR_c <> "Total Base"){
+				result = result  + "1~totalBase_MICR_c~" + string(mICROriginalBase) + "|";
+			}
+			//END 12_29_2023 CR#13 Added by Vasundhara
+			if(modifyPricingScenario_t <> "CPI" AND modifyPricingScenario_t <> "Total Base"){
+				result = result  + "1~bWCommittedCPI_t~" + string(originalBlendedBWTargetPriceCPI) + "|";
+				result = result  + "1~colorCommittedCPI_t~" + string(originalBlendedColorTargetPriceCPI) + "|";
+				result = result  + "1~totalBase_t~" + string(originalBase) + "|";
+			}
+			//START 12_29_2023 CR#13 Added by Vasundhara
+			if(modifyPricingScenario_MICR_c <> "CPI" AND modifyPricingScenario_MICR_c <> "Total Base"){
+				result = result  + "1~bWCommittedCPI_MICR_c~" + string(mICROriginalBlendedBWTargetPriceCPI) + "|";
+				result = result  + "1~colorCommittedCPI_MICR_c~" + string(mICROriginalBlendedColorTargetPriceCPI) + "|";
+				result = result  + "1~totalBase_MICR_c~" + string(mICROriginalBase) + "|";
+			}*/
+			//END 12_29_2023 CR#13 Added by Vasundhara	  
+			result = result  + "1~containsMPSFleetLines_t_c~" + string(containsMPSFleetlines) + "|";
+	
+			//Performa Header details
+			performaHeaderJson = json();
+			trackingSoftware = "";
+			if(sizeofarray(trackingSoftwareArray) > 0){
+				trackingSoftware = join(trackingSoftwareArray,",");
+			}
+			// Added by Nupur_01_02_2024 
+			trackingSoftwareZebra = "";
+			if(sizeofarray(trackingSoftwareArr) > 0){
+				trackingSoftwareZebra = join(trackingSoftwareArr,",");
+			}
+			trackingSoftware3rdparty = "";
+			if(sizeofarray(trackingSoftware3rdpartyArr) > 0){
+				trackingSoftware3rdparty = join(trackingSoftware3rdpartyArr,",");
+			}
+			// Added by Nupur_01_02_2024 
+			//jsonput(performaHeaderJson,"rMSSCLevel",rmSSCLevel);
+			jsonput(performaHeaderJson,"rmsscThirdPartyRISE",rmsscThirdPartyRISE);
+			jsonput(performaHeaderJson,"rmsscThirdZebraRISE",rmsscThirdZebraRISE);
+			jsonput(performaHeaderJson,"trackingSoftware3rdparty",trackingSoftware3rdparty);
+			jsonput(performaHeaderJson,"trackingSoftwareZebra",trackingSoftwareZebra);
+			//jsonput(performaHeaderJson,"ServiceSolutionImplementation",serviceSolImp);
+			jsonput(performaHeaderJson,"ServiceSolutionImplementation",serviceImp3rdparty);
+			jsonput(performaHeaderJson,"ServiceSolutionImplementationZebra",serviceImpZebra);
+			jsonput(performaHeaderJson,"bwCommittedVolume",totalVolumeBW);
+			jsonput(performaHeaderJson,"MICRbwCommittedVolume",MICRtotalVolumeBW);
+			jsonput(performaHeaderJson,"colorCommittedVolume",totalVolumeColor);
+			jsonput(performaHeaderJson,"MICRcolorCommittedVolume",MICRtotalVolumeColor);
+			jsonput(performaHeaderJson,"totalCommittedVolume",totalVolume);
+			jsonput(performaHeaderJson,"MICRtotalCommittedVolume",MICRtotalVolume);
+			jsonput(performaHeaderJson,"breakFixIncluded","");
+			jsonput(performaHeaderJson,"tonerType",tonertype3rdparty);
+	
+			performaHeaderJsonInString = jsontostr(performaHeaderJson);
+			result = result  + "1~performaHeaderDetailsString_t_c~" + performaHeaderJsonInString + "|";
+			//END 02_11_2023 Added above logic for Performa calculations - MPS Pricing #CHG0085215 by Vasundhara
+		}
+	}
+	//MPS_Performance_Testing
+	/*if(RECORDLOGTIME_FLAG){
+	t2=getCurrentTimeInMillis();
+	currentDateTime = getstrdate();
+	u = t2-t1;
+	print "MPS_Performance_PricingMainBeforeFormulas_TimeDiff4:"+transactionID_t+":" + string(u);
+	print "MPS_Performance_PricingMainBeforeFormulas_DateAndTime4:"+transactionID_t+":" + currentDateTime;
+	}*/
+	
+	//description by Namrata as part of performance tuning
+	ProcessGroupRecords = BMQL("Select ProcessGroup , ItemType from RAC_ITEM_TYPE where ItemType in $itemTypeArray");
+	for re in processGroupRecords {
+		put(processGroupDict , get(re,"ItemType"), get(re,"ProcessGroup"));	
+	}
+	plCashJson = json();
+	plAttributesJson = json();
+	upliftJson = json();
+	plCashJsonStr = "";
+	plAttributesJsonStr = "";
+	upliftJsonStr = "";
+	rebatePercentage = 0.0;
+	//START 08_16_2023 PERFORMANCE_ACTIVITIES Added by Vasundhara. Calling data tables out of Util.GetPricingITSAndSC
+	put(retStringDict,"fyCustomerStartType",fyCustomerStartTypeVal);
+	put(retStringDict,"fYStartProductionZBA",fYStartProductionZBA);
+	plCashJson = util.queryDatatableUtil("RAC_PL_CASH",partNumberArray, retStringDict, msInputDict);
+	plAttributesJson = util.queryDatatableUtil("RAC_PL_ATTRIBUTES",partNumberArray, retStringDict, msInputDict);
+	upliftJson = util.queryDatatableUtil("RAC_UPLIFT",priceUpliftCategoryArray, retStringDict, msInputDict);
+	plCashJsonStr = jsontostr(plCashJson);
+	plAttributesJsonStr = jsontostr(plAttributesJson);
+	upliftJsonStr = jsontostr(upliftJson);
+	rebatePercentagePath = "rebatePercentage";
+	if(jsonpathcheck(plAttributesJson,rebatePercentagePath)){ 
+		if(isnumber(jsonpathgetsingle(plAttributesJson,rebatePercentagePath,"string"))){
+			rebatePercentage = jsonpathgetsingle(plAttributesJson,rebatePercentagePath,"float");
+		}
+	}
+	//print "rebatePercentage";
+	//print rebatePercentage;
+	DEBUG_FLAG = false;
+	// if(DEBUG_FLAG){
+		// print rebatePercentage;
+		// print "parentDocNumDict";
+		// print parentDocNumDict;
+		// print "modelDict";
+		// print modelDict;
+		// print "plCashJson";
+		// print plCashJson;
+		// print "plAttributesJson";
+		// print plAttributesJson;
+		// print "upliftJson";
+		// print upliftJson;
+	// }
+	//END 08_16_2023 PERFORMANCE_ACTIVITIES Added by Vasundhara. Calling data tables out of Util.GetPricingITSAndSC
+	//MPS_Performance_Testing
+	/*if(RECORDLOGTIME_FLAG){
+	t3=getCurrentTimeInMillis();
+	currentDateTime = getstrdate();
+	u = t3-t2;
+	print "MPS_Performance_PricingMainBeforeFormulas_TimeDiff5:"+transactionID_t+":" + string(u);
+	print "MPS_Performance_PricingMainBeforeFormulas_DateAndTime5:"+transactionID_t+":" + currentDateTime;
+	}*/
+	
+	for eachLine in transactionLine{
+	
+		linkedItemVal = "";//added by Namrata for CR-24 #CHG0085215
+		// Added by Namrata for CR-24 #CHG0085215 moved Process Group Code from bottom to top
+		processGroup = "";
+		itemType = eachLine._part_custom_field23;
+		if(containskey(processGroupDict,itemType)){
+			processGroup = get(processGroupDict,itemType);
+		}
+		//START 02_11_2023 Added if condition for not to run for MPS lines and run for all other process groups #CHG0085215 by Vasundhara
+		if(eachLine._price_calculation_info == "" OR eachLine._price_calculation_info == "[]" OR eachLine._price_calculation_info == "{}" OR  ProcessGroup<> "MPS"){ // Added by Namrata for CR-24 #CHG0085215
+			partNumber = eachLine._part_number;
+			parentModelName = "";
+			put(locIddict,"locationId",eachLine.locationSiteID_l);
+	
+			if(findinarray(docNumArray,eachLine._document_number) == -1 AND eachLine._parent_doc_number == ""){
+				if(eachLine._model_name <> ""){
+					append(modelDocNumArray,eachLine._document_number);
+				}else{
+					append(docNumArray,eachLine._document_number);
+				}
+			}
+			
+			//START - Added by Vasundhara for Defect 14742
+			modelNameForParts = "";
+			if(eachLine._parent_doc_number <> "" AND findinarray(equipmentModelNameDocNumber,eachLine._parent_doc_number) <> -1){
+				modelNameForParts = "Equipment";
+			}
+			//END - Added by Vasundhara for Defect 14742
+			
+			if(partNumber <> ""){
+				//append(partNumberArray,partNumber); 
+				//Get all Parts Custom field Data
+				listPrice = 0.0;
+				frozenCost = 0.0;
+				priceUpliftCategory = "";
+				
+				if(not(isnull(get(ParentNameDict,eachLine._parent_doc_number)))){
+					parentModelName=get(ParentNameDict,eachLine._parent_doc_number);
+				}
+				
+				//Commented for performance measurement- Added by Supriya
+				/* partCustomFieldDict = util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+				
+				if(containskey(partCustomFieldDict,partNumber+"custom_field23")) {
+					itemType = get(partCustomFieldDict,partNumber+"custom_field23");
+				}
+				if(containskey(partCustomFieldDict,partNumber+"custom_field29")) {
+					partType = get(partCustomFieldDict,partNumber+"custom_field29");
+				}
+				if(containskey(partCustomFieldDict,partNumber+"custom_field7")) {
+					listPrice = atof(get(partCustomFieldDict,partNumber+"custom_field7"));
+				}
+				if(containskey(partCustomFieldDict,partNumber+"custom_field6")) {
+					frozenCost = atof(get(partCustomFieldDict,partNumber+"custom_field6"));
+				}
+				if(containskey(partCustomFieldDict,partNumber+"custom_field25")) {
+					priceUpliftCategory = get(partCustomFieldDict,partNumber+"custom_field25");
+				} */
+				//START - Performance_Code_Changes - Instead of Using util "getMutliplteCustomFieldValuesForselectedParts" using "partsDataText_t" field to get custom field data by Vasundhara //CHG0078656 : CPQ MS- CPQ Changes deployment//
+				//partType = eachLine._part_custom_field29;
+				listPrice = eachLine._part_custom_field7;
+				frozenCost = eachLine._part_custom_field6;
+				priceUpliftCategory = eachLine._part_custom_field25;
+				lockPrice = eachLine._part_custom_field16; //Added for PS_Pricing by Vasundhara for Lock Price
+				if((derivedFromFlag <> "transactionLine" )AND (partNumber <> "Ricoh Work Anywhere")){
+					custom_field23 = "$." + partNumber + "custom_field23";
+					if(jsonpathcheck(partsDataJson,custom_field23)){
+						itemType = jsonpathgetsingle(partsDataJson,custom_field23,"string");
+					}
+					/* custom_field29 = "$." + partNumber + "custom_field29";
+					if(jsonpathcheck(partsDataJson,custom_field29)){
+						partType = jsonpathgetsingle(partsDataJson,custom_field29,"string");
+					} */
+					listPrice = 0.0;
+					custom_field7 = "$." + partNumber + "custom_field7";
+					if(jsonpathcheck(partsDataJson,custom_field7)){
+						listPrice = jsonpathgetsingle(partsDataJson,custom_field7,"float");
+					}
+					frozenCost =0.0;
+					custom_field6 = "$." + partNumber + "custom_field6";
+					if(jsonpathcheck(partsDataJson,custom_field6)){
+						frozenCost = jsonpathgetsingle(partsDataJson,custom_field6,"float");
+					}
+					priceUpliftCategory ="";
+					custom_field25 = "$." + partNumber + "custom_field25";
+					if(jsonpathcheck(partsDataJson,custom_field25)){
+						priceUpliftCategory = jsonpathgetsingle(partsDataJson,custom_field25,"string");
+					}
+					//START Added for PS_Pricing by Vasundhara for Lock Price
+					custom_field16 = "$." + partNumber + "custom_field16";
+					if(jsonpathcheck(partsDataJson,custom_field16)){
+						lockPrice = jsonpathgetsingle(partsDataJson,custom_field16,"string");
+					}
+					//END Added for PS_Pricing by Vasundhara for Lock Price
+				}
+				result = result + eachLine._document_number + "~lockPrice_l~" + lockPrice + "|";
+				result = result + eachLine._document_number + "~type_l~" + itemType + "|";  //Added as a part of CHG0078656 Include "MANAGED SVC-RECURRING CHARGE" Item type for HYPER_CARE CR 62 
+				//END - Performance_Code_Changes - Instead of Using util "getMutliplteCustomFieldValuesForselectedParts" using "partsDataText_t" field to get custom field data by Vasundhara //CHG0078656 : CPQ MS- CPQ Changes deployment//
+				/* itemTypeArray = string[];
+				append(itemTypeArray,itemType); */ //Commented as a part of PERFORMANCE_ACTIVITIES
+				/* processGroupDict = util.getProcessGroup(itemTypeArray); */ //Commented as a part of PERFORMANCE_ACTIVITIES
+				
+				if(eachLine._parent_doc_number <> ""){
+					append(parentDocNumArray,eachLine._parent_doc_number);	
+				}
+				/*if(containskey(inputDict,"partsDataText_t")){
+								partsData = get(inputDict,"partsDataText_t");
+								if(partsData<> ""){
+								partsDataArr = jsonarray(partsData);
+					sizeArr= range(jsonarraysize(partsDataArr));
+					for  size in sizeArr{
+						psWebJSON  = jsonarrayget(partsDataArr,size,"json");
+						if(NOT isnull(jsonget(psWebJSON,partNumber+"custom_field9"))){
+							partType =jsonget(psWebJSON,partNumber+"custom_field9");
+						}
+						if(NOT isnull(jsonget(psWebJSON,partNumber+"custom_field7"))){
+							listPrice =atof(jsonget(psWebJSON,partNumber+"custom_field7"));
+						}
+						if(NOT isnull(jsonget(psWebJSON,partNumber+"custom_field6"))){		    
+							frozenCost =atof(jsonget(psWebJSON,partNumber+"custom_field6"));
+						}
+						if(NOT isnull(jsonget(psWebJSON,partNumber+"custom_field25"))){
+							priceUpliftCategory =jsonget(psWebJSON,partNumber+"custom_field25");
+						}
+					}
+				}
+				}*/
+				//Start - Added by Vasundhara for Managed Services Pricing
+				//Start - Added below code for Defect-16339 by Vasundhara
+				modelName = "";
+				if(containskey(modelDict,eachLine._parent_doc_number+"modelName")){
+					modelName = get(modelDict,eachLine._parent_doc_number+"modelName");
+				}
+				//End - Added above code for Defect-16339 by Vasundhara
+				if(processGroup == "MS" OR (processGroup == "ITS" AND modelName == "Managed Services")  OR (processGroup == "SC" AND modelName == "Managed Services")){//Added SC and Managed Services condition to include SC items for MS for CR69 by Vasundhara.
+					parentDocNum = "";
+					if(containskey(parentDocNumDict,eachLine._document_number)){
+						parentDocNum = get(parentDocNumDict,eachLine._document_number);
+						if(containskey(parentDocNumDict,parentDocNum)){
+							parentDocNum = get(parentDocNumDict,parentDocNum);
+						}
+					}
+					ctrlAttr_Labor_MS = "";
+					ctrlAttr_Vehicle_MS = "";
+					ctrlAttr_TR_AC_MS = "";
+					ctrlAttr_3rdParty_MS = "";
+					geoZone_MS = "";
+					city_MS = "";
+					state_MS = "";
+					noOfFTE_MS = "";
+					federalHoursMS_Boolean = "";
+					vehicleFlag_Vehicle_MS = "";
+					//Manufacturer_3rdParty = ""; //added by Namrata for MPS CHG0085215
+					//Manufacturer_MICR = ""; //added by Namrata for MPS CHG0085215
+					
+					if(parentDocNum <> ""){
+						if(containskey(modelDict,parentDocNum + "ctrlAttr_Labor_MS")){
+							ctrlAttr_Labor_MS = get(modelDict,parentDocNum + "ctrlAttr_Labor_MS");
+						}
+						if(containskey(modelDict,parentDocNum + "ctrlAttr_Vehicle_MS")){
+							ctrlAttr_Vehicle_MS = get(modelDict,parentDocNum + "ctrlAttr_Vehicle_MS");
+						}
+						if(containskey(modelDict,parentDocNum + "ctrlAttr_TR_AC_MS")){
+							ctrlAttr_TR_AC_MS = get(modelDict,parentDocNum + "ctrlAttr_TR_AC_MS");
+						}
+						if(containskey(modelDict,parentDocNum + "ctrlAttr_3rdParty_MS")){
+							ctrlAttr_3rdParty_MS = get(modelDict,parentDocNum + "ctrlAttr_3rdParty_MS");
+						}
+						if(containskey(modelDict,parentDocNum + "geoZone_MS")){
+							geoZone_MS = get(modelDict,parentDocNum + "geoZone_MS");
+						}
+						if(containskey(modelDict,parentDocNum + "city_MS")){
+							city_MS = get(modelDict,parentDocNum + "city_MS");
+						}
+						if(containskey(modelDict,parentDocNum + "state_MS")){
+							state_MS = get(modelDict,parentDocNum + "state_MS");
+						}
+						if(containskey(modelDict,parentDocNum + "noOfFTE_MS")){
+							noOfFTE_MS = get(modelDict,parentDocNum + "noOfFTE_MS");
+						}
+						if(containskey(modelDict,parentDocNum + "federalHoursMS_Boolean")){
+							federalHoursMS_Boolean = get(modelDict,parentDocNum + "federalHoursMS_Boolean");
+						}
+						if(containskey(modelDict,parentDocNum + "vehicleFlag_Vehicle_MS")){
+							vehicleFlag_Vehicle_MS = get(modelDict,parentDocNum + "vehicleFlag_Vehicle_MS");
+						}
+						// START_Added by Namrata for MPS
+						/*if(containskey(modelDict,parentDocNum + "PrinterManufacturer_3rdParty")){
+							Manufacturer_3rdParty = get(modelDict,parentDocNum + "PrinterManufacturer_3rdParty");
+						}
+						if(containskey(modelDict,parentDocNum + "PrinterManufacturer_MICR")){
+							Manufacturer_MICR = get(modelDict,parentDocNum + "PrinterManufacturer_MICR");
+						}*/
+						// END_Added by Namrata for MPS
+	
+						lineBOMJson = eachLine._line_bom_attributes;
+						put(msInputDict,"lineBOMJson",lineBOMJson);
+						put(msInputDict,"ctrlAttr_Labor_MS",ctrlAttr_Labor_MS);
+						put(msInputDict,"ctrlAttr_Vehicle_MS",ctrlAttr_Vehicle_MS);
+						put(msInputDict,"ctrlAttr_TR_AC_MS",ctrlAttr_TR_AC_MS);
+						put(msInputDict,"ctrlAttr_3rdParty_MS",ctrlAttr_3rdParty_MS);
+						put(msInputDict,"geoZone_MS",geoZone_MS);
+						put(msInputDict,"city_MS",city_MS);
+						put(msInputDict,"state_MS",state_MS);
+						put(msInputDict,"noOfFTE_MS",noOfFTE_MS);
+						put(msInputDict,"federalHoursMS_Boolean",federalHoursMS_Boolean);
+						put(msInputDict,"vehicleFlag_Vehicle_MS",vehicleFlag_Vehicle_MS);
+						put(msInputDict,"documentNumber",eachLine._document_number);
+						put(msInputDict,"partNumber",partNumber);
+						put(msInputDict,"termMonthInNumber",string(termMonthInNumber));
+						put(msInputDict,"transactionType",transactionType);
+						put(msInputDict,"quantity",string(eachLine._price_quantity));
+						put(msInputDict,"segmentLevel_t",segmentLevel_t);
+						put(msInputDict,"marketplace_t",marketplace_t);
+						put(msInputDict,"fYStartCustomerType_t",fYStartCustomerType_t);
+						put(msInputDict,"fYStartProductionZBA_t",fYStartProductionZBA_t);
+						put(msInputDict,"segment_t",segment_t);
+						put(msInputDict,"priceUpliftCategory",priceUpliftCategory);
+						put(msInputDict,"CostOfMoney",string(CostOfMoney));
+						//START_Added by Namrata for MPS
+						/*put(msInputDict,"Manufacturer_3rdParty",Manufacturer_3rdParty);
+						put(msInputDict,"Manufacturer_MICR",Manufacturer_MICR);*/
+						//END_Added by Namrata for MPS
+	
+						result = result + util.getMSPricing(msInputDict, jobTitlesDict, maxTurnOverRatioDict, gradeAndGeoZoneDict, ancillaryCostDict, upliftCategoryDict);
+					}
+				}
+				//End - Added by Vasundhara for Managed Services Pricing
+				//append(lineIdArray,eachLine._group_sequence_number); This line is not required, this is affecting Submit for Item creation action not to hide
+				//START Defect-15149 added by Vasundhara
+				FIPItemsFlag = "N";
+				FIPvalidFieldQty = 0;
+				if(partNumber == "FIPSIBP5178" OR partNumber == "FIPSIBP5179"){
+					FIPItemsFlag = "Y";
+					if(getconfigattrvalue(eachLine._parent_doc_number ,"docQuantity_bmClone_1") <> ""){
+						FIPvalidFieldQty = atoi(getconfigattrvalue(eachLine._parent_doc_number ,"docQuantity_bmClone_1"));
+					}
+				}
+				//END Defect-15149 added by Vasundhara
+				//Get all Parts Custom field Data
+				//Commented- for performance improvement-placed above- Supriya
+					
+				partNumber = eachLine._part_number;
+				termFactor=eachLine._part_custom_field17;
+				supportTerm1 = eachLine._part_custom_field278;
+				//NT: Defect 14694 - start
+				if(supportTerm1 <>"" AND (termFactor == "T" OR termFactor == "TW" OR termFactor == "K" OR termFactor == "W")){
+					supportTerm = atof(eachLine._part_custom_field278);
+				}
+				//NT: Defect 14694 - end
+				qty = eachLine._price_quantity;
+				linkedItem = eachLine.linkedItem_l;
+				vendorCost = eachLine.vendorCost_l;
+				
+				//listPrice = eachLine._part_custom_field7;
+				//Commented- for performance improvement-placed above- Supriya
+				/*if(containskey(partCustomFieldDict,partNumber+"custom_field7")) {
+				listPrice = atof(get(partCustomFieldDict,partNumber+"custom_field7"));
+				}
+				//frozenCost = eachLine._part_custom_field6;
+				if(containskey(partCustomFieldDict,partNumber+"custom_field6")) {
+				frozenCost = atof(get(partCustomFieldDict,partNumber+"custom_field6"));
+				}
+				//priceUpliftCategory = eachLine._part_custom_field25;
+				if(containskey(partCustomFieldDict,partNumber+"custom_field25")) {
+				priceUpliftCategory = get(partCustomFieldDict,partNumber+"custom_field25");
+				}*/
+		/*Start Changes done for ITS-RWA -Supriya*/
+				docNum = eachLine._document_number;
+				if((processGroup == "ITS") AND (eachLine.bundleNameRWA<>"")) {
+					itemId= jsonget(partItemIDJson, partNumber);
+					bundleSubscription = eachLine.bundleSubscription;	
+					result = result + docNum + "~subscriptionTerm_l~" + bundleSubscription + "|";
+					result = result + docNum + "~ItemId_l~" + itemId+ "|";
+					result = result + commerce.rWAPricingSetup();
+					result = result + commerce.linkedItemLibrary();
+				}
+			/*End Changes done for ITS-RWA -Supriya*/	
+				if(processGroup == "ITS" AND modelName <> "Managed Services" AND transactionType_t <> "migratedQuote" AND eachLine._line_item_comment <> "" AND eachLine.manufacturerPartNum_l <> ""){//Defect-16339 Managed Services Pricing - Added modelName condition so that this doesnot excecute for Managed services model + ITS line by Vasundhara
+					commentArr = String[]; 
+					commentArr = split(eachLine._line_item_comment, "##");
+					If(NOT ISNULL(commentArr[12]) AND commentArr[12]<>""){
+						defaultListPriceStr = atof(commentArr[12]);
+					}
+				}else{
+					//Defect-18772 Added below logic for Upgrade issue as the field _price_list_price_each is not getting value from backend, so getting the values through Part DB query. by Vasundhara
+					defaultListPriceStr = 0.0;
+					defaultPrice = "$." + partNumber + "price";
+					if(jsonpathcheck(partsDataJson,defaultPrice) AND isnumber(jsonpathgetsingle(partsDataJson,defaultPrice,"string"))){
+							defaultListPriceStr = jsonpathgetsingle(partsDataJson,defaultPrice,"float");
+					}
+					//defaultListPriceStr = eachLine._price_list_price_each; //atof(string(eachLine._price_list_price_each));
+				}
+				
+				//NT: 09-19-2022 : CR72 - start
+				partType = eachLine.type_l;
+				checkflag = false;
+				bundleNameRWA=eachLine.bundleNameRWA;
+				if(processGroup <> "MPS"){ // Added by Namrata for CR-24 #CHG0085215
+				result = result + docNum + "~extendedSupportTermValidationMultipleLinkedItems_l~" + "" + "|";
+				}
+				if((partType =="SOLUTIONS-SOFTWARE" OR partType == "SOLUTIONS-HARDWARE REQ SUPPORT") AND linkedItemFlag == false){
+					grpseqnumber = eachLine._group_sequence_number;
+					productkey = keys(linkeditemtypedict);
+					
+					//if(findinarray(productkey,grpseqnumber) <> -1)
+					size = sizeofarray(productkey);
+					if (size > 0){
+						partlinetype ="";
+						rangeproductkeys = range(size);
+						//checkflag  = false;
+						counter = 0;
+						for  index in rangeproductkeys{
+							if(find(productkey[index],grpseqnumber)<> -1 ){
+								partlinetype = get(linkeditemtypedict, productkey[index]);
+								//Added as a part of CHG0078656 Include "MANAGED SVC-RECURRING CHARGE" Item type for HYPER_CARE CR 62 
+								if(partlinetype <> "MANAGED SVC-RECURRING CHARGE" AND partlinetype <> "SOLUTIONS-SUPPORT" AND partlinetype <> "SOLUTIONS-SUPPORT REQ LIC KEY" ){
+								checkflag  = true;
+								}
+								/*if(findinarray(itemTypeArray,"MANAGED SVC-RECURRING CHARGE") == -1 AND findinarray(itemTypeArray,"SOLUTIONS-HARDWARE REQ SUPPORT") == -1){
+								checkflag  = true;	
+								}*/
+								else{
+									counter = counter + 1;
+									result = result + docNum + "~extendedSupportTermValidationMultipleLinkedItems_l~" + "" + "|";
+								}
+							}
+						}
+						if(counter == 0 ){
+							result = result + docNum + "~extendedSupportTermValidationMultipleLinkedItems_l~" + "SOLUTIONS SOFTWARE/HARDWAREREQSUPPORT" + "|";
+						}
+					}			
+				}
+				//NT: 09-19-2022 : CR72 - end
+				
+				//NT : CR51 - start
+				if(processGroup =="SC" AND find(itemType,"SUPPORT")<>-1 AND (termFactor == "K" OR termFactor == "W" OR termFactor == "T" OR termFactor == "TW")){
+					extSuppTerm= 0.0;
+					flag = false;
+					
+				/* 
+				//NT: This incident change is not needed. Requirement is covered in CR72	
+				////NT : 30-Aug: INC2230952- start
+					if(termFactor == "T" AND linkedItem == ""){
+						extSuppTerm = eachLine.extendedSupportTerm_l;
+					}elif(termFactor == "TW" AND linkedItem ==""){
+						extSuppTerm = eachLine.extendedSupportTerm_l;
+					}
+				////NT : 30-Aug: INC2230952- end
+				*/
+					if(termFactor == "K"){
+						extSuppTerm = supportTerm;
+					}
+					elif(termFactor == "W"){
+						extSuppTerm = supportTerm;
+					}
+					//NT: 09-19-2022 : CR72 - start
+					elif((termFactor == "T" OR termFactor == "TW") AND partType == "SOLUTIONS-SOFTWARE INCL SUPPORT"){
+						extSuppTerm = (qty*supportTerm);
+					}
+					//NT: 09-19-2022 : CR72 - end
+					//Modfified the condition for CR72
+					elif(termFactor == "T" AND linkedItem <>"" AND partType <> "SOLUTIONS-SOFTWARE INCL SUPPORT"){
+						checkkey = keys(linkeditemdict);
+						if(findinarray(checkkey,linkedItem) <> -1){
+							linkeditemqty = get(linkeditemdict,linkedItem);
+							extSuppTerm = (qty*supportTerm)/linkeditemqty;
+						}
+						else{
+							result = result + docNum + "~extendedSupportTermValidationMultipleLinkedItems_l~" + "multiple linked items T" + "|";
+						}
+					}
+					
+					//NT: 09-19-2022 : Modfified the condition for CR72
+					elif(termFactor == "TW" AND linkedItem <>"" AND partType <> "SOLUTIONS-SOFTWARE INCL SUPPORT"){
+						checkkey = keys(linkeditemdict);
+						if(findinarray(checkkey,linkedItem) <> -1){
+							linkeditemqty = get(linkeditemdict,linkedItem);
+							extSuppTerm = (qty*supportTerm)/linkeditemqty;
+						}
+						else{
+							result = result + docNum + "~extendedSupportTermValidationMultipleLinkedItems_l~" + "multiple linked items TW" + "|";
+						}
+					}
+					est = string(extSuppTerm);
+					decfound= find(est,".");
+					decdigits= substring(est,decfound+1);
+					length = len(decdigits);
+					decdigitsarr = split(decdigits,"");
+					endstr = 2;
+					if(endstr <= length + 1){
+						for each in decdigitsarr{
+							val = substring(est,decfound+1, decfound+endstr);
+							val1 = atoi(val);
+							if(val1 > 0){
+								flag = true;
+							}
+							endstr = endstr + 1;
+						}
+					}
+					if(flag){
+						result = result + docNum + "~extendedSupportTermDecimalValidation_l~" + string(flag) + "|";
+					}
+					else{
+						extSuppTermInt = integer(extSuppTerm);
+						result = result + docNum + "~extendedSupportTerm_l~" + string(extSuppTermInt) + "|";
+						result = result + docNum + "~extendedSupportTermRetainedValue_l~" + string(extSuppTermInt) + "|";
+					}
+				}
+				
+				//START 08_16_2023 PERFORMANCE_ACTIVITIES added by Vasundhara
+				cashPrice = 0.0;
+				sMA = 0.0;
+				fplaFlag = "";
+				minGPPercentage = 0.0;
+				productFloor = 0.0;
+				sgaSegement = 0.0;
+				hardwareTargetPrice = 0.0;
+				priceUpliftCategoryStr = "";
+				if(priceUpliftCategory <> ""){
+					priceUpliftCategoryStr = replace(lower(priceUpliftCategory),".","_");
+					priceUpliftCategoryStr = replace(lower(priceUpliftCategoryStr)," ","_");
+				}
+				cashPricePath = "$."+ partNumber + "." + partNumber + "-" + "priceListPrice";
+				sMApath = "$." + partNumber + "." + partNumber + "-" + "sMA";
+				fplaFlagpath = "$." + partNumber + "." + partNumber + "-" + "FPLA_Flag";
+				minGPPercentagePath = "$." + priceUpliftCategoryStr + "." + "minGPPercentage";
+				productFloorPath = "$." + priceUpliftCategoryStr + "." + "productFloor";
+				sgaSegementPath = "$." + priceUpliftCategoryStr + "." + "sgaSegement";
+				hardwareTargetPricePath = "$." + priceUpliftCategoryStr + "." + "hardwareTargetPrice";
+				fplaFlagPricelistPath = "$.FPLA_Flag";
+				codePresent = "false"; //Added for Defect-18915 PS_PRICING 
+				if(partNumber <> "MAP-GENERIC"){
+				if(jsonpathcheck(plCashJson,cashPricePath)){
+					codePresent = "true"; //Added for Defect-18915 PS_PRICING 
+					if(isnumber(jsonpathgetsingle(plCashJson,cashPricePath,"string"))){
+						cashPrice = jsonpathgetsingle(plCashJson,cashPricePath,"float");
+					}
+				}
+				if(jsonpathcheck(plCashJson,sMApath)){
+					if(isnumber(jsonpathgetsingle(plCashJson,sMApath,"string"))){
+						sMA = jsonpathgetsingle(plCashJson,sMApath,"float");
+					}
+				}
+				if(jsonpathcheck(plCashJson,fplaFlagpath)){
+					fplaFlag = jsonpathgetsingle(plCashJson,fplaFlagpath,"string");
+				}elif(jsonpathcheck(plCashJson,fplaFlagPricelistPath)){ //Added elif for Defect-18915 PS_PRICING 
+					fplaFlag = jsonpathgetsingle(plCashJson,fplaFlagPricelistPath,"string");
+				}
+				
+				if(priceUpliftCategoryStr <> "")// Added for the issue in RSI Model - Save/Sync from PROD
+				{
+					if(jsonpathcheck(upliftJson,minGPPercentagePath)){
+					if(isnumber(jsonpathgetsingle(upliftJson,minGPPercentagePath,"string"))){
+						minGPPercentage = jsonpathgetsingle(upliftJson,minGPPercentagePath,"float");
+					}
+				}
+				if(jsonpathcheck(upliftJson,productFloorPath)){ 
+					if(isnumber(jsonpathgetsingle(upliftJson,productFloorPath,"string"))){
+						productFloor = jsonpathgetsingle(upliftJson,productFloorPath,"float");
+					}
+				}
+				if(jsonpathcheck(upliftJson,sgaSegementPath)){
+					if(isnumber(jsonpathgetsingle(upliftJson,sgaSegementPath,"string"))){
+						sgaSegement = jsonpathgetsingle(upliftJson,sgaSegementPath,"float");
+					}
+				}
+				if(jsonpathcheck(upliftJson,hardwareTargetPricePath)){ 
+					if(isnumber(jsonpathgetsingle(upliftJson,hardwareTargetPricePath,"string"))){
+						hardwareTargetPrice = jsonpathgetsingle(upliftJson,hardwareTargetPricePath,"float");
+					}
+				}
+				}
+				
+				}
+				//END 08_16_2023 PERFORMANCE_ACTIVITIES added by Vasundhara
+				
+				//NT : CR51 - end
+				put(retStringDict,"derivedFrom",derivedFrom);
+				put(retStringDict,"docNum",docNum);
+				put(retFloatDict,"defaultListPriceStr",defaultListPriceStr);
+				put(retStringDict,"ItemType",itemType);
+				put(retStringDict,"PartNumber",partNumber);
+				put(retFloatDict,"VendorCost",vendorCost);
+				put(retFloatDict,"ListPrice",listPrice);
+				put(retFloatDict,"FrozenCost",frozenCost);
+				put(retStringDict,"PriceUpliftCategory",priceUpliftCategory);
+				put(retStringDict,"marketPlace",marketPlace);
+				put(retStringDict,"fyCustomerStartType",fyCustomerStartTypeVal);
+				put(retStringDict,"fyCustomerStartTypeException",fyCustomerStartTypeException);
+				put(retStringDict,"fYStartProductionZBA",fYStartProductionZBA);
+				put(retStringDict,"processGroup",processGroup);
+				put(retFloatDict,"ITSUnitSalesCost",eachLine.unitCost_l);
+				put(retStringDict,"EquipmentComment",eachLine._line_item_comment);
+				put(retStringDict,"RicohVendorQuoteNumber",eachLine.vendorQuoteNumber_VLIG);
+				put(retFloatDict,"unitSRP_l",eachLine.unitSRP_l);
+				put(retFloatDict,"unitSRPBackend_l",eachLine.unitSRPBackend_l); //CR28 added by Vasundhara
+				put(retStringDict,"modelNameForParts",modelNameForParts); //Added by Vasundhara for Defect 14742
+				put(retIntegerDict,"_price_quantity",eachLine._price_quantity); //Added by Vasundhara for Defect 14742
+				put(retStringDict,"VariableItem",eachLine._part_custom_field27); //Added by Vasundhara for Defect 14742
+				put(retStringDict,"FIPItemsFlag",FIPItemsFlag); //Defect-15149 added by Vasundhara
+				put(retIntegerDict,"FIPvalidFieldQty",FIPvalidFieldQty); //Defect-15149 added by Vasundhara
+				put(retFloatDict,"CostOfMoney",CostOfMoney); //CR28 added by Vasundhara
+				put(retStringDict,"chargeType",eachLine.chargeType_l); //CR28 added by Vasundhara
+				put(retBooleanDict,"includeInMSAddress",eachLine.includeInMS_l); //CR28 added by Vasundhara
+				put(retIntegerDict,"termMonthInNumber",termMonthInNumber); //CR28 Added by Vasundhara
+				put(retBooleanDict,"addToTransactionItemSearchFlag_t",addToTransactionItemSearchFlag_t); //CR28 added by Vasundhara
+				if(triggersOn == "Save/Calculate"){ //Defect 17654 Added by Vasundhara
+					put(retBooleanDict,"addToTransactionItemSearchFlag_t",false); //CR28 added by Vasundhara
+				}
+				//START 08_20_2023 PERFORMANCE_ACTIVITIES Added by Vasundhara.
+				put(retFloatDict,"cashPrice",cashPrice);
+				put(retFloatDict,"sMA",sMA);
+				put(retFloatDict,"minGPPercentage",minGPPercentage);
+				put(retFloatDict,"productFloor",productFloor);
+				put(retFloatDict,"sgaSegement",sgaSegement);
+				put(retFloatDict,"hardwareTargetPrice",hardwareTargetPrice);
+				put(retStringDict,"fplaFlag",fplaFlag);
+				put(retStringDict,"codePresent",codePresent); //Added for Defect-18915 PS_PRICING 
+				put(retFloatDict,"rebatePercentage",rebatePercentage);
+				//END 08_20_2023 PERFORMANCE_ACTIVITIES Added by Vasundhara.
+				/*-Supriya RWA Conditonal change*/
+				if((processGroup == "ITS" AND modelName <> "Managed Services" AND transactionType_t <> "migratedQuote" AND bundleNameRWA=="") OR (processGroup == "SC" AND modelName <> "Managed Services") OR FIPItemsFlag == "Y"){//Defect-16339 Managed Services Pricing - Added modelName condition so that this doesnot excecute for Managed services model + ITS line by Vasundhara //Added Managed Services condition to exclude PS items used for MS CR69 by Vasundhara
+				//print "partNumber " + partNumber;
+					result = result + util.getPricingForITSAndSC(retStringDict,retIntegerDict,retFloatDict,retBooleanDict);
+				}
+				if(eachLine.chargeType_l == "Recurring"){
+					result = result + docNum + "~subscriptionBillingFrequency_l~Monthly|";
+				}
+				if(eachLine._parent_doc_number <> ""){
+					if(find(applicableProcessGroup, "SA") == -1 AND processGroup == "SA"){
+						applicableProcessGroup = applicableProcessGroup + "SA@@";
+					}
+					if(find(applicableProcessGroup, "ITS") == -1 AND processGroup == "ITS"){
+						applicableProcessGroup = applicableProcessGroup + "ITS@@";
+					}
+					if(find(applicableProcessGroup, "SC") == -1 AND processGroup == "SC"){
+						applicableProcessGroup = applicableProcessGroup + "SC@@";
+					}
+					if(find(applicableProcessGroup, "MS") == -1 AND processGroup == "MS"){
+						applicableProcessGroup = applicableProcessGroup + "MS@@";
+					}
+				}
+				if(partNumber == "MAP-GENERIC" AND containsMapGenericItemInQuote == false){
+					containsMapGenericItemInQuote = true;
+				}
+				if(partNumber == "MAP-GENERIC"){
+					append(lineIdArray,"ITS" + "-" + transactionID_t + "-" + docNum);
+				}
+				// Added for ITS  Market activation - Start
+				if(partNumber == "MAP-GENERIC" AND eachLine.mAPGENERICItemsStatus_l <> "Item Creation Requested" AND eachLine.mAPGENERICItemsStatus_l <>"Item Created"){
+					mapgenericdocunum = mapgenericdocunum + eachLine._document_number + ",";
+				} 
+				// End- Added for ITS  Market activation
+				//Added By ND: 9/28/2022 - CR# 64
+				if(eachLine.preparedBy_l == ""){
+					//preparedN = _system_user_first_name+" "+_system_user_last_name;
+					preparedN = _system_user_email;
+					result = result + docNum + "~preparedBy_l~"+preparedN+"|";
+				}
+				//POST MVP CR#69 description by Namrata
+				if(partNumber == "MS-PS-MPS-TAMT" OR partNumber == "MS-PS-ECM-TAMT") {
+					WarningMsg = "<html><body><table>";
+					WarningMsg = WarningMsg + "<tr><td><ul>EDP Code "+partNumber+" is not in use. Please select new EDP code.</ul></td> </tr>";
+					WarningMsg = WarningMsg + " </table></body></html>";
+				}else{
+					WarningMsg = "";
+	
+				}			
+				result = result + docNum + "~parentModel_l~"+parentModelName+"|";
+				result = result + docNum + "~processGroup_l~"+ProcessGroup+"|";//description by Namrata  as part of performance tuning
+			}
+		}
+		
+		if(eachLine._model_name <> ""){
+			
+			if(not(containskey(parentDict,eachLine._document_number))){
+				
+					result = result + eachLine._document_number + "~isChildExist_c~"+string(true)+"|";
+			}else{
+				result = result + eachLine._document_number + "~isChildExist_c~"+string(false)+"|";
+			}
+		}
+		//added by Namrata for CR-24 CHG0085215
+		if(findinarray(ZebraOneCareArr , eachLine._group_sequence_number) <> -1){
+			linkedItemVal = get(zebraLinkedItemDict,eachLine._group_sequence_number);
+			if(linkedItemVal == "" OR findinarray(PSOneCareArr , linkedItemVal) == -1){
+			result = result + eachLine._document_number+ "~extendedSupportTermValidationMultipleLinkedItems_l~" + "PS One Care Item not Linked" + "|";
+			}
+			else {
+			result = result + eachLine._document_number+ "~extendedSupportTermValidationMultipleLinkedItems_l~" + "" + "|";
+	
+			}	
+		}
+		//added by Namrata for CR-24 CHG0085215
+	
+		//Added by Namrata for MPS CHG0085215
+		if(eachLine._part_number == "MS-MPS-FLEET-OTHER"){
+			if(OtherFlagMPS_t == true){
+				if(find(storeOtherItemsMPS_c,eachLine._document_number) == -1){
+				OtherFlag_MPS = true;
+				break;
+				}else{
+					OtherFlag_MPS = false;
+				}
+
+			}else{
+				if(find(storeOtherItemsMPS_c,eachLine._document_number) ==-1){
+					OtherFlag_MPS = true;
+					break;
+				}else {
+					OtherFlag_MPS = false;
+
+				}
+			}
+			print OtherFlag_MPS;
+		}	
+		
+	}
+	//MPS_Performance_Testing
+	/*if(RECORDLOGTIME_FLAG){
+	t4=getCurrentTimeInMillis();
+	currentDateTime = getstrdate();
+	u = t4-t3;
+	print "MPS_Performance_PricingMainBeforeFormulas_TimeDiff6:"+transactionID_t+":" + string(u);
+	print "MPS_Performance_PricingMainBeforeFormulas_DateAndTime6:"+transactionID_t+":" + currentDateTime;
+	}*/
+	
+	//START - Performance_Code_Changes //CHG0078656 : CPQ MS- CPQ Changes deployment//
+	if(modelsContainsInQuote <> "Managed Print Services" AND modelsContainsInQuote <> "Ricoh Managed Services" AND modelsContainsInQuote <> "" AND find(modelsContainsInQuote,"Service Advantage Model") <> -1){// 01_03_2024 #CHG0085215 for MPS_Performance_Code_Changes_by_Vasundhara
+		result = result + commerce.sAPricing();
+	}
+	//END - Performance_Code_Changes //CHG0078656 : CPQ MS- CPQ Changes deployment//
+	// print "parentDocNumArray----";
+	// print parentDocNumArray;
+	// print docNumArray;
+	// print modelDocNumArray;
+	// print modelsContainsInQuote;
+	if(sizeofarray(parentDocNumArray) == 0 AND sizeofarray(docNumArray) > 0){
+		validateModel = false;
+	}
+	for eachDocNum in modelDocNumArray{
+		validateModel = false;
+		if(findinarray(parentDocNumArray,eachDocNum) == -1){
+			validateModel = true;
+			break;
+		}
+	}
+	recordSet = bmql("select LineId from Marketing_Mapping where LineId in $lineIdArray");
+	for eachRecord in recordSet{
+		removeIndex = findinarray(lineIdArray,get(eachRecord,"LineId"));
+		if(removeIndex <> -1){
+			remove(lineIdArray,removeIndex);
+		}
+	}
+	if(sizeofarray(lineIdArray) > 0){
+		containsMapGenericNotsubmittedItemsForCreation = true;
+	}
+	if(isnull(vehicleFlag_Vehicle_MS) AND vehicleFlag_Vehicle_MS <> "true"){
+		vehicleFlag_Vehicle_MS = "false";
+	}
+	//START_Added by Namrata for MPS CHG0085215
+	if(triggersOn == "Save/Calculate"){ 
+	result = result  + "1~storeOtherItemsMPS_c~" +DocumentNumebrString + "|";
+	}
+	if( OtherFlag_MPS == true){
+		result = result  + "1~OtherFlagMPS_t~" +string(OtherFlag_MPS) + "|";
+	}else {
+	result = result  + "1~OtherFlagMPS_t~" +string(false) + "|";
+	}
+	//END_Added by Namrata for MPS CHG0085215
+	
+	result = result  + "1~vehicleOtherFlag_t~" + vehicleFlag_Vehicle_MS + "|";
+	result = result  + "1~applicableProcessGroup_t~" + applicableProcessGroup + "|";
+	result = result  + "1~validateModel_t~" + string(validateModel) + "|";
+	result =  result + "1~containsMapGenericItem_t~" + string(containsMapGenericItemInQuote) + "|";
+	result =  result + "1~containsNONSubmittedItemsForCreation_t~" + string(containsMapGenericNotsubmittedItemsForCreation) + "|";
+	result =  result + "1~mAPGENERICDocumentNumbers_t~" + mapgenericdocunum + "|";
+	result =  result + "1~lIGLocationSiteID_t~" + get(locIddict,"locationId") + "|";
+	result =  result + "1~mSCER_t~" + join(cEROnlyArr, ", ")  + "|";
+	result =  result + "1~vehicleDescription_t~" + join(vehicleDescArr, ", ")  + "|";
+	result = result + "1~quoteProduct_t~"+quoteProduct+"|";
+	result = result + "1~isMPSConfigured_c~"+string(isMPS)+"|";
+	
+	result = result + "1~tASSLabourWarningText_t~"+WarningMsg+"|";
+	//START 08_20_2023 PERFORMANCE_ACTIVITIES Added by Vasundhara.
+	result = result + "1~pLCashJsonString_t~" + plCashJsonStr + "|";
+	result = result + "1~plAttributesJsonString_t~" + plAttributesJsonStr + "|";
+	result = result + "1~upliftJsonString_t~" + upliftJsonStr + "|";
+	//END 08_20_2023 PERFORMANCE_ACTIVITIES Added by Vasundhara.
+	result = result  + "1~containsMPSLines_t_c~" +string(containsMPSLines) + "|"; //START 13_11_2023 added by Vasundhara for MPS Pricing #CHG0085215
+	result= result + "1~entitlementRISE_c~"+join(entitlementArr, ",") + "|";
+	result= result + "1~rMSSCLevelPIMA_c~"+ join(rmsscArr,",")+ "|";
+	//print rmsscArr;
+	result= result + "1~leadPricingStratergy_RISE_c~"+ join(leadPriceStrategyArr,",")+ "|";
+	result = result + "1~mSModelFlag_t~" + string(msModelFlag) + "|"; 
+	//Added by Namrata for MPS CHG0085215
+	
+	//MPS_Performance_Testing
+	/*if(RECORDLOGTIME_FLAG){
+	t5=getCurrentTimeInMillis();
+	currentDateTime = getstrdate();
+	u = t4-t3;
+	print "MPS_Performance_PricingMainBeforeFormulas_TimeDiff7:"+transactionID_t+":" + string(u);
+	print "MPS_Performance_PricingMainBeforeFormulas_DateAndTime7:"+transactionID_t+":" + currentDateTime;
+	}*/
+	return result;

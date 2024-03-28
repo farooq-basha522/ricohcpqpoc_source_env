@@ -1,0 +1,33 @@
+//  Define the String parameter that will be returned by the function.
+returnString = "";
+
+//  Define a JSON Array to hold the extracted data from the Data Table.
+shippingMethods = jsonArray();
+
+
+//  Perform BMQL Query of the "Shipping Options" Data Table to gather all of data rows.
+//optionList = bmql("select distinct Account, AddressLine1, City, State, ZipCode, LocationName from Customer_Acnt_Data where Account=$account AND (City=$city OR State=$state OR ZipCode=$zipCode)");
+optionList = bmql("select distinct Account, AddressLine1, City, State, ZipCode, LocationName from Customer_Acnt_Data where Account=$account");
+index = 0;
+optionJson = json();
+//  Perform a loop over the returned Data Table rows.
+for option in optionList {
+//      Create a JSON string containing the data from the rows of the Data Table.	
+        
+//      Put into the optionJson string the Key:Value pairs for each column in the table.
+	jsonput(optionJson,"locationName_Result_t",get(option,"LocationName"));
+	jsonput(optionJson,"addressLine_Result_t",get(option,"AddressLine1"));
+	jsonput(optionJson,"zipCode_Result_t",get(option,"ZipCode"));
+	jsonput(optionJson,"state_Result_t",get(option,"State"));
+	jsonput(optionJson,"city_Result_t",get(option,"City"));
+	index = index + 1;
+//      Append the optionJson string to the shippingMethods JSON Array object.  Each iteration adds one row to the JSON Array.	
+	jsonarrayappend(shippingMethods, optionJson);	
+}
+
+//  Build the returnString, adding the transaction_document_number (which is required), the Array Set Commerce attribute (shippintOptions)
+//  and the JSON Reference ID of the shippingMethods JSON Array.
+returnString = returnString + "1" + "~customerAccountResultCount_t~" + string(index) + "|";
+returnString = returnString + "1" + "~customerAccountResult_t~" + jsonarrayrefid(shippingMethods) + "|";
+	
+return returnString;

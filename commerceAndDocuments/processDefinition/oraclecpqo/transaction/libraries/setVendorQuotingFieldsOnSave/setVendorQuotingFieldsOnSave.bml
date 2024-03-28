@@ -1,0 +1,230 @@
+result = "";
+lastLineID = "";
+lastRicohVendorQuoteNumber = "";
+quoteSummaryArrayJson = quoteWorkbench_VQt;
+itemAddedQuote = String[];
+lineIDArray = float[];
+ricohVendorQuoteNumberArray = integer[];
+if(jsonarraysize(quoteSummaryArrayJson) > 0){
+	quoteSummaryItemsArraySize = jsonarraysize(quoteSummaryArrayJson);
+	lastIndexInQuoteSummary = quoteSummaryItemsArraySize-1;
+
+	quoteSummaryJSON = jsonarrayget(quoteSummaryArrayJson,lastIndexInQuoteSummary,"json");
+	quoteSummaryJSONKeys = jsonkeys(quoteSummaryJSON);
+	ricohEDPCode_QuoteWorkbench_t = jsonget(quoteSummaryJSON,"ricohEDPCode_QuoteWorkbench_t");	
+	
+	if(findinarray(quoteSummaryJSONKeys,"lineID_t") <> -1){
+		lastLineID = jsonget(quoteSummaryJSON,"lineID_t");//Line ID
+		if(find(lastLineID,"CPQ") <> -1 AND lastLineID <> ""){
+			lastlineIDArray = split(lastLineID,"-");
+			if(sizeofarray(lastlineIDArray) > 3 AND isnumber(lastlineIDArray[3])){
+				append(lineIDArray,atof(lastlineIDArray[3]));
+			}
+		}
+	}
+	if(findinarray(quoteSummaryJSONKeys,"vendorQuoteNumbers_QuoteWorkbench_t") <> -1){
+		lastRicohVendorQuoteNumber = jsonget(quoteSummaryJSON,"vendorQuoteNumbers_QuoteWorkbench_t");//Ricoh Vendor Quote request Number
+		if(find(lastRicohVendorQuoteNumber,"CPQ") <> -1){
+			lastRicohVendorQuoteNumberArray = split(lastRicohVendorQuoteNumber,"-");
+			if(sizeofarray(lastRicohVendorQuoteNumberArray) > 2 AND isnumber(lastRicohVendorQuoteNumberArray[2])){
+				append(ricohVendorQuoteNumberArray,integer(atof(lastRicohVendorQuoteNumberArray[2])));
+			}
+		}
+	}
+	itemsAddedDirectOnQuoteSummary = jsonget(quoteSummaryJSON,"itemsAddedDirectOnQuoteSummary");
+		vendorName_QuoteWorkbench_t = jsonget(quoteSummaryJSON,"vendorName_QuoteWorkbench_t");
+
+	if(NOT ISNULL(itemsAddedDirectOnQuoteSummary) AND itemsAddedDirectOnQuoteSummary <> "" OR (NOT ISNULL(vendorName_QuoteWorkbench_t) AND lower(vendorName_QuoteWorkbench_t) == "ricoh" OR (vendorName_QuoteWorkbench_t == "Ricoh")) ){
+		append(itemAddedQuote,trim(ricohEDPCode_QuoteWorkbench_t));
+	}
+}
+recordSet = BMQL("select custom_field23, custom_field20 ,part_number ,description from _parts where part_number IN $itemAddedQuote");
+getPartsData = dict("string");
+finalReturnJSON = jsonarray();
+itemCodeExistsStr = "";
+portfoliDict = dict("string");
+		portfolioFlag = "";
+for eachpart in recordSet {
+		
+		vPartName = get(eachpart ,"custom_field20");
+		vItemType = get(eachpart ,"custom_field23");
+		richoErpCode = get(eachpart,"part_number");
+		vDescription = get(eachpart,"description");	
+		tempStr = vItemType+"@@"+vPartName+"@@"+vDescription;
+		put(getPartsData,richoErpCode,tempStr);
+		itemCodeExistsStr = "Yes";
+	if(itemCodeExistsStr == "Yes"){
+		customField24 = "_part_custom_field24";
+		portfolioFlagDict = util.getCustomfieldValueForPartNumber(itemAddedQuote,customField24);
+		if(containskey(portfolioFlagDict,richoErpCode)){
+			portfolioFlag = get(portfolioFlagDict,richoErpCode);
+			//START - Added by Vasundhara P on 12/10/2022 - Added below condition for CR-130 to consider Portfolio flag as Yes if its empty from Parts DB.
+			if(isnull(get(portfolioFlagDict,richoErpCode)) OR get(portfolioFlagDict,richoErpCode) == "" OR get(portfolioFlagDict,richoErpCode) == "null"){
+				portfolioFlag = "YES";
+			}
+			//END - Added by Vasundhara P on 12/10/2022 - Added above condition for CR-130 to consider Portfolio flag as Yes if its empty from Parts DB.
+		}
+	}
+	put(portfoliDict,richoErpCode,portfolioFlag);
+}
+
+quoteWorkbenchArray = quoteWorkbench_VQt; 
+arraysize = range(jsonarraysize(quoteWorkbenchArray));
+quoteSummary_D = json();
+jsonput(quoteSummary_D,"data",quoteWorkbenchArray);
+updateArray = false;
+splitString = string[];
+quoteWorkbenchArray1 = jsonarray();
+for arr in arraysize{
+	selectedItemsRow = jsonarrayget(quoteWorkbenchArray,arr);
+	selectedItemsJson = json(selectedItemsRow);
+	selectAll_QuoteWorkbench_t = jsonget(selectedItemsJson,"selectAll_QuoteWorkbench_t");
+	lineID_t = jsonget(selectedItemsJson,"lineID_t");
+	vendorQuoteNumbers_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorQuoteNumbers_QuoteWorkbench_t");
+	vendorName_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorName_QuoteWorkbench_t");
+	vendorEmail_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorEmail_QuoteWorkbench_t");
+	itemType_QuoteWorkbench_t = jsonget(selectedItemsJson,"itemType_QuoteWorkbench_t");
+	quoteReceived_QuoteWorkbench_t = jsonget(selectedItemsJson,"quoteReceived_QuoteWorkbench_t");
+	quoteExpiration_QuoteWorkbench_t = jsonget(selectedItemsJson,"quoteExpiration_QuoteWorkbench_t");
+	vendorProductNumber_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorProductNumber_QuoteWorkbench_t");
+	ricohEDPCode_QuoteWorkbench_t = jsonget(selectedItemsJson,"ricohEDPCode_QuoteWorkbench_t");
+	ricohEDPCodeDescription_QuoteWorkbench_t = jsonget(selectedItemsJson,"ricohEDPCodeDescription_QuoteWorkbench_t");
+	portfolioFlag_QuoteWorkbench_t = jsonget(selectedItemsJson,"portfolioFlag_QuoteWorkbench_t");
+	quantity_QuoteWorkbench_t = jsonget(selectedItemsJson,"quantity_QuoteWorkbench_t");
+	unitCost_QuoteWorkbench_t = jsonget(selectedItemsJson,"unitCost_QuoteWorkbench_t");
+	unitMSRP_QuoteWorkbench_t = jsonget(selectedItemsJson,"unitMSRP_QuoteWorkbench_t");
+	instructions_QuoteWorkbench_t_c = jsonget(selectedItemsJson,"instructions_QuoteWorkbench_t_c");
+	vendorRequestStatus_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorRequestStatus_QuoteWorkbench_t");
+	processGroup_quoteWorkbench_t = jsonget(selectedItemsJson,"processGroup_quoteWorkbench_t");
+	vendorProductDescription_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorProductDescription_QuoteWorkbench_t");
+	itemCreationFlag_quoteWorkbench_t = jsonget(selectedItemsJson,"itemCreationFlag_quoteWorkbench_t");
+	whyIsntARicohSolutionBeingProposed_QuoteWorkbench_ = jsonget(selectedItemsJson,"whyIsntARicohSolutionBeingProposed_QuoteWorkbench_");
+    vendorQuoteRequestNumber_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorQuoteRequestNumber_QuoteWorkbench_t");
+	quoteRequestedBy_QuoteWorkbench_t = jsonget(selectedItemsJson,"quoteRequestedBy_QuoteWorkbench_t");
+	reasonForRejection_t = jsonget(selectedItemsJson,"reasonForRejection_t");
+	quoteRequestedEmail_QuoteWorkbench_t = jsonget(selectedItemsJson,"quoteRequestedEmail_QuoteWorkbench_t");
+	quoteRequestedBy_QuoteWorkbench_t = jsonget(selectedItemsJson,"quoteRequestedBy_QuoteWorkbench_t");
+	vendorQuoteRequestNumber_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorQuoteRequestNumber_QuoteWorkbench_t");
+	//portfolioFlag_selectedItemsArray_t = jsonget(selectedItemsJson,"portfolioFlag_selectedItemsArray_t");
+	itemsAddedDirectOnQuoteSummary = jsonget(selectedItemsJson,"itemsAddedDirectOnQuoteSummary");
+		//ricohVendorQuoteLineId_QuoteWorkbench_t = jsonget(selectedItemsJson,"ricohVendorQuoteLineId_QuoteWorkbench_t");
+				vendorQuoteName_SRD = jsonget(selectedItemsJson,"vendorQuoteName_SRD");
+
+
+	convertString="";
+	if(NOT ISNULL(whyIsntARicohSolutionBeingProposed_QuoteWorkbench_)){
+	convertString = replace(replace(replace(whyIsntARicohSolutionBeingProposed_QuoteWorkbench_,"\"",""),"[",""),"]","");
+	}
+	if(NOT ISNULL(ricohEDPCode_QuoteWorkbench_t) AND containskey(getPartsData,ricohEDPCode_QuoteWorkbench_t)){
+		temp = get(getPartsData,ricohEDPCode_QuoteWorkbench_t);
+		splitString = split(temp,"@@");
+		if(containskey(portfoliDict,ricohEDPCode_QuoteWorkbench_t)){
+		portfolioFlag = get(portfoliDict,ricohEDPCode_QuoteWorkbench_t);
+		}
+	}
+	if((NOT ISNULL(itemsAddedDirectOnQuoteSummary) AND itemsAddedDirectOnQuoteSummary == "Yes") OR (NOT ISNULL(vendorName_QuoteWorkbench_t) AND lower(vendorName_QuoteWorkbench_t) == "ricoh" OR (vendorName_QuoteWorkbench_t == "Ricoh"))){
+	//itemType_QuoteWorkbench_t = splitString[0];
+	vendorProductNumber_QuoteWorkbench_t = splitString[1];
+	ricohEDPCodeDescription_QuoteWorkbench_t = splitString[2];
+	portfolioFlag_QuoteWorkbench_t = portfolioFlag;
+	/* jsonpathset(quoteSummary_D,"$.data[?(@.itemsAddedDirectOnQuoteSummary =='Yes'  && @.ricohEDPCode_QuoteWorkbench_t =='"+ricohEDPCode_QuoteWorkbench_t+"')].itemType_QuoteWorkbench_t",splitString[0]);
+	jsonpathset(quoteSummary_D,"$.data[?(@.itemsAddedDirectOnQuoteSummary =='Yes'  && @.ricohEDPCode_QuoteWorkbench_t =='"+ricohEDPCode_QuoteWorkbench_t+"')].vendorProductNumber_QuoteWorkbench_t",splitString[1]);
+    jsonpathset(quoteSummary_D,"$.data[?(@.itemsAddedDirectOnQuoteSummary =='Yes'  && @.ricohEDPCode_QuoteWorkbench_t =='"+ricohEDPCode_QuoteWorkbench_t+"')].ricohEDPCodeDescription_QuoteWorkbench_t",splitString[2]); */
+	updateArray = true;
+	}
+	if(updateArray AND  NOT ISNULL(jsonget(selectedItemsJson,"vendorProductNumber_QuoteWorkbench_t")) AND jsonget(selectedItemsJson,"vendorProductNumber_QuoteWorkbench_t") <> ""){
+			vendorProductNumber_QuoteWorkbench_t = jsonget(selectedItemsJson,"vendorProductNumber_QuoteWorkbench_t");
+	}
+	if(updateArray AND (NOT ISNULL(jsonget(selectedItemsJson,"ricohEDPCodeDescription_QuoteWorkbench_t")) AND jsonget(selectedItemsJson,"ricohEDPCodeDescription_QuoteWorkbench_t") <> "")){
+					ricohEDPCodeDescription_QuoteWorkbench_t = jsonget(selectedItemsJson,"ricohEDPCodeDescription_QuoteWorkbench_t");
+
+	}if(updateArray AND (NOT ISNULL(jsonget(selectedItemsJson,"itemType_QuoteWorkbench_t")) AND jsonget(selectedItemsJson,"itemType_QuoteWorkbench_t") <> "")){
+		
+			itemType_QuoteWorkbench_t = jsonget(selectedItemsJson,"itemType_QuoteWorkbench_t");
+	}
+	if(updateArray AND (NOT ISNULL(jsonget(selectedItemsJson,"portfolioFlag_QuoteWorkbench_t")) AND jsonget(selectedItemsJson,"portfolioFlag_QuoteWorkbench_t") <> "")){
+					portfolioFlag_QuoteWorkbench_t = jsonget(selectedItemsJson,"portfolioFlag_QuoteWorkbench_t");
+	}
+	if(NOT ISNULL(unitCost_QuoteWorkbench_t) AND ISNUMBER(unitCost_QuoteWorkbench_t)){
+		unitCost_QuoteWorkbench_t = string(round(atof(unitCost_QuoteWorkbench_t),2));
+	}
+	if(NOT ISNULL(unitMSRP_QuoteWorkbench_t) AND ISNUMBER(unitMSRP_QuoteWorkbench_t)){
+		unitMSRP_QuoteWorkbench_t = string(round(atof(unitMSRP_QuoteWorkbench_t),2));
+	}
+	
+		
+
+	
+	quoteWorkbenchJson = json();
+	jsonput(quoteWorkbenchJson,"selectAll_QuoteWorkbench_t",false);
+	jsonput(quoteWorkbenchJson,"itemType_QuoteWorkbench_t",itemType_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"vendorQuoteNumbers_QuoteWorkbench_t",vendorQuoteNumbers_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"vendorName_QuoteWorkbench_t",vendorName_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"vendorEmail_QuoteWorkbench_t",vendorEmail_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"quoteReceived_QuoteWorkbench_t",quoteReceived_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"quoteExpiration_QuoteWorkbench_t",quoteExpiration_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"vendorProductNumber_QuoteWorkbench_t",vendorProductNumber_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"vendorProductDescription_QuoteWorkbench_t",vendorProductDescription_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"ricohEDPCode_QuoteWorkbench_t",ricohEDPCode_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"ricohEDPCodeDescription_QuoteWorkbench_t",ricohEDPCodeDescription_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"quantity_QuoteWorkbench_t",quantity_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"unitCost_QuoteWorkbench_t",unitCost_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"unitMSRP_QuoteWorkbench_t",unitMSRP_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"instructions_QuoteWorkbench_t_c",instructions_QuoteWorkbench_t_c);
+	jsonput(quoteWorkbenchJson,"vendorRequestStatus_QuoteWorkbench_t",vendorRequestStatus_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"portfolioFlag_QuoteWorkbench_t",portfolioFlag_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"processGroup_quoteWorkbench_t",processGroup_quoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"itemCreationFlag_quoteWorkbench_t",itemCreationFlag_quoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"whyIsntARicohSolutionBeingProposed_QuoteWorkbench_",convertString);
+	jsonput(quoteWorkbenchJson,"reasonForRejection_t",reasonForRejection_t);
+	jsonput(quoteWorkbenchJson,"quoteRequestedEmail_QuoteWorkbench_t",quoteRequestedEmail_QuoteWorkbench_t);
+    jsonput(quoteWorkbenchJson,"quoteRequestedBy_QuoteWorkbench_t",quoteRequestedBy_QuoteWorkbench_t);
+    jsonput(quoteWorkbenchJson,"vendorQuoteRequestNumber_QuoteWorkbench_t",vendorQuoteRequestNumber_QuoteWorkbench_t);
+	jsonput(quoteWorkbenchJson,"itemsAddedDirectOnQuoteSummary",itemsAddedDirectOnQuoteSummary);
+//jsonput(quoteWorkbenchJson,"ricohVendorQuoteLineId_QuoteWorkbench_t",ricohVendorQuoteLineId_QuoteWorkbench_t);
+jsonput(quoteWorkbenchJson,"vendorQuoteName_SRD",vendorQuoteName_SRD);
+
+    //jsonput(quoteWorkbenchJson,"portfolioFlag_selectedItemsArray_t",portfolioFlag_selectedItemsArray_t);
+    jsonput(quoteWorkbenchJson,"lineID_t",lineID_t);
+	eliminateDuplicate = jsontostr(quoteWorkbenchJson);
+    if(NOT ISNULL(vendorQuoteNumbers_QuoteWorkbench_t) AND vendorQuoteNumbers_QuoteWorkbench_t <> ""){
+	jsonarrayappend(quoteWorkbenchArray1,quoteWorkbenchJson);
+	}
+}
+if(updateArray){// AND _system_user_name == "shaikf2@hexaware.com"){
+//finalReturnJSON = jsonarray(jsonget(quoteSummary_D,"data"));
+result = result + "1~quoteWorkbench_VQt~" + jsonarraytostr(quoteWorkbenchArray1)+ "|" ;
+}
+selectedItemsJSONArray = selectedItemsArray;
+selectedItemsArrayIndex = range(jsonarraysize(selectedItemsJSONArray));
+if(jsonarraysize(selectedItemsJSONArray) > 0){
+	selectedItemsArraySize = jsonarraysize(selectedItemsJSONArray);
+	lastIndexInSelectedItems = selectedItemsArraySize-1;
+	selectedItemsJSON = jsonarrayget(selectedItemsJSONArray,lastIndexInSelectedItems,"json");
+	lastLineID = jsonget(selectedItemsJSON,"lineID_selecteditemArray");//Line ID
+	if(find(lastLineID,"CPQ") <> -1){
+		lastlineIDArray = split(lastLineID,"-");
+		if(sizeofarray(lastlineIDArray) > 3 AND isnumber(lastlineIDArray[3])){
+			append(lineIDArray,atof(lastlineIDArray[3]));
+		}
+	}
+	lastRicohVendorQuoteNumber = jsonget(selectedItemsJSON,"vendorRequestNumber_selectedItemsArray");//Ricoh Vendor Quote request Number
+	if(NOT ISNULL(lastRicohVendorQuoteNumber) AND find(lastRicohVendorQuoteNumber,"CPQ") <> -1){//Added by Farooq during Upgrade issue 23C patch 3
+		lastRicohVendorQuoteNumberArray = split(lastRicohVendorQuoteNumber,"-");
+		if(sizeofarray(lastRicohVendorQuoteNumberArray) > 2 AND isnumber(lastRicohVendorQuoteNumberArray[2])){
+			append(ricohVendorQuoteNumberArray,integer(atof(lastRicohVendorQuoteNumberArray[2])));
+		}
+	}
+}
+if(sizeofarray(ricohVendorQuoteNumberArray) > 0){
+	maxQuoteNumber = max(ricohVendorQuoteNumberArray);
+	lastRicohVendorQuoteNumber = transactionID_t + "-" + string(maxQuoteNumber);
+}
+if(sizeofarray(lineIDArray) > 0){
+	lastLineID = lastRicohVendorQuoteNumber + "-" + string(max(lineIDArray));
+}
+result = result + "1~lastLineIDForVendorQuote_vQt~" + lastLineID + "|";
+result = result + "1~successMessageOnAddingVendorItemsString_t~|";
+
+result = result + "1~vendorQuoteRequestNumber_VQt~" + lastRicohVendorQuoteNumber + "|";
+return result;

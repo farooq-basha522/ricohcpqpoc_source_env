@@ -1,0 +1,21 @@
+if (_user_login<> "" AND (find(_user_group, "equipmentQuoters") <> -1 OR find(_user_group, "salesUser") <> -1 OR find(_user_group, "technicalAdminstrator") <> -1 OR find(_user_group, "rICOHCrossSellingDesign") <> -1 OR find(_user_group, "rICOHCrossSellingSalesrep") <> -1)){
+
+	resTable = BMQL("select ViewStatus from RAC_GS_ITS_VIEW WHERE UserLoginId = $_user_login");
+	i = 0;
+	for eachRecord in resTable
+	{		
+		i = i + 1;
+	}
+	
+	if (i>0){
+	
+		delResults = bmql("delete from RAC_GS_ITS_VIEW where UserLoginId = $_user_login");
+		for delresult in delResults {
+		    deletion_count_integer = get(delresult, "records_deleted");
+		}
+	
+	}
+	
+}
+
+return false;

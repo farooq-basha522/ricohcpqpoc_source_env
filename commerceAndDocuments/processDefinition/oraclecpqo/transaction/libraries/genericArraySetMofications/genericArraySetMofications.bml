@@ -1,0 +1,27 @@
+result = "";
+actionName  = "";
+if(containsKey(attrDict,"actionName")){
+actionName = get(attrDict,"actionName","string");
+}
+if(actionName == "modifyArraySet"){
+lastLineID = "";
+lastRicohVendorQuoteNumber = "";
+quoteSummaryArrayJson = quoteWorkbench_VQt;
+finalReturnArrayJSON = jsonarray();
+arraySz = range(jsonarraysize(quoteSummaryArrayJson));
+c=0;
+for each in arraySz{
+	eachJSON = jsonarrayget(quoteSummaryArrayJson,each);
+	retrieveData = jsonget(json(eachJSON),"vendorQuoteNumbers_QuoteWorkbench_t");
+
+	if(NOT ISNULL(retrieveData)){
+		jsonarrayappend(finalReturnArrayJSON,json(eachJSON));
+
+	}
+	
+	
+}
+result = result + "1~quoteWorkbench_VQt~" + jsonarraytostr(finalReturnArrayJSON) + "|";
+}
+
+return result;

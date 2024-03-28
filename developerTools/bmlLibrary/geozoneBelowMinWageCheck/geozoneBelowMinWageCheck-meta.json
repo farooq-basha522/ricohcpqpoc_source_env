@@ -1,0 +1,9 @@
+{
+  "name" : "Current Minimum Wage Validations",
+  "variableName" : "geozoneBelowMinWageCheck",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "JsonArray",
+  "parameters" : [ ],
+  "attributes" : [ ]
+}

@@ -1,0 +1,4 @@
+dateInInputFormat = strtodate(dateString,"%Y-%m-%d %H:%M:%S");
+dateStringInrequiredFormat = datetostr(dateInInputFormat,"MM/dd/yyyy HH:mm:ss");
+returnDate =  strtojavadate(dateStringInrequiredFormat, "MM/dd/yyyy HH:mm:ss");
+return returnDate;

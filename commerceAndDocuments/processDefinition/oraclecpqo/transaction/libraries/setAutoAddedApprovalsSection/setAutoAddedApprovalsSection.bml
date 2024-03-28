@@ -1,0 +1,467 @@
+/******************************************************************************************************/
+//Author : Chakri 05/01/2023
+//Functionality: // HYPERCARE_CR017# Add Fit and Feasibility (F&F) Participants ANd Approvals” section of the CPQ Quote
+//code added by Rohit Ranjan for  CHG0086925 to show LDE manager name for F&F approval.
+/******************************************************************************************************/
+
+res = "";
+emailIdArray = string[];
+fFRoleIdArray = string[];
+fFUserRoleIdArray = string[];
+approvalArrayJson = json();
+MPSjsonData=json();
+approvalArray = jsonarray();
+if(mPSApproversJsonData_c <> "" AND NOT(isnull(mPSApproversJsonData_c))){
+MPSjsonData= json(mPSApproversJsonData_c);
+}
+tempArray1 = string[];
+tempArray = string[];
+tempData = "";
+if(NOT validateModel_t){ //Defect_18610_Added_by_Vasundhara_07-19-2023:Added Validate Model condition to skip the below code to run so that on Refresh approvals if no lines are there, no data to be added to arrayset.
+	// HYPERCARE_CR017# - Spliting the string, getting email from the string and assign to array - Chakri
+	if(notificationEmailsIdsFnFApprovals_t <> "" AND find(notificationEmailsIdsFnFApprovals_t,"@") <> -1){
+		emailIdArray1 = split(lower(notificationEmailsIdsFnFApprovals_t),";");
+		for each in emailIdArray1 {
+			append(emailIdArray,lower(each));
+			append(fFRoleIdArray, "F&F Participant");
+			append(fFUserRoleIdArray, "Email Notification");
+		}
+	}
+
+	//START_CR84_CommentsByVasundhara_07-20-2023_Moving below code to below to do the check of duplicates
+	// HYPERCARE_CR017# - Assigning PDL Manager EMail to Array - Chakri - 
+	/* if(bypassReason_t == "" AND managerOfDesignEmail <> "") {	
+		append(emailIdArray , lower(managerOfDesignEmail));
+		append(fFRoleIdArray, "F&F Approver");
+		append(fFUserRoleIdArray, "PDL Manager");	
+	} */
+	
+	
+	//Add MPS data to auto populate Array
+//ContractTerm
+if (jsonpathcheck(MPSjsonData,"$.contractTerm")){
+	if(not(isjsonnull(MPSjsonData,"contractTerm"))){
+		
+		
+		tempData = jsonget(MPSjsonData,"contractTerm");
+			
+			tempArray= split(tempData,"#$#");
+			if(sizeofarray(tempArray) > 0){
+				for each in tempArray{
+					if(each <> "" AND find(each,"@*@") <> -1){
+						tempArray1 = split(each,"@*@");
+						append(emailIdArray, lower(tempArray1[1]));
+						append(fFRoleIdArray, "F&F Approver");
+						append(fFUserRoleIdArray, "Service Status");
+					}
+				}
+			}
+		
+	}
+}
+if (jsonpathcheck(MPSjsonData,"$.percentageFleet")){
+	if(not(isjsonnull(MPSjsonData,"percentageFleet"))){
+		
+		
+		tempData = jsonget(MPSjsonData,"percentageFleet");
+			
+			tempArray= split(tempData,"#$#");
+			if(sizeofarray(tempArray) > 0){
+				for each in tempArray{
+					if(each <> "" AND find(each,"@*@") <> -1){
+						tempArray1 = split(each,"@*@");
+						append(emailIdArray, lower(tempArray1[1]));
+						append(fFRoleIdArray, "F&F Approver");
+						append(fFUserRoleIdArray, "% Fleet MPS");
+					}
+				}
+			}
+			
+	}
+}
+	
+if (jsonpathcheck(MPSjsonData,"$.conditionalAudit")){
+	if(not(isjsonnull(MPSjsonData,"conditionalAudit"))){
+		
+		
+		tempData = jsonget(MPSjsonData,"conditionalAudit");
+		
+			tempArray= split(tempData,"#$#");
+			if(sizeofarray(tempArray) > 0){
+				for each in tempArray{
+					if(each <> "" AND find(each,"@*@") <> -1){
+						tempArray1 = split(each,"@*@");
+						append(emailIdArray, lower(tempArray1[1]));
+						append(fFRoleIdArray, "F&F Approver");
+						append(fFUserRoleIdArray, "conditional Audit configured No");
+					}
+				}
+			}
+		
+	}
+}
+if (jsonpathcheck(MPSjsonData,"$.otherServices")){
+	if(not(isjsonnull(MPSjsonData,"otherServices"))){
+		
+		
+		tempData = jsonget(MPSjsonData,"otherServices");
+		
+			tempArray= split(tempData,"#$#");
+			if(sizeofarray(tempArray) > 0){
+				for each in tempArray{
+					if(each <> "" AND find(each,"@*@") <> -1){
+						tempArray1 = split(each,"@*@");
+						append(emailIdArray, lower(tempArray1[1]));
+						append(fFRoleIdArray, "F&F Approver");
+						append(fFUserRoleIdArray, "Other Services configured");
+					}
+				}
+			}
+		
+	}
+}
+if (jsonpathcheck(MPSjsonData,"$.percentageFleetConditionAudit")){
+	if(not(isjsonnull(MPSjsonData,"percentageFleetConditionAudit"))){
+		
+		
+		tempData = jsonget(MPSjsonData,"percentageFleetConditionAudit");
+			
+			tempArray= split(tempData,"#$#");
+			if(sizeofarray(tempArray) > 0){
+				for each in tempArray{
+					if(each <> "" AND find(each,"@*@") <> -1){
+						tempArray1 = split(each,"@*@");
+						append(emailIdArray, lower(tempArray1[1]));
+						append(fFRoleIdArray, "F&F Approver");
+						append(fFUserRoleIdArray, "conditional Audit % <100");
+					}
+				}
+			}
+			
+	}
+}
+
+if (jsonpathcheck(MPSjsonData,"$.serviceStatus")){
+	if(not(isjsonnull(MPSjsonData,"serviceStatus"))){
+		
+		
+		tempData = jsonget(MPSjsonData,"serviceStatus");
+	
+			//if(find(tempData,"#$#") <> -1){
+			tempArray= split(tempData,"#$#");
+			if(sizeofarray(tempArray) > 0){
+				for each in tempArray{
+					if(each <> "" AND find(each,"@*@") <> -1){
+						tempArray1 = split(each,"@*@");
+						append(emailIdArray, lower(tempArray1[1]));
+						append(fFRoleIdArray, "F&F Approver");
+						append(fFUserRoleIdArray, "service Status is Obselute");
+					}
+				}
+			}
+			
+		//}
+	}
+}
+
+if (jsonpathcheck(MPSjsonData,"$.serviceEntity")){
+	if(not(isjsonnull(MPSjsonData,"serviceEntity"))){
+		
+		
+		tempData = jsonget(MPSjsonData,"serviceEntity");
+			// if(find(tempData,"#$#") <> -1){
+			tempArray= split(tempData,"#$#");
+			if(sizeofarray(tempArray) > 0){
+				for each in tempArray{
+					if(each <> "" AND find(each,"@*@") <> -1){
+						tempArray1 = split(each,"@*@");
+						append(emailIdArray, lower(tempArray1[1]));
+						append(fFRoleIdArray, "F&F Approver");
+						append(fFUserRoleIdArray, "service Entity is not Ricoh");
+					}
+				}
+			}
+			
+		//}
+	}
+}
+if (jsonpathcheck(MPSjsonData,"$.breakfixResponse")){
+	if(not(isjsonnull(MPSjsonData,"breakfixResponse"))){
+		print "154---";
+		
+		tempData = jsonget(MPSjsonData,"breakfixResponse");
+		print "tempData---";
+		print tempData;
+		
+			tempArray= split(tempData,"#$#");
+			if(sizeofarray(tempArray) > 0){
+				for each in tempArray{
+					if(each <> "" AND find(each,"@*@") <> -1){
+						tempArray1 = split(each,"@*@");
+						append(emailIdArray, lower(tempArray1[1]));
+						append(fFRoleIdArray, "F&F Approver");
+						append(fFUserRoleIdArray, "breakfix Response 4 Hours");
+					}
+				}
+			}
+			
+		
+	}
+}
+print "--209--";
+print emailIdArray;
+print fFUserRoleIdArray;
+
+	//END_CR84_CommentsByVasundhara_07-20-2023_Moving above code to below to do the check of duplicates
+
+	// HYPERCARE_CR017# - Spliting the string, getting email from the string and assign to array - Chakri
+	if(nOMFnFApprovalUser_t<> ""){
+		NOMUserListRowArray = split(nOMFnFApprovalUser_t,"#$#");
+		if(sizeofarray(NOMUserListRowArray) > 0){
+			for each in NOMUserListRowArray{
+				if(each <> "" AND find(each,"@*@") <> -1){
+					NOMUserListColumnArray = split(each,"@*@");
+					append(emailIdArray, lower(NOMUserListColumnArray[1]));
+					append(fFRoleIdArray, "F&F Approver");
+					append(fFUserRoleIdArray, "NOM User");					
+				}
+			}
+		}
+	}
+			
+	// HYPERCARE_CR017# - Spliting the string, getting email from the string and assign to array - Chakri
+	if(eDOFnFApprovalUer_t<> ""){
+		EDOUserListRowArray = split(eDOFnFApprovalUer_t,"#$#");
+		if(sizeofarray(EDOUserListRowArray) > 0){
+			for each in EDOUserListRowArray{
+				if(each <> "" AND find(each,"@*@") <> -1){
+					EDOUserListColumnArray = split(each,"@*@");
+					append(emailIdArray, lower(EDOUserListColumnArray[1]));
+					append(fFRoleIdArray, "F&F Approver");
+					append(fFUserRoleIdArray, "EDO User");
+				}
+			}
+		}
+	}
+			
+	// HYPERCARE_CR017# - Spliting the string, getting email from the string and assign to array - Chakri
+	if(aDOFnFApproverUser_t<> ""){
+		ADOUserListRowArray = split(aDOFnFApproverUser_t,"#$#");
+		if(sizeofarray(ADOUserListRowArray) > 0){
+			for each in ADOUserListRowArray{
+				if(each <> "" AND find(each,"@*@") <> -1){
+					ADOUserListColumnArray = split(each,"@*@");
+					append(emailIdArray, lower(ADOUserListColumnArray[1]));
+					append(fFRoleIdArray, "F&F Approver");
+					append(fFUserRoleIdArray, "ADO User");					
+				}
+			}
+		}
+	}
+
+	// HYPERCARE_CR017# - Spliting the string, getting email from the string and assign to array - Chakri
+	if(rDOFnFApproverUser_t<> ""){
+		RDOUserListRowArray = split(rDOFnFApproverUser_t,"#$#");
+		if(sizeofarray(RDOUserListRowArray) > 0){
+			for each in RDOUserListRowArray{
+				if(each <> "" AND find(each,"@*@") <> -1){
+					RDOUserListColumnArray = split(each,"@*@");
+					append(emailIdArray, lower(RDOUserListColumnArray[1]));
+					append(fFRoleIdArray, "F&F Approver");
+					append(fFUserRoleIdArray, "RDO User");					
+				}
+			}
+		}
+	}
+
+			
+	// HYPERCARE_CR017# - Spliting the string, getting email from the string and assign to array - Chakri
+	if(dFOFnFApproverUser_t<> ""){
+		DFOUserListRowArray = split(dFOFnFApproverUser_t,"#$#");
+		if(sizeofarray(DFOUserListRowArray) > 0){
+			for each in DFOUserListRowArray{
+				if(each <> "" AND find(each,"@*@") <> -1){
+					DFOUserListColumnArray = split(each,"@*@");
+					append(emailIdArray, lower(DFOUserListColumnArray[1]));
+					append(fFRoleIdArray, "F&F Approver");
+					append(fFUserRoleIdArray, "DFO User");					
+				}
+			}
+		}
+	}
+
+	// HYPERCARE_CR017# - Spliting the string, getting email from the string and assign to array - Chakri
+	if(rebateValueFnFApprover_t <> ""){
+		GPOUserListRowArray = split(rebateValueFnFApprover_t,"#$#");
+		if(sizeofarray(GPOUserListRowArray) > 0){
+			for each in GPOUserListRowArray{
+				if(each <> "" AND find(each,"@*@") <> -1){
+					GPOUserListColumnArray = split(each,"@*@");
+					append(emailIdArray, lower(GPOUserListColumnArray[1]));
+					append(fFRoleIdArray, "F&F Approver");
+					append(fFUserRoleIdArray, "Rebate GPO User");					
+				}
+			}
+		}
+	}
+
+	// HYPERCARE_CR017# - Spliting the string, getting email from the string and assign to array - Chakri
+	if(tASSLaborFnFApprover_t<> ""){
+		TASSUserListRowArray = split(tASSLaborFnFApprover_t,"#$#");
+		if(sizeofarray(TASSUserListRowArray) > 0){
+			for each in TASSUserListRowArray{
+				if(each <> "" AND find(each,"@*@") <> -1){
+					TASSUserListColumnArray = split(each,"@*@");
+					append(emailIdArray, lower(TASSUserListColumnArray[1]));
+					append(fFRoleIdArray, "F&F Approver");
+					append(fFUserRoleIdArray, "Tass User");					
+				}
+			}
+		}
+	}
+	//STAR_POST_MVP CR#69  description by Namrata
+		if(EDPCodeFnFApproverUser_t<> ""){
+		EDPCodeUserListRowArray = split(EDPCodeFnFApproverUser_t,"#$#");
+		if(sizeofarray(EDPCodeUserListRowArray) > 0){
+			for each in EDPCodeUserListRowArray{
+				if(each <> "" AND find(each,"@*@") <> -1){
+					EDPCodeUserListRowArray = split(each,"@*@");
+					append(emailIdArray, lower(EDPCodeUserListRowArray[1]));
+					append(fFRoleIdArray, "F&F Approver");
+					append(fFUserRoleIdArray, "EDPCode User");					
+				}
+			}
+		}
+	}
+
+	// HYPERCARE_CR017# - Spliting the string, getting email from the string and assign to array - Chakri
+	if(iTSLaborFnFApproverUser_t<> ""){
+		ITSUserListRowArray = split(iTSLaborFnFApproverUser_t,"#$#");
+		if(sizeofarray(ITSUserListRowArray) > 0){
+			for each in ITSUserListRowArray{
+				if(each <> "" AND find(each,"@*@") <> -1){
+					ITSUserListColumnArray = split(each,"@*@");
+					append(emailIdArray, lower(ITSUserListColumnArray[1]));
+					append(fFRoleIdArray, "F&F Approver");
+					append(fFUserRoleIdArray, "ITS User");					
+				}
+			}
+		}
+	}
+	
+	//***START HERE****chnage request/RITM for RITM1360561 added auto approval for DSPE reason flow and SA groups
+	for line in transactionLine {
+		if(commerce.checkForITSItemType(line.type_l) == true){
+	if(salesDirectorDPSE_t <> ""){
+		if(findinarray(emailIdArray,lower(salesDirectorDPSE_t)) == -1){
+			
+		append(emailIdArray, lower(salesDirectorDPSE_t));
+		}
+			append(fFRoleIdArray, "F&F Approver");
+			append(fFUserRoleIdArray, "DPSE User");	
+	}
+		}
+	}
+	sAApprovalRetStr = commerce.generateSAApproversString("Level1_Approver","F&F");
+	if(sAApprovalRetStr <> ""){
+		append(emailIdArray, lower(sAApprovalRetStr));
+			append(fFRoleIdArray, "F&F Approver");
+			append(fFUserRoleIdArray, "SA User");	
+	}
+	//***END HERE*****chnage request/RITM for RITM1360561 added auto approval for DSPE reason flow and SA groups
+
+	// HYPERCARE_CR017# - Spliting the string, getting email from the string and assign to array - Chakri
+	if(mPSLaborFnFApproverUser_t<> ""){
+		MPSUserListRowArray = split(mPSLaborFnFApproverUser_t,"#$#");
+		if(sizeofarray(MPSUserListRowArray) > 0){
+			for each in MPSUserListRowArray{
+				if(each <> "" AND find(each,"@*@") <> -1){
+					MPSUserListColumnArray = split(each,"@*@");
+					append(emailIdArray, lower(MPSUserListColumnArray[1]));
+					append(fFRoleIdArray, "F&F Approver");
+					append(fFUserRoleIdArray, "MPS User");					
+				}
+			}
+		}
+	}
+	
+	//START_CR84/Defect-18624_CommentsByVasundhara_07-20-2023_Moved code here to do the check of duplicates, added AND condition to check in EMail Array
+	// HYPERCARE_CR017# - Assigning PDL Manager EMail to Array - Chakri
+	//code added by Rohit Ranjan for  CHG0086925
+	if(bypassReason_t == "" AND managerOfLDE_c <> "" AND findinarray(emailIdArray,lower(managerOfLDE_c)) == -1) {	
+		append(emailIdArray , lower(managerOfLDE_c));
+		append(fFRoleIdArray, "F&F Approver");
+		append(fFUserRoleIdArray, "PDL Manager");	
+	}
+	elif(bypassReason_t == "" AND managerOfDesignEmail <> "" AND findinarray(emailIdArray,lower(managerOfDesignEmail)) == -1) {	
+		append(emailIdArray , lower(managerOfDesignEmail));
+		append(fFRoleIdArray, "F&F Approver");
+		append(fFUserRoleIdArray, "PDL Manager");	
+	}
+	//END_CR84/Defect-18624_CommentsByVasundhara_07-20-2023_Moving above code to below to do the check of duplicates
+	
+	
+	jobRoleDict = dict("string");
+	emailIdForDealer_PDL = "";
+	jobCodeForDealerPDL = "";
+	firstNameForDealerPDL = "";
+	lastNameForDealerPDL = "";
+
+	//Getting HRMS data and Storing in Dictionary using Email as key
+
+	hrmsRecordSet = bmql("select FirstName, MiddleName, LastName, JobName, JobCode, SupervisorEmail, SupervisorName, EmailAddress from RAC_HRMS");
+
+	for eachRecord in hrmsRecordSet {
+		emailIdForDealer_PDL = lower(get(eachRecord,"EmailAddress"));
+		if(findinarray(emailIdArray,emailIdForDealer_PDL) <> -1){
+			put(jobRoleDict, emailIdForDealer_PDL+"fullName" , (get(eachRecord,"FirstName")  + " " + get(eachRecord,"MiddleName") + " " + get(eachRecord,"LastName")));
+			put(jobRoleDict, emailIdForDealer_PDL+"JobName" , get(eachRecord,"JobName"));
+			put(jobRoleDict, emailIdForDealer_PDL+"JobCode" , get(eachRecord,"JobCode"));
+			put(jobRoleDict, emailIdForDealer_PDL+"SupervisorEmail" ,get(eachRecord,"SupervisorEmail"));
+			put(jobRoleDict, emailIdForDealer_PDL+"EmailAddress" , get(eachRecord,"EmailAddress"));
+		
+			if(containskey(jobRoleDict,emailIdForDealer_PDL+"JobCode")){
+				jobCodeForDealerPDL= get(jobRoleDict,emailIdForDealer_PDL+"JobCode");
+				roleRecordSet = bmql("SELECT Role FROM RAC_TeamMembers WHERE JobCode = $jobCodeForDealerPDL");
+				for eachRecordRole in roleRecordSet {
+					put(jobRoleDict, emailIdForDealer_PDL+"Role", get(eachRecordRole,"Role"));
+				}
+			}
+		}
+	}
+	
+	//Spliting Email Array and Getting the user Details from Dictionary based on EMail and store on Approval Array
+	if(sizeofarray(emailIdArray)> 0) {
+		EmailListArr = emailIdArray;
+		EmailUserListArrSize = range(sizeofarray(EmailListArr));
+		index = 0;
+		for EmailArr in EmailUserListArrSize {
+			UserEmailList = EmailListArr[EmailArr];
+			if((containskey(jobRoleDict,UserEmailList+"EmailAddress"))){
+				if(containskey(jobRoleDict,UserEmailList+"fullName")){
+					jsonput(approvalArrayJson,"name_AutoPopulateArraySet_t",get(jobRoleDict,UserEmailList+"fullName"));
+				}
+				if(containskey(jobRoleDict,UserEmailList+"JobName")){
+					jsonput(approvalArrayJson,"jobTitle_AutoPopulateArraySet_t",get(jobRoleDict,UserEmailList+"JobName"));
+				}
+				if(containskey(jobRoleDict,UserEmailList+"Role")){
+					jsonput(approvalArrayJson,"role_AutoPopulateArraySet_t",get(jobRoleDict,UserEmailList+"Role"));
+				}
+				if(containskey(jobRoleDict,UserEmailList+"SupervisorEmail")){
+					jsonput(approvalArrayJson,"supervisorEmail_AutoPopulateArraySet_t",get(jobRoleDict,UserEmailList+"SupervisorEmail"));
+				}
+				jsonput(approvalArrayJson,"email_AutoPopulateArraySet_t",UserEmailList);
+				if(fFRoleIdArray[index] <> ""){
+					jsonput(approvalArrayJson,"fFRole_AutoPopulateArraySet_t",fFRoleIdArray[index]);		
+				}
+				if(fFUserRoleIdArray[index] <> ""){
+					jsonput(approvalArrayJson,"fNFApprovalGroup_AutoPopulateArraySet_t",fFUserRoleIdArray[index]);		
+				}
+			jsonarrayappend(approvalArray,approvalArrayJson);
+			}
+		index = index + 1;
+		}
+	}
+}
+res = res+ "1~fFParticipantsAutoPopulateArraySet_t~"+jsonarraytostr(approvalArray) + "|";
+return res;

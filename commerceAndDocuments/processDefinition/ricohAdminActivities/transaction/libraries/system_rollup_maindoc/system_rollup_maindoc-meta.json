@@ -1,0 +1,20 @@
+{
+  "name" : "Calculate Rollup Revenue MainDoc",
+  "variableName" : "system_rollup_maindoc",
+  "description" : "Calculate Rollup Revenues for Root Lines and Revenue Category for the Transaction. The Rollup values are passed to CX Sales when root quote lines are integrated. This is invoked at the end of all processing.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "quoteData",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "mainDocDict",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "extraParams",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

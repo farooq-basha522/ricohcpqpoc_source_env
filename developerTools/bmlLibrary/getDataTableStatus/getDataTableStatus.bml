@@ -1,0 +1,24 @@
+ret = "";
+msgBody =json();
+
+siteName = lower(_company_name);
+endpointURL = "https://ricohusastaging.bigmachines.com/rest/v14/datatables";
+header = dict("string");
+put(header, "Accept", "application/json");
+put(header,"Content-Type","application/json");
+schemaresponse = urldata(endpointURL,"GET", header);
+if(containskey(schemaresponse,"Message-Body")){
+	msgBody = json(get(schemaresponse,"Message-Body"));
+	jsonpathremove(msgBody ,"$..links");
+	//tablesList = jsonget(msgBody,"items","jsonarray");
+	for each in tablesList{
+		path="$.items[?(@.name=='"+each+"')].hasUndeployedChanges";
+		tableStatus=jsonpathgetsingle(msgBody,path);
+		if(tableStatus == "true"){
+			return true;
+		}
+	}
+
+}
+//print msgBody ;
+return false;

@@ -1,0 +1,85 @@
+rollupStr = stringbuilder();
+groupSeqDict= get(quoteData, "groupSeqDict", "dict<string>");
+recurRevDict=    get(quoteData, "recurRevDict", "dict<anytype>");
+nonRecurRevDict=    get(quoteData, "nonRecurRevDict", "dict<anytype>");
+usageRevDict=    get(quoteData, "usageRevDict", "dict<anytype>");
+contractValDict=    get(quoteData, "contractValDict", "dict<anytype>");
+monthlyRecurRevDict=    get(quoteData, "monthlyRecurRevDict", "dict<anytype>");
+monthlyUsageRevDict=    get(quoteData, "monthlyUsageRevDict", "dict<anytype>");
+priceTypeDict=    get(quoteData, "priceTypeDict", "dict<string>");
+pricePeriodDict=    get(quoteData, "pricePeriodDict", "dict<string>");
+contractPeriodsDict=    get(quoteData, "contractPeriodsDict", "dict<anytype>");
+docGrpSeqDict=    get(quoteData, "docGrpSeqDict", "dict<string>");
+contractListValDict=    get(quoteData, "contractListValDict", "dict<anytype>");
+quantityDict=    get(quoteData, "quantityDict", "dict<anytype>");
+rootPriceTypeDict=    get(quoteData, "rootPriceTypeDict", "dict<string>");
+rootPricePeriodDict=    get(quoteData, "rootPricePeriodDict", "dict<string>");
+rootContractPeriodsDict=    get(quoteData, "rootContractPeriodsDict", "dict<anytype>");
+rootRevenueCatDict=    get(quoteData, "rootRevenueCatDict", "dict<string>");
+
+priceTypeRollup = "";
+pricePeriodRollup = "";
+txnRevenueCategory = "";
+rootDocNumbers = values(groupSeqDict);
+for docNum in rootDocNumbers{ // Assign values to all rollup attributes of root lines
+    discountPercentRollup = 0;
+    listPriceRollup  = 0;
+    netPriceRollup  = 0;
+    rootGroupSeqNum = get(docGrpSeqDict, docNum);
+    if(containskey(priceTypeDict, rootGroupSeqNum)) {
+        priceTypeRollup = get(priceTypeDict, rootGroupSeqNum);
+    } else { //defaults to root's price type when there is zero price root model without any childs
+        priceTypeRollup = get(rootPriceTypeDict, docNum);
+    }
+    if(containskey(pricePeriodDict, rootGroupSeqNum)) {
+        pricePeriodRollup = get(pricePeriodDict, rootGroupSeqNum);
+    } else { //defaults to root's price period when there is zero price root model without any childs
+        pricePeriodRollup = get(rootPricePeriodDict, docNum);
+    }
+    if(containskey(contractPeriodsDict, rootGroupSeqNum)) {
+        contractPeriodsRollup = get(contractPeriodsDict, rootGroupSeqNum, "integer");
+    } else { //defaults to root's contractedperiods when there is zero price root model without any childs
+        contractPeriodsRollup = get(rootContractPeriodsDict, docNum, "integer");
+    }
+     
+    contractListRollup = get(contractListValDict, docNum, "float");
+    rootQuantity = get(quantityDict, docNum, "integer");
+    if(contractPeriodsRollup > 0){
+    	listPriceRollup = contractListRollup / (rootQuantity * contractPeriodsRollup); // Rolled Up Contract Value (List) / (Root Line Qty x Rolled Up Contracted Periods)
+    	netPriceRollup = get(contractValDict, docNum, "float") / (rootQuantity * contractPeriodsRollup); // Rolled Up Contract Value (Net) / (Root Line Qty x Rolled Up Contracted Periods)
+    }
+    netAmountRollup = netPriceRollup * rootQuantity; // Rolled Up Net Price x Root Line Qty
+    if(contractListRollup > 0) { //(Rolled up Contract Value (List) - Rolled up Contract Value (Net)) / Rolled Up Contract Value (List)
+        discountPercentRollup = ((get(contractListValDict, docNum, "float") - get(contractValDict, docNum, "float")) / contractListRollup) * 100;
+    }
+     
+    sbappend(rollupStr, docNum, "~contractValueRollup_l~", string(get(contractValDict, docNum, "float")), "|");
+    sbappend(rollupStr, docNum, "~recurRevRollup_l~", string(get(recurRevDict, docNum, "float")), "|");
+    sbappend(rollupStr, docNum, "~nonRecurRevRollup_l~", string(get(nonRecurRevDict, docNum, "float")), "|");
+    sbappend(rollupStr, docNum, "~usageRevRollup_l~", string(get(usageRevDict, docNum, "float")), "|");
+    sbappend(rollupStr, docNum, "~monthlyRecurRevRollup_l~", string(get(monthlyRecurRevDict, docNum, "float")), "|");
+    sbappend(rollupStr, docNum, "~monthlyUsageRevRollup_l~", string(get(monthlyUsageRevDict, docNum, "float")), "|");
+    sbappend(rollupStr, docNum, "~contractListValueRollup_l~", string(contractListRollup), "|");
+    sbappend(rollupStr, docNum, "~priceTypeRollup_l~", priceTypeRollup, "|");
+    sbappend(rollupStr, docNum, "~priceRecurFrequencyRollup_l~", pricePeriodRollup, "|");
+    sbappend(rollupStr, docNum, "~contractedPeriodsRollup_l~", string(contractPeriodsRollup), "|");
+    sbappend(rollupStr, docNum, "~listPriceRollup_l~", string(listPriceRollup), "|");
+    sbappend(rollupStr, docNum, "~netPriceRollup_l~", string(netPriceRollup), "|");
+    sbappend(rollupStr, docNum, "~netAmountRollup_l~", string(netAmountRollup), "|");
+    sbappend(rollupStr, docNum, "~discountPercentRollup_l~", string(discountPercentRollup), "|");  
+}    
+
+// calculation of Revenue Category for Txn.
+if(containskey(rootRevenueCatDict, "NEW")){
+    txnRevenueCategory = "NEW";
+} elif(containskey(rootRevenueCatDict, "RENEW")){
+    txnRevenueCategory = "RENEW";
+} elif(containskey(rootRevenueCatDict, "MODIFICATION")){
+    txnRevenueCategory = "MODIFICATION";
+} elif(containskey(rootRevenueCatDict, "TERMINATION")){
+    txnRevenueCategory = "TERMINATION";
+}
+
+sbappend(rollupStr, get(mainDocDict, "_transaction_document_number", "string"), "~_transaction_revenueCategory_t~", txnRevenueCategory, "|");  
+ 
+return sbtostring(rollupStr);

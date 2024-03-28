@@ -1,0 +1,87 @@
+//************************************************************************************************************
+//** Function:    Credit Check Web Service Callout (creditCheckWebServiceCallout)
+//** Type:        Utility Library Function   
+//**
+//** Description: Makes and Parses the Web Service Callout. Returns a string array, with index 0 being the final result, //**                           index 1 being the request, and index 2 being the unparsed result.
+//** 
+//** Param:       companyNumber - String - GP Company Number
+//**
+//** Return type: Anytype Dict - Key: manualCCRequired, Type: Boolean, Value: True if a manual CC is required
+//**                             Key: message, Type: String, Value: error/success message
+//**
+//** History:     Date     Author       Comment 
+//**              INITIAL  RConaghan    Initial Build  
+//************************************************************************************************************
+
+//"0002114" =  Test company number that requires approval
+
+
+retDict = dict("anytype");
+ccRequired = true;
+message = "";
+
+headerDict = dict("string");
+
+put(headerDict, "Content-Type", "application/json"); //Soap Receiver requires straight text/xml
+//put(headerDict, "Authorization", basicVal); //Every SOAP call must have a soap Action
+//userpass = encodebase64("oscapi:9V5eqmTJVE060^"); //dev
+//userpass = encodebase64("mst.cpq@nebula5.net:N\]X|t!w6rD|E4W]$i!&<x8f(W#mjZ&rvcB-{;CJ"); //dev
+//basicVal = "Basic " + userpass;
+//basicVal = "Basic bXN0LmNwcUBuZWJ1bGE1Lm5ldDpOXF1YfHQhdzZyRHxFNFddJGkhJjx4OGYoVyNtalomcnZjQi17O0NK";
+
+//put(headerDict, "Authorization", basicVal); //Every SOAP call must have a soap Action
+
+url = "";
+username = "";
+pw = "";
+urlQuery = bmql("SELECT Keyword, Value, Value_Secure FROM GlobalVars WHERE Keyword IN ('CREDIT_CHECK_ENDPOINT', 'CREDIT_CHECK_USER_LOGIN', 'CREDIT_CHECK_PW')");
+for result in urlQuery{
+	keyword = get(result, "Keyword");
+	if(keyword == "CREDIT_CHECK_ENDPOINT"){
+		url = get(result, "Value");
+	}
+	elif(keyword == "CREDIT_CHECK_USER_LOGIN"){
+		username = get(result, "Value");
+	}
+	elif(keyword == "CREDIT_CHECK_PW"){
+		pw = get(result, "Value_Secure");
+	}
+}
+
+basicVal = "Basic " + encodebase64(username + ":" + pw);
+put(headerDict, "Authorization", basicVal); //Every SOAP call must have a soap Action
+urlParams = "?customer=" + replace(companyNumber, " ", "%20");
+
+url = url + urlParams;
+
+
+
+resultDict = urldata(url, "GET", headerDict, "");
+
+//Below put statement is for development only. remove before deploying.
+//put(resultDict, "Message-Body", "{\"success\": true, \"reason\": \"GP stored procedure successfully called.\", \"customer\": \"0002114\", \"response\": {\"creditApprovalRequired\":true}}");
+
+resultString = util.safeGetString(resultDict, "Message-Body");
+serviceSuccessful = (resultString <> "");
+
+
+
+if(serviceSuccessful){
+	resultjson = json(resultString);
+	successFlag = jsonget(resultjson, "success", "boolean", false);
+	message = jsonget(resultjson, "reason", "string", "");
+	
+	innerResponseJSON = jsonget(resultjson, "response", "json", json("{}"));
+	CCrequired = jsonget(innerResponseJSON, "creditApprovalRequired", "boolean", true);
+}
+else{ //if not a success, then get error codes
+	responseStatusCode = util.safeGetString(resultDict, "Status-Code");
+	responseErrorMessage = util.safeGetString(resultDict, "Error-Message"); //if the service itself threw an error
+	message = responseErrorMessage;
+}
+
+put(retDict, "manualCCRequired", CCrequired);
+put(retDict, "message", message);
+
+
+return retDict;

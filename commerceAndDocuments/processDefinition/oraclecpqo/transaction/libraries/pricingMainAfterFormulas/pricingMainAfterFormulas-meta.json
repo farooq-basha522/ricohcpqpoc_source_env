@@ -1,0 +1,11 @@
+{
+  "name" : "Pricing Main after Formulas",
+  "variableName" : "pricingMainAfterFormulas",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

@@ -1,0 +1,32 @@
+retVal = 0.0;
+MARGIN_ROW = mSTotalDealMarginArrayRow_t; //"Sales Cost Margin%";
+yearParam = "year"+(Year);//+"_MSTotalArraySet";
+pimaMarginDict = dict("string");
+yearIndex = 0;
+rowDelim = "@$@";
+colDelim = "#$#";
+
+if(mSTotalDealSectionArrayString_t <> ""){
+	pimaArrayRow = split(mSTotalDealSectionArrayString_t, colDelim);
+	for pimaArray in pimaArrayRow {
+		yearVal = split(pimaArray, rowDelim);
+		put(pimaMarginDict , yearVal[0] , yearVal[1] );
+	}
+}
+retValStr = get(pimaMarginDict, yearParam);
+if(NOT isnull(retValStr) AND retValStr <> ""){retVal = atof(retValStr );} 
+/*
+mSTotalDealSectionArraySet = json("{\"MSTotalDealRows\":"+jsonarraytostr(mSTotalDealSectionArray_t)+"}");
+mSSalesCostMarginArraySet = jsonpathgetmultiple(mSTotalDealSectionArraySet,"$..MSTotalDealRows[?(@.mSTotalDealRows_ArraySet == '"+MARGIN_ROW+"')]");
+arraysize = range(jsonarraysize(mSSalesCostMarginArraySet));
+for each in arraysize {
+	if(NOT isnull(jsonget(json(jsonarrayget(mSSalesCostMarginArraySet , yearIndex)),yearParam ))){
+		marginQuoteSummary = jsonget(json(jsonarrayget(mSSalesCostMarginArraySet , yearIndex)),yearParam );
+		if(marginQuoteSummary <> ""){
+			retVal = atof(marginQuoteSummary);
+			retVal = round(retVal, 2);
+		}
+	}
+	
+}*/
+return retVal ;

@@ -1,0 +1,15 @@
+result = recordset();
+res=0.0;
+
+
+result= BMQL("SELECT price,custom_field7 FROM _parts WHERE part_number = $PartNum");
+
+for each in result
+{
+	if(((ISNULL(get(each,PriceAttr))==false)) AND get(each,PriceAttr)<>"")
+	{
+	   res = atof(get(each,PriceAttr));
+	}
+}
+
+return res;

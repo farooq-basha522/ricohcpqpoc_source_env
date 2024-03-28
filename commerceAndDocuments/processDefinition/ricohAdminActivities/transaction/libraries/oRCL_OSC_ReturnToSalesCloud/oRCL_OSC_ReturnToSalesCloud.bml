@@ -1,0 +1,9 @@
+if(opportunityID_t <> "") {
+	return "https://FUSOVMENV208-crm-ext.us.oracle.com/sales/faces/CrmFusionHome?isFuseTF=Y&tabToOpen=MOO_OPPTYMGMTOPPORTUNITIES_CRM&cardToOpen=MOO_OPPTYMGMTOPPORTUNITIES_CRM_CARD&TF_subTabName=Quotes&TF_skipToEditOptyId=" + opportunityID_t;
+}
+elif(opportunityID_t == "" AND _transaction_customer_id <> "") {
+        return "https://FUSOVMENV208-crm-ext.us.oracle.com/customer/faces/CrmFusionHome?isFuseTF=Y&cardToOpen=ZCM_CUSTOMERCTRINFRA360_CUSTOMERS_CRM_CARD&tabToOpen=ZCM_CUSTOMERCTRINFRA360_CUSTOMERS_CRM&TF_subTabName=Quotes&TF_AccountPartyId=" + _transaction_customer_id;
+}
+else {
+	return "https://FUSOVMENV208-crm-ext.us.oracle.com/customer/faces/CrmFusionHome"; 
+}

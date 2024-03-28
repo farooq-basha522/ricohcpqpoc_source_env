@@ -1,0 +1,9 @@
+{
+  "name" : "Test Table HTML to RTF Code",
+  "variableName" : "testTableHTMLToRTFCode",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "attributes" : [ ]
+}

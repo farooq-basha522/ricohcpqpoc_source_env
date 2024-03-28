@@ -1,0 +1,14 @@
+{
+  "name" : "Line Approval Status",
+  "variableName" : "lineApprovalStatus",
+  "description" : "",
+  "libraryFunctions" : [ "commerce.checkForITSItemType", "commerce.iTSDiscountPercentageCalculation" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "action",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ "_document_number", "_model_name", "type_l", "unitNetPrice_l", "unitCost_l", "lineApprovalStatus_l", "chargeType_l", "extNetPrice_l" ],
+  "mainDocAttributes" : [ "lineApprovalsRequired_t" ],
+  "systemAttributes" : [ "_system_user_groups" ]
+}

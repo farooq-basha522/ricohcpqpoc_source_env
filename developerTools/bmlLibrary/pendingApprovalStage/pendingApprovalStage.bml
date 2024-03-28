@@ -1,0 +1,34 @@
+retVal = true;
+approvalPendingArr = String[];
+
+for eachApproval in approvalStatusSubmit {
+	
+	if(eachApproval[0]<>""){
+		append(approvalPendingArr, eachApproval[0]);
+	}
+}
+
+
+if(actionVarName == "approve_submit_t" AND sizeofarray(approvalPendingArr) == 1 ){
+
+	if(approvalPendingArr[0] == "finalEngineeringApproval" AND salesDirectorDPSE <> "Auto Approve" AND salesDirectorDPSE <> ""){
+		retVal = false;
+	}elif(approvalPendingArr[0] == "fFApproval"){
+		retVal = false;
+	}
+	
+}elif(actionVarName == "approve_submitPricing_c_t" AND sizeofarray(approvalPendingArr) == 1){
+	
+	if(approvalPendingArr[0] == "discountApproval" AND (totalMonthlyDiscountPct >= 10 OR totalOneTimeDiscountPctLessInstall >= 10 OR lineApprovalsRequired == true )){
+		retVal = true;
+	}elif(approvalPendingArr[0] == "discountApproval" AND (totalMonthlyDiscountPct < 10 OR totalOneTimeDiscountPctLessInstall < 10)){
+		retVal = false;
+	}elif(approvalPendingArr[0] == "discountApprovalVP"){	
+		retVal = false;
+	}elif(approvalPendingArr[0] == "pricingApproval"){	
+		retVal = false;
+	}
+	
+}	
+
+return retVal;

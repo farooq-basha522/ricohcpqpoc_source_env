@@ -1,0 +1,11 @@
+{
+  "name" : "Calculate Location IDs",
+  "variableName" : "calculateLocationIDs",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_parent_doc_number", "_document_number", "_config_attr_info", "_part_number", "locationID_l" ],
+  "mainDocAttributes" : [ "oscAccountLocationIDs_t", "oscAccountLocationNumbers_t", "oscAccountLocationAddress1s_t", "oscAccountLocationNames_t" ],
+  "systemAttributes" : [ ]
+}

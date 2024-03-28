@@ -1,0 +1,11 @@
+{
+  "name" : "Line Item Sequencing and Association Backup 07-07-17",
+  "variableName" : "lineItemSequencingAndAssociationBackup070717",
+  "description" : "Sequences Line Items, and does additional associations such as writing to parent & child fields.",
+  "libraryFunctions" : [ "util.decodeNameValuePairs", "util.normalizeStringToXDigits", "util.safeGetString" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_document_number", "_parent_doc_number", "_sequence_number", "locationID_l", "_part_custom_field9", "_part_custom_field18", "_part_number", "_line_item_comment", "lastSequenceModel_l", "finalListUnitPrice_l", "finalListUnitPriceNRR_l", "netPrice_l", "netPriceNRR_l", "customSequenceSuffix_l", "locationName_l" ],
+  "mainDocAttributes" : [ "lineItemOrdering_t" ],
+  "systemAttributes" : [ ]
+}

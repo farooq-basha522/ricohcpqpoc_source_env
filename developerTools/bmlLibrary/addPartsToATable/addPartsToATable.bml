@@ -1,0 +1,69 @@
+//************************************************************************************************************
+//** Function:    Add Parts to a Table (addPartsToATable)
+//** Type:        Utility Library Function   
+//**
+//** Description: Takes params and adds record to a table.
+//** 
+//** Params:      tableName, columnNames, tableData
+//**
+//** History:     Date     Author       Comment 
+//**              INITIAL  SLewis       Initial Build  
+//************************************************************************************************************
+
+sessionIDResult = util.getAPIUserSessionID();
+if(ISNULL(sessionIDResult) OR sessionIDResult=="") {
+	sessionIDResult = _user_session_id;	
+}
+
+companyName = _company_name;                                                                                      
+//sessionIDResult = "78c277515c2e462f8145406a0827a9ef49969c4d75af65ba5c9c";
+//companyName = "ricohusamsintdev";
+
+
+
+//use tableName variable in line 21!!!!!!!!!!!!!!!!!!!
+soapHeader  = "<?xml version='1.0' encoding='UTF-8'?><soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/'>"
+                + "<soapenv:Header>"
+                + "<bm:userInfo xmlns:bm='urn:soap.bigmachines.com'>"
+                + "<bm:sessionId>" + sessionIDResult + "</bm:sessionId>"
+                + "</bm:userInfo>"
+                + "<bm:category xmlns:bm='urn:soap.bigmachines.com'>Data Tables</bm:category>"
+                + "<bm:xsdInfo xmlns:bm='urn:soap.bigmachines.com'>"
+                + "<bm:schemaLocation>https://" + companyName + ".bigmachines.com/bmfsweb/" + companyName + "/schema/v1_0/datatables/" + tableName + ".xsd</bm:schemaLocation>"			
+                + "</bm:xsdInfo>"
+                + "</soapenv:Header>"
+                ; 
+soapBody = "<soapenv:Body>"
+			//+ "<bm:add xmlns:bm='http://xmlns.oracle.com/cpqcloud/dataTables/" + tableName + "'>"
+			+ "<bm:add xmlns:bm='urn:soap.bigmachines.com'>"
+			+ "<bm:DataTables bm:table_name='" + tableName + "'>";
+rowKeys = keys(tableData);
+for rowKey in rowKeys{
+	rowDict = get(tableData, rowKey);
+	soapBody = soapBody + "<bm:each_record>";
+	for colName in columnNames{
+		if(containskey(rowDict, colName)){
+			soapBody = soapBody + "<bm:" + colName + ">";
+			soapBody = soapBody + get(rowDict, colName);
+			soapBody = soapBody + "</bm:" + colName + ">";
+		}
+	}
+	soapBody = soapBody + "</bm:each_record>";
+}
+soapBody = soapBody + "</bm:DataTables>"
+			+ "</bm:add>"
+			+ "</soapenv:Body>"
+			+ "</soapenv:Envelope>";
+soapXml = soapHeader + soapBody;
+soapUrl = "https://" + companyName + ".bigmachines.com/v1_0/receiver";
+
+headers=dict("string");
+postResponse = urldata(soapURL, "POST", headers, soapXML);
+
+messageBody = "";
+if(containsKey(postResponse,"Message-Body")){
+  messageBody= get(postResponse,"Message-Body");
+}
+
+//return "";
+return messageBody;

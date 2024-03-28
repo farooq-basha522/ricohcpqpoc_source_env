@@ -1,0 +1,111 @@
+/******************************************************************************************************/
+//Author: 		Subha	26/06/2022--CHG0078656
+//Functionality: To validate the addresses for each line while Send to RISE .
+/******************************************************************************************************/
+retVal = "";
+clientID = "";
+clientpwd = "";
+endpointURL = "";
+access_token = "";
+endpointURLLink = "";
+dataJson = json();
+locationResponseJson = json();	
+locIdArray = jsonarray();
+headerDict = dict("string");
+locIddict = dict("string");
+addressHeaderDict = dict("string");
+cpqInstanceName = _system_company_name;
+//totalNoOfPages = "1";
+//pageSize = "100";
+
+/**********************Authorization Query*************************************/
+
+recordSet = bmql("select ENDPOINTURL,LOGIN,PASSWORD from MS_AddressAPI where INSTANCE = $cpqInstanceName AND KEY = 'GetToken'");
+for each in recordSet{
+	clientID = get(each,"LOGIN");
+	clientpwd = get(each,"PASSWORD");
+	endpointURL = get(each,"ENDPOINTURL");
+}
+
+put(headerDict, "Authorization", "Basic " + encodebase64(clientID + ":" + clientpwd));
+put(headerDict, "Content-Type", "application/x-www-form-urlencoded");
+tokenRequestBody = "grant_type=client_credentials";
+
+urldatabypostResponse = urldatabypost(endpointURL, tokenRequestBody, "", headerDict, true);
+if(urldatabypostResponse <> "" AND NOT ISNULL(urldatabypostResponse)){
+	responseJSON = json(urldatabypostResponse);
+		if(jsonpathcheck(responseJSON, "access_token")){
+			access_token = "Bearer " + jsonget(responseJSON, "access_token");
+		}
+}
+
+/**********************Validate Address Call*************************************/
+
+if(access_token <> ""){
+	XAPIKEY = "";
+	keyCriteria = String[]{"GetAddresses", "GetAPIKey"};
+	recordSet = bmql("select LOGIN, ENDPOINTURL,KEY from MS_AddressAPI where INSTANCE = $cpqInstanceName AND KEY IN $keyCriteria ");
+	endpointURL = "";	
+	for each in recordSet{
+		Key = get(each,"KEY");
+		if(Key <> "GetAPIKey") { 
+			endpointURLLink = get(each,"ENDPOINTURL");
+		}
+		
+		if(Key == "GetAPIKey"){
+			XAPIKEY = get(each,"ENDPOINTURL");
+		}	
+	}
+		
+	//account_EndpointUrl = "https://apidev.ricoh-usa.com/cm/accounts/2342526/sites-contacts";
+	account_EndpointUrl = endpointURLLink + "/cm/accounts/" + oracleAccountNumber_t + "/sites-contacts";
+	put(addressHeaderDict, "Content-Type", "application/json");
+	put(addressHeaderDict, "Accept", "application/json");
+	put(addressHeaderDict, "x-api-key", XAPIKEY);
+	put(addressHeaderDict, "Authorization", access_token);
+	//put(addressHeaderDict, "Accept-Encoding", "gzip,deflate,br");
+	
+	jsonput(dataJson,"sort","+address1");
+	jsonput(dataJson,"pageNumber","3");
+	jsonput(dataJson,"pageSize","2000");
+	jsonput(dataJson,"site_use_code","SHIP_TO");
+
+locIdArr=string[];
+	for line in transactionline{
+		if(line._parent_doc_number <> "" AND line.locationSiteID_l<>"" AND NOT ISNULL(line.locationSiteID_l)){
+			put(locIddict,"locationId",line.locationSiteID_l);
+			append(locIdArr,(line.locationSiteID_l));
+		}		
+	}
+
+	//put(locIddict,"locationId","20614609,20724032,20853828,20853831,20853825,20853925");
+	//locId=get(locIddict,"locationId");
+		//if(findinarray(locIdArr,<>"" AND NOT ISNULL(locId)){
+			//jsonput(dataJson,"PartysiteId",locId);
+			jsonput(dataJson,"PartysiteId",join(locIdArr,","));
+		//}else{
+			//jsonput(dataJson,"PartysiteId","");
+		//}
+	dataFinalJson = json();
+		jsonput(dataFinalJson , "data", dataJson);
+		locationResponse = urldatabypost(account_EndpointUrl, jsontostr(dataFinalJson),"ERROR",addressHeaderDict,true);
+/**********************Validating the Configured Address Lines*************************************/
+	/*locationResponseJson=json(locationResponse);
+	if(locationResponse<>"ERROR"){
+		locIdArray = jsonArray(jsonget(locationResponseJson, "data"));
+		arraysize = range(jsonarraysize(locIdArray));
+		for index in arraysize {
+			site_status = jsonget(json(jsonarrayget(locIdArray, index)),"site_status");
+			locId = jsonget(json(jsonarrayget(locIdArray, index)),"locationId");
+			if(site_status == "I" AND find(retVal, locId) < 0){
+				retVal = retVal + locId;
+
+				if(index <> jsonarraysize(locIdArray)-1){
+					retVal = retVal + " : Inactivate address need to be removed from LIG before proceeding for Send to Rise.\n";
+					}
+
+			}
+		}
+	}*/
+}
+return retVal;

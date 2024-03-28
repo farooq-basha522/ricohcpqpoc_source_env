@@ -1,0 +1,7 @@
+formatLen = find(_system_user_number_format,".");
+if(formatLen == 0) {
+	formatLen = find(_system_user_number_format,",");
+}
+totalLength = len(_system_user_number_format);
+numRoundOffLength = len(substring(_system_user_number_format,formatLen+1,totalLength));
+return numRoundOffLength;

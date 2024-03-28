@@ -1,0 +1,99 @@
+priceArray=jsonarray();
+pricingJson =json();
+eachItemPriceJson = json();
+
+//Query MS_UPLIFT data table (Criteria : Category_ValueType LIKE <specific item type>) and parse it to store data into a dictionary for further use
+upliftDict = dict("float");
+PhoneUplift = "%"+"_Phone";
+VirtualDeskUplift = "%"+"_VirtualDesktop";
+PCUplift = "%"+"_PC";
+UpliftrecordSet =bmql("select Category_Name,Category_ValueType,Category_Value from RAC_MS_UPLIFT WHERE (Category_Name LIKE $PhoneUplift) OR  (Category_Name LIKE $VirtualDeskUplift) OR (Category_Name LIKE $PCUplift)");
+for rec in UpliftrecordSet {
+	categoryName = get(rec,"Category_Name" );
+	valueType = get(rec,"Category_ValueType");
+	value = getfloat(rec,"Category_Value" );
+	if(lower(valueType) == "percentage"){
+		value = value/100;
+	}
+	put(upliftDict,categoryName,value);
+}
+
+//Query Ancillary COst table to fetch standard cost
+recordSet =bmql("select Item,EDPCode,CostPerMonth from RAC_AncillaryCosts");
+for record in recordSet{
+	tempjson = json();
+	item = get(record,"Item");
+	EDPCode =get(record,"EDPCode");
+	
+	if(EDPCode <> ""){
+	//Get standard cost
+	Cost = getfloat(record,"CostPerMonth");
+	jsonput(tempjson, "unitCost_l",Cost);
+	
+	//Define the keys specific to item type to fetch salesUplift and TargetMargin values saved in UpliftDict
+	component = "Phone";
+	if(lower(item) == "computer"){
+		component = "PC";
+	}
+	if(lower(item) == "computer"){
+		component = "PC";
+	}
+	if(lower(item) == "virtual desktop software"){
+		component = "VirtualDesktop";
+	}
+	salesUpliftKey = "SalesCost_Uplift_" +component;
+	targetMarginKey = "Target_Margin_" + component;
+	
+	//Calculate Sales Cost and Target Price using data retrieved from MS_UPLIFT table
+	salesUplift = get(UpliftDict,"SalesCost_Uplift_PC");
+	salesCost = cost*(1+salesUplift);
+	jsonput(tempjson, "unitSalesCost_l",salesCost);
+	
+	targetMargin = get(UpliftDict,targetMarginKey );
+	salesCost = cost*(1-targetMargin);
+	jsonput(tempjson, "contractedUnitPrice_l",salesCost);
+	
+	jsonput(eachItemPriceJson , EDPCode,tempjson);
+	}
+}
+
+
+adminPCJson =json();
+virtualDeskJson = json();
+
+count =0;
+for each in Phone{
+	pricingJson =json();
+	//Compute Phone JSON Prices for current row
+	if(each == true){
+		phoneJson =json();
+		phoneJson = jsonget(eachItemPriceJson ,"MS-COMMUNICATIONS-TECHNLGY","json");
+		unitSRP = jsonget(phoneJson ,"contractedUnitPrice_l","float");
+		extSRP = unitSRP  * quantity[count];
+		jsonput(phoneJson,"extSRP_l",extSRP );
+		jsonput(pricingJson,"MS-COMMUNICATIONS-TECHNLGY",phoneJson);
+
+	}
+	//Compute Admin PC JSON Prices for current row
+	if(adminPC[count] == true){
+		adminJson = jsonget(eachItemPriceJson ,"MS-COMPUTER-LEASE","json");
+		unitSRP = jsonget(adminJson ,"contractedUnitPrice_l","float");
+		extSRP = unitSRP  * quantity[count];
+		jsonput(adminJson ,"extSRP_l",extSRP );
+		jsonput(pricingJson,"MS-COMPUTER-LEASE",adminJson );
+		//jsonarrayAppend(priceArray,pricingJson);
+	}
+	//Compute License Prices JSON for current row
+	if(NOT(ISNULL(Licenses[count])) AND lower(Licenses[count]) == "virtual desktop"){
+		licenseJson = jsonget(eachItemPriceJson ,"MS-VIRTUAL-DESKTOP","json");
+		unitSRP = jsonget(licenseJson ,"contractedUnitPrice_l","float");
+		extSRP = unitSRP  * quantity[count];
+		jsonput(licenseJson ,"extSRP_l",extSRP );
+		jsonput(pricingJson,"MS-VIRTUAL-DESKTOP",licenseJson );
+		//jsonarrayAppend(priceArray,pricingJson);
+	}
+	jsonarrayAppend(priceArray,pricingJson);
+	count = count +1;
+}
+
+return priceArray;

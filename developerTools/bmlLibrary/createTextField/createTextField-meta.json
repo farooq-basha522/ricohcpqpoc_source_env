@@ -1,0 +1,33 @@
+{
+  "name" : "Create Text Field",
+  "variableName" : "createTextField",
+  "description" : "Paints an HTML attribute as a text, integer, float, or currency field as specified.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "attrVarName",
+    "type" : "String"
+  }, {
+    "name" : "currentSelectedVal",
+    "type" : "String"
+  }, {
+    "name" : "fieldType",
+    "type" : "String"
+  }, {
+    "name" : "autoUpdate",
+    "type" : "Boolean"
+  }, {
+    "name" : "callingProcess",
+    "type" : "String"
+  }, {
+    "name" : "currencyCode",
+    "type" : "String"
+  }, {
+    "name" : "readOnly",
+    "type" : "Boolean"
+  }, {
+    "name" : "commerceDocNum",
+    "type" : "Integer"
+  } ],
+  "attributes" : [ ]
+}

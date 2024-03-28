@@ -1,0 +1,74 @@
+//*****************************************************************************************************
+//** Function:    Get List of Users In Usergroup (getListOfUsersInUsergroup)
+//**
+//** Description: Uses Web Services to obtain engineer approval users list
+//**
+//** Return string: List of Users separated by , in the specified usergroup
+//**        
+//** Parameters:	userGroup	- String -	variable name of usergroup to search on
+//**			urlCompanyName	- String -	'company' variable name of url. Ex: companyName.bigmachines.com                                                                                       
+//** History:	Date		Author     	Comment
+//**		12/06/16	HHo		Initial Implementation
+//**        02/13/17    RConaghan   Modified to use integration user
+//*****************************************************************************************************
+retVal = "";
+groupName = userGroup;
+
+endpoint = "https://" + urlCompanyName + ".bigmachines.com/v2_0/receiver/groups";
+approvalUserTemplateLocation = "$BASE_PATH$/WebServices/groupsQuery_soapV2.xml";
+requestXML = "";
+
+
+
+
+payload = dict("string");
+//put(payload, "SESSION_ID", _user_session_id);
+put(payload, "SITE_NAME", urlCompanyName);
+put(payload, "GROUP_NAME", groupName);
+
+//Get username & password from GlobalVars table and put into payload dict
+accessSet = bmql("SELECT Keyword, Value, Value_Secure FROM GlobalVars WHERE Keyword = 'INTERNAL_INTEGRATION_USER_LOGIN' OR Keyword = 'INTERNAL_INTEGRATION_USER_PW'");
+
+for record in accessSet{
+		putKey = "";
+		putValue = "";
+		if(get(record, "Keyword") == "INTERNAL_INTEGRATION_USER_LOGIN"){
+			putKey = "USERNAME";
+		}
+		else{ //Keyword is INTERNAL_INTEGRATION_USER_PW
+			putKey = "USERPASS";
+		}
+		
+		if(get(record, "Value") <> ""){
+			putValue = get(record, "Value");
+		}
+		else{
+			putValue = get(record, "Value_Secure");
+		}
+		put(payload, putKey, putValue);
+}
+
+userRequestXML = applytemplate(approvalUserTemplateLocation, payload);
+userRequestXML = replace(userRequestXML, "&lt;", "<");
+userRequestXML = replace(userRequestXML, "&gt;", ">");
+userRequestXML = urldatabypost(endpoint, userRequestXML, "ERROR");
+
+if(userRequestXML <> "ERROR"){
+	xpaths = string[1];
+	xpaths[0] = "/soap:Envelope/soap:Body/bm:getGroupsResponse/bm:groups/bm:group/bm:users/bm:user/bm:login";
+	output = readxmlmultiple(userRequestXML, xpaths);
+	
+	if(NOT containskey(output, "BM_READXMLMULTIPLE_ERROR")){ //if successful
+		for xpath in xpaths {
+			val = get(output, xpath);
+			if(NOT isnull(val)){
+				for each in val { 
+					retVal = retVal + each + ",";
+				}
+			}
+		}
+	}
+}
+
+retVal = substring(retVal, 0, len(retVal)-1);
+return retVal;

@@ -1,0 +1,11 @@
+{
+  "name" : "Show Constraint Messge",
+  "variableName" : "showConstraintMessge",
+  "description" : "",
+  "libraryFunctions" : [ "util.getMutliplteCustomFieldValuesForselectedParts" ],
+  "returnType" : "Dictionary of String Dictionaries",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "unitSellingPrice_l", "_part_custom_field27", "contractPrice_l", "targetPrice_l", "unitSRP_l", "unitSalesCost_l", "_group_sequence_number", "type_l", "_part_number" ],
+  "mainDocAttributes" : [ "rAC_Pricelist_RISE", "priceList_t" ],
+  "systemAttributes" : [ ]
+}

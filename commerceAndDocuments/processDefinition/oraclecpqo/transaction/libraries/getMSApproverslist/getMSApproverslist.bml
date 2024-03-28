@@ -1,0 +1,82 @@
+//CHG0078656 : CPQ MS- CPQ Changes deployment//
+isDebug = true;
+retString = "";
+appName = "";
+levelFactor = 0;
+ArrIndex = 0;
+index = 1;
+marginQuoteSummary = "";
+marginFactor = 0;
+yearParam = "";
+apporvalTypeParam = "";
+locationParam = "";
+
+if(containskey(paramDict, "Year")){
+	yearParam = get(paramDict, "Year")+"_MSTotalArraySet";
+}
+if(containskey(paramDict, "Location")){
+	locationParam = get(paramDict, "Location");
+}
+
+arraysize = range(jsonarraysize(mSTotalDealSectionArray_t));
+for each in arraysize {
+	if(NOT isnull(jsonget(json(jsonarrayget(mSTotalDealSectionArray_t, each)),yearParam))){
+		marginQuoteSummary = jsonget(json(jsonarrayget(mSTotalDealSectionArray_t, each)),yearParam);
+	}
+}
+if(marginQuoteSummary <> ""){
+	marginFactor = atoi(marginQuoteSummary);
+}
+
+if(containskey(paramDict, "ApporvalType")){
+	apporvalTypeParam = get(paramDict, "ApporvalType");
+	if(apporvalTypeParam == "Escalation"){
+		marginFactor = annualRevenueEscalation_t;
+	}
+}
+
+
+//-------------------- Find Level Factor based on year deal---------------
+approverTable = BMQL("SELECT ApprovalType, LowerMargin, UpperMargin FROM MS_ApprovalMrg where ApprovalType = $apporvalTypeParam");
+
+for eachRow in approverTable {
+	lowerMargin = get(eachRow, "LowerMargin");
+	upperMargin = get(eachRow, "UpperMargin");
+	if(lowerMargin <> "" AND lowerMargin <>""){
+		if(marginFactor > atof(lowerMargin) AND marginFactor <= atof(upperMargin)){
+			levelFactor = index;
+			break;
+		}
+	}
+	index = index + 1;
+}
+//-------------------- Find Level Factor based on year deal---------------	
+
+
+appString = commerce.generateMSApproversString("Level "+String(levelFactor) , mSTransactionType_t);
+
+splitRes = split(appString ,"#!#");
+if(locationParam == "Action"){
+	if(splitRes[ArrIndex] <> "" AND NOT(ISNULL(splitRes[ArrIndex]))){
+		appName = splitRes[ArrIndex];
+		retString = "1~" + appName + "~" + _system_supplier_company_name ;
+	}
+}elif(locationParam == "Condition"){
+	retString = "false";
+	if(splitRes[ArrIndex] <> "" AND NOT(ISNULL(splitRes[ArrIndex]))){
+		retString = "true";
+	}
+}elif(locationParam == "Name"){
+	if(splitRes[ArrIndex] <> "" AND NOT(ISNULL(splitRes[ArrIndex]))){
+		appName = splitRes[ArrIndex];
+		querryAppTable = BMQL("SELECT FirstName, MiddleName, LastName FROM RAC_HRMS where UserName = $appName");
+		for eachRow in querryAppTable{
+			retString = get(eachRow, "FirstName");
+			if(get(eachRow, "MiddleName") <> ""){
+				retString = retString + " "+get(eachRow, "MiddleName");
+			}
+			retString = retString + " "+ get(eachRow, "LastName");
+		}
+	}
+}
+return retString ;

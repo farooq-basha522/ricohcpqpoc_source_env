@@ -1,0 +1,312 @@
+//Function Name: abo_convertDeltaBomtoAsset
+//    input:  deltaBom(json), txn_json(json)
+//    output : json.
+//Description:
+//   This utility BML is used by updateAsset action to convert delta BOM to Asset sync Json  
+//      as needed for for local Asset Respository synchronize
+//Assumption & Behavior:
+//    We expect the deltaBom input is in the flat BOM format of 2 level hierarchy.
+//    It also has correct action code calculated based on the latest state as in local asset repository.
+//    We expect txn_json contains all the fields we needed from transaction header to populate asset.
+//      These fields should be populated from updateAsset action script.
+//    We expect each item in delta BOM contains all the fields we needed from transaction lines to populate asset.
+//      These fields should be populated from abo_updateAssset utility thru getBom via the extraAssetFields list.
+//      The extraAssetFields is defined in abo_initializeContext as it is process specific list.
+//Steps involved: 
+//    Step 1: call abo_sortDeltaBom and sort childArray to get parent first and then children.
+//    Step 2: Loop through sorted array. 
+//    Step 2.1:  Convert to asset format.
+//    Step 2.2: Read actionCode & Populate syncActionCode. Remove actionCode.
+//    Step 2.3: populate parentAssetKey.
+//    Step 2.4: populate additoinal fields such as pricing.
+//       This is a process speicifc logic as different process might map the pricing field differently.
+
+//Step 1: establish the context
+abocontext = util.abo_getContext();
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true);  
+callContext="convertDeltaBomToAsset";
+if(not bDiagnosisOff){//log the input
+   dummy=util.abo_addDiagnosticInfo(callContext+"_input_deltaBom", deltaBom,"addToSummary");
+   dummy=util.abo_addDiagnosticInfo(callContext+"_input_txnJson", txn_json,"addToSummary");
+}
+
+
+//Step 2:  constant defintion & general intialization.
+//
+//constant declaration section
+TRANSACTIONDATE = "requestDate_l";
+TRANSACTION_ID = "transactionId";
+TERMINATE = "TERMINATE";
+ADD = "ADD";
+ENDDATE   = "endDate";
+STARTDATE = "startDate";
+ORIGINAL = "Original";
+DESCENDANT_ASSETS = "descendantAssets";
+XAACTION =  "actionCode";
+ACTION = "oRCL_ABO_ActionCode_l";
+XASUMMARY = "attributeSummary";
+ATTRIBUTES = "attributes";
+ITEM_INSTANCE_NAME = "itemInstanceName_l";
+DOCUMENT_NUMBER  = "documentNumber";
+CUSTOMER = "customer";
+SYNC_ACTION = "_sync_action";
+CURRENCY_CODE = "currency";
+PAYMENT_TERM = "paymentTerms";
+ACTIVE  ="ACTIVE";
+FINALACTION = "finalAction";
+FINALDATE = "finalDate";
+ORIGINALACTION = "OriginalAction";
+ORIGINALREQUESTDATE =  "OriginalRequestDate";
+
+//Extra asset pricing field 
+NET_AMOUNT = "netAmount_l";
+PRICE_TYPE = "priceType_l";
+REQUESTUNITOFMEASURE = "requestedUnitOfMeasure_l";
+DISCOUNT_AMOUNT = "discountAmount_l";
+CONTRACT_STARTDATE =  "contractStartDate_l";
+CONTRACT_ENDDATE =  "contractEndDate_l";
+LIST_PRICE = "listPrice_l";
+PRICE_PERIOD =  "pricePeriod_l";
+ONETIME ="One Time" ;
+RECURRING = "Recurring"; 
+USAGE = "Usage"; 
+
+//specify the mapping of abo delta action code to local asset service sync action
+actionToSyncActionCodeDict =  dict("string");
+put(actionToSyncActionCodeDict, "ADD", "add");
+put(actionToSyncActionCodeDict, "DELETE", "delete");
+put(actionToSyncActionCodeDict, "UPDATE", "modify");
+// For no-update we still need to update asset because
+//those price field might change, and price field is not participating in delta
+put(actionToSyncActionCodeDict, "NO_UPDATE", "modify");
+//termiante is treated as end-date  asset in current implementation
+put(actionToSyncActionCodeDict, "TERMINATE", "modify");
+
+//get commerceProcess name from context as pricing field mappign is process specific
+COMMERCE_PROCESS = "commerceProcessName";
+commProcName =  jsonget(abocontext, COMMERCE_PROCESS, "string", "");
+
+//getting info from transaction header
+transactionId =  jsonget(txn_json, TRANSACTION_ID, "string", "");
+customer_Id =  jsonget(txn_json, CUSTOMER, "string", "");
+currCode =  jsonget(txn_json, CURRENCY_CODE, "string", "");
+paymntTerm =   jsonget(txn_json, PAYMENT_TERM, "string", "");
+
+//Step 3: Sorting the child in deltabom, to ensure parent show up before child for non-delete lines
+//           for delete-lines, child will show up before parent , otherwise it will break dependency checking during local asset sync
+sortedDeltaBom = util.abo_sortDeltaBom(deltaBom);
+childBomJsonArr =  jsonget(sortedDeltaBom , "children", "jsonarray", jsonarray());
+sizeofChildren =  jsonarraysize(childBomJsonArr);
+
+if(not bDiagnosisOff){//log the intermdiate sorting result
+   dummy=util.abo_addDiagnosticInfo(callContext+"_sorted_deltaBom", sortedDeltaBom,"");
+}
+
+
+//Step 4: loop through each line and convert to asset format
+//
+//general initalization needed for loop
+rootAsset =  json();
+childAssetPayLoad = jsonarray();
+rootAssetKey = "";
+rootSequenceNumber =  "";
+rootjsonFKJson =  json();    
+parentAssetKey = "";
+bRoot =  false;
+curGrpJson =  jsonget(deltaBom, "groupSummary", "json");
+finalAction =  jsonget(curGrpJson,FINALACTION, "string", "");
+finalDate = jsonget(curGrpJson, FINALDATE, "string", "");
+originalReqDate = jsonget(curGrpJson, ORIGINALREQUESTDATE, "string", "");
+originalActionCode = jsonget(curGrpJson, ORIGINALACTION , "string", "");
+oneNode = json();
+id =  jsonget(deltaBom, "id", "string");
+childCount =  -1;
+dummayarray =  string[sizeofChildren+1]; //+1 to handle root case
+//
+for oneEntry in dummayArray{//loop thru root and child
+
+   //Step 4.1:  get current line need to be procssed.
+   assetPayload = json();
+   if (childCount == -1)  
+   { // -1 means root
+       oneNode =  deltaBom;     
+       assetPayload = rootAsset;         
+       bRoot = true;
+   }else
+   {//regular child
+       oneNode =  jsonarrayget(childBomJsonArr, childCount, "json");     
+       bRoot =  false;
+   }  
+   childCount =  childCount +1;    
+
+   assetKey =  jsonget(oneNode, "id", "string", "");   
+   fieldJson = jsonget(oneNode, "fields","json", json());
+   
+   // Step 4.2: populate fields common for all process.
+   // populate basic assset information
+   jsonput(assetPayload, "assetKey", assetKey);   
+   jsonput(assetPayLoad, CUSTOMER, customer_Id); 
+   
+   partNum =  jsonget(oneNode, "partNumber", "string");
+   jsonput(assetPayload, "partNumber", partNum); 
+   
+   quantity =  jsonget(oneNode, "quantity", "string");
+   jsonput(assetPayload, "quantity", quantity);   
+   
+   //populate hierarchy information
+   parentAssetKey =  jsonget(oneNode,"parentId", "string", "");
+   if (parentAssetKey<> "" ){         
+         parentjsonFKJson =  json();          
+         jsonput(parentJsonFKJson, "assetKey", parentAssetKey);   
+         jsonput(assetPayLoad, "parentAsset", parentJsonFKJson);
+   }
+   
+   if(bRoot)//special processing  for root, 
+   {
+      rootAssetkey=assetKey;     
+      jsonput(rootJsonFKJson, "assetKey", rootAssetKey);   
+       //only root line need to set root FK, the root FK on descent asset will be
+       //default via link directly as the link is on root FK itself, can not set root FK
+       //directly on descendnt as it is read-only.
+      jsonput(assetPayLoad, "rootAsset", rootJsonFKJson);
+   }
+   
+   //populate synchronization action code and default start/end date for create/terminate case.
+   actionCode =  jsonget(fieldJson, ACTION, "string", "");    
+   if(bRoot){           
+     if(originalActionCode == ADD ){
+          jsonput(assetPayLoad, STARTDATE, originalReqDate); 
+     }
+     if(finalAction == TERMINATE){
+          jsonput(assetPayLoad, ENDDATE, finalDate);  
+      }    
+   }
+   synActionCode = get(actionToSyncActionCodeDict, actionCode);
+   jsonput(assetPayLoad, SYNC_ACTION,  synActionCode);
+
+   //status field, we will derive from action    
+   if (bRoot){
+      statusJson =  json();
+      statusValue = ACTIVE;
+      if (actionCode == TERMINATE){
+          statusValue= TERMINATE;
+      }
+      jsonput(statusJson, "lookupCode", statusValue);
+      jsonput(assetPayLoad,"status", StatusJson);
+   }
+    
+   // Populate Display Key , this is a PLACEHOLDER only
+   // you should change your logic on the format of displayKey here 
+   //  or you could do it in abo_delta if you want to derive the displaykey based on BOM configuration
+   //  or leave the display key as empty and let external asset repository to populate it.
+   displayKey =  jsonget(fieldJson, ITEM_INSTANCE_NAME, "string", "");
+   if(displayKey==""){
+      //Here we pick a arbitrary format to make it easier to tie the created asset with original transaction
+      displayKey = partNum + "-" + transactionId + "-" + string(childCount+1);     
+   }
+   jsonput(assetPayLoad, "displayKey", displayKey);
+   
+   
+   //Step 4.3:  now populate pricing related fields, usually they are process specific.
+   // first retrieve currency/payment term from transaction header as we have centralized the logic
+   // the mapping of transaction attribute to these fields is done in process specific updateAsset action script.
+   //
+   currencyJson = Json();   
+   jsonput(currencyJson, "currencyCode",  currCode);
+   jsonput(assetPayLoad, CURRENCY_CODE, currencyJson);  
+   jsonput(assetPayLoad, "paymentTerm", paymntTerm);                        
+
+   //now it is process specific non-core fields , 
+   if(commProcName == "oraclecpqo"){  //we only implement for base refapp template     
+        netAmount=jsonget(fieldJson, NET_AMOUNT, "string", "");
+        pricetype=jsonget(fieldJson, PRICE_TYPE, "string", "");
+        pricePeriod=jsonget(fieldJson, PRICE_PERIOD, "string", "");
+        usageUnitOfMeasure = jsonget(fieldJson, REQUESTUNITOFMEASURE, "string", ""); 
+        contractStartDate = jsonget(fieldJson, CONTRACT_STARTDATE , "string", "");
+        if(contractStartDate <> "" AND isnull(contractStartDate)<> true){
+           jsonput(assetPayLoad, "startDate", contractStartDate);   
+        }
+        contractEndDate =  jsonget(fieldJson, CONTRACT_ENDDATE , "string", "");
+        if(contractEndDate <> "" AND isnull(contractEndDate)<> true){
+           jsonput(assetPayLoad, "endDate", contractEndDate);  
+        } 
+        if(priceType == ONETIME AND netAmount<>"" AND isnull(netAmount)<>true)//currency code type
+        {
+           oneTimeNetAmountJson=Json();
+           jsonput(oneTimeNetAmountJson, CURRENCY_CODE, currCode);
+           jsonput(oneTimeNetAmountJson, "value",  netAmount);
+           jsonput(assetPayLoad,"oneTimeNetAmount", oneTimeNetAmountJson);                           
+        }
+        //populate fixedRecurringPeriod & fixedRecurringAmount
+        if(priceType == RECURRING AND netAmount<>"" AND isnull(netAmount)<>true )//currency code type
+        {
+           fixedRecurringAmountJson=Json();
+           jsonput(fixedRecurringAmountJson, CURRENCY_CODE, currCode);
+           jsonput(fixedRecurringAmountJson, "value",  netAmount);
+           jsonput(assetPayLoad,"fixedRecurringAmount", fixedRecurringAmountJson);    
+           jsonput(assetPayLoad,"fixedRecurringPeriod", pricePeriod);   
+        }
+        //populate usageNetAmount & usageUnitOfMeasure
+        if(priceType == USAGE AND netAmount<>"" AND isnull(netAmount)<>true)//currency code type
+        {
+           usageNetAmountJson=Json();
+           jsonput(usageNetAmountJson, CURRENCY_CODE, currCode);
+           jsonput(usageNetAmountJson, "value",  netAmount);
+           jsonput(assetPayLoad,"usageNetAmount", usageNetAmountJson);    
+           jsonput(assetPayLoad,"usageUnitOfMeasure", usageUnitOfMeasure);   
+        }
+        //discountAmount & discountPercentage will be populated for both ONETIME & RECURRING
+        //for recurring, discountAmount will be per period.
+        discountAmount = jsonget(fieldJson,DISCOUNT_AMOUNT, "string", "");
+        if (discountAmount =="" OR isnull(discountAmount)){
+            discountAmount = "0";
+        }
+        discountAmountJson=Json();
+        jsonput(discountAmountJson, CURRENCY_CODE, currCode);
+        jsonput(discountAmountJson, "value",  discountAmount);
+        jsonput(assetPayLoad,"discountAmount", discountAmountJson);              
+        
+        listPrice = jsonget(fieldJson, LIST_PRICE, "string", "");
+        discountPercentage = 0;
+        if(  listPrice<> "" AND isnull(listPrice)<>true ){
+           floatDisAmt =  atof(discountAmount);
+           floatLstPrice =  atof(listPrice);
+           if (floatDisAmt <> 0.0 AND floatLstPrice <>0.0){
+              discountPercentage = floatDisAmt/floatLstPrice;
+           }
+        }
+        jsonput(assetPayLoad, "discountPercent", discountPercentage);          
+           
+   } //end of "oraclecpqo" specific fields processing.
+   
+   //Step 4.4: process XA. Read Each XA, loop through and clean up originalDisplay, original displayValue, original Translations
+   //and XASummary   
+    oneNodeXa =  jsonget(oneNode,  ATTRIBUTES, "json", json());     
+    oneNodeXaList =  jsonkeys(oneNodeXa); 
+    for oneXa in oneNodeXaList{
+        oneXaJson = jsonget(oneNodeXa, oneXa, "json");
+        if(util.abo_isjsonnull(oneXaJson,XAACTION ) <> true){
+            jsonremove(oneXaJson, XAACTION);
+        }
+        if(util.abo_isjsonnull(oneXaJson, ORIGINAL ) <> true){
+            jsonremove(oneXaJson, ORIGINAL);
+        }                  
+    }
+    atrliststr = jsontostr(oneNodeXa);
+    jsonput(assetPayLoad, ATTRIBUTES, atrliststr);  
+    
+    //now this asset is ready, add to array
+    if(bRoot<>true){      
+       jsonarrayappend(childAssetPayLoad, assetPayLoad);
+    }   
+}//end of loop thru each BOM item
+
+//Step 5: add child asset array to root asset
+itemJson=json();
+jsonput(itemjson, "items", childAssetPayLoad);
+jsonput(rootAsset, DESCENDANT_ASSETS, itemJson);
+
+if(not bDiagnosisOff){//log the output
+   dummy=util.abo_addDiagnosticInfo(callContext+"_output_asset", rootAsset,"addToSummary");
+}
+return rootAsset;

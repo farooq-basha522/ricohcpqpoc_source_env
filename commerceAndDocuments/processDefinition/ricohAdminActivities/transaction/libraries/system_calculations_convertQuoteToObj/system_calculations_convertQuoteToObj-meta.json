@@ -1,0 +1,26 @@
+{
+  "name" : "system_calculations_convertQuoteToObj",
+  "variableName" : "system_calculations_convertQuoteToObj",
+  "description" : "System Function to convert a quote document to Dictionary obj to optimize performance. This allows a single iteration over the line items and is used to update attributes in the custom functions.\n\nThis function also initializes any attribute values as needed. It also updates the 'mainDocOutputAttrs' and 'subDocOutputAttrs' dictionaries that control the attributes updated for each document type.\n\nFunctions starting with \"system\" prefix shouldn't be overridden. This will enable availability of upgrades to system logic.  Instead override the ones that have a \"custom\" prefix to customize the behavior.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "mainDocOutputAttrs",
+    "type" : "String Dictionary"
+  }, {
+    "name" : "subDocOutputAttrs",
+    "type" : "String Dictionary"
+  }, {
+    "name" : "quoteData",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "lineNumbersArray",
+    "type" : "String[]"
+  }, {
+    "name" : "extraParams",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ "_document_number", "_part_default_periodicity", "_part_default_price_type", "_price_unit_price_each", "_price_quantity", "contractedPeriods_l", "customDiscountValue_l", "customDiscountType_l", "unitCost_l", "_model_variable_name", "_model_partner_entity_id", "_partner_entity_id", "_parent_doc_number", "_part_units", "oRCL_ABO_ActionCode_l", "priceType_l", "_pricing_rule_price_each", "_part_default_uom", "contractStartDate_l", "contractEndDate_l", "_group_sequence_number", "_delta_price", "_line_bom_id", "_line_bom_parent_id", "_prior_price", "_rollup_delta_price", "_chargeSet", "_chargeSetControl", "_price_type", "_price_period" ],
+  "mainDocAttributes" : [ "transactionID_t", "version_t", "createdBy_t", "winLossStatus_t", "oRCL_SFA_Status_t", "oRCL_ERP_OrderNumber_t", "bs_id", "status_t", "_transaction_document_number", "defaultRequestDate_t", "contractStartDate_t", "contractEndDate_t", "priceType_t", "contractedPeriods_t" ],
+  "systemAttributes" : [ ]
+}

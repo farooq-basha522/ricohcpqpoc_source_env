@@ -1,0 +1,9 @@
+{
+  "name" : "Remove ITS View Status Logs",
+  "variableName" : "removeITSViewStatusLogs",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "Boolean",
+  "parameters" : [ ],
+  "attributes" : [ "_user_login", "_user_group" ]
+}

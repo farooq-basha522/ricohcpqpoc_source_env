@@ -1,0 +1,6 @@
+currentDate = getstrdate();
+dateSplit = split(currentDate, " ");
+dateSplit2 = split(dateSplit[0],"/");
+currentDate = dateSplit2[2] + "-" + dateSplit2[0] + "-" + dateSplit2[1] + "T" + dateSplit[1];
+print currentDate;
+return currentDate;

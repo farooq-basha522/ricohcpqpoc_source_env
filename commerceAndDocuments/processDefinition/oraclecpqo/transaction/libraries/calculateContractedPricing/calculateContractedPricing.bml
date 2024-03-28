@@ -1,0 +1,161 @@
+//*****************************************************************************************************
+//** Function:    Calculate Contracted Pricing
+//** Type:        Pre-Formula
+//**
+//** Description: Pulls contracted pricing data for parts coming onto a quote.
+//**              This was pulled out of Main Pricing so it can run before formulas.
+//**                                                                                               
+//** History:	Date		Author     	Comment
+//**            04.24.17        RConaghan       Initial Creation
+//*****************************************************************************************************
+
+x=getcurrenttimeinmillis();
+ret = "";
+contractedPriceList = string[];
+delim1			= "|&|";
+delim2			= "|^|";
+contractedDict	 	= dict("string");
+lastPricedDate 		= ""; //Blank = empty (optional). YYYY-MM-DD format
+
+customerId 		= customerID_t;
+partNumberArray=string[];
+
+
+
+
+//Loop 1 - do all contracted pricing table lookups
+for line in transactionLine{
+	//partType = line._part_custom_field9;
+	partNum = line._part_number; 
+	docNum = line._document_number;
+	
+	contractedPricing = "";
+	append(partNumberArray,partNum);
+	partType ="";
+	
+	partCustomFieldDict=util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+	
+	if(containskey(partCustomFieldDict,partNum+"custom_field9")) {
+	partType = get(partCustomFieldDict,partNum+"custom_field9");
+	}
+	
+	if(partType == "MRR"){ //03.01.17 - Only MRR is applicable for contracted pricing
+		contractedPricing = commerce.contractedPricing(customerId, partNum, lastPricedDate);
+		if (contractedPricing <> "") {
+			append(contractedPriceList, line._document_number + delim1 + line.locationName_l + delim1 + contractedPricing);
+		}
+	}
+}
+
+//Loop 2 - Parse out results of contractedPriceList array and determine final, best contracted price.
+if(NOT isempty(contractedPriceList)){	
+	for each in contractedPriceList {
+		contractedPrice = split(each,delim1);
+		docNum = contractedPrice[0];
+		lineLocation = contractedPrice[1];
+		contractLocation = contractedPrice[2];
+		lineComment = contractedPrice[3];
+		soldNetPrice = util.safeAtof(contractedPrice[4], 0.0);
+		soldNetPriceNRR = util.safeAtof(contractedPrice[5], 0.0);
+		soldCurrency = contractedPrice[6];
+		soldUnitPrice = util.safeAtof(contractedPrice[7], 0.0);
+		soldUnitPriceNRR = util.safeAtof(contractedPrice[8], 0.0);
+				
+		mrrPriceFound = (soldNetPrice > 0.0 OR (soldNetPrice == 0.0 AND soldUnitPrice > 0));
+		nrrPriceFound = (soldNetPriceNRR > 0.0 OR (soldNetPriceNRR == 0.0 AND soldUnitPriceNRR > 0));
+		
+		ret = ret + docNum +"~contractedPriceFound_l~" + string(mrrPriceFound) + "|";
+		ret = ret + docNum +"~contractedPriceFoundNRR_l~" + string(nrrPriceFound) + "|";
+	
+		locFlag = docNum + "loc"; //Flag used for identifying same location
+		docNumNRR = docNum + "NRR"; //Used for obtaining NRR values
+		
+		//Obtaining the leastDiscount value
+		leastDiscounted = get(contractedDict,docNum);
+		leastDiscountedNRR = get(contractedDict,docNumNRR);
+		
+		if(isnull(leastDiscounted)) {
+			leastDiscounted = "0";
+		}
+		if(isnull(leastDiscountedNRR)) {
+			leastDiscountedNRR = "0";
+		}
+		
+		if(lineLocation == contractLocation) {
+			if(leastDiscounted == "0" OR atof(leastDiscounted) < soldNetPrice) {
+				put(contractedDict,docNum, string(soldNetPrice));
+			}
+			if(leastDiscountedNRR == "0" OR atof(leastDiscountedNRR) < soldNetPriceNRR) {
+				put(contractedDict,docNumNRR, string(soldNetPriceNRR));
+			}
+			put(contractedDict,locFlag,"true");
+		} else {
+			if(isnull(get(contractedDict, locFlag))) {
+				if(leastDiscounted == "0" OR atof(leastDiscounted) < soldNetPrice) {
+					put(contractedDict,docNum, string(soldNetPrice));
+				}
+				if(leastDiscountedNRR == "0" OR atof(leastDiscountedNRR) < soldNetPriceNRR) {
+					put(contractedDict,docNumNRR, string(soldNetPriceNRR));
+				}
+			}
+		}
+	}
+} 
+
+//Loop 3 - Write back to outputs
+for line in transactionLine{
+	docNum = line._document_number;
+	contractUnitPriceMRR = get(contractedDict, docNum);
+	contractUnitPriceNRR = get(contractedDict, docNum + "NRR"); //Contracted pricing gives a seperate docNum for NRR. This is for MRR+NRR parts
+	
+	if(NOT isnull(contractUnitPriceMRR)){
+		ret = ret + line._document_number + "~contractedUnitPrice_l~"+contractUnitPriceMRR+"|";
+	}
+	if(NOT isnull(contractUnitPriceNRR)){
+		ret = ret + line._document_number + "~contractedUnitPriceNRR_l~"+contractUnitPriceNRR+"|";
+	}
+}
+
+
+for line in transactionLine{
+	
+// written for CHG0084476 to store Editable LIG attributes values
+/* Capturing Line Data values */   
+sb = stringbuilder();
+sbappend(sb,"discounttype_l","@",line.discounttype_l,"#");
+sbappend(sb,"discountAmountt_l","@",string(line.discountAmountt_l),"#");
+sbappend(sb,"promotionType_l","@",line.promotionType_l,"#");
+sbappend(sb,"promotionValue_l","@",line.promotionValue_l,"#");
+sbappend(sb,"partDescriptionOnProposal_l","@",line.partDescriptionOnProposal_l,"#");
+sbappend(sb,"_price_quantity","@",string(line._price_quantity),"#");
+sbappend(sb,"changeShortDescriptionFlag_l","@",string(line.changeShortDescriptionFlag_l),"#");
+sbappend(sb,"customDescription_l","@",line.customDescription_l,"#");
+sbappend(sb,"lineItemCustomComment_l","@",line.lineItemCustomComment_l,"#");
+
+sbappend(sb,"hide0InProposal_l","@",string(line.hide0InProposal_l),"#");
+sbappend(sb,"promoCode_l","@",line.promoCode_l,"#");
+
+
+
+
+
+
+
+
+
+
+
+
+
+ret = ret+line._document_number+"~lIGEditableFieldsValuesCapture_l~"+sbtostring(sb)+"|";
+	
+}
+
+
+
+
+
+
+y=getcurrenttimeinmillis();
+z=y-x;
+return ret;

@@ -1,0 +1,1209 @@
+rollupStr = stringbuilder();
+
+calculateRollupRevenue = false;
+if (containsKey(extraParams, "calculateRollupRevenue")) {
+   calculateRollupRevenue = get(extraParams, "calculateRollupRevenue", "boolean");
+} else {
+   put(extraParams, "calculateRollupRevenue", calculateRollupRevenue);
+}
+system_subscription_order_enabled = false;
+if (containsKey(extraParams, "system_subscription_order_enabled")) {
+   system_subscription_order_enabled = get(extraParams, "system_subscription_order_enabled", "boolean");
+} else {
+   put(extraParams, "system_subscription_order_enabled", system_subscription_order_enabled);
+}
+fOM_enabled = false;
+if (containsKey(extraParams, "fOM_enabled")) {
+   fOM_enabled = get(extraParams, "fOM_enabled", "boolean");
+} else {
+   put(extraParams, "fOM_enabled", fOM_enabled);
+}
+generate_rateCard_HTML = false;
+if (containsKey(extraParams, "generate_rateCard_HTML")) {
+   generate_rateCard_HTML = get(extraParams, "generate_rateCard_HTML", "boolean");
+} else {
+   put(extraParams, "generate_rateCard_HTML", generate_rateCard_HTML);
+}
+
+quoteData = dict("anytype");
+lineNumbersArray = string[0];
+mainDocOutputAttrs = dict("string");
+subDocOutputAttrs = dict("string");
+
+// create basic obj
+dummy = commerce.system_calculations_convertQuoteToObj(mainDocOutputAttrs, subDocOutputAttrs, quoteData, lineNumbersArray, extraParams);
+dummy = commerce.custom_calculations_convertQuoteToObj(mainDocOutputAttrs, subDocOutputAttrs, quoteData, lineNumbersArray);
+if (containsKey(extraParams, "autoUpdateDocNum") and containsKey(extraParams, "autoUpdateAttr")) {
+        autoUpdateDocNum = get(extraParams, "autoUpdateDocNum", "string");
+        autoUpdateAttr = get(extraParams, "autoUpdateAttr", "string");
+        autoUpdateDocDict = get(quoteData, autoUpdateDocNum, "dict<anytype>");
+        if (NOT containsKey(autoUpdateDocDict, autoUpdateAttr)) {
+        	return "";
+        }
+}
+mainDocDict = get(quoteData, _transaction_document_number, "dict<anytype>");
+
+
+if (containsKey(mainDocOutputAttrs, "userKey_t")) {
+	userKey_t = get(mainDocDict, "transactionID_t", "string") + "v" + string(get(mainDocDict, "version_t", "integer"));
+	put(mainDocDict, "userKey_t", userKey_t);
+}
+
+if (containsKey(mainDocOutputAttrs, "owner_t")) {
+	owner_t = get(mainDocDict, "createdBy_t", "string");
+	put(mainDocDict, "owner_t", owner_t);
+}
+
+if (containsKey(mainDocOutputAttrs, "contractStartDate_t")) {
+	v_contractStartDate_t = get(mainDocDict, "contractStartDate_t", "string");
+	if(isnull(v_contractStartDate_t) OR v_contractStartDate_t == "") {
+		v_contractStartDate_t = get(mainDocDict, "defaultRequestDate_t", "string");
+		put(mainDocDict, "contractStartDate_t", v_contractStartDate_t);
+	}
+}
+
+if (containsKey(mainDocOutputAttrs, "contractEndDate_t")) {
+	v_contractEndDate_t = get(mainDocDict, "contractEndDate_t", "string");
+	if(isnull(v_contractEndDate_t) OR v_contractEndDate_t == "") {
+		defaultRequestDate_t = get(mainDocDict, "defaultRequestDate_t", "string");
+		if(isnull(defaultRequestDate_t) <> true AND defaultRequestDate_t <> "") {
+			requestDate = strtojavadate(defaultRequestDate_t, "yyyy-MM-dd HH:mm:ss");
+			endDate = addmonths(requestDate , 12) ;
+			v_contractEndDate_t = datetostr(minusdays(endDate, 1), "yyyy-MM-dd HH:mm:ss");
+		}
+		put(mainDocDict, "contractEndDate_t", v_contractEndDate_t);
+	}
+}
+
+if (containsKey(mainDocOutputAttrs, "contractedPeriods_t")) {
+	v_contractStartDate_t = get(mainDocDict, "contractStartDate_t", "string");
+	v_contractEndDate_t = get(mainDocDict, "contractEndDate_t", "string");
+	v_priceType_t = get(mainDocDict, "priceType_t", "string");
+	v_pricePeriod_t = "Per Month";
+	v_contractedPeriods_t = commerce.calculateContractPeriods(v_priceType_t , v_pricePeriod_t, v_contractStartDate_t, v_contractEndDate_t );
+	put(mainDocDict, "contractedPeriods_t", v_contractedPeriods_t);
+}
+
+
+dummy = commerce.custom_calculations_processMainDocAttributes(mainDocDict);
+
+
+lineCount = 0;
+
+subDocOutputAttrsKey = keys(subDocOutputAttrs);
+mainDocOutputAttrsKey = keys(mainDocOutputAttrs);
+
+rollupCalcStr = "";
+lineCount = 0;
+for lineNumber in lineNumbersArray {
+	
+	lineDict = get(quoteData, lineNumber, "dict<anytype>");
+	
+	v__price_quantity = get(lineDict, "_price_quantity", "integer");
+
+	if (containsKey(subDocOutputAttrs, "oRCL_SFA_InventoryOrgID_l")) {
+		oRCL_SFA_InventoryOrgID_l = get(mainDocDict, "oRCL_SFA_InventoryOrgID_l", "string");
+		if (oRCL_SFA_InventoryOrgID_l == "null" and oRCL_SFA_InventoryOrgID_l == "") {
+			oRCL_SFA_InventoryOrgID_l = get(mainDocDict, "_partner_organization_id", "string");
+			put(lineDict, "oRCL_SFA_InventoryOrgID_l", oRCL_SFA_InventoryOrgID_l);
+		}
+	}
+	
+	v_winLossStatus_t = get(mainDocDict, "winLossStatus_t", "string");
+	if (containsKey(subDocOutputAttrs, "winLossStatus_l")) {
+		winLossStatus_l = v_winLossStatus_t;
+		put(lineDict, "winLossStatus_l", winLossStatus_l);
+	}
+	
+	v__pricing_engine_price_type = get(lineDict, "_price_type", "string");
+	v__part_default_periodicity = get(lineDict, "_part_default_periodicity", "string");
+	if (containskey(subDocOutputAttrs, "pricePeriod_l")) {
+		pricePeriod_l  = "";
+		// when product price is defined for part, pricing engine's price type will not be null or empty
+		if(isnull(v__pricing_engine_price_type)  <> true and v__pricing_engine_price_type <> "") {
+			v__pricing_engine_price_period = get(lineDict, "_price_period", "string");
+			if (isnull(v__pricing_engine_price_period) <> true and v__pricing_engine_price_period <> "") {
+				pricePeriod_l = v__pricing_engine_price_period;
+			}
+		} else {
+			if (v__part_default_periodicity <> "null" and v__part_default_periodicity <> "") {
+				pricePeriod_l = v__part_default_periodicity;
+			}
+		}
+		put(lineDict, "pricePeriod_l", pricePeriod_l);
+	}
+	
+	v_oRCL_SFA_Status_t = get(mainDocDict, "oRCL_SFA_Status_t", "string");
+	if (containskey(subDocOutputAttrs, "oRCL_SFA_Status_l")) {
+		oRCL_SFA_Status_l = v_oRCL_SFA_Status_t;
+		put(lineDict, "oRCL_SFA_Status_l", oRCL_SFA_Status_l);
+	}	
+
+
+	if (containsKey(subDocOutputAttrs, "priceType_l")) {
+	        priceType_l = "";
+	        if (priceType_l ==  "" OR priceType_l ==  "null"){
+	        	if(isnull(v__pricing_engine_price_type) <> true AND v__pricing_engine_price_type  <> "") {
+	          		priceType_l = v__pricing_engine_price_type;
+	          	} else {
+	          		v__part_default_price_type = get(lineDict, "_part_default_price_type", "string");
+	          		if (v__part_default_price_type ==  "" OR v__part_default_price_type ==  "null"){
+	           			priceType_l = "One Time";
+	          		}
+	         		else{
+		            		priceType_l = v__part_default_price_type;   
+	          		}
+	          	}
+	          	put(lineDict, "priceType_l", priceType_l);
+	        }
+	}
+	
+	if (containskey(subDocOutputAttrs, "oRCL_ERP_OrderNumber_l")) {
+		oRCL_ERP_OrderNumber_l = get(mainDocDict, "oRCL_ERP_OrderNumber_t", "string");
+		put(lineDict, "oRCL_ERP_OrderNumber_l", oRCL_ERP_OrderNumber_l);
+	}	
+	
+	if (containskey(subDocOutputAttrs, "transactionID_l")) {
+		transactionID_l = get(mainDocDict, "bs_id", "string");
+		put(lineDict, "transactionID_l", transactionID_l);
+	}
+	
+	if (containskey(subDocOutputAttrs, "listPrice_l")) {
+		listPrice_l = get(lineDict, "_price_unit_price_each", "float");
+		if (_system_subscription_order_enabled == true) {
+			aboActionCode = get(lineDict, "oRCL_ABO_ActionCode_l", "string");
+		
+			if(( aboActionCode == "DELETE" ) OR ( aboActionCode == "TERMINATE" )){
+				listPrice_l = 0.0;
+			}
+			else 
+			{	
+				rulePrice_l = get(lineDict, "_pricing_rule_price_each", "float");			
+				if( rulePrice_l <> 0 ) {
+					listPrice_l = rulePrice_l;
+				}	
+			}
+			put(lineDict, "listPrice_l", listPrice_l);	
+		} else {		
+			put(lineDict, "listPrice_l", listPrice_l);
+		}
+	}
+	
+	v_listPrice_l = get(lineDict, "listPrice_l", "float");
+	v_priceType_l = get(lineDict, "priceType_l", "string");
+	
+	if (containskey(subDocOutputAttrs, "listAmount_l")) {
+		listAmount_l = v_listPrice_l * v__price_quantity;
+		if(v_priceType_l == "Usage") {
+			listAmount_l = 0.0;
+		}
+		put(lineDict, "listAmount_l", listAmount_l);
+	}
+	
+	v_pricePeriod_l = get(lineDict, "pricePeriod_l", "string");
+	v_listAmount_l = get(lineDict, "listAmount_l", "float");
+	
+	v_contractStartDate_l = get(lineDict, "contractStartDate_l", "string");
+	v_contractEndDate_l = get(lineDict, "contractEndDate_l", "string");	
+	
+	priceTypeRollup = v_priceType_l;
+	pricePeriodRollup = v_pricePeriod_l;
+	
+	hasCharges = false;
+	chargesSize = 0;
+	if (containsKey(subDocOutputAttrs, "_chargeSet")) {
+        	chargeArraySet = get(lineDict, "_chargeSet", "jsonarray");
+        	chargesSize = 0;
+        	if(isnull(chargeArraySet) <> true) {
+         	   chargesSize = jsonarraysize(chargeArraySet);
+        	}
+        	if(chargesSize > 0) { // calculate net price, net amount for charge lines
+	        	hasCharges = true;
+	        }
+	        itr = string[chargesSize ];
+	        chargecount = 0;
+	        for i in itr {
+			charge = jsonArrayget(chargeArraySet, chargecount, "json");
+			chargePriceType = jsonget(charge,"_chargeSet_priceType", "string");
+		        if(isnull(chargePriceType) OR chargePriceType == "") {
+		        	chargePriceType = "One Time";
+		        }
+	        	if(priceTypeRollup <> chargePriceType) {
+	            		priceTypeRollup = chargePriceType;
+	        	}
+	        	
+	        	chargePricePeriod = jsonget(charge,"_chargeSet_pricePeriod", "string");
+	        	if(pricePeriodRollup <> chargePricePeriod ) {
+	        		granular = ""; // keep the granular one.
+	        	    	if(pricePeriodRollup == "Per Month" or chargePricePeriod == "Per Month" ) {
+        	            		granular = "Per Month";
+                		} else {
+                    			if(pricePeriodRollup == "Per Year" or chargePricePeriod == "Per Year" ) {
+                        			granular = "Per Year";
+                    			}
+                    		}
+                    		pricePeriodRollup = granular;
+	        	}
+	        	chargecount = chargecount + 1;
+		}
+	}
+
+	v_contractedPeriods_l = commerce.calculateContractPeriods(priceTypeRollup, pricePeriodRollup, v_contractStartDate_l, v_contractEndDate_l);
+	put(lineDict, "contractedPeriods_l", v_contractedPeriods_l );
+	if (containskey(subDocOutputAttrs, "annualListValue_l")) {
+		annualListValue_l = 0.0;
+		if ( ( v_pricePeriod_l == "Per Year" and ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) ) {
+			annualListValue_l = v_listAmount_l;
+		} else {
+			if ( ( v_pricePeriod_l == "Per Month" and ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) ) {
+				intArray = Integer[2];
+				intArray[0] = v_contractedPeriods_l;
+				intArray[1] = 12;			
+				annualListValue_l = listAmount_l * min(intArray);
+			} else {
+				annualListValue_l = 0.0;
+			}
+		}
+		put(lineDict, "annualListValue_l", annualListValue_l);
+	}
+	
+	if (containskey(subDocOutputAttrs, "contractListValue_l")) {
+		contractListValue_l = 0.0;
+		if ( v_priceType_l == "One Time" ) {
+			contractListValue_l = v_listAmount_l;
+		} else {
+			if ( ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) {
+				contractListValue_l = v_listAmount_l * v_contractedPeriods_l;
+			} else {
+				contractListValue_l = 0.0;
+			}
+		}
+		put(lineDict, "contractListValue_l", contractListValue_l);
+	}
+	
+	if (containskey(subDocOutputAttrs, "priceRecurFrequency_l")) {
+		priceRecurFrequency_l = "";
+		if ( v_pricePeriod_l == "Per Month" ) {
+			priceRecurFrequency_l = "MONTHLY";
+		} else {
+			if ( v_pricePeriod_l == "Per Year" ) {
+				priceRecurFrequency_l = "YEARLY";
+			} else {
+				priceRecurFrequency_l = "";
+			}
+		}
+		put(lineDict, "priceRecurFrequency_l", priceRecurFrequency_l);
+	}	
+	
+	v_customDiscountValue_l = get(lineDict, "customDiscountValue_l", "float");
+	v_customDiscountType_l = get(lineDict, "customDiscountType_l", "string");
+	if (containskey(subDocOutputAttrs, "customDiscountAmount_l")) {
+		customDiscountAmount_l = 0.0;
+		if ( v_customDiscountType_l == "Amount Off" ) {
+			customDiscountAmount_l = v_customDiscountValue_l;
+		} else {
+			if ( v_customDiscountType_l == "Percent Off" ) {
+				customDiscountAmount_l = v_listPrice_l * ( v_customDiscountValue_l / 100 );
+			} else {
+				if ( v_customDiscountType_l == "Price Override" ) {
+					customDiscountAmount_l = ( v_listPrice_l - v_customDiscountValue_l );
+				} else {
+					customDiscountAmount_l = 0.0;
+				}
+			}
+		}
+		put(lineDict, "customDiscountAmount_l", customDiscountAmount_l);
+	}	
+	
+	v_customDiscountAmount_l = get(lineDict, "customDiscountAmount_l", "float");
+	if (containskey(subDocOutputAttrs, "discountAmount_l")) {
+		discountAmount_l = v_customDiscountAmount_l * v__price_quantity;
+		if(v_priceType_l == "Usage") {
+			discountAmount_l = 0.0;
+		}
+		put(lineDict, "discountAmount_l", discountAmount_l);
+	}	
+	
+	v_annualDiscount_l = get(lineDict, "discountAmount_l", "float");
+	if (containskey(subDocOutputAttrs, "annualDiscount_l")) {
+		annualDiscount_l = 0.0;
+		if ( ( v_pricePeriod_l == "Per Year" and ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) ) {
+			annualDiscount_l = v_annualDiscount_l;
+		} else {
+			if ( ( v_pricePeriod_l == "Per Month" and ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) ) {
+				intArray = Integer[2];
+				intArray[0] = v_contractedPeriods_l;
+				intArray[1] = 12;		
+				annualDiscount_l = discountAmount_l * min(intArray);
+			} else {
+				annualDiscount_l = 0.0;
+			}
+		}
+		put(lineDict, "annualDiscount_l", annualDiscount_l);
+	}	
+	
+	if (containskey(subDocOutputAttrs, "netPrice_l")) {
+		netPrice_l = 0.0;
+		if ( v_customDiscountType_l == "Price Override" ) {
+			netPrice_l = v_customDiscountValue_l;
+		} else {
+			netPrice_l = ( v_listPrice_l - v_customDiscountAmount_l );
+		}
+		put(lineDict, "netPrice_l", netPrice_l);
+	}	
+	
+	v_unitCost_l = get(lineDict, "unitCost_l", "float");
+	v_netPrice_l = get(lineDict, "netPrice_l", "float");
+	if (containskey(subDocOutputAttrs, "unitMargin_l")) {
+		unitMargin_l = ( v_netPrice_l - v_unitCost_l );
+		put(lineDict, "unitMargin_l", unitMargin_l);
+	
+	}	
+	
+	if (containskey(subDocOutputAttrs, "contractDiscount_l")) {
+		v_discountAmount_l = get(lineDict, "discountAmount_l", "float");
+		contractDiscount_l = 0.0;
+		if ( v_priceType_l == "One Time" ) {
+			contractDiscount_l = v_discountAmount_l;
+		} else {
+			if ( ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) {
+				contractDiscount_l = v_discountAmount_l * v_contractedPeriods_l;
+			} else {
+				contractDiscount_l = 0.0;
+			}
+		}
+		put(lineDict, "contractDiscount_l", contractDiscount_l);
+	}	
+	
+	v_contractListValue_l = get(lineDict, "contractListValue_l", "float");
+	
+	v__model_variable_name = get(lineDict, "_model_variable_name", "string");
+	if (containskey(subDocOutputAttrs, "lineType_l")) {
+		lineType_l = "";
+		if ( v__model_variable_name <> "" and v__model_variable_name <> "null") {
+			lineType_l = "MODEL";
+		} else {
+			lineType_l = "PART";
+		}
+		put(lineDict, "lineType_l", lineType_l);
+	
+	}	
+	
+	if (containskey(subDocOutputAttrs, "oRCL_SFA_InventoryItemID_l")) {
+		oRCL_SFA_InventoryItemID_l = "";
+		if ( get(lineDict, "lineType_l", "string") == "MODEL" ) {
+			oRCL_SFA_InventoryItemID_l = get(lineDict, "_model_partner_entity_id", "string");
+		} else {
+			oRCL_SFA_InventoryItemID_l = get(lineDict, "_partner_entity_id", "string");
+		}
+		put(lineDict, "oRCL_SFA_InventoryItemID_l", oRCL_SFA_InventoryItemID_l);
+	}	
+	
+	status_l = get(lineDict, "status_l", "string");
+	if (status_l == "" or status_l == "null") {
+      		status_l = get(mainDocDict, "status_t", "string");
+      		put(lineDict, "status_l", status_l);
+	}	
+				
+	
+	v__parent_doc_number = get(lineDict, "_parent_doc_number", "string");
+	if (containsKey(subDocOutputAttrs, "rootLine_l")) {
+		rootLine_l = "";
+		get(lineDict, "_parent_doc_number", "string");
+		if ( v__parent_doc_number == "" or v__parent_doc_number == "null") {
+			rootLine_l = "Y";
+		} else {
+			rootLine_l = "N";
+		}	
+		put(lineDict, "rootLine_l", rootLine_l);	
+	}
+	
+	if (containskey(subDocOutputAttrs, "netAmount_l")) {
+		netAmount_l = v_netPrice_l * v__price_quantity;
+		if(v_priceType_l == "Usage") {
+			netAmount_l = 0.0;
+		}
+		put(lineDict, "netAmount_l", netAmount_l);
+	}	
+	
+	v_netAmount_l = get(lineDict, "netAmount_l", "float");
+	
+	if (containskey(subDocOutputAttrs, "contractValue_l")) {
+		contractValue_l = 0.0;
+		if ( v_priceType_l == "One Time" ) {
+			contractValue_l = v_netAmount_l;
+		} else {
+			if ( ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) {
+				contractValue_l = v_netAmount_l * v_contractedPeriods_l;
+			} else {
+				contractValue_l = 0.0;
+			}
+		}
+		put(lineDict, "contractValue_l", contractValue_l);
+	}	
+	
+	v_contractValue_l = get(lineDict, "contractValue_l", "float");
+	if (containskey(subDocOutputAttrs, "recurringRevSummable_l")) {
+		recurringRevSummable_l = 0.0;
+		if ( v_priceType_l == "Recurring" ) {
+			recurringRevSummable_l = v_contractValue_l;
+		} else {
+			recurringRevSummable_l = 0.0;
+		}
+		put(lineDict, "recurringRevSummable_l", recurringRevSummable_l);
+	}	
+	
+	v_recurringRevSummable_l = get(lineDict, "recurringRevSummable_l", "float");
+	
+	if (containskey(subDocOutputAttrs, "usageRevSummable_l")) {
+		usageRevSummable_l = 0.0;
+		if ( v_priceType_l == "Usage" ) {
+			usageRevSummable_l = v_contractValue_l;
+		} else {
+			usageRevSummable_l = 0.0;
+		}
+		put(lineDict, "usageRevSummable_l", usageRevSummable_l);
+	}	
+	
+	if (containskey(subDocOutputAttrs, "nonRecurRevSummable_l")) {
+		nonRecurRevSummable_l = 0.0;
+		if ( v_priceType_l == "One Time" ) {
+			nonRecurRevSummable_l = v_netAmount_l;
+		} else {
+			nonRecurRevSummable_l = 0.0;
+		}
+		put(lineDict, "nonRecurRevSummable_l", nonRecurRevSummable_l);
+	}	
+	
+	if (containskey(subDocOutputAttrs, "monthlyUsageRevSummable_l")) {
+		monthlyUsageRevSummable_l = 0.0;
+		if ( ( v_priceType_l == "Usage" and v_pricePeriod_l == "Per Month" ) ) {
+			monthlyUsageRevSummable_l = v_netAmount_l;
+		} else {
+			monthlyUsageRevSummable_l = 0.0;
+		}
+		put(lineDict, "monthlyUsageRevSummable_l", monthlyUsageRevSummable_l);
+	}	
+	
+	v_monthlyUsageRevSummable_l = get(lineDict, "monthlyUsageRevSummable_l", "float");
+
+	if (containskey(subDocOutputAttrs, "annualValue_l")) {
+		annualValue_l = 0.0;
+		if ( ( v_pricePeriod_l == "Per Year" and ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) ) {
+			annualValue_l = v_netAmount_l;
+		} else {
+			if ( ( v_pricePeriod_l == "Per Month" and ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) ) {
+				intArray = Integer[2];
+				intArray[0] = v_contractedPeriods_l;
+				intArray[1] = 12;		
+				annualValue_l = v_netAmount_l * min(intArray);
+			} else {
+				annualValue_l = 0.0;
+			}
+		}
+		put(lineDict, "annualValue_l", annualValue_l);
+	
+	}
+	
+	if (containskey(subDocOutputAttrs, "monthlyRecurRevSummable_l")) {
+		monthlyRecurRevSummable_l = 0.0;
+		if ( ( v_priceType_l == "Recurring" and v_pricePeriod_l == "Per Month" ) ) {
+			monthlyRecurRevSummable_l = v_netAmount_l;
+		} else {
+			monthlyRecurRevSummable_l = 0.0;
+		}
+		put(lineDict, "monthlyRecurRevSummable_l", monthlyRecurRevSummable_l);
+	}	
+	
+	if (containskey(subDocOutputAttrs, "costAmount_l")) {
+		costAmount_l = v_unitCost_l * v__price_quantity;
+		if(v_priceType_l == "Usage") {
+			costAmount_l = 0.0;
+		}
+		put(lineDict, "costAmount_l", costAmount_l);
+	}	
+	
+	v_costAmount_l = get(lineDict, "costAmount_l", "float");
+	
+	if (containskey(subDocOutputAttrs, "marginAmount_l")) {
+		marginAmount_l = v_netAmount_l - v_costAmount_l;
+		put(lineDict, "marginAmount_l", marginAmount_l);
+	
+	}	
+	
+	v_marginAmount_l = get(lineDict, "marginAmount_l", "float");
+	if (containskey(subDocOutputAttrs, "contractMargin_l")) {
+		contractMargin_l = 0.0;
+		if ( v_priceType_l == "One Time" ) {
+			contractMargin_l = v_marginAmount_l;
+		} else {
+			if ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) {
+				contractMargin_l = v_marginAmount_l * v_contractedPeriods_l;
+			} else {
+				contractMargin_l = 0.0;
+			}
+		}
+		put(lineDict, "contractMargin_l", contractMargin_l);
+	}	
+	
+	if (containskey(subDocOutputAttrs, "annualMargin_l")) {
+		annualMargin_l = 0.0;
+		if ( ( v_pricePeriod_l == "Per Year" and ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) ) {
+			annualMargin_l = v_marginAmount_l;
+		} else {
+			if ( ( v_pricePeriod_l == "Per Month" and ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) ) {
+				intArray = Integer[2];
+				intArray[0] = v_contractedPeriods_l;
+				intArray[1] = 12;		
+				annualMargin_l = v_marginAmount_l * min(intArray);
+			} else {
+				annualMargin_l = 0.0;
+			}
+		}
+		put(lineDict, "annualMargin_l", annualMargin_l);
+	}	
+	
+	if (containskey(subDocOutputAttrs, "contractCost_l")) {
+		contractCost_l = 0.0;
+		if ( v_priceType_l == "One Time" ) {
+			contractCost_l = v_costAmount_l;
+		} else {
+			if ( ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) {
+				contractCost_l = v_costAmount_l * v_contractedPeriods_l;
+			} else {
+				contractCost_l = 0.0;
+			}
+		}
+		put(lineDict, "contractCost_l", contractCost_l);
+	}	
+	
+	if (containskey(subDocOutputAttrs, "marginPercent_l")) {
+		marginPercent_l = 0.0;
+		if ( v_listAmount_l > 0 ) {
+			marginPercent_l = ( v_marginAmount_l * 100.0 / v_listAmount_l );
+		} else {
+			marginPercent_l = 0.0;
+		}
+		put(lineDict, "marginPercent_l", marginPercent_l);
+	}	
+	
+	if (containskey(subDocOutputAttrs, "requestedUnitOfMeasure_l")) {
+	    requestedUnitOfMeasure_l = get(lineDict, "requestedUnitOfMeasure_l", "string");
+	    if (requestedUnitOfMeasure_l == "" or status_l == "null") {
+		requestedUnitOfMeasure_l = get(lineDict, "_part_default_uom", "string");
+		if ( requestedUnitOfMeasure_l == "" or requestedUnitOfMeasure_l == "null" ) {
+			requestedUnitOfMeasure_l = get(lineDict, "_part_units", "string");
+			if ( get(lineDict, "lineType_l", "string") == "PART" and (requestedUnitOfMeasure_l == "" or requestedUnitOfMeasure_l == "null" )) {
+				//default to Ea only for parts
+				requestedUnitOfMeasure_l = "Ea";
+			}
+		}
+		put(lineDict, "requestedUnitOfMeasure_l", requestedUnitOfMeasure_l);
+	    }
+	}	
+	
+	
+	v_contractDiscount_l = get(lineDict, "contractDiscount_l", "float");
+	
+	if (containskey(subDocOutputAttrs, "annualCost_l")) {
+		annualCost_l = 0.0;
+		if ( ( v_pricePeriod_l == "Per Year" and ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) ) {
+			annualCost_l = v_costAmount_l;
+		} else {
+			if ( ( v_pricePeriod_l == "Per Month" and ( v_priceType_l == "Recurring" or v_priceType_l == "Usage" ) ) ) {
+				intArray = Integer[2];
+				intArray[0] = v_contractedPeriods_l;
+				intArray[1] = 12;		
+				annualCost_l = v_costAmount_l * min(intArray);
+			} else {
+				annualCost_l = 0.0;
+			}
+		}
+		put(lineDict, "annualCost_l", annualCost_l);
+	}		
+	
+	if (containskey(subDocOutputAttrs, "discountPercent_l")) {
+		discountPercent_l = 0.0;
+		if ( v_contractListValue_l > 0.0 ) {
+			discountPercent_l = ( v_contractDiscount_l / v_contractListValue_l ) * 100;
+		} else {
+			discountPercent_l = 0.0;
+		}
+		put(lineDict, "discountPercent_l", discountPercent_l);
+	}	
+	
+	hasCharges = false;
+	if (containsKey(subDocOutputAttrs, "_chargeSet")) {
+        	chargeArraySet = get(lineDict, "_chargeSet", "jsonarray");
+        	chargesSize = 0;
+        	if(isnull(chargeArraySet) <> true) {
+         	   chargesSize = jsonarraysize(chargeArraySet);
+        	}
+        	itr = string[chargesSize];
+        	if(chargesSize > 0) { // calculate net price, net amount for charge lines
+	        	hasCharges = true;
+	            	priceTypeRollup = get(lineDict, "priceType_l", "string");
+		    	contractValRollup = get(lineDict, "contractValue_l", "float");
+		    	contractListValRollup = get(lineDict, "contractListValue_l", "float");
+		    	nonRecurRevSummableRollup = get(lineDict, "nonRecurRevSummable_l", "float");
+		    	recurringRevSummableRollup = get(lineDict, "recurringRevSummable_l", "float");
+		    	usageRevRollup  = get(lineDict, "usageRevSummable_l", "float");
+		    	monthlyRecurRevSummableRollup  = get(lineDict, "monthlyRecurRevSummable_l", "float");
+		    	monthlyUsageRevSummableRollup = get(lineDict, "monthlyUsageRevSummable_l", "float");
+		    	contractedPeriodsRollup = get(lineDict, "contractedPeriods_l", "integer");
+		    	priceRecurFrequencyRollup = get(lineDict, "priceRecurFrequency_l", "string");
+		    	
+		    	// values required for maindoc attribute calculations 
+		    	chargesTotalMonthlyListAmount = 0.0;
+		    	chargesTotalMonthlyDiscount = 0.0;
+		    	chargesTotalAnnualDiscount = 0.0;
+		    	chargesTotalOneTimeListAmount = 0.0;
+		    	chargesTotalOneTimeNetAmount = 0.0;
+		    	chargesTotalMonthlyNetAmount = 0.0;
+		    	chargesTotalContractDiscount = 0.0;
+		    	chargesTotalAnnualContractListValue = 0.0;
+		    	chargesTotalAnnualValue = 0.0;
+		    	chargesTotalOneTimeDiscount = 0.0;
+		    	chargesTotalOneTimeCostAmount = 0.0;
+		    	chargesTotalMonthlyMarginAmount = 0.0;
+		    	chargesTotalOneTimeMarginAmount = 0.0;
+		    	chargesTotalAnnualMarginAmount = 0.0;
+		    	chargesTotalContractCostAmount = 0.0;
+		    	chargesTotalMonthlyCostAmount = 0.0;
+		    	chargesContractMarginAmount = 0.0;
+		    	chargesTotalAnnualCostAmount = 0.0;
+		    	
+	            	chargecount = 0;
+            		for i in itr {
+		            charge = jsonArrayget(chargeArraySet, chargecount, "json");
+		            price = jsonget(charge,"_chargeSet_unitPrice", "float", 0.0);
+		            chargeDiscType = jsonget(charge,"_chargeSet_discountType", "string");
+		            chargeDiscValue = jsonget(charge,"_chargeSet_discountValue", "float", 0.0);
+		            chargeUnitCost = 0.0; // update when charges will have unit cost
+		            
+		            chargeDiscAmt = 0.0;
+		            if ( chargeDiscType == "Amount Off" ) {
+		                chargeDiscAmt = chargeDiscValue;
+		            } else {
+		            	if ( chargeDiscType == "Percent Off" ) {
+		                    chargeDiscAmt = price * ( chargeDiscValue / 100 );
+		                } else {
+		                    if ( chargeDiscType == "Price Override" ) {
+		                        chargeDiscAmt = ( price - chargeDiscValue );
+		                    } else {
+		                        chargeDiscAmt = 0.0;
+		                    }
+		                }
+		            }
+		            jsonput(charge, "_chargeSet_discountAmount", chargeDiscAmt*v__price_quantity); 
+		            chargeNetPrice = 0.0;
+		            if ( chargeDiscType == "Price Override" ) {
+	            		chargeNetPrice = chargeDiscValue;
+		            } else {
+		                chargeNetPrice = ( jsonget(charge,"_chargeSet_unitPrice", "float", 0.0) - chargeDiscAmt );
+		            }
+		            jsonput(charge, "_chargeSet_netPrice", chargeNetPrice);
+		         
+		            //net amount
+		            chargeNetAmount = chargeNetPrice * v__price_quantity;
+		            
+		            listPrice = jsonget(charge,"_chargeSet_unitPrice", "float", 0.0);
+	    		    listAmount = listPrice * v__price_quantity ;
+	    		    chargeCostAmount = chargeUnitCost * v__price_quantity;
+	    		    
+	    		    chargePriceType = jsonget(charge,"_chargeSet_priceType", "string");
+		            if(isnull(chargePriceType) OR chargePriceType == "") {
+		            	chargePriceType = "One Time";
+		            }
+		            
+		            if(chargePriceType == "Usage") {
+		            	chargeNetAmount = 0.0;
+		            	listAmount = 0.0;
+		            	chargeCostAmount = 0.0;
+		            	jsonput(charge, "_chargeSet_discountAmount", 0.0);
+		            }
+		            jsonput(charge, "_chargeSet_netAmount", chargeNetAmount);
+		              
+		            // rate card html  
+		            if(generate_rateCard_HTML) {
+		            	rateCardStructure = jsonget(charge,"_chargeSet_rateCardStructure", "json");
+	    		    	html = commerce._s_generateRateCardHTML(rateCardStructure);
+	    		    	jsonput(charge, "_chargeSet_rateCardInHTML", html);
+	    		    }
+    		    
+		            
+	    		    chargeMarginAmount = chargeNetAmount - chargeCostAmount;
+	    		    
+		            
+	        	    if(priceTypeRollup <> chargePriceType) {
+	            		priceTypeRollup = "Mixed";
+	        	    }
+	        
+	        	    chargePricePeriod = jsonget(charge,"_chargeSet_pricePeriod", "string");
+	        	    contractedPeriods = commerce.calculateContractPeriods(chargePriceType, chargePricePeriod, v_contractStartDate_l, v_contractEndDate_l);
+	         
+	        	    if(contractedPeriods > contractedPeriodsRollup){ //keep largest
+	        			contractedPeriodsRollup = contractedPeriods;
+	        	    } 
+		        
+	        	    chargePriceRecurFrequency = "";
+	        	    if ( chargePricePeriod == "Per Month" ) {
+				chargePriceRecurFrequency = "MONTHLY";
+			    } else {
+				if ( chargePricePeriod == "Per Year" ) {
+					chargePriceRecurFrequency = "YEARLY";
+				} else {
+					chargePriceRecurFrequency = "";
+				}
+			    }
+	        	    if(priceRecurFrequencyRollup <> chargePriceRecurFrequency ) { // keep the granular one.
+	                	if(priceRecurFrequencyRollup == "MONTHLY" or chargePriceRecurFrequency == "MONTHLY" ) {
+	                    		priceRecurFrequencyRollup = "MONTHLY";
+	                	} else {
+	                    		if(priceRecurFrequencyRollup == "YEARLY" or chargePriceRecurFrequency == "YEARLY" ){
+	                        		priceRecurFrequencyRollup = "YEARLY";
+	                    		}
+	                    	}
+	                    }
+	                    
+	                    annualDiscount = 0.0;
+	                    annualContractListValue = 0.0;
+	                    annualValue = 0.0;
+	                    annualMargin = 0.0;
+	                    annualCost = 0.0;
+		            if ( ( chargePricePeriod == "Per Year" and ( chargePriceType == "Recurring" or chargePriceType == "Usage" ) ) ) {
+				annualDiscount = chargeDiscAmt;
+				annualContractListValue = listAmount;
+				annualValue = chargeNetAmount;
+				annualMargin = chargeMarginAmount;
+				annualCost = chargeCostAmount;
+			    } else {
+				if ( ( chargePricePeriod == "Per Month" and ( chargePriceType == "Recurring" or chargePriceType == "Usage" ) ) ) {
+					intArray = Integer[2];
+					intArray[0] = contractedPeriods;
+					intArray[1] = 12;		
+					annualDiscount = chargeDiscAmt * min(intArray);
+					annualContractListValue = listAmount * min(intArray);
+					annualValue = chargeNetAmount * min(intArray);
+					annualMargin = chargeMarginAmount * min(intArray);
+					annualCost = chargeCostAmount * min(intArray);
+				} else {
+					annualDiscount = 0.0;
+					annualContractListValue = 0.0;
+					annualValue = 0.0;
+					annualMargin = 0.0;
+					annualCost = 0.0;
+				}
+			    }
+	 		    chargesTotalAnnualDiscount = chargesTotalAnnualDiscount + annualDiscount;
+	 		    chargesTotalAnnualContractListValue = chargesTotalAnnualContractListValue + annualContractListValue;
+	 		    chargesTotalAnnualValue = chargesTotalAnnualValue + annualValue;
+	 		    chargesTotalAnnualMarginAmount = chargesTotalAnnualMarginAmount + annualMargin;
+	 		    chargesTotalAnnualCostAmount = chargesTotalAnnualCostAmount + annualCost;
+	        	    
+	        	    //contractVal rollup calculation
+	        	    chargeContractValue = 0.0;
+	        	    chargeContractDiscount = 0.0;
+	        	    chargeContractCost = 0.0;
+	        	    chargeContractMargin = 0.0;
+	        	    if ( chargePriceType == "One Time" ) {
+		        	chargeContractValue = chargeNetAmount;
+		        	chargeContractDiscount = chargeDiscAmt;
+		        	chargeContractCost = chargeCostAmount;
+		        	chargeContractMargin = chargeMarginAmount;
+		    	    } else {
+		        	if ( ( chargePriceType == "Recurring" or chargePriceType == "Usage" ) ) {
+		            		chargeContractValue = chargeNetAmount * contractedPeriods;
+		            		chargeContractDiscount = chargeDiscAmt * contractedPeriods;
+		            		chargeContractCost = chargeCostAmount * contractedPeriods;
+		            		chargeContractMargin = chargeMarginAmount * contractedPeriods;
+		        	} else {
+		            		chargeContractValue = 0.0;
+		            		chargeContractDiscount = 0.0;
+		            		chargeContractCost = 0.0;
+		            		chargeContractMargin = 0.0;
+		        	}
+	    		    }
+	    		    chargesTotalContractDiscount = chargesTotalContractDiscount + chargeContractDiscount;
+	    		    contractValRollup = contractValRollup + chargeContractValue;
+	    		    chargesTotalContractCostAmount = chargesTotalContractCostAmount + chargeContractCost;
+	    		    chargesContractMarginAmount = chargesContractMarginAmount + chargeContractMargin;
+	    		    
+	    		    //contractListVal rollup calculation
+	 	            chargeContractListValue = 0.0;
+	    		    if ( chargePriceType == "One Time" ) {
+				chargeContractListValue = listAmount;
+			    } else {
+				if ( ( chargePriceType == "Recurring" or chargePriceType == "Usage" ) ) {
+					chargeContractListValue = listAmount * contractedPeriods;
+				} else {
+					chargeContractListValue = 0.0;
+				}
+			    }
+	    		    contractListValRollup = contractListValRollup + chargeContractListValue;
+	    	
+	    	            // nonRecurRev rollup calculation
+	    		    nonRecurRevSummable = 0.0;
+			    if ( chargePriceType == "One Time" ) {
+				nonRecurRevSummable = chargeNetAmount;
+				chargesTotalOneTimeListAmount = chargesTotalOneTimeListAmount + listAmount;
+				chargesTotalOneTimeNetAmount = chargesTotalOneTimeNetAmount + chargeNetAmount;
+				chargesTotalOneTimeDiscount = chargesTotalOneTimeDiscount + chargeDiscAmt;
+				chargesTotalOneTimeCostAmount = chargesTotalOneTimeCostAmount + chargeCostAmount;
+				chargesTotalOneTimeMarginAmount = chargesTotalOneTimeMarginAmount + chargeMarginAmount;
+			    } else {
+				nonRecurRevSummable = 0.0;
+			    }
+		            nonRecurRevSummableRollup = nonRecurRevSummableRollup + nonRecurRevSummable;
+		
+			    // recurRev rollup calculation
+			    recurringRevSummable = 0.0;
+			    if ( chargePriceType == "Recurring" ) {
+				recurringRevSummable = chargeContractValue;
+		            } else {
+				recurringRevSummable = 0.0;
+			    }
+			    recurringRevSummableRollup = recurringRevSummableRollup + recurringRevSummable;
+		
+		   	    //usageRev rollup calculation
+			    usageRevSummable = 0.0;
+		            if ( chargePriceType == "Usage" ) {
+				usageRevSummable = chargeContractValue;
+			    } else {
+				usageRevSummable = 0.0;
+			    }
+			    usageRevRollup  = usageRevRollup  + usageRevSummable;
+		
+		            // monthlyRecurRevSummable rollup calculation
+			    monthlyRecurRevSummable = 0.0;
+			    if ( ( chargePriceType == "Recurring" and chargePricePeriod == "Per Month" ) ) {
+				monthlyRecurRevSummable = chargeNetAmount;
+				chargesTotalMonthlyListAmount = chargesTotalMonthlyListAmount + listAmount;
+				chargesTotalMonthlyDiscount = chargesTotalMonthlyDiscount + chargeDiscAmt;
+				chargesTotalMonthlyNetAmount = chargesTotalMonthlyNetAmount + chargeNetAmount;
+				chargesTotalMonthlyMarginAmount = chargesTotalMonthlyMarginAmount + chargeMarginAmount;
+				chargesTotalMonthlyCostAmount = chargesTotalMonthlyCostAmount + chargeCostAmount;
+		            } else {
+				monthlyRecurRevSummable = 0.0;
+		            }
+		            monthlyRecurRevSummableRollup  = monthlyRecurRevSummableRollup  + monthlyRecurRevSummable;
+		
+			    // monthlyUsageRevSummable rollup calculation
+			    monthlyUsageRevSummable = 0.0;
+		            if ( ( chargePriceType == "Usage" and chargePricePeriod== "Per Month" ) ) {
+				monthlyUsageRevSummable = chargeNetAmount;
+			    } else {
+			    	monthlyUsageRevSummable = 0.0;
+			    }
+		            monthlyUsageRevSummableRollup = monthlyUsageRevSummableRollup + monthlyUsageRevSummable;
+		    	
+	        	    chargecount = chargecount + 1;
+    			}
+	    		listPriceRollup  = 0.0;
+	    		netPriceRollup = 0.0;
+	    		if(contractedPeriodsRollup > 0) {
+	    			listPriceRollup = contractListValRollup / (v__price_quantity * contractedPeriodsRollup); // Rolled Up Contract Value (List) / (Line Qty x Rolled Up Contracted Periods)
+	    			netPriceRollup = contractValRollup  / (v__price_quantity * contractedPeriodsRollup); // Rolled Up Contract Value (Net) / (Line Qty x Rolled Up Contracted Periods)
+	    		}
+	    		//net amount rollup calculation
+	    		netAmountRollup = netPriceRollup * v__price_quantity ; // Rolled Up Net Price x Line Qty
+	    
+	    		// discount percent rollup calculation
+	    		discountPercentRollup = 0.0;
+	    		if(contractListValRollup > 0) { //(Rolled up Contract Value (List) - Rolled up Contract Value (Net)) / Rolled Up Contract Value (List)
+	    			discountPercentRollup = ((contractListValRollup  - contractValRollup) / contractListValRollup) * 100;
+	    		}
+	    
+	    		put(lineDict, "priceTypeRollup_l", priceTypeRollup);
+	    		put(lineDict, "contractValueRollup_l", contractValRollup);
+	    		put(lineDict, "netPriceRollup_l", netPriceRollup);
+	    		put(lineDict, "netAmountRollup_l", netAmountRollup);
+	    		put(lineDict, "contractedPeriodsRollup_l", contractedPeriodsRollup);
+	    		put(lineDict, "contractListValueRollup_l", contractListValRollup);
+		    	put(lineDict, "listPriceRollup_l", listPriceRollup);
+		    	put(lineDict, "discountPercentRollup_l", discountPercentRollup);
+		    	put(lineDict, "nonRecurRevRollup_l", nonRecurRevSummableRollup);
+		    	put(lineDict, "recurRevRollup_l", recurringRevSummableRollup);
+		    	put(lineDict, "usageRevRollup_l", usageRevRollup);
+		    	put(lineDict, "monthlyRecurRevRollup_l", monthlyRecurRevSummableRollup);
+		    	put(lineDict, "monthlyUsageRevRollup_l", monthlyUsageRevSummableRollup);
+		    	put(lineDict, "priceRecurFrequencyRollup_l", priceRecurFrequencyRollup);    
+		    }
+      		    put(lineDict, "_chargeSet", jsonarraytostr(chargeArraySet));
+    	}
+	if (containsKey(mainDocOutputAttrs, "totalMonthlyListAmount_t")) {
+		if ( ( v_priceType_l ==  "Recurring"  )  and  ( v_pricePeriod_l ==  "Per Month"  )  ){
+			put(mainDocDict, "totalMonthlyListAmount_t", get(mainDocDict, "totalMonthlyListAmount_t", "float") + v_listAmount_l); 
+		}
+		if(hasCharges) {
+			put(mainDocDict, "totalMonthlyListAmount_t", get(mainDocDict, "totalMonthlyListAmount_t", "float") + chargesTotalMonthlyListAmount);
+		}
+	}
+	
+	if (containsKey(mainDocOutputAttrs, "totalMonthlyDiscount_t")) {
+		if ( ( v_priceType_l ==  "Recurring"  )  and  ( v_pricePeriod_l ==  "Per Month"  )  ){
+			put(mainDocDict, "totalMonthlyDiscount_t", get(mainDocDict, "totalMonthlyDiscount_t", "float") + v_annualDiscount_l); 
+		}
+		if(hasCharges) {
+			put(mainDocDict, "totalMonthlyDiscount_t", get(mainDocDict, "totalMonthlyDiscount_t", "float") + chargesTotalMonthlyDiscount);
+		}
+	}
+	
+	if (containsKey(mainDocOutputAttrs, "TotalAnnualDiscount_t")) {
+		put(mainDocDict, "TotalAnnualDiscount_t", get(mainDocDict, "TotalAnnualDiscount_t", "float") + get(lineDict, "annualDiscount_l", "float"));
+		if(hasCharges) {
+			put(mainDocDict, "TotalAnnualDiscount_t", get(mainDocDict, "TotalAnnualDiscount_t", "float") + chargesTotalAnnualDiscount);
+		}
+	}	
+	
+	if (containsKey(mainDocOutputAttrs, "totalContractListValue_t")) {
+		if(hasCharges) {
+			put(mainDocDict, "totalContractListValue_t", get(mainDocDict, "totalContractListValue_t", "float") + contractListValRollup);
+		} else {
+			put(mainDocDict, "totalContractListValue_t", get(mainDocDict, "totalContractListValue_t", "float") + v_contractListValue_l);
+		}
+	}		
+	
+	if (containsKey(mainDocOutputAttrs, "totalOneTimeListAmount_t")) {
+		if ( v_priceType_l == "One Time" ) {
+			put(mainDocDict, "totalOneTimeListAmount_t", get(mainDocDict, "totalOneTimeListAmount_t", "float") + v_listAmount_l); 
+		}
+		if(hasCharges) {
+			put(mainDocDict, "totalOneTimeListAmount_t", get(mainDocDict, "totalOneTimeListAmount_t", "float") + chargesTotalOneTimeListAmount);
+		}
+		
+	}
+	
+	if (containsKey(mainDocOutputAttrs, "totalOneTimeNetAmount_t")) {
+		if (v_priceType_l ==  "One Time"){
+			put(mainDocDict, "totalOneTimeNetAmount_t", get(mainDocDict, "totalOneTimeNetAmount_t", "float") + v_netAmount_l); 
+		}
+		if(hasCharges) {
+			put(mainDocDict, "totalOneTimeNetAmount_t", get(mainDocDict, "totalOneTimeNetAmount_t", "float") + chargesTotalOneTimeNetAmount);
+		}
+	}
+	
+	if (containsKey(mainDocOutputAttrs, "totalRecurRevenue_t")) {
+		if(hasCharges) {
+			put(mainDocDict, "totalRecurRevenue_t", get(mainDocDict, "totalRecurRevenue_t", "float") + recurringRevSummableRollup);
+		} else {
+			put(mainDocDict, "totalRecurRevenue_t", get(mainDocDict, "totalRecurRevenue_t", "float") + v_recurringRevSummable_l);
+		}
+	}	
+	
+	if (containsKey(mainDocOutputAttrs, "totalContractValue_t")) {
+		if(hasCharges) {
+			put(mainDocDict, "totalContractValue_t", get(mainDocDict, "totalContractValue_t", "float") + contractValRollup);
+		} else {
+			put(mainDocDict, "totalContractValue_t", get(mainDocDict, "totalContractValue_t", "float") + v_contractValue_l);
+		}
+	}	
+	
+	if (containsKey(mainDocOutputAttrs, "totalMonthlyUsageRev_t")) {
+		if(hasCharges) {
+			put(mainDocDict, "totalMonthlyUsageRev_t", get(mainDocDict, "totalMonthlyUsageRev_t", "float") + monthlyUsageRevSummableRollup);
+		} else {
+			put(mainDocDict, "totalMonthlyUsageRev_t", get(mainDocDict, "totalMonthlyUsageRev_t", "float") + v_monthlyUsageRevSummable_l);
+		}
+	}
+	
+	if (containsKey(mainDocOutputAttrs, "totalMonthlyNetAmount_t")) {
+		if ((v_priceType_l == "Recurring" and v_pricePeriod_l == "Per Month") ){
+			put(mainDocDict, "totalMonthlyNetAmount_t", get(mainDocDict, "totalMonthlyNetAmount_t", "float") + v_netAmount_l); 
+		}
+		if(hasCharges) {
+			put(mainDocDict, "totalMonthlyNetAmount_t", get(mainDocDict, "totalMonthlyNetAmount_t", "float") + chargesTotalMonthlyNetAmount);
+		}
+	}
+	
+	if (containsKey(mainDocOutputAttrs, "totalOneTimeCostAmount_t")) {
+		if (v_priceType_l == "One Time"){
+			put(mainDocDict, "totalOneTimeCostAmount_t", get(mainDocDict, "totalOneTimeCostAmount_t", "float") + v_costAmount_l); 
+		}
+		if(hasCharges) {
+			put(mainDocDict, "totalOneTimeCostAmount_t", get(mainDocDict, "totalOneTimeCostAmount_t", "float") + chargesTotalOneTimeCostAmount);
+		}
+	}
+	
+	if (containsKey(mainDocOutputAttrs, "totalMonthlyMarginAmount_t")) {
+		if (v_priceType_l == "Recurring" and v_pricePeriod_l == "Per Month"){
+			put(mainDocDict, "totalMonthlyMarginAmount_t", get(mainDocDict, "totalMonthlyMarginAmount_t", "float") + v_marginAmount_l); 
+		}
+		if(hasCharges) {
+			put(mainDocDict, "totalMonthlyMarginAmount_t", get(mainDocDict, "totalMonthlyMarginAmount_t", "float") + chargesTotalMonthlyMarginAmount);
+		}
+	}	
+
+	if (containsKey(mainDocOutputAttrs, "totalOneTimeMarginAmount_t")) {
+		if (v_priceType_l == "One Time"){
+			put(mainDocDict, "totalOneTimeMarginAmount_t", get(mainDocDict, "totalOneTimeMarginAmount_t", "float") + v_marginAmount_l); 
+		}
+		if(hasCharges) {
+			put(mainDocDict, "totalOneTimeMarginAmount_t", get(mainDocDict, "totalOneTimeMarginAmount_t", "float") + chargesTotalOneTimeMarginAmount);
+		}
+	}	
+	
+	if (containsKey(mainDocOutputAttrs, "totalAnnualMarginAmount_t")) {
+		put(mainDocDict, "totalAnnualMarginAmount_t", get(mainDocDict, "totalAnnualMarginAmount_t", "float") + get(lineDict, "annualMargin_l", "float"));
+		if(hasCharges) {
+			put(mainDocDict, "totalAnnualMarginAmount_t", get(mainDocDict, "totalAnnualMarginAmount_t", "float") + chargesTotalAnnualMarginAmount );
+		}
+	}	
+	
+	
+	if (containsKey(mainDocOutputAttrs, "totalContractCostAmount_t")) {
+		put(mainDocDict, "totalContractCostAmount_t", get(mainDocDict, "totalContractCostAmount_t", "float") + get(lineDict, "contractCost_l", "float"));
+		if(hasCharges) {
+			put(mainDocDict, "totalContractCostAmount_t", get(mainDocDict, "totalContractCostAmount_t", "float") + chargesTotalContractCostAmount);
+		}
+	}	
+	
+	if (containsKey(mainDocOutputAttrs, "totalMonthlyCostAmount_t")) {
+		if (v_priceType_l == "Recurring" and v_pricePeriod_l == "Per Month"){
+			put(mainDocDict, "totalMonthlyCostAmount_t", get(mainDocDict, "totalMonthlyCostAmount_t", "float") + v_costAmount_l); 
+		}
+		if(hasCharges) {
+			put(mainDocDict, "totalMonthlyCostAmount_t", get(mainDocDict, "totalMonthlyCostAmount_t", "float") + chargesTotalMonthlyCostAmount); 
+		}
+	}	
+	
+	if (containsKey(mainDocOutputAttrs, "totalUsageRevenue_t")) {
+		if(hasCharges) {
+			put(mainDocDict, "totalUsageRevenue_t", get(mainDocDict, "totalUsageRevenue_t", "float") + usageRevRollup);
+		} else {
+			put(mainDocDict, "totalUsageRevenue_t", get(mainDocDict, "totalUsageRevenue_t", "float") + get(lineDict, "usageRevSummable_l", "float"));
+		}
+	}	
+	
+	if (containsKey(mainDocOutputAttrs, "totalContractDiscount_t")) {
+		put(mainDocDict, "totalContractDiscount_t", get(mainDocDict, "totalContractDiscount_t", "float") + v_contractDiscount_l);
+		if(hasCharges) {
+			put(mainDocDict, "totalContractDiscount_t", get(mainDocDict, "totalContractDiscount_t", "float") + chargesTotalContractDiscount);
+		}
+	}	
+	
+	if (containsKey(mainDocOutputAttrs, "annualContractListValue_t")) {
+		put(mainDocDict, "annualContractListValue_t", get(mainDocDict, "annualContractListValue_t", "float") + get(lineDict, "annualListValue_l", "float"));
+		if(hasCharges) {
+			put(mainDocDict, "annualContractListValue_t", get(mainDocDict, "annualContractListValue_t", "float") + chargesTotalAnnualContractListValue);
+		}
+	}	
+
+	if (containsKey(mainDocOutputAttrs, "totalContractMarginAmount_t")) {
+		put(mainDocDict, "totalContractMarginAmount_t", get(mainDocDict, "totalContractMarginAmount_t", "float") + get(lineDict, "contractMargin_l", "float"));
+		if(hasCharges) {
+			put(mainDocDict, "totalContractMarginAmount_t", get(mainDocDict, "totalContractMarginAmount_t", "float") + chargesContractMarginAmount);
+		}
+	}
+	
+	if (containsKey(mainDocOutputAttrs, "totalAnnualValue_t")) {
+		put(mainDocDict, "totalAnnualValue_t", get(mainDocDict, "totalAnnualValue_t", "float") + get(lineDict, "annualValue_l", "float"));
+		if(hasCharges){
+			put(mainDocDict, "totalAnnualValue_t", get(mainDocDict, "totalAnnualValue_t", "float") + chargesTotalAnnualValue);
+		}
+	}	
+	
+	if (containsKey(mainDocOutputAttrs, "totalAnnualCostAmount_t")) {
+		put(mainDocDict, "totalAnnualCostAmount_t", get(mainDocDict, "totalAnnualCostAmount_t", "float") + get(lineDict, "annualCost_l", "float"));
+		if(hasCharges) {
+			put(mainDocDict, "totalAnnualCostAmount_t", get(mainDocDict, "totalAnnualCostAmount_t", "float") + chargesTotalAnnualCostAmount);
+		}
+	}	
+	
+	if (containsKey(mainDocOutputAttrs, "totalOneTimeDiscount_t")) {
+		if (v_priceType_l == "One Time"){
+			put(mainDocDict, "totalOneTimeDiscount_t", get(mainDocDict, "totalOneTimeDiscount_t", "float") + v_annualDiscount_l); 
+		}
+		if(hasCharges){
+			put(mainDocDict, "totalOneTimeDiscount_t", get(mainDocDict, "totalOneTimeDiscount_t", "float") + chargesTotalOneTimeDiscount);
+		}
+	}
+	if (calculateRollupRevenue) {
+		rollupCalcStr = rollupCalcStr + commerce.system_rollup_subdoc(quoteData, lineDict, extraParams);
+	}
+	if (system_subscription_order_enabled) {
+		dummy = commerce.system_delta_subdoc(quoteData, lineDict, extraParams);
+	}
+	if (fOM_enabled and containskey(subDocOutputAttrs, "oRCL_charges")) {
+		dummy = commerce.oRCL_fOM_populateCharges(quoteData, lineDict, extraParams);
+	}
+	
+	dummy = commerce.custom_calculations_endSubDoc(mainDocDict, lineDict, lineCount, extraParams);	
+	
+	for attrKey in subDocOutputAttrsKey {
+		if (containsKey(lineDict, attrKey)) {
+			lineDocNum = get(lineDict, "_document_number", "string");
+			attrType = get(subDocOutputAttrs, attrKey);
+			if (attrType == "string") {
+				attrVal = get(lineDict, attrKey, "string");
+				sbappend(rollupStr, lineDocNum, "~" + attrKey + "~", attrVal, "|");
+			}	
+			if (attrType == "integer") {
+				attrVal = get(lineDict, attrKey, "integer");
+				sbappend(rollupStr, lineDocNum, "~" + attrKey + "~", string(attrVal), "|");
+			}
+			if (attrType == "float") {
+				attrVal = get(lineDict, attrKey, "float" );
+				sbappend(rollupStr, lineDocNum, "~" + attrKey + "~", string(attrVal), "|");
+			}	
+			if (attrType == "jsonarray") {
+				attrVal = get(lineDict, attrKey, "string");
+				attrArray = jsonarray(attrVal);
+				sbappend(rollupStr, lineDocNum, "~" + attrKey + "~", jsonarraytostr(attrArray), "|");
+			}		
+		}
+			
+	}
+	
+	lineCount = lineCount + 1;
+}
+
+
+transactionTotalDiscountPercent_t = 0.0;
+if ( get(mainDocDict, "totalContractListValue_t", "float") > 0 ) {
+	transactionTotalDiscountPercent_t = ( get(mainDocDict, "totalContractDiscount_t", "float") / get(mainDocDict, "totalContractListValue_t", "float") ) * 100.0;
+} else {
+	transactionTotalDiscountPercent_t = 0.0;
+}
+put(mainDocDict, "transactionTotalDiscountPercent_t", transactionTotalDiscountPercent_t);
+
+transactionMarginPercent_t = 0.0;
+if ( get(mainDocDict, "totalContractListValue_t", "float") > 0.0 ) {
+	transactionMarginPercent_t = ( get(mainDocDict, "totalContractMarginAmount_t", "float") / get(mainDocDict, "totalContractListValue_t", "float") ) * 100.0;
+} else {
+	transactionMarginPercent_t = 0.0;
+}
+put(mainDocDict, "transactionMarginPercent_t", transactionMarginPercent_t);
+
+if (calculateRollupRevenue) {
+    rollupCalcStr = rollupCalcStr + commerce.system_rollup_maindoc(quoteData, mainDocDict, extraParams);
+}
+if (system_subscription_order_enabled) {
+    rollupCalcStr = rollupCalcStr + commerce.system_delta_maindoc(quoteData, mainDocDict, extraParams);
+}
+
+rollupCalcStr = rollupCalcStr + commerce.custom_calculations_endMainDoc(quoteData, mainDocDict, extraParams);
+
+
+for attrKey in mainDocOutputAttrsKey {
+	if (containsKey(mainDocDict, attrKey)) {
+		attrType = get(mainDocOutputAttrs, attrKey);
+		if (attrType == "string") {
+			attrVal = get(mainDocDict, attrKey, "string");
+			sbappend(rollupStr, _transaction_document_number, "~" + attrKey + "~", attrVal, "|");
+		}	
+		if (attrType == "integer") {
+			attrVal = get(mainDocDict, attrKey, "integer");
+			sbappend(rollupStr, _transaction_document_number, "~" + attrKey + "~", string(attrVal), "|");
+		}	
+		if (attrType == "float") {
+			attrVal = get(mainDocDict, attrKey, "float");
+			sbappend(rollupStr, _transaction_document_number, "~" + attrKey + "~", string(attrVal), "|");
+		}	
+	}
+		
+}
+
+
+
+return sbtostring(rollupStr) + rollupCalcStr;

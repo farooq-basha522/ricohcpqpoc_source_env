@@ -1,0 +1,61 @@
+retVal = 1.0;
+
+xmlRequestLocation = "$BASE_PATH$/WebServices/getExchangeRate.xml";
+endpoint = "https://" + _system_company_name + ".bigmachines.com/v2_0/receiver/exchangeRates";
+requestXML = "";
+responseXML = "";
+
+if(currency_t == "USD"){
+	return 1.0;
+}
+
+payload = dict("string");
+//put(payload, "SESSION_ID", _system_user_session_id);
+put(payload, "QUOTE_CURRENCY", currency_t);
+
+//Get username & password from GlobalVars table and put into payload dict
+accessSet = bmql("SELECT Keyword, Value, Value_Secure FROM GlobalVars WHERE Keyword = 'INTERNAL_INTEGRATION_USER_LOGIN' OR Keyword = 'INTERNAL_INTEGRATION_USER_PW'");
+for record in accessSet{
+		putKey = "";
+		putValue = "";
+		if(get(record, "Keyword") == "INTERNAL_INTEGRATION_USER_LOGIN"){
+			putKey = "USERNAME";
+		}
+		else{ //Keyword is INTERNAL_INTEGRATION_USER_PW
+			putKey = "USERPASS";
+		}
+		
+		if(get(record, "Value") <> ""){
+			putValue = get(record, "Value");
+		}
+		else{
+			putValue = get(record, "Value_Secure");
+		}
+		put(payload, putKey, putValue);
+}
+
+requestXML = applytemplate(xmlRequestLocation, payload);
+requestXML = replace(requestXML, "&lt;", "<");
+requestXML = replace(requestXML, "&gt;", ">");
+responseXML = urldatabypost(endpoint, requestXML, "ERROR");
+
+if(responseXML <> "ERROR"){
+	xpaths = string[1];
+	xpaths[0] = "/soap:Envelope/soap:Body/bm:getExchangeRateResponse/bm:exchangeRate/bm:conversionRate";
+	output = readxmlmultiple(responseXML, xpaths);
+	if(NOT containskey(output, "BM_READXMLMULTIPLE_ERROR")){ //if successful
+		for xpath in xpaths {
+			val = get(output, xpath);
+			if(NOT isnull(val)){
+				for each in val { 
+					if(isnumber(each)){
+						retVal = atof(each);
+					}
+					break;
+				}
+			}
+		}
+	}
+}
+
+return retVal;

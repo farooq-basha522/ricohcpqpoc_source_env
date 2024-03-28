@@ -1,0 +1,88 @@
+/**
+Developer       Date            Comments
+---------       ----------      --------------
+Prashanth       11/7/2022       Returning the Total Number of records from this Library
+ */
+ 
+//CHG0078656 : CPQ MS- CPQ Changes deployment//
+
+utilStartTime = getcurrenttimeinmillis();
+
+accountNumber = get(inputParam, "AccountNumber");
+recordCount = get(inputParam, "RecordCount");
+
+  
+headerDict = dict("string");
+results = recordset();
+enCodeFormat = "";
+endpointURL = "";
+reqBodyJson= json();
+queryJson=json();
+/**********************Authorization Query*************************************/
+recordSet = bmql("select ENDPOINTURL,LOGIN,PASSWORD from RISE_INTEGRATION where INSTANCE = $_company_name");
+for each in recordSet{
+	enCodeFormat = get(each,"LOGIN")+":"+get(each,"PASSWORD");
+	endpointURL = get(each,"ENDPOINTURL");
+}
+put(headerDict, "Content-Type", "application/json");
+put(headerDict, "Authorization", "Basic "+encodebase64(enCodeFormat));
+
+
+/**********************Authorization Query*************************************/
+totalResults = "0";
+
+if(AccountNumber <> ""){
+	soapURL = endpointURL + "/crmRestApi/resources/latest/accounts/";
+	soapUrl2 = "q=OrganizationDEO_ORC_Account_Number_c="+AccountNumber+"&limit=500&fields=PartyNumber,FormattedAddress,City,PostalCode,State,OrganizationDEO_ORC_Party_Site_Id_c&onlyData=true&totalResults=true&offset="+recordCount;
+	//soapURL = endpointURL + "/crmRestApi/resources/latest/accounts/?limit=2000&fields=PartyNumber,FormattedAddress,City,PostalCode,State,OrganizationDEO_ORC_Party_Site_Id_c";
+/*********************Request Body-Start**************************/
+/*jsonput(reqBodyJson ,"op","$eq");
+jsonput(reqBodyJson ,"attribute","$OrganizationDEO_ORC_Account_Number_c");
+jsonput(reqBodyJson ,"value",AccountNumber);
+jsonput(queryJson, "q" , jsontostr(reqBodyJson));*/
+/*********************Request Body-End**************************/
+	apiStartTime = getcurrenttimeinmillis();
+		//response = urldata(soapURL,"GET",headerDict,jsontostr(queryJson),500000);
+
+	response = urldatabyget(soapURL,soapUrl2,"error",500000,headerDict);
+	
+	//apiEndTime = getcurrenttimeinmillis();
+	
+	//quertStartTime = getcurrenttimeinmillis();
+	//response = urldatabyget(soapURL, "q=OrganizationDEO_ORC_Account_Number_c="+AccountNumber, "error",50000, headerDict);
+
+	if(find(response,"ERROR:")==-1 and response<>"error" and find(response,"Page Unavailable")==-1 AND response<>""){
+	//responsJson = json(get(response, "Message-Body"));
+	//if(isjsonnull(responsJson,"Message-Body")==false){
+	//if(json(get(response, "Message-Body")) <> "" AND NOT isnull(find(response, "Message-Body"))){
+		//responsObj= json(response);
+		jsonObj1 = json(response);
+		jsonObj2 = jsonget(jsonObj1,"items");
+		jsonArrObj = jsonarray(jsonObj2);
+		arrSize = jsonarraysize(jsonArrObj);
+		iterate = range(arrSize);
+		totalResults = jsonget(jsonObj1,"totalResults");
+		for each in iterate{
+			valStr1 = jsonarrayget(jsonArrObj,each);
+			strs = json(valStr1);
+			AccAddress = jsonget(strs,"FormattedAddress");
+			AccCity= jsonget(strs,"City");
+			AccState= jsonget(strs,"State");
+			AccZipCode= jsonget(strs,"PostalCode");
+			AccLocName= jsonget(strs,"FormattedAddress");
+			AccLocSiteID = jsonget(strs,"OrganizationDEO_ORC_Party_Site_Id_c");
+
+			//AccPrimaryAddress= jsonget(strs,"PrimaryFlag");
+			/*********Inserting Address Data into Data Table***********/
+			if(AccLocName <> ""){
+				results = bmql("insert into Customer_Acnt_Data (Account,AddressLine1,City,State,ZipCode,LocationName,LocationSiteID) values ($AccountNumber, $AccAddress, $AccCity, $AccState, $AccZipCode, $AccLocName, $AccLocSiteID)");		
+			}
+		}
+	quertEndTime = getcurrenttimeinmillis();
+			
+	}
+}
+utilEndTime = getcurrenttimeinmillis();
+
+
+return totalResults;

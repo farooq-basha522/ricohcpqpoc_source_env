@@ -1,0 +1,33 @@
+retVal = false;
+flag = "";
+//itemTypeITS = string[]{"ITS Hardware", "ITS Software", "ITS Support", "ITS MRR", "ITS PROSERV"};
+itemTypeITSarr = string[];
+
+resTable = BMQL("select Key from RAC_Item_Search WHERE ColumnName='ItemType' and Key<>'0' and Status='Active' and ProcessGroup='ITS'");
+			
+i = 0;
+for eachRecord in resTable
+{
+	if(hasError(resTable)){
+		print (getMessage(resTable));
+	}else{
+		append(itemTypeITSarr,get(eachRecord, "Key"));
+		flag = "Data fetched from Data Table";
+	}
+	
+	i = i + 1;
+
+}
+
+// i = 0;
+
+if (conditionType <> ""){
+	
+	if(findinarray(itemTypeITSarr, conditionType) <> -1){	
+		//+", find in array: "+string(findinarray(itemTypeITSarr, conditionType));	
+		retVal = true;	
+	}
+	
+}
+
+return retVal;

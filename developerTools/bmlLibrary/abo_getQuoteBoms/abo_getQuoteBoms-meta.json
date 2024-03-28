@@ -1,0 +1,24 @@
+{
+  "name" : "abo_getQuoteBoms",
+  "variableName" : "abo_getQuoteBoms",
+  "description" : "This utility BML is used to retrieve the open order lines in BOM format for a given product instance up to requested date. This is used by abo_generatePAC.",
+  "libraryFunctions" : [ "util.abo_checkConflictRequest", "util.abo_invokeOrderService", "util.abo_isjsonnull", "util.abo_jsonSort", "util.adf_EncodeURIComponent" ],
+  "returnType" : "JsonArray",
+  "parameters" : [ {
+    "name" : "assetKey",
+    "type" : "String"
+  }, {
+    "name" : "transactionDate",
+    "type" : "Date"
+  }, {
+    "name" : "transactionId",
+    "type" : "Integer"
+  }, {
+    "name" : "lineNum_to_exclude",
+    "type" : "Integer"
+  }, {
+    "name" : "requestedAction",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

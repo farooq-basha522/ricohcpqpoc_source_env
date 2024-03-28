@@ -1,0 +1,37 @@
+/****************************************************************************************************************************
+Created By : Amruta Patki
+Date : 12/03/2021
+PROCESS GROUP : SERVICE ADVANTAGE
+NOTE: THIS LIB IS HELPFUL TO FETCH APPROVER NAME/NAMES BASED ON APPROVAL TYPE & APPROVAL GROUP OF LINE ITEMS.
+      APPROVERS NAME WILL BE UNIQUE IN RETURN STRING.(NAME CANNOT BE REDUNDANT)
+
+*************************************************************************************************************************** */
+
+count = 0;
+appArr = String[];
+appName  = "";
+appString = "";
+approvalGroupLIG = string[];
+
+for line in transactionline
+	{
+		if(line.approvalGroup_l <> ""){		
+			approvalGroupLIG[count] = line.approvalGroup_l;
+			count = count + 1 ;
+		}
+	}
+
+
+
+qryResult = BMQL("SELECT  DISTINCT  $ApprovalLevel FROM RAC_SA_ApprovalFlow WHERE  ApprovalType=$approvalType and ApprovalGroup IN $approvalGroupLIG");
+
+for each in qryResult{
+	appName = get(each,ApprovalLevel);
+	if(appName <> "" and appName <> "Null" AND appName <> "NULL"){
+		append(appArr, appName);
+	}
+	//appString = appName + "#!#" + appString ;
+}
+
+appString = join(appArr,"#!#");
+return appString ;

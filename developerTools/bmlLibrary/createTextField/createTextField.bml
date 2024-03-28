@@ -1,0 +1,78 @@
+//**************************************************************************************************************
+	//** Function:    Create Text Field (createTextField)                                                 
+	//** Type:        Utility Library Function                                                                    
+	//**                                                                                                          
+	//** Description: Converts an HTML Attribute into a menu, and stores the selection into a (hidden) text field.
+	//**
+	//**              Inputs: attrVarName		- String - Variable Name of the target non-html attribute that stores the selected val.
+	//**                      currentSelectedVal	- String
+	//**                      fieldType		- String - type of field; TEXT, INTEGER, FLOAT, CURRENCY
+	//**                      autoUpdate 		- Boolean - If true, will cause attribute to be auto-update.
+	//**				CURRENTLY DOES NOT WORK.
+	//**		          callingProcess - String - COMMERCE or CONFIG
+	//**				CURRENTLY DOES NOTHING - HARDCODED FOR COMMERCE
+	//**                      currencyCode		- String - 3 digit currency ISO code. Used if formatting as currency
+	//**                      commerceDocNum	- Integer - Used in commerce. Specified doc number of line item (1 if header)
+	//**                                                                                              
+	//** History:     Date     Author       Comment   
+	//**		01.20.17   RConaghan	Initial                                                            
+	//**************************************************************************************************************
+	retVal = "";
+
+	if(callingProcess == "COMMERCE"){
+		var_vardocNum_ = "";
+		vardocNum_ = "";
+		if(commerceDocNum > 0){
+			var_vardocNum_ = "_" + string(commerceDocNum) + "_";
+			vardocNum_ = string(commerceDocNum) + "_";
+		}
+
+		if(fieldType == "TEXT"){
+			//retVal = retVal + "<div class=\"text-wrapper field\">"
+			retVal = retVal + "<div class=\"form-element field-wrapper\" id=\"field_wrapper" + var_vardocNum_ +attrVarName+"\">"
+							+ "    <div class=\"text-wrapper field\" message=\"\">"
+							+ "        <div class=\"text-wrapper-inner\">"
+							+ "            <input value=\"" + currentSelectedVal + "\" id=\"" + attrVarName + "\" type=\"text\" maxlength=\"255\" class=\" form-input  cm-attr-value \" size=\"0\" name=\"" + attrVarName + "\"/>"
+							+ "        </div>"
+							+ "    </div>"
+							+ "    <div id=\"" + attrVarName + "\" class=\"error-hover\" data-action-message=\"\" message=\"\"/>"
+							+ "</div>"
+							;
+		}
+		if(fieldType == "CURRENCY"){
+			currency = "USD"; //default
+			unformattedValue = 0.0;
+			formattedValue = "";
+			if(len(currencyCode) == 3){
+				currency = currencyCode;
+			}
+			if(isnumber(currentSelectedVal)){
+				unformattedValue = atof(currentSelectedVal);
+			}
+			formattedValue = formatascurrency(unformattedValue, currency);
+			if(NOT readOnly){
+				retVal = retVal + "<div class=\"form-element field-wrapper\" id=\"field_wrapper" + var_vardocNum_ +attrVarName+"\">"
+								+ "    <div class=\"text-wrapper field\" message=\"\">"
+								+ "        <div class=\"text-wrapper-inner\">"
+								//+ "            <input value=\"" + formattedValue + "\" id=\"" + attrVarName + "-display\" type=\"text\" maxlength=\"255\" class=\" form-input-number \" size=\"0\" name=\"" + attrVarName + "-display\" data-value-attr=\"" + attrVarName + "\"/>" //is the -display required?
+								+ "            <input value=\"" + formattedValue + "\" id=\"" + attrVarName + "\" type=\"text\" class=\" form-input-number  cm-attr-value \" size=\"1\" name=\"" + attrVarName + "\" data-display-attr=\"" + attrVarName + "-display\"/>" //required?
+								+ "        </div>"
+								+ "    </div>"
+								+ "    <div id=\"" + attrVarName + "\" class=\"error-hover\" data-action-message=\"\" message=\"\"/>"
+								+ "</div></div>"
+								;
+			}
+			else{ //Read-Only
+				retVal = retVal + "<div class=\"form-element field-wrapper\" id=\"field_wrapper" + var_vardocNum_ +attrVarName +"\">"
+								+ "    <div class=\"field\" message=\"\">"
+								+ "        <span class=\"readonly-wrapper\" id=\"readonly" + var_vardocNum_ +attrVarName + "\">" + formattedValue +"</span>"
+								+ "        <input value=\"" + formattedValue + "\" id=\"" + vardocNum_ + attrVarName + "\" type=\"hidden\" class=\" cm-attr-value \"  name=\"" + attrVarName + "\"/>" //Required?
+								+ "    </div>"
+								+ "    <div id=\"msg" + var_vardocNum_ + attrVarName + "\" class=\"error-hover\" data-action-message=\"\" message=\"\"/>"
+								+ "</div></div>"
+								;
+			}
+		}
+	}
+
+	return retVal;

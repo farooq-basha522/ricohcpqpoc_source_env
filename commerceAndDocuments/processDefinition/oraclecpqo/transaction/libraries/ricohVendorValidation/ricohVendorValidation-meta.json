@@ -1,0 +1,14 @@
+{
+  "name" : "Ricoh Vendor Validation",
+  "variableName" : "ricohVendorValidation",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String Dictionary",
+  "parameters" : [ {
+    "name" : "inputDict",
+    "type" : "String Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "requestToQuoteItemsArray_VQt" ],
+  "systemAttributes" : [ ]
+}

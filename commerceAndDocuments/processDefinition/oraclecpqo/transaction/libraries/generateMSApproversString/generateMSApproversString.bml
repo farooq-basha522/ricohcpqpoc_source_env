@@ -1,0 +1,122 @@
+appString = "";
+isDebug = true;
+appArr = String[];
+mD_Email = "";
+mD_EmpStatus = "";
+apprName = "";
+vPMD_Email = "";
+vPMD_EmpStatus = "";
+rVP_Email = "";
+l3Approver_Email = "";
+isUserActive = false;
+isUserExistsinGroup = false;
+isExistsinHRMS = false;
+isActiveinHRMS = false;
+approverName = "";
+approverDict = dict("string");
+rowDelim = "@$@";
+apprNameArray= String[];
+projectNumberArray = String[];
+APPROVER_GROUP = "ricohPricingApprover";
+
+//------------ Level 3 Approver -----------------
+approverMrgTable = BMQL("SELECT EmailID FROM MS_ApprovalMrg where PricingApprovalLevel = 'Level 3 Approver'");
+for eachRec in approverMrgTable {
+	l3Approver_Email =  get(eachRec , "EmailID");
+}
+//-----------------------------------------------	
+
+if(pricingApproverEmailfromRISE_t <> ""){
+	mD_Email = pricingApproverEmailfromRISE_t;
+}else{
+	mD_Email = pricingApproverEmail_t;
+}
+if(isDebug){
+	if(pricingApproverEmailfromRISE_t <> ""){
+		Print "MD Email From RISE: "+mD_Email ;
+	}else{
+		Print "MD Email User Entry: "+mD_Email ;
+	}
+}
+if(TransactionType == "Net New"){
+	if(ApprovalLevel == "Level 1"){
+		append(apprNameArray, mD_Email);
+	}elif(ApprovalLevel == "Level 2"){
+		append(apprNameArray, mD_Email);
+	}elif(ApprovalLevel == "Level 3"){
+		append(apprNameArray, l3Approver_Email);
+	}
+}else{
+	arraysize = range(jsonarraysize(customerAccountResult_t));
+	for each in arraysize {
+		if(NOT isnull(jsonget(json(jsonarrayget(customerAccountResult_t, each)),"project_Result_t"))){
+			append(projectNumberArray, jsonget(json(jsonarrayget(customerAccountResult_t, each)),"project_Result_t"));
+		}
+	}
+	querryAppTable = BMQL("SELECT AccountType, RMSSC_DIR_Email, RMSSC_VP_Email, VPMD_Email, RVP_Email FROM RAC_MS_FNF_AUTHORITY where OracleProjectNumber IN $projectNumberArray");
+	for eachRow in querryAppTable{
+		accountType = get(eachRow, "AccountType");
+		if(accountType == "Area" OR accountType == "Enterprise"){
+			if(ApprovalLevel == "Level 1"){
+				append(apprNameArray, mD_Email);
+			}elif(ApprovalLevel == "Level 2"){
+				append(apprNameArray, mD_Email);
+			}elif(ApprovalLevel == "Level 3"){
+				append(apprNameArray, l3Approver_Email);
+			}
+		}elif(accountType == "RMSSC"){
+			if(ApprovalLevel == "Level 1"){
+				append(apprNameArray, get(eachRow, "RMSSC_DIR_Email"));
+			}elif(ApprovalLevel == "Level 2"){
+				append(apprNameArray, get(eachRow, "RMSSC_VP_Email"));
+			}elif(ApprovalLevel == "Level 3"){
+				append(apprNameArray, l3Approver_Email);
+			}
+		}
+	}
+}
+if(isDebug){
+	print "Level: "+ApprovalLevel ;
+	print "Approver(s): ";print apprNameArray;
+	print "Checking in HRMS";
+	print "---------------------------------";
+}	
+for eachApprover in apprNameArray {
+	isExistsinHRMS = false;
+	eachApproverStatus = "";
+	eachApproverSupervisor = "";
+	emailParam = lower(eachApprover);
+	querryAppTable = BMQL("SELECT UserName, EmployeeStatus, SupervisorEmail FROM RAC_HRMS where EmailAddress = $emailParam");
+	for eachRow in querryAppTable{
+		eachApproverStatus = get(eachRow, "EmployeeStatus");
+		eachApproverSupervisor = get(eachRow, "SupervisorEmail");
+		isExistsinHRMS = true;
+	}
+	if(NOT isExistsinHRMS){
+		put(approverDict, eachApprover, eachApprover );
+	}else{
+		if(ApprovalLevel == "Level 1" OR ApprovalLevel == "Level 3"){
+			if(isExistsinHRMS AND eachApproverStatus == "Active"){
+				put(approverDict, eachApprover, eachApprover );
+				//append(apprNameArray,eachApprover);
+			}elif(isExistsinHRMS AND eachApproverStatus <> "Active"){
+				put(approverDict, eachApprover, eachApproverSupervisor);
+				//append(apprNameArray,eachApproverSupervisor);
+			}
+		}elif(ApprovalLevel == "Level 2"){
+			put(approverDict, eachApprover, eachApproverSupervisor);
+		}
+	}
+}
+apprNameArray = values(approverDict);
+for each in apprNameArray {
+	if(isDebug){
+		print "Level: "+ApprovalLevel ;
+		print "Approver: "+each ;
+	}
+	if(each <> ""){
+		append(appArr, each );
+	}
+}
+appString = join(appArr,"#!#");
+return appString ;

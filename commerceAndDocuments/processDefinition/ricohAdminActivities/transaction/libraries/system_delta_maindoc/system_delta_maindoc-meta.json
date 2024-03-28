@@ -1,0 +1,20 @@
+{
+  "name" : "system_delta_maindoc",
+  "variableName" : "system_delta_maindoc",
+  "description" : "System function that calculates Delta Pricing and corresponding rollups for ABO Support. This is for the mainDoc.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "quoteData",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "mainDocDict",
+    "type" : "Anytype Dictionary"
+  }, {
+    "name" : "extraParams",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

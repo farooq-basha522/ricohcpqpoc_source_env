@@ -1,0 +1,14 @@
+{
+  "name" : "Populate PIMA Report",
+  "variableName" : "populatePIMAReport",
+  "description" : "",
+  "libraryFunctions" : [ "util.getProcessGroup", "util.pIMAComponentArrayGeneration" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "param1",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ "extNetPrice_l", "_config_attr_info", "_model_name", "_document_number", "_part_number", "unitCost_l", "mSLaborType_l", "includeInMS_l", "type_l", "unitSalesCost_l", "_price_quantity", "implementationCost_l" ],
+  "mainDocAttributes" : [ "contractOtherTerm_t", "termMonths_t", "annualRevenueEscalation_t", "costEscalation_t", "rebateValue_t", "rebateValue_CustomerSpecific_t", "rebateValueDollar_t", "rebateType_t", "rebateGPOThirdparty_t", "rebateValueOption_t", "rebateApplied_t", "mSTransactionType_t", "gPMessageForFnF_t", "variableAnnualRevenueEscalation_t", "variableAnnualEscalationArraySet_t", "pricingGPLevel_Description_t", "mpsLabourYearsBreached_t_c", "mPSlaborPIMADescriptionArrayString_c", "msLabourYearsBreached_t_c", "mSlaborPIMADescriptionArrayString_c", "iTSLabourYearsBreached_t_c", "iTSPIMADescriptionArrayString_c", "tassLabourYearsBreached_t_c", "tASSPIMADescriptionArrayString_c" ],
+  "systemAttributes" : [ "_system_date", "_system_user_time_zone" ]
+}

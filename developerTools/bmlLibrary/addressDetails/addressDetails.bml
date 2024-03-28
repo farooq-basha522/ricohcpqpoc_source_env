@@ -1,0 +1,51 @@
+/**
+Developer       Date            Comments
+---------       ----------      --------------
+Prashanth       11/7/2022       Returning the Total Number of records from this Library
+ */
+headerDict = dict("string");
+results =recordset();
+enCodeFormat = "";
+endpointURL = "";
+
+/**********************Authorization Query*************************************/
+recordSet = bmql("select ENDPOINTURL,LOGIN,PASSWORD from RISE_INTEGRATION where INSTANCE = $_company_name");
+for each in recordSet{
+	enCodeFormat = get(each,"LOGIN")+":"+get(each,"PASSWORD");
+	endpointURL = get(each,"ENDPOINTURL");
+}
+put(headerDict, "Content-Type", "json/xml");
+put(headerDict, "Authorization", "Basic "+encodebase64(enCodeFormat));
+/**********************Authorization Query*************************************/
+totalNumberOfRecords = "0";
+
+if(AccountNumber <> ""){
+	soapURL = endpointURL + "/crmRestApi/resources/latest/accounts/";
+	response = urldatabyget(soapURL, "q=OrganizationDEO_ORC_Account_Number_c="+AccountNumber+"&limit=500&fields=PartyNumber,FormattedAddress,City,PostalCode,State", "error",500000, headerDict);
+
+	if(find(response,"ERROR:")==-1 and response<>"error" and find(response,"Page Unavailable")==-1 AND response<>""){
+		jsonObj1 = json(response);
+		jsonObj2 = jsonget(jsonObj1,"items");
+		jsonArrObj = jsonarray(jsonObj2);
+		arrSize = jsonarraysize(jsonArrObj);
+		iterate = range(arrSize);
+		
+		for each in iterate{
+			valStr1 = jsonarrayget(jsonArrObj,each);
+			strs = json(valStr1);
+			AccAddress = jsonget(strs,"FormattedAddress");
+			AccCity= jsonget(strs,"City");
+			AccState= jsonget(strs,"State");
+			AccZipCode= jsonget(strs,"PostalCode");
+			AccLocName= jsonget(strs,"FormattedAddress");
+            totalNumberOfRecords = jsonget(strs,"totalResults");
+			//AccPrimaryAddress= jsonget(strs,"PrimaryFlag");
+
+			/*********Inserting Address Data into Data Table***********/
+			if(AccLocName <> ""){
+				results = bmql("insert into Customer_Acnt_Data (Account,AddressLine1,City,State,ZipCode,LocationName) values ($AccountNumber, $AccAddress, $AccCity, $AccState, $AccZipCode, $AccLocName)");
+			}
+		}
+	}
+}
+return totalNumberOfRecords;

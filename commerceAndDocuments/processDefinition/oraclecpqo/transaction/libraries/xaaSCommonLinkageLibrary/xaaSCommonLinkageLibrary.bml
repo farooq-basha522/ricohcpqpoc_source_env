@@ -1,0 +1,20 @@
+result="";
+
+/*Logic to fetch the linked item logic for RPAP bundles*/
+for eachVal in transactionLine{
+	documentNumber = eachVal._document_number;
+	partNumber = eachVal._part_number;
+	if((NOT ISNULL(eachVal ._parent_doc_number)) AND(eachVal ._parent_doc_number <>"")){
+	if(eachVal.bundleNameRWA<>"") {
+	
+			result = result + commerce.linkedItemLibrary();
+	}
+   else	{
+ if(eachVal.bundleNameRWA=="") {
+       result = result + commerce.setLinkedItemsLibrary();	
+       print result;
+	}	
+	}
+	}
+}
+return result;

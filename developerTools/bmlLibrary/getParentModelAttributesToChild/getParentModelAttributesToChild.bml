@@ -1,0 +1,14 @@
+RootLevelAttributeArray = string[];
+ModelValues = string[];
+modelIndex = 0;
+
+RootLevelAttributeArray = getsystemattrvalues("$.configAttributes." + rootAttribute);
+if(not(isnull(RootLevelAttributeArray[0]))){
+	indexValueString = substring(systemConfigModelPath,find(systemConfigModelPath,"[")+1,len(systemConfigModelPath)-1);
+	if(isnumber(indexValueString)){
+		modelIndex = atoi(indexValueString);
+	}
+	ModelValues = split(RootLevelAttributeArray[0], "$,$");
+}
+
+return  ModelValues[modelIndex];

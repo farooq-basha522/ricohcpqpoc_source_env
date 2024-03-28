@@ -1,0 +1,14 @@
+{
+  "name" : "system_calculations_process",
+  "variableName" : "system_calculations_process",
+  "description" : "Library Function to calculate the default pricing and rollup related attributes.\n\nFunctions starting with \"system\" prefix shouldn't be overridden. This will enable availability of upgrades to system logic.  Instead override the ones that have a \"custom\" prefix to customize the behavior.",
+  "libraryFunctions" : [ "commerce._s_generateRateCardHTML", "commerce.calculateContractPeriods", "commerce.custom_calculations_convertQuoteToObj", "commerce.custom_calculations_endMainDoc", "commerce.custom_calculations_endSubDoc", "commerce.custom_calculations_processMainDocAttributes", "commerce.oRCL_fOM_populateCharges", "commerce.system_calculations_convertQuoteToObj", "commerce.system_delta_maindoc", "commerce.system_delta_subdoc", "commerce.system_rollup_maindoc", "commerce.system_rollup_subdoc" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "extraParams",
+    "type" : "Anytype Dictionary"
+  } ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "_transaction_document_number" ],
+  "systemAttributes" : [ "_system_subscription_order_enabled" ]
+}

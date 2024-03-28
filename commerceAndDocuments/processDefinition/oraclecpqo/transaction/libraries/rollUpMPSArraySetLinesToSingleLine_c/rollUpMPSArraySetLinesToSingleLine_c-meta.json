@@ -1,0 +1,11 @@
+{
+  "name" : "Roll up MPS Array Set Lines to Single Line",
+  "variableName" : "rollUpMPSArraySetLinesToSingleLine_c",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_part_number", "unitSRP_l", "unitSalesCost_l", "unitSellingPrice_l", "unitNetPrice_l", "contractedUnitPrice_l", "extSRP_l", "extSellingPrice_l", "extNetPrice_l", "extUnitStandardCost_l", "unitCost_l", "restLineFlag_c", "_group_sequence_number", "_document_number", "quantity_l", "_price_quantity", "requestedQuantity_l", "_line_bom_attributes", "type_l" ],
+  "mainDocAttributes" : [ "riseSyncFlag_MPS_t_c", "mPSCostsBeforeRollup_t_c" ],
+  "systemAttributes" : [ ]
+}

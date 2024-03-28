@@ -1,0 +1,17 @@
+{
+  "name" : "Generate SA Approvers String",
+  "variableName" : "generateSAApproversString",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "ApprovalLevel",
+    "type" : "String"
+  }, {
+    "name" : "approvalType",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ "approvalGroup_l", "line_l" ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ ]
+}

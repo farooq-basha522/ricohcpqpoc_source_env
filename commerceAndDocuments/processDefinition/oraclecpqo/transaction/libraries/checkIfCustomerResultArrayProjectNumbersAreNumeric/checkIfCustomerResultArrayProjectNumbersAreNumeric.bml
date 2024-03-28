@@ -1,0 +1,31 @@
+nonNumericNumbers = "";
+errorMessage = false;
+if(NOT ISNULL(customerAccountResult_t)){
+if(jsonarraysize(customerAccountResult_t)>0){
+	customerRange = range(jsonarraysize(customerAccountResult_t));
+	for customer in customerRange{
+		customerJSON = jsonarrayget(customerAccountResult_t, customer, "json");
+		projectNumber = jsonget(customerJSON, "project_Result_t","string","");
+		if(((projectNumber == "") 
+		   AND (engagementType_l=="Expansion" OR engagementType_l=="Renewal"))
+		   OR (projectNumber<> "" AND NOT isnumber(projectNumber)) ){
+		   	errorMessage = true;
+			if(nonNumericNumbers<>"" AND projectNumber<>""){
+				nonNumericNumbers = nonNumericNumbers + ", ";
+			}
+			nonNumericNumbers = nonNumericNumbers + projectNumber;
+		}
+	}
+}
+}
+
+if(NOT errorMessage){
+	return "";
+}
+elif(nonNumericNumbers <> ""){
+	nonNumericNumbers = ": (" + nonNumericNumbers + ")";
+}
+
+return "<div><span style='padding: 5px; border: solid 3px #eed202; font-size: medium; color: black; text-align: left;'>" 
+	+ "Project #'s should not be blank and only contain numeric characters. Please consider modifying the following Project #'s within RISE Details" + nonNumericNumbers + "."
+	+ "</span></div>";

@@ -1,0 +1,13 @@
+//Function Name : abo_getContext
+//  output: context(Json)
+//Description:
+//   This utilty BML is used to retrieve the context for current process from session. 
+//   Current process is set in abo_initializeContext utility
+//   abo_initializeContext is expected to be invoked in the beginning of each entry point action or BML
+//   abo_getContext is expected to be the first call of all ABO BMLs which need to access global info.
+//
+abocontext =  usersessionget("abocontext", "json");   
+if(util.abo_isjsonnull(abocontext, "siteInfo")){ //"siteinfo" is mandatory field in abocontext
+   throwerror("Your ABO Package is not setup correctly , please ask your administrator to review the setting for your current commrce process in abo_initializeContext bml.", false);
+}
+return abocontext;

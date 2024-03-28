@@ -1,0 +1,11 @@
+{
+  "name" : "FetchMSApproverNames(NOT USING)",
+  "variableName" : "fetchMSApprovers",
+  "description" : "",
+  "libraryFunctions" : [ "commerce.generateMSApproversString", "commerce.getMSApprovers" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "mSTotalDealSectionArray_t", "mSTransactionType_t", "annualRevenueEscalation_t" ],
+  "systemAttributes" : [ "_system_supplier_company_name" ]
+}

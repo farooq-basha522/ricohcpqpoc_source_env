@@ -1,0 +1,645 @@
+//C066 - Ability to Search and View Quotes by Team Member 
+//Code added by Rohit-Ranjan for INC2418667/CHG0082524 to fix multiple email coming on design lead template
+retValue = "";
+teammemberArray = selectedDRTeamMemberArraySet_t;
+arraysize = range(jsonarraysize(teammemberArray));
+emailArray = "";
+lDEArray = "";
+pDLArray = "";
+teamMemberEmail = "";
+teamDetails = "";
+leadDesignArray = string[];
+primaryleadArray = string[];
+emailSearchArray = string[];
+lDEapproverEmail = "";
+pDLapproverEmail = "";
+pDLNameArray = string[];
+pDLName = "";
+LDEName = "";
+cPQPrimarySolution ="";
+cPQPrimarySolutionArray = string[];
+cPQPrimarySolutiontext ="";
+cPQPrimarySolutiontextArray = string[];
+resourceDetails = json();
+//resourceSummary_D = json();
+
+resourceDetailsJsonarray = jsonarray();
+//jsonput(resourceSummary_D,"data",selectedDRTeamMemberArraySet_t);
+for each in arraysize {
+    /*ResourceRow = jsonarrayget(teammemberArray,each);
+	ResourceJson = json(ResourceRow);*/
+
+
+
+    selectstring = jsonget(json(jsonarrayget(teammemberArray , each)),"select_DRTeamMemberArray_t");
+	pDLName = jsonget(json(jsonarrayget(teammemberArray , each)),"selectedName_DRTeamMemberArray_t");
+	emailArray = jsonget(json(jsonarrayget(teammemberArray , each)),"selectedEmail_DRTeamMemberArray_t");
+	//start_bau_CHG0082500_created by gowtham.p1@ricoh-usa.com on 7/5/2023
+	projectTimehrs = jsonget(json(jsonarrayget(teammemberArray , each)),"projectTimehrs_DRTeamMemberAarray_t");
+	title = jsonget(json(jsonarrayget(teammemberArray , each)),"title_DRTeamMemberAarray_t");
+	selectedRole = jsonget(json(jsonarrayget(teammemberArray , each)),"selectedRole_DRTeamMemberAarray_t");
+	lDEArray = jsonget(json(jsonarrayget(teammemberArray , each)),"leadDesignEngineer_DRTeamMemberAarray_t");
+	approvalResposibilities = jsonget(json(jsonarrayget(teammemberArray , each)),"approvalResposibilities_DRTeamMemberAarray_t");
+	emailTriggered = jsonget(json(jsonarrayget(teammemberArray , each)),"emailTriggered");
+	pDLArray = jsonget(json(jsonarrayget(teammemberArray , each)),"primaryDesignLead_DRTeamMemberAarray_t");
+	manager = jsonget(json(jsonarrayget(teammemberArray , each)),"manager_DRTeamMemberAarray_t");
+	solutionServicesCategory = jsonget(json(jsonarrayget(teammemberArray , each)),"solutionServicesCategory_DRTeamMemberArray_t");
+	pDFlag = jsonget(json(jsonarrayget(teammemberArray , each)),"primaryDesignFlagAsText_t");
+	DLFlagArray = jsonget(json(jsonarrayget(teammemberArray , each)),"designLeadFlagAsText_t");
+	cPQPrimarySolution = jsonget(json(jsonarrayget(teammemberArray , each)),"cPQPrimarySolution_t");
+	cPQPrimarySolutiontext = jsonget(json(jsonarrayget(teammemberArray , each)),"cPQPrimarySolution_text_t");
+	
+	cPQPrimarySolutiontext = cPQPrimarySolution;
+	append(leadDesignArray,lDEArray);
+	append(primaryleadArray,pDLArray);
+	append(emailSearchArray,emailArray);
+	append(pDLNameArray,pDLName);
+	append(cPQPrimarySolutionArray,cPQPrimarySolution);
+	append(cPQPrimarySolutiontextArray,cPQPrimarySolutiontext);
+	//Getting all Team Member Emails
+	teamDetails = teamDetails + emailArray + "," ;
+	
+	//Added for MASS_Update
+	cPQPrimarySolutionUpdated = cPQPrimarySolution;
+	if(cPQPrimarySolution == "1ControlSuite"){
+        cPQPrimarySolutionUpdated = "1-Control Suite";
+    }
+	elif(cPQPrimarySolution == "1Equitrac"){
+        cPQPrimarySolutionUpdated = "1-Equitrac";
+    }
+	elif(cPQPrimarySolution == "1Globalscan"){
+        cPQPrimarySolutionUpdated = "1-Globalscan";
+    }
+	elif(cPQPrimarySolution == "1KofaxPowerPDF"){
+        cPQPrimarySolutionUpdated = "1-Kofax PowerPDF";
+    }
+	elif(cPQPrimarySolution == "1LRSVPSXMFPSecure"){
+        cPQPrimarySolutionUpdated = "1-LRS (VPSX / MFP Secure)";
+    }
+	elif(cPQPrimarySolution == "1ManagedPrintServices"){
+        cPQPrimarySolutionUpdated = "1-Managed Print Services";
+    }
+	elif(cPQPrimarySolution == "1Other"){
+        cPQPrimarySolutionUpdated = "1-Other";
+    }
+	elif(cPQPrimarySolution == "1PaperCut"){
+        cPQPrimarySolutionUpdated = "1-PaperCut";
+    }
+	elif(cPQPrimarySolution == "1RSIRICOHSmartIntegration"){
+        cPQPrimarySolutionUpdated = "1-RSI RICOH Smart Integration";
+    }
+	elif(cPQPrimarySolution == "1SLNXPrintScan"){
+        cPQPrimarySolutionUpdated = "1-SLNX Print Scan";
+    }
+	elif(cPQPrimarySolution == "1SLNXBase"){
+        cPQPrimarySolutionUpdated = "1-SLNX Base";
+    }
+	elif(cPQPrimarySolution == "2DocuWare"){
+        cPQPrimarySolutionUpdated = "2-DocuWare";
+    }
+	elif(cPQPrimarySolution == "2Ephesoft"){
+        cPQPrimarySolutionUpdated = "2-Ephesoft";
+    }
+	elif(cPQPrimarySolution == "2HealthWareSystemsActivWARE"){
+        cPQPrimarySolutionUpdated = "2-HealthWare Systems ActivWARE";
+    }
+	elif(cPQPrimarySolution == "2KofaxCapture"){
+        cPQPrimarySolutionUpdated = "2-Kofax Capture";
+    }
+	elif(cPQPrimarySolution == "2Laserfiche"){
+        cPQPrimarySolutionUpdated = "2-Laserfiche";
+    }
+	elif(cPQPrimarySolution == "2OpenAxes"){
+        cPQPrimarySolutionUpdated = "2-OpenAxes";
+    }
+	elif(cPQPrimarySolution == "2OpenTextApplicationContentManagement"){
+        cPQPrimarySolutionUpdated = "2-OpenText Application Content Management";
+    }
+	elif(cPQPrimarySolution == "2OpentextRightFax"){
+        cPQPrimarySolutionUpdated = "2-Opentext RightFax";
+    }
+	elif(cPQPrimarySolution == "2OpentextRightFaxConnect"){
+        cPQPrimarySolutionUpdated = "2-Opentext RightFax Connect";
+    }
+	elif(cPQPrimarySolution == "2OpentextXMFax"){
+        cPQPrimarySolutionUpdated = "2-Opentext XM Fax";
+    }
+	elif(cPQPrimarySolution == "2Other"){
+        cPQPrimarySolutionUpdated = "2-Other";
+    }
+	elif(cPQPrimarySolution == "2PatientInformationMgmtSocsPIMS"){
+        cPQPrimarySolutionUpdated = "2-Patient Information Mgmt Socs (PIMS)";
+    }
+	elif(cPQPrimarySolution == "2RICOHEFormsManager"){
+        cPQPrimarySolutionUpdated = "2-RICOH eForms Manager";
+    }
+	elif(cPQPrimarySolution == "2RICOHSmartIntegration"){
+        cPQPrimarySolutionUpdated = "2-RICOH Smart Integration";
+    }
+	elif(cPQPrimarySolution == "2Scanners"){
+        cPQPrimarySolutionUpdated = "2-Scanners";
+    }
+	elif(cPQPrimarySolution == "3IBPImaging"){
+        cPQPrimarySolutionUpdated = "3-IBP-Imaging";
+    }
+	elif(cPQPrimarySolution == "3IBPReturnMailServicesMras"){
+        cPQPrimarySolutionUpdated = "3-IBP-Return Mail Services (Mras)";
+    }
+	elif(cPQPrimarySolution == "3MSCampusServices"){
+        cPQPrimarySolutionUpdated = "3-MS-Campus Services";
+    }
+	elif(cPQPrimarySolution == "3MSCourier"){
+        cPQPrimarySolutionUpdated = "3-MS-Courier";
+    }
+	elif(cPQPrimarySolution == "3MSHighDensityMail"){
+        cPQPrimarySolutionUpdated = "3-MS-High Density Mail";
+    }
+	elif(cPQPrimarySolution == "3MSLockersILS"){
+        cPQPrimarySolutionUpdated = "3-MS-Lockers (ILS)";
+    }
+	elif(cPQPrimarySolution == "3MSMailAndShippingSoftware"){
+        cPQPrimarySolutionUpdated = "3-MS-Mail and Shipping Software";
+    }
+	elif(cPQPrimarySolution == "3MSMailServices"){
+        cPQPrimarySolutionUpdated = "3-MS-Mail Services";
+    }
+	elif(cPQPrimarySolution == "3MSOther"){
+        cPQPrimarySolutionUpdated = "3-MS-Other";
+    }
+	elif(cPQPrimarySolution == "3MSProductionPrint"){
+        cPQPrimarySolutionUpdated = "3-MS-Production Print";
+    }
+	elif(cPQPrimarySolution == "3Other"){
+        cPQPrimarySolutionUpdated = "3-Other";
+    }
+	elif(cPQPrimarySolution == "8ProjectManagement"){
+        cPQPrimarySolutionUpdated = "8-Project Management";
+    }
+	elif(cPQPrimarySolution == "9TASSTSMTAppAdmin"){
+        cPQPrimarySolutionUpdated = "9-TASS/TSMT App Admin";
+    }
+	elif(cPQPrimarySolution == "a1Autostore"){
+        cPQPrimarySolutionUpdated = "1-Autostore";
+    }
+	elif(cPQPrimarySolution == "a1RightFaxConnector"){
+        cPQPrimarySolutionUpdated = "1-RightFax Connector";
+    }
+	elif(cPQPrimarySolution == "1CAC"){
+        cPQPrimarySolutionUpdated = "1-CAC";
+    }
+	elif(cPQPrimarySolution == "1CAPELP"){
+        cPQPrimarySolutionUpdated = "1-CAP/ELP";
+    }
+	elif(cPQPrimarySolution == "1CloudStream"){
+        cPQPrimarySolutionUpdated = "1-CloudStream";
+    }
+	elif(cPQPrimarySolution == "1Copitrak"){
+        cPQPrimarySolutionUpdated = "1-Copitrak";
+    }
+	elif(cPQPrimarySolution == "1InfoPrintManager"){
+        cPQPrimarySolutionUpdated = "1-InfoPrint Manager";
+    }
+	elif(cPQPrimarySolution == "1ITCWithPapercut"){
+        cPQPrimarySolutionUpdated = "1-ITC with Papercut";
+    }
+	elif(cPQPrimarySolution == "1OutjsonputManager"){
+        cPQPrimarySolutionUpdated = "1-Outjsonput Manager";
+    }
+	elif(cPQPrimarySolution == "1Pharos"){
+        cPQPrimarySolutionUpdated = "1-Pharos";
+    }
+	elif(cPQPrimarySolution == "1PSBlockOfTime"){
+        cPQPrimarySolutionUpdated = "1-PS Block of Time";
+    }
+	elif(cPQPrimarySolution == "1RightFaxConnector"){
+        cPQPrimarySolutionUpdated = "1-RightFax Connector";
+    }
+	elif(cPQPrimarySolution == "1StethosIBS"){
+        cPQPrimarySolutionUpdated = "1-Stethos IBS";
+    }
+	elif(cPQPrimarySolution == "1StudentGuestPrint"){
+        cPQPrimarySolutionUpdated = "1-Student/Guest Print";
+    }
+	elif(cPQPrimarySolution == "1TASSTSMTAppAdmin"){
+        cPQPrimarySolutionUpdated = "1-TASS/TSMT App Admin";
+    }
+	elif(cPQPrimarySolution == "1TSDeploymentSupportNoSoftware"){
+        cPQPrimarySolutionUpdated = "1-TS Deployment support (No Software)";
+    }
+	elif(cPQPrimarySolution == "2ActiveNavigation"){
+        cPQPrimarySolutionUpdated = "2-Active Navigation";
+    }
+	elif(cPQPrimarySolution == "2ECMSolutionsOther"){
+        cPQPrimarySolutionUpdated = "2-ECM Solutions - Other";
+    }
+	elif(cPQPrimarySolution == "2InterSystemsHealthShare"){
+        cPQPrimarySolutionUpdated = "2-InterSystems HealthShare";
+    }
+	elif(cPQPrimarySolution == "2KofaxTotalAgility"){
+        cPQPrimarySolutionUpdated = "2-Kofax Total Agility";
+    }
+	elif(cPQPrimarySolution == "2KofaxTransformationModules"){
+        cPQPrimarySolutionUpdated = "2-Kofax Transformation Modules";
+    }
+	elif(cPQPrimarySolution == "2Nintex"){
+        cPQPrimarySolutionUpdated = "2-Nintex";
+    }
+	elif(cPQPrimarySolution == "2ObjectifLunePlanetPress"){
+        cPQPrimarySolutionUpdated = "2-Objectif Lune Planet Press";
+    }
+	elif(cPQPrimarySolution == "2RicohCloudFax"){
+        cPQPrimarySolutionUpdated = "2-Ricoh Cloud Fax";
+    }
+	elif(cPQPrimarySolution == "3IBPAP"){
+        cPQPrimarySolutionUpdated = "3-IBP-AP";
+    }
+	elif(cPQPrimarySolution == "3IBPBackfile"){
+        cPQPrimarySolutionUpdated = "3-IBP-Backfile";
+    }
+	elif(cPQPrimarySolution == "3IBPAR"){
+        cPQPrimarySolutionUpdated = "3-IBP-AR";
+    }
+	elif(cPQPrimarySolution == "3IBPCaptureAndConversion"){
+        cPQPrimarySolutionUpdated = "3-IBP-Capture and Conversion";
+    }
+	elif(cPQPrimarySolution == "3IBPClaims"){
+        cPQPrimarySolutionUpdated = "3-IBP-Claims";
+    }
+	elif(cPQPrimarySolution == "3IBPIntelligentDeliveryServicesIDS"){
+        cPQPrimarySolutionUpdated = "3-IBP-Intelligent Delivery Services (IDS)";
+    }
+	elif(cPQPrimarySolution == "3IBPNicoBoard"){
+        cPQPrimarySolutionUpdated = "3-IBP-NicoBoard";
+    }
+	elif(cPQPrimarySolution == "3IBPOutboundMail"){
+        cPQPrimarySolutionUpdated = "3-IBP-Outbound Mail";
+    }
+	elif(cPQPrimarySolution == "3IBPProductionPrint"){
+        cPQPrimarySolutionUpdated = "3-IBP-Production Print";
+    }
+	elif(cPQPrimarySolution == "3IBPReturnMailServicesMras"){
+        cPQPrimarySolutionUpdated = "3-IBP-Return Mail Services (Mras)";
+    }
+	elif(cPQPrimarySolution == "3IBPTransactionalOther"){
+        cPQPrimarySolutionUpdated = "3-IBP-Transactional Other";
+    }
+	elif(cPQPrimarySolution == "3iOffice"){
+        cPQPrimarySolutionUpdated = "3-iOffice";
+    }
+	elif(cPQPrimarySolution == "3MSCampusServices"){
+        cPQPrimarySolutionUpdated = "3-MS-Campus Services";
+    }
+	elif(cPQPrimarySolution == "3MSFulfillment"){
+        cPQPrimarySolutionUpdated = "3-MS-Fulfillment";
+    }
+	elif(cPQPrimarySolution == "3MSHospitalityConcierge"){
+        cPQPrimarySolutionUpdated = "3-MS-Hospitality/Concierge";
+    }
+	elif(cPQPrimarySolution == "3MSHybridImaging"){
+        cPQPrimarySolutionUpdated = "3-MS-Hybrid Imaging";
+    }
+	elif(cPQPrimarySolution == "3MSmSorter"){
+        cPQPrimarySolutionUpdated = "3-MS-mSorter";
+    }
+	elif(cPQPrimarySolution == "3MSOnsiteImaging"){
+        cPQPrimarySolutionUpdated = "3-MS-Onsite Imaging";
+    }
+	elif(cPQPrimarySolution == "3MSOnsiteMailImaging"){
+        cPQPrimarySolutionUpdated = "3-MS-Onsite Mail Imaging";
+    }
+	elif(cPQPrimarySolution == "3MSOpexAdvancedCapture"){
+        cPQPrimarySolutionUpdated = "3-MS-Opex/Advanced Capture";
+    }
+	elif(cPQPrimarySolution == "3MSReception"){
+        cPQPrimarySolutionUpdated = "3-MS-Reception";
+    }
+	elif(cPQPrimarySolution == "4CloudSHIFT"){
+        cPQPrimarySolutionUpdated = "4-CloudSHIFT";
+    }
+	elif(cPQPrimarySolution == "4CloudSHIFTRicohSolution"){
+        cPQPrimarySolutionUpdated = "4-CloudSHIFT - Ricoh Solution";
+    }
+	elif(cPQPrimarySolution == "4EnterpriseServiceDesk"){
+        cPQPrimarySolutionUpdated = "4-Enterprise Service Desk";
+    }
+	elif(cPQPrimarySolution == "4HardwareSoftware"){
+        cPQPrimarySolutionUpdated = "4-Hardware / Software";
+    }
+	elif(cPQPrimarySolution == "4ITEssentials"){
+        cPQPrimarySolutionUpdated = "4-IT Essentials";
+    }
+	elif(cPQPrimarySolution == "4ITEssentialsDistributor"){
+        cPQPrimarySolutionUpdated = "4-IT Essentials (Distributor)";
+    }
+	elif(cPQPrimarySolution == "4ITServicesHealthcheck"){
+        cPQPrimarySolutionUpdated = "4-IT Services - Healthcheck";
+    }
+	elif(cPQPrimarySolution == "4ITSProject"){
+        cPQPrimarySolutionUpdated = "4-ITS Project";
+    }
+	elif(cPQPrimarySolution == "4M365Solutions"){
+        cPQPrimarySolutionUpdated = "4-M365 Solutions";
+    }
+	elif(cPQPrimarySolution == "4Other"){
+        cPQPrimarySolutionUpdated = "4-Other";
+    }
+	elif(cPQPrimarySolution == "4PublicCloudHosting"){
+        cPQPrimarySolutionUpdated = "4-Public Cloud Hosting";
+    }
+	elif(cPQPrimarySolution == "4SmartHands"){
+        cPQPrimarySolutionUpdated = "4-SmartHands";
+    }
+	elif(cPQPrimarySolution == "5Condeco"){
+        cPQPrimarySolutionUpdated = "5-Condeco";
+    }
+	elif(cPQPrimarySolution == "5Cenero"){
+        cPQPrimarySolutionUpdated = "5-Cenero";
+    }
+	elif(cPQPrimarySolution == "5Other"){
+        cPQPrimarySolutionUpdated = "5-Other";
+    }
+	elif(cPQPrimarySolution == "5ProAV"){
+        cPQPrimarySolutionUpdated = "5-Pro AV";
+    }
+	elif(cPQPrimarySolution == "6Analytics"){
+        cPQPrimarySolutionUpdated = "6-Analytics";
+    }
+	elif(cPQPrimarySolution == "6Consulting"){
+        cPQPrimarySolutionUpdated = "6-Consulting";
+    }
+	elif(cPQPrimarySolution == "6Other"){
+        cPQPrimarySolutionUpdated = "6-Other";
+    }
+	elif(cPQPrimarySolution == "7Other"){
+        cPQPrimarySolutionUpdated = "7-Other";
+    }
+	elif(cPQPrimarySolution == "9AdvancedLabor"){
+        cPQPrimarySolutionUpdated = "9-Advanced Labor";
+    }
+	elif(cPQPrimarySolution == "9FMATRAC"){
+        cPQPrimarySolutionUpdated = "9-FMA-TRAC";
+    }
+	elif(cPQPrimarySolution == "9ManagdPrintServices"){
+        cPQPrimarySolutionUpdated = "9-Managed Print Services";
+    }
+	elif(cPQPrimarySolution == "9OnsiteOffsiteLabor"){
+        cPQPrimarySolutionUpdated = "9-Onsite-Offsite Labor";
+    }
+	elif(cPQPrimarySolution == "9Other"){
+        cPQPrimarySolutionUpdated = "9-Other";
+    }
+	elif(cPQPrimarySolution == "9PrintSecurityService"){
+        cPQPrimarySolutionUpdated = "9-Print Security Service";
+    }
+	elif(cPQPrimarySolution == "9PSBlockOfTime"){
+        cPQPrimarySolutionUpdated = "9-PS Block of Time";
+    }
+	elif(cPQPrimarySolution == "9TSDeploymentSupportNoSoftware"){
+        cPQPrimarySolutionUpdated = "9-TS Deployment support (No Software)";
+    }
+	//Added above code for MASS
+	
+	jsonput(resourceDetails,"select_DRTeamMemberArray_t",selectstring);
+	jsonput(resourceDetails,"selectedName_DRTeamMemberArray_t",pDLName);
+	jsonput(resourceDetails,"selectedEmail_DRTeamMemberArray_t",emailArray);
+	jsonput(resourceDetails,"projectTimehrs_DRTeamMemberAarray_t",projectTimehrs);
+	jsonput(resourceDetails,"title_DRTeamMemberAarray_t",title);
+	jsonput(resourceDetails,"selectedRole_DRTeamMemberAarray_t",selectedRole);
+	jsonput(resourceDetails,"leadDesignEngineer_DRTeamMemberAarray_t",lDEArray);
+	jsonput(resourceDetails,"approvalResposibilities_DRTeamMemberAarray_t",approvalResposibilities);
+	jsonput(resourceDetails,"emailTriggered",emailTriggered);
+	jsonput(resourceDetails,"primaryDesignLead_DRTeamMemberAarray_t",pDLArray);
+	jsonput(resourceDetails,"manager_DRTeamMemberAarray_t",manager);
+	jsonput(resourceDetails,"solutionServicesCategory_DRTeamMemberArray_t",solutionServicesCategory);
+	jsonput(resourceDetails,"primaryDesignFlagAsText_t",pDFlag);
+	jsonput(resourceDetails,"designLeadFlagAsText_t",DLFlagArray);
+	jsonput(resourceDetails,"cPQPrimarySolution_t",cPQPrimarySolutionUpdated);
+	jsonput(resourceDetails,"cPQPrimarySolution_text_t",cPQPrimarySolutionUpdated);
+	
+	jsonarrayappend(resourceDetailsJsonarray,resourceDetails);
+	
+	//start_bau_CHG0082500_created by gowtham.p1@ricoh-usa.com on 7/5/2023
+	}
+	//get and append ressource table.
+	/*select_DRTeamMemberArray_t  = jsonget(ResourceJson,"select_DRTeamMemberArray_t");
+	selectedName_DRTeamMemberArray_t   = jsonget(ResourceJson,"selectedName_DRTeamMemberArray_t");
+	selectedEmail_DRTeamMemberArray_t    = jsonget(ResourceJson,"selectedEmail_DRTeamMemberArray_t");
+	projectTimehrs_DRTeamMemberAarray_t   = jsonget(ResourceJson,"projectTimehrs_DRTeamMemberAarray_t");
+	title_DRTeamMemberAarray_t    = jsonget(ResourceJson,"title_DRTeamMemberAarray_t");
+	selectedRole_DRTeamMemberAarray_t     = jsonget(ResourceJson,"selectedRole_DRTeamMemberAarray_t");
+	leadDesignEngineer_DRTeamMemberAarray_t     = jsonget(ResourceJson,"leadDesignEngineer_DRTeamMemberAarray_t");
+	primaryDesignLead_DRTeamMemberAarray_t     = jsonget(ResourceJson,"primaryDesignLead_DRTeamMemberAarray_t");
+	cPQPrimarySolution_t    = jsonget(ResourceJson,"cPQPrimarySolution_t");
+	primaryDesignFlagAsText_t    = "";
+	designLeadFlagAsText_t    = "";
+	
+	if(NOT ISNULL(leadDesignEngineer_DRTeamMemberAarray_t) AND leadDesignEngineer_DRTeamMemberAarray_t == "true"){
+			designLeadFlagAsText_t    = "Yes";
+	}
+	if(NOT ISNULL(primaryDesignLead_DRTeamMemberAarray_t) AND primaryDesignLead_DRTeamMemberAarray_t == "true"){
+			primaryDesignFlagAsText_t    = "Yes";
+	}
+	jsonput(resourceDetails,"select_DRTeamMemberArray_t",select_DRTeamMemberArray_t);
+		jsonput(resourceDetails,"selectedName_DRTeamMemberArray_t",selectedName_DRTeamMemberArray_t);
+		jsonput(resourceDetails,"selectedEmail_DRTeamMemberArray_t",selectedEmail_DRTeamMemberArray_t);
+		jsonput(resourceDetails,"projectTimehrs_DRTeamMemberAarray_t",projectTimehrs_DRTeamMemberAarray_t);
+		jsonput(resourceDetails,"title_DRTeamMemberAarray_t",title_DRTeamMemberAarray_t);
+		jsonput(resourceDetails,"selectedRole_DRTeamMemberAarray_t",selectedRole_DRTeamMemberAarray_t);
+		jsonput(resourceDetails,"leadDesignEngineer_DRTeamMemberAarray_t",leadDesignEngineer_DRTeamMemberAarray_t);
+		jsonput(resourceDetails,"primaryDesignLead_DRTeamMemberAarray_t",primaryDesignLead_DRTeamMemberAarray_t);
+		jsonput(resourceDetails,"cPQPrimarySolution_t",cPQPrimarySolution_t);
+		jsonput(resourceDetails,"designLeadFlagAsText_t",designLeadFlagAsText_t);
+		jsonput(resourceDetails,"primaryDesignFlagAsText_t",primaryDesignFlagAsText_t);
+		
+jsonarrayappend(resourceDetailsJsonarray,resourceDetails);
+//enmd here resource details logic
+
+
+	
+	
+	
+	}*/
+
+
+
+	
+//Getting LDE Emails	
+if(findinarray(leadDesignArray,"true") <> -1) {
+	lDEapproverEmail = emailSearchArray[findinarray(leadDesignArray,"true")];
+	}
+	
+	//Getting LDE Emails	
+if(findinarray(leadDesignArray,"true") <> -1) {
+	LDEName = pDLNameArray[findinarray(leadDesignArray,"true")];
+	}
+		//Getting LDE Emails	
+if(findinarray(primaryleadArray,"true") <> -1) {
+	pDLName = pDLNameArray[findinarray(primaryleadArray,"true")];
+	}
+
+//Getting PDL Emails - Not Using
+if(findinarray(primaryleadArray,"true") <> -1) {
+	pDLapproverEmail = emailSearchArray[findinarray(primaryleadArray,"true")];
+	}
+	
+
+
+
+	
+retValue = retValue + "1~teamMemberDetails_t~" + teamDetails + "|";
+retValue = retValue + "1~leadDesignDetails_t~" + lDEapproverEmail + "|";
+retValue = retValue + "1~leadDesignNameChanges_t~" + LDEName + "|";
+
+//Intializing flag INC2418667-CHG0082524 code starts
+previousDesignEngineer=false;
+//Modified below logic inside if condition to handle INC2418667 and addedd elif condition
+if(lDEapproverEmail <> "" AND lDEapproverEmail <> previousStoredLDEApproverEmail_t){
+	retValue = retValue + "1~previousDesignEngineerEmailBackEndUse_t~" + lDEapproverEmail + "|";
+	retValue = retValue + "1~previousStoredLDEApproverEmail_t~" + lDEapproverEmail + "|";
+	//retValue = retValue + "1~previousDesignLeadEmailBackEndUse_t~|";
+	previousDesignEngineer=true;
+}
+else{
+	retValue = retValue + "1~previousDesignEngineerEmailBackEndUse_t~|";
+
+}
+if(pDLapproverEmail <> "" AND pDLapproverEmail <> previousStoredPDLApproverEmail_t){
+		retValue = retValue + "1~previousDesignLeadEmailBackEndUse_t~" + pDLapproverEmail + "|";
+		retValue = retValue + "1~previousStoredPDLApproverEmail_t~" + pDLapproverEmail + "|";
+		//retValue = retValue + "1~previousDesignEngineerEmailBackEndUse_t~|";
+		previousDesignEngineer=true;
+	}
+	else{
+	retValue = retValue + "1~previousDesignLeadEmailBackEndUse_t~|";
+
+}
+
+//Code for INC2418667-CHG0082524 ends here
+
+/* code commented by ROhit Ranjan for INC2418667-CHG0082524
+if(previousDesignEngineerEmailBackEndUse_t == "" OR (lDEapproverEmail <> "" AND lDEapproverEmail <> previousDesignEngineerEmailBackEndUse_t)){
+retValue = retValue + "1~previousDesignEngineerEmailBackEndUse_t~" + lDEapproverEmail + "|";
+}else{
+	retValue = retValue + "1~previousDesignEngineerEmailBackEndUse_t~|";
+}
+
+
+if(previousDesignLeadEmailBackEndUse_t == "" OR (pDLapproverEmail <> "" AND pDLapproverEmail <> previousDesignLeadEmailBackEndUse_t)){
+retValue = retValue + "1~previousDesignLeadEmailBackEndUse_t~" + pDLapproverEmail + "|";
+}else{
+retValue = retValue + "1~previousDesignLeadEmailBackEndUse_t~|";
+}
+Code comment ends here for INC2418667-CHG0082524
+*/
+
+/*if(getoldvalue("previousDesignLeadEmailBackEndUse_t",1) == previousDesignLeadEmailBackEndUse_t AND pDLCounterCapture_t == 1){
+	retValue = retValue + "1~previousDesignLeadEmailBackEndUse_t~|";
+
+}
+if(pDLCounterCapture_t == 0){
+retValue = retValue + "1~pDLCounterCapture_t~1|";
+}
+elif(pDLCounterCapture_t >=1 ){
+	count = pDLCounterCapture_t;
+	count = count+1;
+	retValue = retValue + "1~pDLCounterCapture_t~"+string(count)+"|";
+
+}*/
+
+retValue = retValue + "1~selectedDRTeamMemberArraySet_t~"+jsonarraytostr(resourceDetailsJsonarray)+"|"; //bau_CHG0082500_created by gowtham.p1@ricoh-usa.com on 7/5/2023
+
+//retValue = retValue + "1~designEmailId_t~" + pDLapproverEmail + "|";
+
+
+//change request CHG0085284
+
+ItemsTypeArray = string[];
+for line in transactionLine{
+	if(line.type_l <> ""){
+	append(ItemsTypeArray,line.type_l);
+	}
+	if(line._model_name <> "" AND (find(line._model_name,"Ricoh Managed Services")<>-1 OR find(line._model_name,"Managed Services")<>-1)){
+			append(ItemsTypeArray,"MANAGED");
+
+	}
+}
+str = join(ItemsTypeArray,"##");
+
+msFlag = false;
+scFlag = false;
+if(find(str ,"MANAGED")<>-1){
+
+msFlag = true;
+
+}
+if(find(str ,"SOLUTIONS")<>-1 OR find(str ,"OTHER")<>-1){
+	scFlag = true;
+
+}
+
+
+ret_manual = "";
+productCategoryArray = fFParticipantArraySet_t;
+productArraysize = range(jsonarraysize(productCategoryArray));
+retProductStr = "";
+i=0;
+approverTypeStr = "";
+for each_p in productArraysize {
+    scPS = jsonget(json(jsonarrayget(productCategoryArray , each_p)),"sCPS_Participantarray_c");
+	ms = jsonget(json(jsonarrayget(productCategoryArray , each_p)),"mS_Participantarray_c");
+	//iTS = jsonget(json(jsonarrayget(productCategoryArray , each_p)),"iTS_Participantarray");
+    //sA = jsonget(json(jsonarrayget(productCategoryArray , each_p)),"sA_Participantarray");
+        approverType = jsonget(json(jsonarrayget(productCategoryArray , each_p)),"approverType_Participantarray");
+
+    print approverType;
+	if(((isnull(scPS) OR scPS == "false") AND scFlag) AND ((isnull(ms) OR ms == "false") AND msFlag)){
+		ret_manual = "#PRODUCTS_ITEMS_NOTSELECTED#";
+	}
+	elif(((isnull(scPS) OR scPS == "false") AND scFlag AND NOT msFlag)){
+		ret_manual = "#PRODUCTS_ITEMS_NOTSELECTED#";
+	}
+	elif(((isnull(ms) OR ms == "false") AND NOT scFlag AND msFlag)){
+		ret_manual = "#PRODUCTS_ITEMS_NOTSELECTED#";
+	}
+	
+	
+if(NOT ISNULL(scPS) AND scFlag){
+if(scPS == "true"){
+	if(NOT ISNULL(approverType) AND approverType == "fFApprover"){
+
+	retProductStr = retProductStr+"SC"+string(i)+"#";
+	}
+	if(NOT ISNULL(approverType) AND approverType == "F&F Participant"){
+	approverTypeStr  = approverTypeStr + approverType +"$SC$";
+	}
+}
+
+
+}
+if(NOT ISNULL(ms) AND  msFlag){
+if(ms == "true"){
+	if(NOT ISNULL(approverType) AND approverType == "fFApprover"){
+
+		retProductStr = retProductStr+"MS"+string(i)+"#";
+		}
+		if(NOT ISNULL(approverType) AND approverType == "F&F Participant"){
+		print "";
+	//approverTypeStr  = approverTypeStr + approverType +"$MS$";
+	}
+}
+}
+if(NOT ISNULL(approverType) AND approverType == "fFApprover"){
+i = i+1;
+}
+	
+}
+
+print approverTypeStr  ;
+		retValue = retValue + "1~nonPDLLDETeamMembersList_t~"+join(emailSearchArray,"##")+"|";
+
+retValue = retValue + "1~productCategoryManuallyAddedToFF~"+retProductStr+approverTypeStr+"|";
+retValue = retValue + "1~manuallyAddedFFParticipantsSelectedAllProdCateg_t~"+ret_manual+"|";
+/* CHG0085284 end here */
+
+
+return retValue;

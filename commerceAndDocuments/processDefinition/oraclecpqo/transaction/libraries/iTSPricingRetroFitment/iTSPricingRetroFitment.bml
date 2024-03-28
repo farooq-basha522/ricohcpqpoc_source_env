@@ -1,0 +1,152 @@
+ret = "";
+i = 0;
+
+type = "";
+unitSRP = 0.0;
+extSRP = 0.0;
+contractedUnitPrice = 0.0;
+unitNetPrice = 0.0;
+extNetPrice = 0.0;
+customDiscountType = "";
+marginStandardCost = 0.0;
+assignedStep = "pending_process";
+migratedQuoteStep = "In Progress";
+
+oldStepDictionary = dict("string");
+put(oldStepDictionary,"start_step","Start"); 
+put(oldStepDictionary,"pending_process","In Progress");
+put(oldStepDictionary,"waitingForInternalApproval","Waiting for Approval"); 
+put(oldStepDictionary,"approved","Approved");
+put(oldStepDictionary,"waitingForSignature","Waiting for Customer Signature"); 
+put(oldStepDictionary,"signed","Signed");
+put(oldStepDictionary,"pendingCreditApproval","Pending Credit Approval"); 
+put(oldStepDictionary,"orderedBeingFulfilled","Ordered");
+put(oldStepDictionary,"beingChangedCanceled","Being Changed / Canceled"); 
+put(oldStepDictionary,"closedFulfilled","Fulfilled");
+put(oldStepDictionary,"canceled","Canceled"); 
+put(oldStepDictionary,"rejectedByCustomer","Rejected By Customer");
+put(oldStepDictionary,"alternateVersionOrdered","Alternate Version Ordered"); 
+put(oldStepDictionary,"deleted","Deleted");
+put(oldStepDictionary,"orderedBeingFulfilled_bmClone_1","Sent to RISE"); 
+put(oldStepDictionary,"Create Quote","Create Quote");
+put(oldStepDictionary,"fitFeasibility","Fit & Feasibility");
+put(oldStepDictionary,"priced","Priced");
+put(oldStepDictionary,"sentToCustomer","Sent to Customer");
+put(oldStepDictionary,"customerApproved","Customer Approved");
+put(oldStepDictionary,"Sent to RISE","Sent to RISE");
+
+
+if(quoteStep_t == "approved" OR quoteStep_t == "orderedBeingFulfilled_bmClone_1" OR quoteStep_t == "orderedBeingFulfilled"){
+	assignedStep = "approved";
+}
+
+if(quoteStep_t <> ""){
+	migratedQuoteStep = get(oldStepDictionary,quoteStep_t);
+}
+
+ret = ret 		
+			
+			/* Transaction Header Attribute Values Retro Fitment */
+		
+			+ "1~transactionDescription_t~"+transactionName_t+"|"
+			+ "1~customerCompanyName_t~"+_transaction_customer_t_company_name+"|"
+			+ "1~customerContactName_t~"+_transaction_customer_t_first_name+" "+_transaction_customer_t_last_name+"|"
+			+ "1~quoteCreatedBy_t~"+owner_t+"|"
+			+ "1~quoteCreationDate_t~"+createdDate_t+"|"
+			+ "1~quoteLastUpdatedBy_t~"+lastUpdatedBy_t+"|"
+			+ "1~lastModifiedDate_t~"+lastUpdatedDate_t+"|"
+			//+ "1~quotePrice_t~"+String(totalContractValue_t)+"|"
+			+ "1~shippingAddress_t~"+_transaction_customer_t_address+", "+_transaction_customer_t_city+", "+_transaction_customer_t_state+", "+_transaction_customer_t_zip+"|"
+			+ "1~customerContactNumber_t~"+_transaction_customer_t_phone+"|"
+			+ "1~customerEmail_t~"+_transaction_customer_t_email+"|"	
+			+ "1~leaseTerm_t~selectOne|"
+			+ "1~monthsFree_quote~No|"
+			+ "1~migratedQuoteStep_t~"+migratedQuoteStep+"|"
+			+ "1~quoteStatus_t~"+assignedStep+"|"
+			+ "1~quoteStep_t~"+assignedStep+"|"
+			+ "1~pricingSummary_t~hidden|"
+			;
+			
+			
+			
+			
+for line in transactionLine{
+	
+	if(line._part_number <> ""){ //part
+					
+		if (line.finalListUnitPrice_l <> 0.0 OR line.contractedPriceFound_l==true){
+			
+			//type 				= "Recurring";
+			unitSRP				= line.finalListUnitPrice_l;
+			extSRP 				= (line.finalListUnitPrice_l * line._price_quantity);			
+			contractedUnitPrice	= line.contractedUnitPrice_l;
+			unitNetPrice		= line.netPrice_l;
+			extNetPrice			= line.netAmount_l;
+			
+		}elif(line.finalListUnitPriceNRR_l <> 0.0 OR line.contractedPriceFoundNRR_l==true){
+			
+			//type 				= "One Time";
+			unitSRP 			= line.finalListUnitPriceNRR_l;
+			extSRP 				= (line.finalListUnitPriceNRR_l * line._price_quantity);			
+			contractedUnitPrice	= line.contractedUnitPriceNRR_l;
+			unitNetPrice		= line.netPriceNRR_l;
+			extNetPrice			= line.netAmountNRR_l;
+			
+		}
+		
+		if(unitNetPrice > 0.0){
+			marginStandardCost = (((unitNetPrice - line.unitCost_l)/unitNetPrice) * 100);
+		}
+		
+		if(line.customDiscountType_l <> ""){
+			
+			if(line.customDiscountType_l == "Percent Off"){
+				customDiscountType = "Percent";
+			}elif(line.customDiscountType_l == "Amount Off"){
+				customDiscountType = "Amount";
+			}elif(line.customDiscountType_l == "Price Override"){
+				customDiscountType = "Override";
+			}
+		
+		}
+				
+		
+			
+		if(line._model_name == ""){
+		
+			/* Transaction Line Item Grid Attribute Value Retro Fitment */
+			ret = ret
+				+ line._document_number + "~type_l~" + line._part_custom_field9 + "|"
+				+ line._document_number + "~UOM_l~Each|"
+				+ line._document_number + "~chargeType_l~" + line._part_custom_field8 + "|"
+				+ line._document_number + "~unitSRP_l~" + String(unitSRP) + "|"
+				+ line._document_number + "~extSRP_l~" + String(extSRP) + "|"
+				+ line._document_number + "~contractedUnitPrice_l~" + String(contractedUnitPrice) + "|"
+				+ line._document_number + "~discounttype_l~" + customDiscountType + "|"
+				+ line._document_number + "~discountAmountt_l~" + String(line.customDiscountValue_l) + "|"
+				+ line._document_number + "~discountTypeClone_l~" + customDiscountType + "|"
+				+ line._document_number + "~discountAmountClone_l~" + String(line.customDiscountValue_l) + "|"
+				+ line._document_number + "~unitNetPrice_l~" + String(unitNetPrice) + "|"
+				+ line._document_number + "~extNetPrice_l~" + String(extNetPrice) + "|"				
+				+ line._document_number + "~unitCost_l~" + String(line.unitCost_l) + "|"
+				+ line._document_number + "~marginPercentagestdscost_l~" + String(marginStandardCost) + "|"				
+				+ line._document_number + "~manufacturer_l~" + line.manufacturer_l + "|"
+				+ line._document_number + "~manufacturerPartNum_l~" + line.manufacturerPartNum_l + "|"
+				+ line._document_number + "~vendorName_l~" + line.vendorName_l + "|"
+				+ line._document_number + "~vendorPartNumber_t~" + line.vendorPartNumber_t + "|"
+				+ line._document_number + "~preparedBy_l~" + line.preparedBy_l + "|";
+						
+				//if(line.manufacturerPartNum_l <> ""){					
+				//	ret = ret				
+				//}				
+				
+		}
+		
+	}
+
+	i=i+1;		
+}
+
+ret = ret + "1~migratedQuoteVisbility_t~true|";
+
+return ret;

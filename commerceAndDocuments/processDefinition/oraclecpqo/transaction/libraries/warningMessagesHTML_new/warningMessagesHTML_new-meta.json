@@ -1,0 +1,11 @@
+{
+  "name" : "Warning Messages HTML",
+  "variableName" : "warningMessagesHTML_new",
+  "description" : "",
+  "libraryFunctions" : [ "util.getMutliplteCustomFieldValuesForselectedParts", "util.getProcessGroup" ],
+  "returnType" : "String[]",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_group_sequence_number", "_parent_doc_number", "type_l", "linkedItem_l", "discounttype_l", "discountAmountt_l", "unitSalesCost_l", "contractedUnitPrice_l", "_part_number", "unitSellingPrice_l", "_part_custom_field27", "_part_custom_field16", "_document_number" ],
+  "mainDocAttributes" : [ "quoteStep_t", "rAC_Pricelist_RISE", "priceList_t" ],
+  "systemAttributes" : [ ]
+}

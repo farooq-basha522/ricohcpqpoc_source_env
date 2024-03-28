@@ -1,0 +1,144 @@
+headerTable = "";
+fleetTable = "";
+MPS_DEBUG_FLAG = false;
+orginalFleetManagmentPerDevice = 0.0;
+orginalTotalFleetManagmentPerDevice = 0.0;
+calculatedFleetManagmentPerDevice = 0.0;
+calculatedTotalFleetManagmentPerDevice = 0.0;
+orginalZebraFleetManagmentPerDevice = 0.0;
+orginalZebraTotalFleetManagmentPerDevice = 0.0;
+calculatedZebraFleetManagmentPerDevice = 0.0;
+calculatedZebraTotalFleetManagmentPerDevice = 0.0;
+originalthirdPartyFleetSalesGPPercentage = 0.0;
+calculatedthirdPartyFleetSalesGPPercentage = 0.0;
+originalZebraFleetSalesGPPercentage = 0.0;
+calculatedZebraFleetSalesGPPercentage = 0.0;
+	
+performaDataJson  = json();
+if(performaData_t <> ""){
+	performaDataJson = json(performaData_t);
+}
+
+tableName = "";
+headerTable = "";
+if(containskey(retStringDict,"tableName")){
+	tableName = get(retStringDict,"tableName");
+}
+
+if(tableName == "3rdPartyMICRFleetManagement"){
+	if(jsonpathcheck(performaDataJson,"orginalFleetManagmentPerDevice")){
+		orginalFleetManagmentPerDevice = jsonget(performaDataJson,"orginalFleetManagmentPerDevice","float");
+	}
+	if(jsonpathcheck(performaDataJson,"orginalTotalFleetManagmentPerDevice")){
+		orginalTotalFleetManagmentPerDevice = jsonget(performaDataJson,"orginalTotalFleetManagmentPerDevice","float");
+	}
+	if(jsonpathcheck(performaDataJson,"calculatedFleetManagmentPerDevice")){
+		calculatedFleetManagmentPerDevice = jsonget(performaDataJson,"calculatedFleetManagmentPerDevice","float");
+	}
+	if(jsonpathcheck(performaDataJson,"calculatedTotalFleetManagmentPerDevice")){
+		calculatedTotalFleetManagmentPerDevice = jsonget(performaDataJson,"calculatedTotalFleetManagmentPerDevice","float");
+	}
+	if(jsonpathcheck(performaDataJson,"originalthirdPartyFleetSalesGPPercentage")){
+		originalthirdPartyFleetSalesGPPercentage = jsonget(performaDataJson,"originalthirdPartyFleetSalesGPPercentage","float");
+	}
+	if(jsonpathcheck(performaDataJson,"calculatedthirdPartyFleetSalesGPPercentage")){
+		calculatedthirdPartyFleetSalesGPPercentage = jsonget(performaDataJson,"calculatedthirdPartyFleetSalesGPPercentage","float");
+	}
+}
+if(tableName == "ZebraFleetManagement"){
+	if(jsonpathcheck(performaDataJson,"orginalZebraFleetManagmentPerDevice")){
+		orginalZebraFleetManagmentPerDevice = jsonget(performaDataJson,"orginalZebraFleetManagmentPerDevice","float");
+	}
+	if(jsonpathcheck(performaDataJson,"orginalZebraTotalFleetManagmentPerDevice")){
+		orginalZebraTotalFleetManagmentPerDevice = jsonget(performaDataJson,"orginalZebraTotalFleetManagmentPerDevice","float");
+	}
+	if(jsonpathcheck(performaDataJson,"calculatedZebraFleetManagmentPerDevice")){
+		calculatedZebraFleetManagmentPerDevice = jsonget(performaDataJson,"calculatedZebraFleetManagmentPerDevice","float");
+	}
+	if(jsonpathcheck(performaDataJson,"calculatedZebraTotalFleetManagmentPerDevice")){
+		calculatedZebraTotalFleetManagmentPerDevice = jsonget(performaDataJson,"calculatedZebraTotalFleetManagmentPerDevice","float");
+	}
+	if(jsonpathcheck(performaDataJson,"originalZebraFleetSalesGPPercentage")){
+		originalZebraFleetSalesGPPercentage = jsonget(performaDataJson,"originalZebraFleetSalesGPPercentage","float");
+	}
+	if(jsonpathcheck(performaDataJson,"calculatedZebraFleetSalesGPPercentage")){
+		calculatedZebraFleetSalesGPPercentage = jsonget(performaDataJson,"calculatedZebraFleetSalesGPPercentage","float");
+	}
+}
+
+fleetColumns = string[]{
+	"Fleet Management Per Device",
+	"Fleet Management Total",
+	"Sales GP%"
+};
+
+fleetSummaryDict = dict("float");
+if(tableName == "3rdPartyMICRFleetManagement"){
+	put(fleetSummaryDict, "Fleet Management Per Device Original", orginalFleetManagmentPerDevice);
+	put(fleetSummaryDict, "Fleet Management Per Device Calculated", calculatedFleetManagmentPerDevice);
+	put(fleetSummaryDict, "Fleet Management Total Original", orginalTotalFleetManagmentPerDevice);
+	put(fleetSummaryDict, "Fleet Management Total Calculated", calculatedTotalFleetManagmentPerDevice);
+	put(fleetSummaryDict, "Sales GP% Original", originalthirdPartyFleetSalesGPPercentage);
+	put(fleetSummaryDict, "Sales GP% Calculated", calculatedthirdPartyFleetSalesGPPercentage);
+}
+elif(tableName == "ZebraFleetManagement"){
+	put(fleetSummaryDict, "Fleet Management Per Device Original", orginalZebraFleetManagmentPerDevice);
+	put(fleetSummaryDict, "Fleet Management Per Device Calculated", calculatedZebraFleetManagmentPerDevice);
+	put(fleetSummaryDict, "Fleet Management Total Original", orginalZebraTotalFleetManagmentPerDevice);
+	put(fleetSummaryDict, "Fleet Management Total Calculated", calculatedZebraTotalFleetManagmentPerDevice);
+	put(fleetSummaryDict, "Sales GP% Original", originalZebraFleetSalesGPPercentage);
+	put(fleetSummaryDict, "Sales GP% Calculated", calculatedZebraFleetSalesGPPercentage);
+}
+
+if(MPS_DEBUG_FLAG){
+	print "Fleet Management Per Device Original:" + string(orginalFleetManagmentPerDevice);
+	print "Fleet Management Per Device Calculated:" + string(calculatedFleetManagmentPerDevice);
+	print "Fleet Management Total Original:" + string(orginalTotalFleetManagmentPerDevice);
+	print "Fleet Management Total Calculated:" + string(calculatedTotalFleetManagmentPerDevice);
+	
+	print "Zebra Fleet Management Per Device Original:" + string(orginalZebraFleetManagmentPerDevice);
+	print "Zebra Fleet Management Per Device Calculated:" + string(calculatedZebraFleetManagmentPerDevice);
+	print "Zebra Fleet Management Original:" + string(orginalZebraTotalFleetManagmentPerDevice);
+	print "Zebra Fleet Management Calculated:" + string(calculatedZebraTotalFleetManagmentPerDevice);
+}
+fleetTable = "<table class=\"performaView_HTML\"><tr><th style=\"width:209px\"></th><th style=\"width:209px\">Original Value</th><th style=\"width:209px\">Calculated Value</th>";
+if(tableName == "3rdPartyMICRFleetManagement"){
+	headerTable =  "<table class=\"performaView_HTML\"><tr><th style=\"width:209px\">3rd Party/MICR</th><th style=\"width:209px\">Fleet Management Details</th><th style=\"width:209px\"></th></tr>";
+}elif(tableName == "ZebraFleetManagement"){
+	headerTable =  "<table class=\"performaView_HTML\"><tr><th style=\"width:209px\">Zebra</th><th style=\"width:209px\">Fleet Management Details</th><th style=\"width:209px\"></th></tr>";
+}
+print fleetSummaryDict;
+fleetTable = fleetTable + "</tr>";
+for fleet in fleetColumns {
+    fleetTable = fleetTable + "<tr><td>" + fleet + "</td>";
+	fieldValues1 = 0.0;
+	fieldValues2 = 0.0;
+	print fleet + " Original";
+	if(containskey(fleetSummaryDict, fleet + " Original")){
+		fieldValues1 = round(get(fleetSummaryDict, fleet + " Original"),4);
+		fieldValues2 = round(get(fleetSummaryDict, fleet + " Original"),4);
+	}
+	modifyPricinfScenario = "";
+	if(tableName == "3rdPartyMICRFleetManagement"){
+		modifyPricinfScenario = modifyPricingScenarioFleetManagement3rdPartyMICR_c ;
+	}
+	if(tableName == "ZebraFleetManagement"){
+		modifyPricinfScenario = modifyPricingScenarioFleetManagementZebra_t_c;
+	}
+	if(modifyPricinfScenario <> "Revert to Original"){
+		fieldValues1 = round(get(fleetSummaryDict, fleet + " Original"),4);
+		if(containskey(fleetSummaryDict, fleet + " Calculated")){
+			fieldValues2 = round(get(fleetSummaryDict, fleet + " Calculated"),4);
+		}
+	}
+	if(fleet == "Sales GP%"){
+		fieldValues1 = round(fieldValues1,2);
+		fieldValues2 = round(fieldValues2,2);
+	}
+    fleetTable = fleetTable + "<td>" + string(fieldValues1) + "</td>";
+    fleetTable = fleetTable + "<td>" + string(fieldValues2) + "</td>";
+    fleetTable = fleetTable + "</tr>";
+}
+headerTable = headerTable + fleetTable + "</table><br><br>";
+
+return headerTable;

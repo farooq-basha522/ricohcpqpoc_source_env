@@ -1,0 +1,14 @@
+{
+  "name" : "Populate PIMA Report for MPS",
+  "variableName" : "populatePIMAReportForMPS_c",
+  "description" : "",
+  "libraryFunctions" : [ "util.mPSPIMAComponentArrayGeneration" ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "param1",
+    "type" : "String"
+  } ],
+  "subDocAttributes" : [ "_part_number", "type_l", "includeInMS_l", "_model_name", "_document_number", "_config_attr_info", "extNetPrice_l", "unitSalesCost_l", "_price_quantity", "unitCost_l", "implementationCost_l", "parentModel_l", "_line_bom_attributes", "configCommentsNew_l" ],
+  "mainDocAttributes" : [ "rebateValue_CustomerSpecific_t", "rebateGPOThirdparty_t", "rebateType_t", "rebateValueOption_t", "rebateApplied_t", "rebateValueDollar_t", "rebateValue_t", "termMonths_t", "contractOtherTerm_t", "variableAnnualRevenueEscalation_t", "variableAnnualEscalationArraySet_t", "annualRevenueEscalation_t", "mSTransactionType_t", "mSPricingApproverLevel_t", "mSPricingApprovalNote_t" ],
+  "systemAttributes" : [ "_system_user_time_zone" ]
+}

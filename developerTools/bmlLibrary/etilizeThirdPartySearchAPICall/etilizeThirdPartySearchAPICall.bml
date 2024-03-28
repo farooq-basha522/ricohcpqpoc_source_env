@@ -1,0 +1,133 @@
+//************************************************************************************************************
+//** Function:    Etilize Third Party Search API Call (etilizeThirdPartySearchAPICall)
+//** Type:        Utility Library Function   
+//**
+//** Description: This function takes a Keyword String to use as a search filter, 
+//**		generates an XML SOAP payload, makes a GET urldata call to Etilize,
+//**		and parses the response to build a JSON string of part data
+//** 
+//** Param:       keywordFilter - String - keyword entered by user, to be used as search filter
+//**
+//** Return type: JSON
+//**
+//** History:     Date     	Author       	Comment 
+//**              INITIAL  	HBasler		Initial Build  
+//**		  11/2/2018	HBasler		Add ExcludedVendors bmql call and remove excluded vendors from returned JSON
+//**		  12/2/2018	HBasler		Remove all vendors that are not in ValidVendors table with AdhocOnly = No
+//**		  3/7/2019  	HBasler		Handle HTML in error message that is causing Forbidden errors		
+//************************************************************************************************************
+
+//Declare variables
+debug = false;
+retJSON = json();
+restResponseJSON = json();
+productJSON = json();
+restResponse = dict("string");
+siteNameStr = substring(_site_url, find(_site_url, "//")+ 2, find(_site_url, ".bigmachines.com")); //concatenate _site_url to get only ricohusadev
+externalURL = "";
+encodedAuth = "";
+authstring = "";
+integrationType = "";
+apiVendorDict = dict("string");
+
+
+
+//Set up the call to the external system
+//Store the URL and the Action for the call in a data table to avoid URL hardcoding.  
+//Also makes the different sites (dev, test, prod) interact with corresponding receiver URL's, 
+//and the URL's get passed around in site migrations & refreshes without manual updating.
+integrationType = "Etilize";
+
+//Grab the URL and action name from the table. There should only be one corresponding row; this logic just takes the first record.
+soapURLRecs = bmql("select EndpointURL, Username, Password from ThirdPartyAPIInfo where CPQEnv = $siteNameStr and APIType = $integrationType");
+
+
+for eachRec in soapURLRecs{
+	externalURL =  get(eachRec, "EndpointURL");
+	username = get(eachRec, "Username");
+	pwd = get(eachRec, "Password");	
+	encodedAuth = encodebase64(username + ":" + pwd);
+	authstring = "Basic " + encodedAuth;
+	break;
+}
+
+
+//Test REST API 
+headerDict = dict("string");
+put(headerDict, "Content-Type", "application/json");
+put(headerDict, "Authorization", authstring); 
+
+//replace spaces in keyword search with +
+//other validations needed?
+keywordURL = replace(keywordSearch, " ", "%20");
+
+//add keyword query to URL
+externalURL = externalURL + "?keyword=" + keywordURL;
+
+//make API call
+if (keywordURL <> "" AND externalURL <> "") {
+	restResponse = urldata(externalURL,"GET",headerdict);
+	
+
+	//Clean up JSON and remove unneeded objects
+	if(get(restResponse, "Message-Body") <> "" AND NOT isnull(get(restResponse, "Message-Body"))){
+			restResponseJSON = json(get(restResponse, "Message-Body"));
+			//check if products were returned
+			productsReturned = jsonpathcheck(restResponseJSON, "$.outputObject.products..sku");
+
+			if (productsReturned == false) {
+				jsonput(restResponseJSON, "statusMessage", "No Products Returned");
+			}
+			jsonVal1 = jsonpathremove(restResponseJSON, "$.outputObject.products..resources");
+			jsonVal2 = jsonpathremove(restResponseJSON, "$.outputObject.products..description[?(@.type!=1)]");
+			jsonVal3 = jsonpathremove(restResponseJSON, "$.outputObject.products..sku[?(@.type=='MFGPARTNUMBER')]");
+			
+			//remove skus for vendors in ExcludedVendors table
+			excludedVendors = bmql("SELECT Vendor FROM ExcludedVendors WHERE BillingAuthority = $customerBillingAuthority");
+			for vendor in excludedVendors {
+				skuType = get(vendor, "Vendor");
+				jsonVal3 = jsonpathremove(restResponseJSON, "$.outputObject.products..sku[?(@.type=='" + skuType + "')]");
+
+			}
+			
+			
+			//11/30: UAT request - only show the vendors that have an API to get pricing (AdhocOnly = No)
+			//get all the skus and add to an array, then query ValidVendors to get AdhocOnly=No vendors
+			//then remove the AdhocOnly=No vendors from the array, so the array contains only vendors that need to be filtered out of JSON
+			//then loop through dictionary and use jsonpathremove
+			//get valid vendors with AdhocOnly = No and add to dictionary to use in for loop below
+			validVendors = bmql("SELECT EtilizeName FROM ValidVendors WHERE BillingAuthority = $customerBillingAuthority AND AdHocOnly = 'No'");
+			for vendor in validVendors {
+				etilizeName = get(vendor, "EtilizeName");
+				put(apiVendorDict, etilizeName, etilizeName);
+			}
+			
+			vendorNamesJArr = jsonpathgetmultiple(restResponseJSON, "$.outputObject.products..skus.sku[?(@.type!='MFGPARTNUMBER')].type");
+			vendorIndexArr = range(jsonarraysize(vendorNamesJArr));
+			for index in vendorIndexArr {
+				jsonVendor = jsonarrayget(vendorNamesJArr,index);
+				if (containskey(apiVendorDict, jsonVendor) == false) {
+					//remove vendor from JSON
+					jsonVal3 = jsonpathremove(restResponseJSON, "$.outputObject.products..sku[?(@.type=='" + jsonVendor + "')]");
+				}
+			}
+					
+	}
+	else {
+		statusCode = get(restResponse, "Status-Code");
+		jsonput(restResponseJSON, "statusMessage", "Etilize Integration Failed, no results returned. Status-Code=" + statusCode);
+		errMsg = get(restResponse, "Error-Message");
+		if (find(errMsg, "html") <> -1) {
+			errMsg = "HTML error returned and not saved, to prevent Forbidden errors when searching.";
+		}
+		jsonput(restResponseJSON, "Error-Message", errMsg);
+		
+	}
+}
+else {
+	jsonput(restResponseJSON, "statusMessage", "Etilize Integration Failed, missing API details in CPQ");
+}
+
+retJSON = restResponseJSON; 
+
+return retJSON;

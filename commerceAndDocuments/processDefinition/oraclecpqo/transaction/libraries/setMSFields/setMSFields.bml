@@ -1,0 +1,170 @@
+//CHG0078656 : CPQ MS- CPQ Changes deployment//
+//START - Performance_Code_Changes - Commented below 
+/* concatstr = "";
+msEDPCode = "";
+msEDPDescription = ""; */
+//END - Performance_Code_Changes - Instead of Using util "getMutliplteCustomFieldValuesForselectedParts" using "partsDataText_t" field to get custom field data by Vasundhara
+/**Setting PS Input Data based on Include MS **/
+//START - Performance_Code_Changes - Commented below code as we are not using it by Vasundhara
+/* for line in transactionLine{
+	if(line.includeInMS_l) { 		
+ 		itemNumber = line._part_number;
+		quantity = line.qty_l;
+		unitSRP = line.unitSRP_l;
+		unitSalesCost = line.unitSalesCost_l;
+		unitStandardCost = line.unitCost_l;
+		unitContractTargetPrice = line.contractedUnitPrice_l;
+		includeInMS = line.includeInMS_l;
+ 		eDPCodeTable = BMQL("Select MSItemCode, MSItemDescription from RAC_MS_PS_EDPCode where PSItemCode = $itemNumber");
+ 		for each in eDPCodeTable {
+ 			msEDPCode = get(each,"MSItemCode");
+ 			msEDPDescription = get(each,"MSItemDescription");
+ 		}
+ 		concatstr = concatstr + msEDPCode + "$$" 
+ 				      + msEDPDescription  + "$$"
+ 				      + string(quantity) + "$$"
+ 				      +	string(unitSRP) + "$$"
+ 				      +	string(unitSalesCost) + "$$"
+ 				      +	string(unitStandardCost) + "$$"
+ 				      +	string(unitContractTargetPrice) + "$$"
+ 				      + string(includeInMS) + "##";
+ 	}
+	
+	// Set MS Configuration Commerce Flag
+	
+	if(find(line._model_name,"Managed Services") <> -1){
+		quoteProduct = "Managed Services";
+	}
+} */
+//END - Performance_Code_Changes - Commented above code as we are not using it by Vasundhara
+/**Setting PS Input Data based on Include MS **/
+
+/**Setting MS Transaction Attributes **/
+retval = "";
+quoteProduct = "";
+if(paymentTermsMS_t == "standardNet30") {
+	retval = retval + "1~enterNetPaymentDays_t~0"+"|";
+}
+
+EDO_Email = string[];
+NOM_Email= string[];
+AD_Email = string[];
+RD_Email = string[];
+OperationsAnalysts_Email = string[];
+projectNumberArray = String[];
+projNumberDict = dict("string");
+zipCodeArray = String[];
+zipCodeDict =  dict("string");
+
+resultAddresssearchArray = customerAccountResult_t;
+resultsearchArrayaySize = range(jsonarraysize(resultAddresssearchArray));
+
+for each in resultsearchArrayaySize {
+	projectNumber = jsonget(json(jsonarrayget(resultAddresssearchArray,each)),"project_Result_t");
+	put(projNumberDict, projectNumber, projectNumber);
+	zipCode = jsonget(json(jsonarrayget(resultAddresssearchArray,each)),"zipCode_Result_t");
+	put(zipCodeDict, zipCode, zipCode);
+}
+
+projectNumberArray = values(projNumberDict);
+zipCodeArray = values(zipCodeDict);
+AccountType = "";
+project_BLANK = true;
+for each_p in projectNumberArray {
+	if (NOT isnull(each_p)){
+		project_BLANK = false;
+	}
+}
+
+if(project_BLANK == false) {
+projectNumber = bmql("SELECT EDO, NOM_Email, ADO, RDO, AccountType, OppAnalystsEmail FROM RAC_MS_FNF_AUTHORITY WHERE OracleProjectNumber IN $projectNumberArray");
+for each in projectNumber {
+	//append(EDO_Email, get(each,"EDO"));
+	//append(NOM_Email, get(each,"NOM_Email"));
+	if(get(each,"ADO") <> ""){
+		append(AD_Email, get(each,"ADO"));
+	}
+	if(get(each,"RDO") <> ""){
+		append(RD_Email, get(each,"RDO"));
+	}
+	// POSTMVP_CR060# - Getting Operations Analysts Data from Data Table- Chakri
+	if(get(each,"OppAnalystsEmail") <> ""){
+		append(OperationsAnalysts_Email, get(each,"OppAnalystsEmail"));
+	}
+
+	AccountType = lower(get(each,"AccountType"));
+	}
+
+
+}
+if(project_BLANK) {
+	project_Number = bmql("SELECT distinct ADO, RDO FROM RAC_MS_FNF_AUTH_NEW WHERE Zip IN $zipcodeArray");
+	for each in project_Number {
+		//append(EDO_Email, get(each,"EDO_Email"));
+		//append(NOM_Email, get(each,"NOM_Email"));
+		append(AD_Email, get(each,"ADO"));
+		append(RD_Email, get(each,"RDO"));	
+	}
+}
+
+retval = retval + "1~isThisAnEnterpriseAccount_t~false" +"|";
+//retval = retval + "1~isThisAnEnterpriseAccountEdit_t~false" +"|";
+
+if(AccountType == "enterprise") {
+	retval = retval + "1~isThisAnEnterpriseAccount_t~true" +"|";
+	//retval = retval + "1~isThisAnEnterpriseAccountEdit_t~true" +"|";
+}
+
+//retval = retval + "1~nOMNationalOperationsManager_t~"+ join(NOM_Email, ", ") + "|";
+//retval = retval + "1~eDOEnterpriseDirOperations_t~"+ join(EDO_Email, ", ") + "|";
+retval = retval + "1~aDO_t~"+ join(AD_Email, ", ") + "|";
+retval = retval + "1~rDO_t~"+ join(RD_Email, ", ") + "|";
+// POSTMVP_CR060# - Storing Operational Analysis data to a attribute so that we dont need to call the data table all the time- Chakri
+retval = retval + "1~operationsAnalysts_t~"+ join(OperationsAnalysts_Email, ", ") + "|";
+
+gpoThird = "";
+customerThird = "";
+gPOPercenatgeData = "";
+customerPercenatgeData = "";
+
+rebateData = bmql("SELECT GPOThirdParty, GPOPercenatge, Customer, CustomerPercenatge FROM RAC_Rebate");
+for data in rebateData {
+	gpoThird = get(data, "GPOThirdParty");
+	customerThird = get(data, "Customer");
+	if(rebateGPOThirdparty_t == gpoThird) {
+		gPOPercenatgeData = get(data,"GPOPercenatge");
+	}
+	if(rebateCustomer_t == customerThird) {
+		customerPercenatgeData = get(data,"CustomerPercenatge");
+	}	
+}
+
+retval = retval + "1~rebateForGPOPercent_t~"+ gPOPercenatgeData  + "|";
+retval = retval + "1~rebateForCustomerPercent_t~"+ customerPercenatgeData  + "|";
+
+if(annualRevenueEscalation_t <> 7.00) {
+	retval = retval + "1~standardEscalationClause_t~false" +"|";
+}
+if(annualRevenueEscalation_t == 7.00) {
+	retval = retval + "1~standardEscalationClause_t~true" +"|";
+}
+
+if(rebateApplied_t == "" OR rebateApplied_t == "none"){
+	retVal = retVal +"1~rebateValue_t~0.0" + "|";
+	retVal = retVal +"1~rebateValueDollar_t~0.0" + "|";
+	retVal = retVal +"1~directPayment_t~" + "|";
+	retVal = retVal +"1~rebateType_t~" + "|";
+	retVal = retVal +"1~rebateValueOption_t~rebatePercent" + "|";
+}else{
+	if(rebateValueOption_t == "rebatePercent"){
+		retVal = retVal +"1~rebateValueDollar_t~0.0" + "|";
+	}elif(rebateValueOption_t == "rebateValue"){
+		retVal = retVal +"1~rebateValue_t~0.0" + "|";
+	}
+}
+
+/**Setting MS Transaction Attributes **/
+
+//retval = retval + "1~psInputRequiredInfo_quote~"+concatstr+"|";
+//retval = retval + "1~quoteProduct_t~"+quoteProduct+"|";
+return retval;

@@ -1,0 +1,12 @@
+{
+  "name" : "Generate HTML table from Config Equipment List",
+  "variableName" : "generateHTMLTableFromConfigEquipmentList",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "configAttrInfo",
+    "type" : "String"
+  } ],
+  "attributes" : [ ]
+}

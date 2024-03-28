@@ -1,0 +1,231 @@
+//Function Name: abo_updateAsset
+//input:txn_json(json), lines_json_array(jsonarray)
+//output: response(json)
+//Description: 
+//    Entry level utility BML for header level 'Update Asset' action. Can be exposed as a generic service as well. 
+//    For the given txn and list of lines in that txn as passed in the input, it will aggregate the lines for that 
+//    same product instance in order of request date to calculate the final project state and compare it with the 
+//    asset state to generate CRUD operation on the asset for all lines in an atomic RESTful call.
+//Logic:
+//     1. sort the line array by assetkey and request date.
+//     2. group the lines with the same asset key into the following structure.
+//         {  instace_id:,  final_action:, final_date, lines: {  line_seq, action, txn_date}.
+//     3. For each group,  
+//            load base asset configuration and convert that to BOM struture
+//            load BOM for each line in the group and place them as open orderline array
+//            invoke abo_apply with asset and open orderline array to caculated final projected BOM
+//            use abo_delta to caculate the delta state between original base asset BOM and projected BOM
+//            convert the delta BOM to sync asset json format for local asset repository sync.
+//     4. put all the invidual sync asset json into an array and invoke asset servcie as single atomic call.
+
+//Step 1: Setup context
+abocontext =  util.abo_getContext();
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true);  
+callContext="updateAsset";
+
+if(not bDiagnosisOff){//log the input
+   dummy=util.abo_addDiagnosticInfo(callContext+"_input_txnjson", txn_json,"addToSummary");
+   lineJson=json(); jsonput(lineJson, "lineArray",lines_json_array);
+   dummy=util.abo_addDiagnosticInfo(callContext+"_input_linejson", lineJson,"addToSummary");
+
+}
+
+//Step 2: Declare constants
+//Constants used for line data structure
+DOCUMENT_NUMBER  = "documentNumber";
+CUSTOMER_ID = "customer_id";
+TRANSACTION_ID = "transactionId";
+CURRENCY_CODE = "currency_code";
+REQUEST_DATE =  "requestDate";
+ACTION_CODE =  "actionCode";
+ITEM_INSTANCE_ID = "itemInstanceId";
+FINALACTION = "finalAction";
+FINALDATE = "finalDate";
+TERMINATE =  "TERMINATE";
+ORIGINALACTION = "OriginalAction";
+ORIGINALREQUESTDATE =  "OriginalRequestDate";
+UPDATE =  "UPDATE";
+
+//Constants used for getBom query
+TRANSACTIONDATE = "requestDate_l";
+ACTION = "oRCL_ABO_ActionCode_l";
+ITEM_INSTANCE_NAME = "itemInstanceName_l";
+
+//Constants for internal logic
+LINES = "Lines";
+
+//List of fields need to be retrieved in getBom call
+extraAssetFields =  jsonget(abocontext, "extraLineFieldForAsset", "json", json());
+lineFields =  jsonKeys(extraAssetFields);
+sizeofExtraAssetFieldLst =  sizeofarray(lineFields);
+
+lineFields[sizeofExtraAssetFieldLst] = ACTION;
+lineFields[sizeofExtraAssetFieldLst+1] = TRANSACTIONDATE;
+lineFields[sizeofExtraAssetFieldLst+2] = ITEM_INSTANCE_NAME;
+
+//Step 3:  Sort the lines by assetKey and then date in ascending
+// If line.txnDate is empty, updateAsset action script will populate it with today's date during lineJson creation
+jsoncrit =  jsonarray();
+jsoncrit = jsonarray();
+crit1= json("{\"field\":\"itemInstanceId\",\"order\":\"desc\"}");//type default to string
+crit2= json("{\"field\":\"requestDate\",\"order\":\"asc\",\"dateFormat\": \"yyyy-MM-dd\"}");
+jsonarrayappend(jsoncrit,crit1);
+jsonarrayappend(jsoncrit,crit2);
+linesJsonArr =  util.abo_jsonSort(lines_json_array, jsoncrit);
+
+if(not bDiagnosisOff){//log the sorted array
+   logJson=json(); 
+   jsonput(logJson, "sortedLines",linesJsonArr);
+   jsonput(logJson, "crit",jsoncrit);   
+   dummy=util.abo_addDiagnosticInfo(callContext+"_sortingResult", logJson,"");
+}
+
+//Step 4: Since it has already been sorted, we just need to scan it in one pass
+//
+sizeoflineArr =  jsonarraysize(linesjsonarr);
+dummyTraverseArray = string[sizeoflineArr];
+
+//retrieve transaction data
+transactionId =  jsonget(txn_json, TRANSACTION_ID, "string", "");
+bsId =  atoi(transactionId );
+
+jsonArrforSync =  jsonarray();
+curAssetkey="";
+index =  0;
+finalActionforCurGrp = "";
+grpJsonforProcessing =  jsonarray();
+lineGrpJsonArr =  jsonarray();
+curGrpJson =  json();
+
+// since lines_json_array is already sorted based on assetKey, requestDate, we just need to scan them once
+for oneItem in dummyTraverseArray{
+   oneLine = jsonarrayget(linesJsonArr, index, "json");
+   index = index + 1;
+
+   nextAssetKey= jsonget(oneLine, ITEM_INSTANCE_ID, "string", "");
+   reqDate =  jsonget(oneLine, REQUEST_DATE, "string", "");
+   actionCode = jsonget(oneLine, ACTION_CODE, "string", "");
+      
+   if(curAssetKey <> nextAssetKey){ 
+      //now it is a new group,  notice we initialize curAssetKey to "", so first line will trigger this logic as well
+      curGrpJson =  json();
+      lineGrpJsonArr = jsonArray();
+      jsonput(curGrpJson, ITEM_INSTANCE_ID, nextAssetKey);
+      curGrpJson = jsonarrayappend(grpJsonforProcessing, curGrpJson);
+      lineGrpJsonArr =  jsonput(curGrpJson,  LINES, lineGrpJsonArr);
+      curAssetKey =  nextAssetKey;
+      finalActionforCurGrp = "";       
+      jsonput(curGrpJson, ORIGINALACTION, actionCode);
+      jsonput(curGrpJson, ORIGINALREQUESTDATE, reqDate);
+   }   
+   //add line to current group
+   jsonarrayappend(lineGrpJsonArr, oneLine); 
+   
+   if(finalActionforCurGrp==TERMINATE){ 
+       // all lines after terminate will be igored.
+       // PLACEHOLDER, you could choose to throw error in this case as well.
+       // You could run into this situation if user does a Follow-On Order on d2, and then terminate on d1,
+       // Assuming "d1" and "d2" are referring to dates 
+       // or additional logic can be added in abo_prepareInstance to prevent this to happen
+       continue;
+   }
+   
+   if( actionCode == TERMINATE ){ 
+      //keep track of first terminate line
+      finalActionforCurGrp = TERMINATE;
+      jsonput(curGrpJson, FINALACTION , actionCode);
+      jsonput(curGrpJson, FINALDATE, reqDate);
+   }      
+  
+}// end of loop through lines to group them together by assetKey.
+
+if(not bDiagnosisOff){//log the output of group
+   logJson=json(); jsonput(logJson, "arrGroups", grpJsonforProcessing);
+   dummy=util.abo_addDiagnosticInfo(callContext+"_groupedLines", logJson,"addToSummary");
+}
+
+//Step 5: Loop through each group, Call apply, delta and add the resultant json for sync in jsonArrforSync
+//calculate today's date in db format. If txnDate is emtpy in getBom, we will replace it with today
+//so that down stream procesing will not need to worry about this.
+tranDate = getDate(false);
+today =  datetostr(tranDate, "yyyy-MM-dd HH:mm:ss");
+
+sizeofgrpForProcessing =  jsonarraysize(grpJsonforProcessing);
+dummyArr =  string[sizeofgrpForProcessing];
+index = 0;
+for oneItem in dummyArr{//loop thru groups
+   oneJson =  jsonarrayget(grpJsonforProcessing, index, "json");
+   index = index+1;
+   
+   //Step 5.1: Load base asset and convert to BOM structure
+   assetId =  jsonget(oneJson, ITEM_INSTANCE_ID, "string", "");   
+    
+   baseBom = util.abo_loadAsset(assetId);
+
+   //Step 5.2: Loop through order lines, and retrieve corresponding BOM.
+   lineGrpJsonArray = jsonget(oneJson, LINES, "jsonarray");
+   numberofLines =  jsonarraysize(lineGrpJsonArray);
+   dummytraverseArr = string[numberofLines];
+   arrBomtoApply = jsonarray();
+   //prepare open quote BOM array 
+   docNum = "";
+   lineGrpJsonArrIndex = 0;
+   
+   
+   for item in dummytraverseArr{ //loop through lines within a group
+
+      oneLineJson =  jsonarrayget(lineGrpJsonArray, lineGrpJsonArrIndex, "json");
+      lineGrpJsonArrIndex = lineGrpJsonArrIndex +1;           
+
+      //retrieve current line info
+      docNum =  jsonget(oneLineJson, DOCUMENT_NUMBER, "string");
+      lineNum =  atoi(docNum);
+        
+      oneQuoteBom = getbom(bsId, lineNum, lineFields, 
+                false,  //validate
+                true,  //flatten
+                true); //isSalesBom
+      oneQuoteBom = jsonarrayappend(arrBomtoApply, oneQuoteBom); 
+      fieldJsonofOneQuoteBom =  jsonget(oneQuoteBom, "fields", "json", json());
+      
+      //adjust the action code for apply as current apply logic will throw error when trying to apply terminate lines
+      //here we just leverage the apply logic to calculate the projected BOM state. This removes the child of terminate lines which is marked for delete.
+      //Terminate line will be the last line to apply(as enforced in Step 4 grouping logic).
+      actionCodeofOneQuoteBom =  jsonget(fieldJsonofOneQuoteBom, ACTION, "string", "");  
+      if(actionCodeofOneQuoteBom==TERMINATE){
+          jsonput(fieldJsonofOneQuoteBom, ACTION, UPDATE);
+      }
+      
+      //if line did not specify transactionDate, put in the default date of today 
+      requestDateinOneQuoteBom = jsonget(fieldJsonofOneQuoteBom, TRANSACTIONDATE, "string", "");  
+      if(requestDateinOneQuoteBom == ""){         
+         jsonput(fieldJsonofOneQuoteBom, TRANSACTIONDATE, today);
+      }
+   } //end of Step 5.2 loop through lines within a group to generate open order BOM array
+  
+   //Step 5.3: Apply open order on base asset to calculate the projected final asset state
+   baseBomCopy = jsoncopy(baseBom);
+   pacBom = util.abo_apply(baseBom, arrBomtoApply);   
+   
+   //Step 5.4: Compare projected state with base asset to get delta
+   deltaBom = util.abo_processDeltaBom(baseBomCopy, pacBom);   
+   jsonput(deltaBom,  "groupSummary", oneJson);
+   
+   //Step 5.5: Convert delta BOM to sync asset json format
+   syncAssetJson =  util.abo_convertDeltaBomtoAsset(deltaBom, txn_json);
+   jsonarrayappend(jsonArrforSync, syncAssetJson);   
+   
+}//end of Step 5, loop through groups of assets
+
+//Step 6: Invoke local asset repository sync servcie to apply the change on asset repository atomically.
+//
+//prepare final payload to invoke local asset repository
+itemsjson = json();
+jsonput(itemsjson, "items", jsonArrforSync);
+jsonforpost = json();
+jsonput(jsonforpost, "_client_driven_action",true );
+jsonput(jsonforpost, "documents",itemsjson );
+subUrl = "/actions/synchronize";
+responseJson = util.abo_invokeAssetService(subUrl, "post", "", jsonforpost);
+
+return responseJson;

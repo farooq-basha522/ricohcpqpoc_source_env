@@ -1,0 +1,15 @@
+{
+  "name" : "Encode Name Value Pairs",
+  "variableName" : "encodeNameValuePairs",
+  "description" : "Encodes a given string dictionary into a set of name-value pairs and returns a delimited string.",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ {
+    "name" : "nameValPairDict",
+    "type" : "String Dictionary"
+  }, {
+    "name" : "extraInputsDict",
+    "type" : "String Dictionary"
+  } ],
+  "attributes" : [ ]
+}

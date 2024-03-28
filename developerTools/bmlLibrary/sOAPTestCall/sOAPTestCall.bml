@@ -1,0 +1,13 @@
+getFileURL = "https://ricohcpqpoc.bigmachines.com/bmfsweb/ricohcpqpoc/image/WebServices/XML_File_Promotions_Data_table_Get.xml";
+//encode user pw
+encodeUserPw = encodebase64 ("dpanjwani:Ricohcpqpoc123$");
+headerDict = dict("string");
+//setup dictionary
+put(headerDict, "Authorization", "Basic "+encodeUserPw);
+
+soapString = urldatabyget (getFileURL,"","error");
+getRowsURL = "https://ricohcpqpoc.bigmachines.com/v2_0/receiver/dataTables/55875922";
+
+x = urldatabypost (getRowsURL , soapString, "Not Available", headerDict, true);
+
+return "abc";

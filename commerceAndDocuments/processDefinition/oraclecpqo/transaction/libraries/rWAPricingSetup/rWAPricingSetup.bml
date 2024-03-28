@@ -1,0 +1,79 @@
+/*
+    @name                   :Changes done for ITS-RWA CHG008358-
+                             Library Function to fetch BOM prices/logic to handle RWA pricing data
+    @author                 :    Supriya
+    @created                :    01-Aug-2023
+   
+    This function will return the calculated price/config related data for LIG
+    @return   -    	    :	[String]
+*/
+
+result="";
+partItemJson=json();
+unitSellingPrice =0.0;
+for each in transactionLine{
+qty=each._price_quantity;
+bundleName=each.bundleNameRWA;
+partname=each._part_number;
+
+if(qty>500){
+
+qty=500;
+}
+else{
+
+qty=each._price_quantity;
+}
+ /*Set the Json-partItemJsonto store Price related details from standard table-RAC_BOM_POC_PRIC*/
+recordSet = bmql("select SRP,SalesCost,StandardCost,ContractPrice,SellingPrice from RAC_BOM_POC_PRICE where MinVolume<=$qty AND MaxVolume>=$qty AND EDPCODE = $partname and BundleName =$bundleName");
+for eachRow in recordSet{
+print eachRow;
+	srpCost = get(eachRow,"SRP");
+	salesCost= get(eachRow,"SalesCost");
+	standardCost= get(eachRow,"StandardCost");
+	contractCost= get(eachRow,"ContractPrice");
+	sellingPrice=get(eachRow,"SellingPrice");
+	
+	jsonput(partItemJson,partname+"SRP",srpCost);
+	jsonput(partItemJson,partname+"Sales",salesCost);
+	jsonput(partItemJson,partname+"Std",standardCost);
+	jsonput(partItemJson,partname+"Contract",contractCost);
+	jsonput(partItemJson,partname+"SellSP",sellingPrice);
+ } 
+} 
+for eachLine in transactionLine{
+	partname=eachLine._part_number;
+	PartQtyLine=eachLine._price_quantity;
+	parentDocNumber = eachLine._parent_doc_number;
+	groupSeqNumber=eachLine._group_sequence_number;
+	docNum = eachLine._document_number; 
+	/* Logic to fetch the pricing data */	
+	promoValue =0.0;unitNetPrice =0.0;PartQtyLine=eachLine.qty_l;
+	docNumber = eachLine._document_number;
+	if(partname<> ""){
+	
+	    if(NOT(ISNULL(jsonget(partItemJson,partname+"SRP")))){
+	    print partname;
+		srpCostPrice= jsonget(partItemJson,partname+"SRP");
+		result = result  + docNum + "~unitSRP_l~" + (srpCostPrice) + "|" ;
+		}
+	    if(NOT(ISNULL(jsonget(partItemJson,partname+"Sales")))){
+		salesCostPrice= jsonget(partItemJson,partname+"Sales");
+		result = result  + docNum + "~unitSalesCost_l~" + (salesCostPrice) + "|" ;
+		}
+		if(NOT(ISNULL(jsonget(partItemJson,partname+"Std")))){
+		standardCostPrice= jsonget(partItemJson,partname+"Std");
+		result = result  + docNum + "~unitCost_l~" + (standardCostPrice) + "|" ;
+		}
+		if(NOT(ISNULL(jsonget(partItemJson,partname+"Contract")))){
+		contractCostPrice= jsonget(partItemJson,partname+"Contract");
+		result = result  + docNum + "~contractedUnitPrice_l~" + (contractCostPrice) + "|" ;
+		}
+		if(NOT(ISNULL(jsonget(partItemJson,partname+"SellSP")))){
+		sellingCostPrice= jsonget(partItemJson,partname+"SellSP");
+		result = result  + docNum + "~unitSellingPrice_l~" + (sellingCostPrice) + "|" ;
+		}
+}
+}
+
+return result;

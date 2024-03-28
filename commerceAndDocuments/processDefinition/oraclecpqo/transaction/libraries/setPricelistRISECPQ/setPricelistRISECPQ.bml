@@ -1,0 +1,79 @@
+/******************************************************************************************************/
+//Author: 		Subha	12/8/2021
+//Functionality: To fetch the Pricelist from Accounts data from RISE
+//Update: 	To delete the old pricelist data -Subha-08/31/2023
+/******************************************************************************************************/
+headerDict = dict("string");
+result="";
+priceListjson= json();
+pL="";
+retBool=false;
+booleanVal="false";
+accountNumber="";
+priceListendpointURL ="";
+priceListresponse="";
+priceListresult="";
+accountNumber=RISEAccountNumber_t;
+priceListValue="nodata";
+enCodeFormat = "";
+/**********************Authorization Query*************************************/
+recordSet = bmql("select ENDPOINTURL,LOGIN,PASSWORD from RISE_INTEGRATION where INSTANCE = $_system_supplier_company_name");
+for each in recordSet{
+	enCodeFormat = get(each,"LOGIN")+":"+get(each,"PASSWORD");
+	endpointURL = get(each,"ENDPOINTURL");
+}
+/**********************Authorization Query*************************************/
+put(headerDict, "Content-Type", "json/xml");
+put(headerDict, "Authorization", "Basic "+encodebase64(enCodeFormat));
+if(RISEAccountNumber_t<>""){
+	priceListURLquery= BMQL("select Endpoint_URL from RAC_EndpointURL where CPQ_SysCompName= $_system_company_name AND API_Service= 'RISE_Pricelist'");
+	for eachURL in priceListURLquery{
+		priceListURL= get(eachURL, "Endpoint_URL");
+			priceListendpointURL = priceListURL+RISEAccountNumber_t+"?fields=OrganizationDEO_ContractedPriceListName_c&onlyData=true";
+		}	
+
+	//priceListendpointURL = "https://cbha-dev3.fa.us2.oraclecloud.com/crmRestApi/resources/11.13.18.05/accounts/"+RISEAccountNumber_t+"?fields=OrganizationDEO_ContractedPriceListName_c&onlyData=true";
+	if(priceListendpointURL<>""){
+		priceListresponse= urldatabyget(priceListendpointURL,"","ERROR",500000,headerDict);
+	}
+	if(priceListresponse<> "" AND priceListresponse<> "ERROR" AND NOT ISNULL(priceListresponse) AND find(priceListresponse,"<title>")==-1){
+	//if(isjsonnull(priceListjson,"title")==false){
+		priceListjson= json(priceListresponse);
+	//}
+		/*if(isjsonnull(priceListjson,"title")==false){
+			errResponse=jsonget(priceListjson,"title");
+		}*/
+		if(isjsonnull(priceListjson,"OrganizationDEO_ContractedPriceListName_c")==false){
+			priceListvalue=jsonget(priceListjson,"OrganizationDEO_ContractedPriceListName_c");
+			splitPriceListVal= split(priceListvalue, ",");
+			//Adding the below condition for updating the pricelist from RISE with the updated data to delete and insert the data-Subha-08-31-2023-PS Pricing//
+				 		//accNumResultSet= bmql("select accountNumber from RAC_RISE_Pricelist where accountNumber = $RISEAccountNumber_t");
+				 		//for eachAcc in accNumResultSet{
+				 			//accNumData= get(eachAcc,"accountNumber");
+				 			//if(find (accNumData, RISEAccountNumber_t)<>-1){
+				 				resultsDel = bmql("delete from RAC_RISE_Pricelist where accountNumber= $RISEAccountNumber_t");
+				 			//}
+				 		//}
+			if(isnull(splitPriceListVal[0])==false AND splitPriceListVal[0]<>""){
+				 for eachPriceList in splitPriceListVal{
+				 	if(NOT ISNULL(eachPriceList) AND eachPriceList <>""){
+				 		retBool=true;
+				 		results = bmql("insert into RAC_RISE_Pricelist (Pricelist_Rise,accountNumber,Status) values($eachPriceList,$accountNumber,'true')");
+
+				 	}else{
+				 		retBool=false;
+				 		//results = bmql("insert into RAC_RISE_Pricelist (Status) values($retBool)");
+				 	}
+				 
+				 }
+			}
+		}
+	
+	if(retBool==false){
+		results = bmql("insert into RAC_RISE_Pricelist (Pricelist_Rise,accountNumber,Status) values($priceListValue,$accountNumber,'false')");
+	}
+}
+}
+
+
+return "";

@@ -1,0 +1,162 @@
+//Changes done to introduce string instead of string builder for performance improvement
+retStr="";
+//retSB = stringbuilder();
+equipModelsDict = dict("string");
+onlyEquipModels = true;
+partNumberArray=string[];
+//create dictionary of all parent_doc_numbers that are associated with a thirdPartyProduct model
+
+for line in transactionLine {
+	if(line._price_calculation_info == ""){ //START 02_11_2023 Added if condition so below logic should not run for MPS Pricing #CHG0085215 by Vasundhara
+        partNumber = line._part_number;
+        append(partNumberArray,partNumber);
+		if (line._model_variable_name == "thirdPartyProducts") {
+			put(equipModelsDict, line._document_number, line._document_number);
+			htmlTable = util.generateHTMLTableFromConfigEquipmentList(line._config_attr_info);
+			//sbappend(retSB, line._document_number + "~equipmentModelELTable_l~" + htmlTable + "|");
+			retStr=retStr+line._document_number + "~equipmentModelELTable_l~" + htmlTable + "|";
+			//sbappend(retSB, line._document_number + "~modelBeingReconfigured_l~false|");
+			retStr=retStr+line._document_number+ "~modelBeingReconfigured_l~false|";
+		}
+		elif (line._model_variable_name <> "") {
+			onlyEquipModels = false;
+		}
+		//Changes done to introduce text area to store the parts data and reuse it in line loops-Supriya
+		/* partsDataArr = jsonarray(util.storePartsDataInJsonString(partNumberArray));
+		if(jsonarraysize(partsDataArr) > 0){
+		retStr=retStr+"1~partsDataText_t~"+jsonarraytostr(partsDataArr) + "|";
+		put(retDict,"partsDataText_t",partsDataText_t);
+		derivedFrom = "Calcualtions on Transaction Line - Before Formulas";
+			put(retDict,"derivedFrom",derivedFrom);
+			put(retDict,"approvalRequiredFor","ITS");
+		} */
+	}
+}
+if (onlyEquipModels) {
+	//sbappend(retSB, "1~onlyEquipModels_t~true|");
+	retStr=retStr+"1~onlyEquipModels_t~true|";
+}
+else {
+	//sbappend(retSB, "1~onlyEquipModels_t~false|");
+	retStr=retStr+"1~onlyEquipModels_t~false|";
+}
+
+for line in transactionLine {
+	if(line._price_calculation_info == ""){ //START 02_11_2023 Added if condition so below logic should not run for MPS Pricing #CHG0085215 by Vasundhara
+		if (containskey(equipModelsDict, line._parent_doc_number)) {
+			partCost = "0.0";
+			//parse the line_item_comment to set values for these commerce attributes:
+			configData = split(line._line_item_comment, "##");
+			//attributes to set:
+			//partName_l
+			partName = configData[4];
+			//manufacturer_l
+			manuName = configData[2];
+			//manufacturerPartNum_l
+			manuPartNum = configData[3];
+			//vendorName_l
+			vendorName = configData[0];
+			//vendorPartNumber_t
+			SupportTerm = configData[10];
+			//supportTerm_l 
+			
+			vendorPartNum = configData[1];
+			//cost
+			if (isnumber(configData[5])) {
+				//need to handle exchange rate for Graycon
+				partCostAdjusted = atof(configData[5]) * exchangeRate_t;
+				partCost = string(partCostAdjusted);
+			}
+			vendorUnitCost = configData[5]; //18-11-2021 Added by Gowtham to use in Email Template - ITS Vendor Quoting
+			//qwQuoteNum_l
+			vendorID = configData[6];
+			//preparedBy_l
+			preparedBy = configData[7];
+			//partDescriptionOnProposal_l
+			partDescription = configData[8];
+			
+			/* for STRY0082897 - reconfig issues
+			//document number
+			docNum = configData[9];
+			//custom discount value
+			discValue = configData[10];
+			if (discValue == "") {
+				discValue = "0.0";
+			}
+			//custom discount type
+			discType = configData[11];
+			//custom sequence suffix
+			seqSuffix = configData[12];
+			if (seqSuffix == "") {
+				seqSuffix = "0";
+			}
+			//product grouping output doc
+			groupingOutputDoc = configData[13];
+			if (groupingOutputDoc == "") {
+				groupingOutputDoc = "Hardware/Software";
+			}
+			*/
+			
+			listPriceNRR = line._price_list_price_each;
+			//String builder use has been commented instead string -retStr has been used
+			//sbappend(retSB, line._document_number + "~listPriceNRR_l~" + string(listPriceNRR)+ "|");
+			retStr=retStr+line._document_number+ "~listPriceNRR_l~" + string(listPriceNRR)+ "|";
+			//sbappend(retSB, line._document_number + "~vendorName_l~" + vendorName + "|");
+			retStr=retStr+line._document_number+ "~vendorName_l~" + vendorName + "|";
+			//sbappend(retSB, line._document_number + "~vendorPartNumber_t~" + vendorPartNum + "|");
+			retStr=retStr+line._document_number+ "~vendorPartNumber_t~" + vendorPartNum + "|";
+			
+			//sbappend(retSB, line._document_number + "~partName_l~" + partName + "|");
+			retStr=retStr+line._document_number+ "~partName_l~" + partName + "|";
+			
+			//sbappend(retSB, line._document_number + "~manufacturer_l~" + manuName + "|");
+			retStr=retStr+line._document_number+ "~manufacturer_l~" + manuName + "|";
+			
+			//sbappend(retSB, line._document_number + "~manufacturerPartNum_l~" + manuPartNum + "|");
+			retStr=retStr+line._document_number+ "~manufacturerPartNum_l~" + manuPartNum + "|";
+			
+			//sbappend(retSB, line._document_number + "~unitCost_l~" + partCost + "|");
+			retStr=retStr+line._document_number+ "~unitCost_l~" + partCost + "|";
+			
+			
+			//sbappend(retSB, line._document_number + "~supportTerm_l~" + supportTerm  + "|");
+			retStr=retStr+line._document_number+ "~supportTerm_l~" + supportTerm  + "|";
+			
+			//sbappend(retSB, line._document_number + "~vendorUnitCost_l~" + vendorUnitCost + "|"); //18-11-2021 Added by Gowtham to use in Email Template - ITS 
+			retStr=retStr+line._document_number+ "~vendorUnitCost_l~" + vendorUnitCost + "|";
+			
+			//sbappend(retSB, line._document_number + "~qwQuoteNum_l~" + vendorID + "|");
+			retStr=retStr+line._document_number+ "~qwQuoteNum_l~" + vendorID + "|";
+			
+			//sbappend(retSB, line._document_number + "~preparedBy_l~" + preparedBy+ "|");
+			retStr=retStr+line._document_number+ "~preparedBy_l~" + preparedBy+ "|";
+			
+			//sbappend(retSB, line._document_number + "~partDescriptionOnProposal_l~" + partDescription + "|");
+			retStr=retStr+line._document_number+ "~partDescriptionOnProposal_l~" + partDescription + "|";
+			
+			//sbappend(retSB, line._document_number + "~vendorNameLIG_l~" + vendorName + "|");
+			retStr=retStr+line._document_number+ "~vendorNameLIG_l~" + vendorName + "|";
+			
+			//sbappend(retSB, line._document_number + "~vendorPartNumberLIG_l~" + vendorPartNum + "|");
+			retStr=retStr+line._document_number + "~vendorPartNumberLIG_l~" + vendorPartNum + "|";
+			
+			//sbappend(retSB, line._document_number + "~manufacturerLIG_l~" + manuName + "|");
+			retStr=retStr+line._document_number + "~manufacturerLIG_l~" + manuName + "|";
+			
+			//sbappend(retSB, line._document_number + "~manufacturerPartNumberLIG_l~" + manuPartNum + "|");
+			retStr=retStr+line._document_number + "~manufacturerPartNumberLIG_l~" + manuPartNum + "|";
+			
+			//sbappend(retSB, line._document_number + "~preparedByLIG_l~" + preparedBy+ "|");
+			retStr=retStr+line._document_number + "~preparedByLIG_l~" + preparedBy+ "|";
+			/* for STRY0082897 - reconfig issues
+			sbappend(retSB, line._document_number + "~customDiscountValue_l~" + discValue + "|");
+			sbappend(retSB, line._document_number + "~customDiscountType_l~" + discType + "|");
+			sbappend(retSB, line._document_number + "~productGroupingOutputDoc_l~" + groupingOutputDoc + "|");
+			if (seqSuffix <> "0") {
+				sbappend(retSB, line._document_number + "~customSequenceSuffix_l~" + seqSuffix + "|");
+			}*/
+		}
+	}
+}
+//return sbtostring(retSB);
+return retStr;

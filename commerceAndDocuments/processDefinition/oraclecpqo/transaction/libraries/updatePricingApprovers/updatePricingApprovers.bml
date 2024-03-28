@@ -1,0 +1,117 @@
+//code added by ROhit Ranjan for CHG0086808 to correct level 3 rounting approvals for Margin
+retValLevel = "";
+rowDelim = "@$@";
+colDelim = "#$#";
+isDebug = true;
+marginFactor  = 0.0;
+index = 1;
+lowerMargin = "";
+upperMargin = "";
+yearDict = dict("float");
+
+res = "";
+retVal = "";
+isDebug = false;
+MARGIN_ROW = mSTotalDealMarginArrayRow_t;//"Sales Cost Margin%";
+marginQuoteSummary = "";
+marginFactor  = 0.0;
+index = 1;
+lowerMargin = "";
+upperMargin = "";
+levelArr = String[];
+salesCostMarginDict = dict("string");
+
+// approval level Code=============================================================================
+
+
+mSTotalDealSectionArraySet = json("{\"MSTotalDealRows\":"+jsonarraytostr(mSTotalDealSectionArray_t)+"}");
+mSSalesCostMarginArraySet = jsonpathgetmultiple(mSTotalDealSectionArraySet,"$..MSTotalDealRows[?(@.mSTotalDealRows_ArraySet == '"+MARGIN_ROW+"')]");
+if(jsonarraysize(mSSalesCostMarginArraySet)>0){
+	arraysize = range(jsonarraysize(mSTotalDealSectionArray_t));
+	for each in arraysize {
+		if(NOT isnull(jsonget(json(jsonarrayget(mSSalesCostMarginArraySet , 0)),"year"+string(each+1)+"_MSTotalArraySet"))){
+			put(salesCostMarginDict, "year"+string(each+1), jsonget(json(jsonarrayget(mSSalesCostMarginArraySet , 0)),"year"+string(each+1)+"_MSTotalArraySet"));
+		}
+	}
+	if(isDebug){print salesCostMarginDict;}
+	salesCostMarginArr = keys(salesCostMarginDict);
+	for each in salesCostMarginArr {
+		marginQuoteSummary = get(salesCostMarginDict,each);
+		if(marginQuoteSummary <> ""){
+			marginFactor = atof(marginQuoteSummary);
+			marginFactor = round(marginFactor , 2);
+		}
+		approverTable = BMQL("SELECT PricingApprovalLevel, LowerMargin, UpperMargin FROM MS_ApprovalMrg where ApprovalType = 'Deal'");
+		if(isDebug){
+			Print each + " "+string(marginFactor) ;
+		}
+		for eachRow in approverTable {
+			level = get(eachRow, "PricingApprovalLevel");
+			lowerMargin = get(eachRow, "LowerMargin");
+			upperMargin = get(eachRow, "UpperMargin");
+			if(lowerMargin <> "" AND lowerMargin <>""){
+			//Added below if condition by Rohit Ranjan for CHG0086808
+			if(marginFactor<>0){
+				if(marginFactor > atof(lowerMargin) AND marginFactor <= atof(upperMargin)){
+					append(levelArr, level);//put(yearDict, "Year"+string(index),marginFactor);
+					break;
+				}
+			}
+		}
+	}
+        }
+	if(findinarray(levelArr, "Level 3") > -1){
+		retValLevel = "Level 3";
+	}elif(findinarray(levelArr, "Level 2") > -1){
+		retValLevel = "Level 2";
+	}elif(findinarray(levelArr, "Level 1") > -1){
+		retValLevel = "Level 1";
+	}
+}
+	// ------------------ mSPricingApproverLevel_t===================
+	
+	
+// Approval Breach Code----------------------------------------------------------------------------------
+arraysize = range(jsonarraysize(mSTotalDealSectionArray_t));
+
+//-------------------- Find Level Factor based on year deal---------------
+approverTable = BMQL("SELECT ApprovalType, LowerMargin, UpperMargin FROM MS_ApprovalMrg where PricingApprovalLevel = $retValLevel AND ApprovalType = 'Deal'");
+if(isDebug){print approverTable ;}
+
+//-------------------- Find Level Factor based on year deal---------------
+
+for each in arraysize {
+	marginFactor  = commerce.getMStotalDealMargin(string(each+1));
+	if(isDebug){print marginFactor  ;}
+	for eachRow in approverTable {
+		lowerMargin = get(eachRow, "LowerMargin");
+		upperMargin = get(eachRow, "UpperMargin");
+		if(lowerMargin <> "" AND lowerMargin <>""){
+			if(marginFactor > atof(lowerMargin) AND marginFactor <= atof(upperMargin)){
+				put(yearDict, "Year"+string(index),marginFactor);
+				break;
+			}
+		}
+	}
+	index = index + 1;
+}
+if(isDebug){print yearDict;}
+yearArray = keys(yearDict);
+yearArray = sort(yearArray);
+for each in yearArray {
+	if(each <> ""){
+		retVal = retVal + each + rowDelim + string(get(yearDict, each)) + colDelim ;
+	}
+}
+yearsBreachedVal = substring(retVal, 0, len(retVal) - len(colDelim));
+
+
+// ================ END OF YEAR BREACH CODE----------------------------------------------------------
+
+res = res + "1~mSPricingApproverLevel_t~" + retValLevel + "|";
+
+
+res = res + "1~mSPricingApproverYearsBreached_t~" + yearsBreachedVal + "|";
+
+
+return res;

@@ -1,0 +1,52 @@
+ret = inputString;
+specialCharDict = dict("string");
+//specialCharactersArr = string[]{"#", "$", "%", "+", "'", "`", ":", ";", "<", ">", "?", "@", "\\", "^", "{", "|", "}", "~", "*", "[", "]", ",", "/", "(", ")", "&", ".", "="};
+
+
+invalidCharRS = BMQL("SELECT InvalidChar, ReplaceWith, ReplaceAttr FROM EquipInvalidChar");
+
+for char in invalidCharRS {
+	invalidChar = get(char, "InvalidChar");
+	if (invalidChar == "&#32;") {
+		invalidChar = " ";
+	}
+	replaceWith = get(char, "ReplaceWith");
+	if (replaceWith == "&#32;") {
+		replaceWith = " ";
+	}
+	replaceAttr = get(char, "ReplaceAttr");
+	if (replaceAttr == attrName or replaceAttr == "ALL") {
+		put(specialCharDict, invalidChar, replaceWith);
+	}
+}
+specialCharactersArr = keys(specialCharDict);
+
+for specialChar in specialCharactersArr {
+	if(find(ret, specialChar) <> -1) {
+		//cpqPartDisplayNum = replace(cpqPartDisplayNum, specialChar, "-");
+		ret = replace(ret, specialChar, get(specialCharDict, specialChar));
+	}
+}
+/*if (find(cpqPartDisplayNum, "\r") <> -1) {
+	cpqPartDisplayNum = replace(cpqPartDisplayNum, "\r", " ");
+}
+if (find(cpqPartDisplayNum, "\n") <> -1) {
+	cpqPartDisplayNum = replace(cpqPartDisplayNum, "\n", " ");
+}*/	
+
+	
+if (find(ret, "  ") <> -1) {
+	ret= replace(ret, "  ", " ");
+}	
+if (find(ret, "--") <> -1) {
+	ret= replace(ret, "--", "-");
+}	
+if (find(ret, "- -") <> -1) {
+	ret= replace(ret, "- -", "-");
+}	
+
+if (attrName == "cpqPartNumber") {
+	ret= replace(ret, " ", "");
+}	
+
+return ret;

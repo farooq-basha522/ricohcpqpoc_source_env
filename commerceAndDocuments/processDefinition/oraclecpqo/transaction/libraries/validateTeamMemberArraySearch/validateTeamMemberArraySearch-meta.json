@@ -1,0 +1,11 @@
+{
+  "name" : "Validate Team Member Array Search",
+  "variableName" : "validateTeamMemberArraySearch",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "searchDRTeamMemberArraySet_t" ],
+  "systemAttributes" : [ ]
+}

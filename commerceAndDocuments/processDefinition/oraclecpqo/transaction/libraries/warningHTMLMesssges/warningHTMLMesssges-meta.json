@@ -1,0 +1,11 @@
+{
+  "name" : "Warning HTML Messsges",
+  "variableName" : "warningHTMLMesssges",
+  "description" : "Using these library Fucntion to show HTML warning messge in CPQ. Please use these library fucntion to show any messges in CPQ",
+  "libraryFunctions" : [ "util.getMutliplteCustomFieldValuesForselectedParts", "util.getProcessGroup" ],
+  "returnType" : "String Dictionary",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "type_l", "_parent_doc_number", "linkedItem_l", "cPQLineID_l", "contractedUnitPrice_l", "discountAmountt_l", "discounttype_l", "unitSalesCost_l", "unitSRP_l", "_part_custom_field27", "unitSellingPrice_l", "_group_sequence_number", "_part_number", "_document_number", "extendedSupportTerm_l", "_part_custom_field17" ],
+  "mainDocAttributes" : [ "quoteStep_t", "rAC_Pricelist_RISE", "priceList_t" ],
+  "systemAttributes" : [ "_system_current_step_var" ]
+}

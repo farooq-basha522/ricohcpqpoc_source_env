@@ -1,0 +1,11 @@
+{
+  "name" : "Update Quote Level Fields",
+  "variableName" : "updateQuoteLevelFields",
+  "description" : "",
+  "libraryFunctions" : [ ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_parent_doc_number", "_part_number", "unitSalesCost_l", "contractedUnitPrice_l" ],
+  "mainDocAttributes" : [ "salesRepEmail_t", "salesRepEmail_Opportunity_RISE_t", "pricingCalculationExtractString_quote" ],
+  "systemAttributes" : [ ]
+}

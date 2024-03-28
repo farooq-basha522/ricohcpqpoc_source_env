@@ -1,0 +1,13 @@
+arraysize = range(jsonarraysize(inputJsonArray));
+temp = statusParam;
+for arr in arraysize{
+	selectedItemsRow = jsonarrayget(inputJsonArray,arr);
+	selectedItemsJson = json(selectedItemsRow);
+	statusParamAttr = jsonget(selectedItemsJson,statusParam);
+	statusParam1Attr = jsonget(selectedItemsJson,statusParam1);
+
+   if(NOT ISNULL(statusParamAttr) AND find(statusValue,statusParamAttr)<>-1){
+	   return true;
+   }	
+}
+return false;

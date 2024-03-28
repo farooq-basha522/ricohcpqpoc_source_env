@@ -1,0 +1,11 @@
+{
+  "name" : "Get OSC Ref ID",
+  "variableName" : "getOSCRefID",
+  "description" : "",
+  "libraryFunctions" : [ "util.getAPIUserSessionID" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ "_part_number", "_partner_entity_id", "_document_number", "_model_variable_name", "oscRefID_l" ],
+  "mainDocAttributes" : [ ],
+  "systemAttributes" : [ "_system_user_session_id", "_system_company_name" ]
+}

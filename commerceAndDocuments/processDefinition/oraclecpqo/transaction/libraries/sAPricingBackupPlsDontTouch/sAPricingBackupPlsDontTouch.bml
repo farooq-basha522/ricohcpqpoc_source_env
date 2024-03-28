@@ -1,0 +1,1198 @@
+configJsonString = "";
+configJson = json();
+ServiceCategory = "";
+UpliftName = "";
+GenericValue = "";
+UpliftPercent = 0.0;
+Multiplier = 0.0;
+offeringString = "";
+Cost = 0.0;
+BRindex=0;
+IDTindex=0;
+PMindex=0;
+partNumberArray=string[];
+saOfferingNameDict = dict("string");
+GenericValueDict = dict("string");
+UpliftPercentDict = dict("float");
+MultiplierDict= dict("float");
+CostDict = dict("float");
+CostDictService = dict("float");
+GenericDataDict = dict("float");
+minMrgDict= dict("float");
+salesCostMrgDict= dict("float");
+termMonth=0.0;
+TargetPrice=0.0;
+salesCost=0.0;
+ret = "";
+salesCostDict= dict("float");
+SRPDict =dict("float");
+otherAttribiutesDict = dict("string");
+tempStringSC = "";
+tempStringFormat= "";
+termMonth = 1.0;
+saPricingExtractJson = json();
+saPricingOtherAttributesJsonArray = jsonarray();
+saCalculationFormula = json();
+saPricingTextAreaString="";
+if(isnumber(termMonths_t)){
+termMonth= atof(termMonths_t);
+}
+elif(termMonths_t == "12MonthRenewal"){
+termMonth= 12.0;
+}
+elif(termMonths_t == "24MonthRenewal"){
+termMonth= 24.0;
+}
+elif(termMonths_t == "36MonthRenewal"){
+termMonth= 36.0;
+}
+elif(NOT(isnumber(termMonths_t))){
+termMonth= 1.0;
+}
+elif(contractOtherTerm_t > 0){
+termMonth = contractOtherTerm_t;
+}
+
+
+//Fetch Min Margin from datatble according to partnumber
+minMrgQuery = BMQL("SELECT ItemCode, MinMargin,SalesCostMargin, ItemCode,OfferingName FROM RAC_SA_ItemCondition");
+
+for minMrg in minMrgQuery{
+	put(minMrgDict,get(minMrg,"ItemCode"),atof(get(minMrg,"MinMargin")));
+	put(salesCostMrgDict,get(minMrg,"ItemCode"),atof(get(minMrg,"SalesCostMargin")));
+	put(saOfferingNameDict,get(minMrg,"ItemCode"), get(minMrg,"OfferingName"));
+}
+
+
+//get uplift constants values from table and store in a dictionary 
+upliftQuery = BMQL("SELECT ServiceCategory, UpliftName, GenericValue, UpliftPercent, Multiplier, Cost, UOM FROM RAC_SA_UpliftValues");
+
+for uplift in upliftQuery{
+	ServiceCategory = get(uplift , "ServiceCategory");
+	UpliftName = get(uplift,"UpliftName");
+	GenericValue = get(uplift,"GenericValue");
+	UpliftPercent = atof(get(uplift,"UpliftPercent"));
+	Multiplier = atof(get(uplift,"Multiplier"));
+	Cost = atof(get(uplift , "Cost"));
+	
+	put(CostDictService,GenericValue,Cost);
+	put(GenericValueDict,UpliftName,GenericValue);
+	put(UpliftPercentDict,UpliftName,UpliftPercent);
+	put(MultiplierDict,UpliftName,Multiplier);
+	put(CostDict,UpliftName,Cost);
+	put(GenericDataDict,GenericValue,UpliftPercent);
+}
+otherAttributesDict = dict("string");
+
+//-----------------------------------------LINE ITEM LOOP STARTS HERE------------------------------------------
+for line in transactionLine{
+partNumber = line._part_number;
+		append(partNumberArray,partNumber);
+		//Get all Parts Custom field Data
+		partCustomFieldDict=util.getMutliplteCustomFieldValuesForselectedParts(partNumberArray);
+	itemType = "";
+	//itemType = line._part_custom_field23;
+	if(containskey(partCustomFieldDict,partNumber+"custom_field23")) {
+		itemType = get(partCustomFieldDict,partNumber+"custom_field23");
+		}
+	itemTypeArray = string[];
+	append(itemTypeArray,itemType);
+	processGroup = "";
+	processGroupDict = util.getProcessGroup(itemTypeArray);
+		if(containskey(processGroupDict,itemType)){
+			processGroup = get(processGroupDict,itemType);
+		}
+		
+		if(processGroup == "SA"){
+			
+		SalesCost = 0.0;
+		TargetPrice = 0.0;
+		DCFinalVal = 0.0;
+		ACFinalVal = 0.0;
+		WFFinalVal = 0.0;
+		ETTFinalVal = 0.0;
+		SSDFinalVal = 0.0;
+		TCFinalVal = 0.0;
+		EBFinalVal = 0.0;
+		TMFinalVal = 0.0;
+		
+		partNum = line._part_Number;
+		FPMFinalVal = 0.0;
+		partSalesCost =util.getPartPrice("custom_field7", partNum);
+		partSRP = util.getPartPrice("price", partNum);
+		
+		if(line._parent_doc_number == ""){
+			BRindex=0;
+			IDTindex=0;
+			PMindex=0;
+		}
+					
+		if(line._parent_doc_number <> ""){
+			
+			if(containskey(minMrgDict,partNum)){
+				minmrg=get(minMrgDict,partNum)/100;
+			}
+			if(containskey(salesCostMrgDict,partNum)){
+				scmrg=get(salesCostMrgDict,partNum)/100;
+			}
+			configJsonString = getconfigattrvalue(line._parent_doc_number ,"configToCommerceInfo");
+		
+			if(configJsonString <> "" AND NOT(ISNULL(configJsonString))){
+				configJson = json(configJsonString);
+				intoCategory = jsonget(configJson, line.itemCategory_l);
+				
+				
+				if(line.itemCategory_l == "Field Service" AND intoCategory <> "" ){
+					
+					//calculate sales cost,extended cost, contract/target price for Break Fix item number
+					if(partNum == "SA-FS-BREAKFIX" AND NOT(ISNULL(jsonget(json(intoCategory),"BreakFix")))){
+						//Below code is to fetch Breakfix arrayset values
+						condition1arrVal= jsonget(json(intoCategory), "BreakFix");
+						arraySize = jsonarraysize(jsonarray(condition1arrVal));
+						arrayIndices = range(arraySize);
+						
+						
+						for arr in arrayIndices{
+							condition2arrVal= jsonarrayget(jsonarray(condition1arrVal), arr, "json");
+							
+							if(BRindex == atof(jsonget(condition2arrVal,"Service Index"))){
+								
+								if(NOT(ISNULL(condition2arrVal))){
+									skillType = jsonget(condition2arrVal,"SkillType_BRFixArr_SA");
+									serCharge= jsonget(condition2arrVal, "serviceCharge_BRFixArr_SA");
+									noUnits= jsonget(condition2arrVal, "noOfUnits_BRFixArr_SA","integer",0);
+									events= jsonget(condition2arrVal,"noOfAnnualEvent_BRFixArr_SA","float",0.0);
+									resAlloc= jsonget(condition2arrVal,"resourceAllocation_BRFixArr_SA","float",0.0);
+									baseUnits= atoi(jsonget(json(intoCategory),"noOfBaseUnits_SA"));
+																
+									Hrs= atof(jsonget(condition2arrVal, "noOfServiceHours_BRFixArr_SA" ));
+									SLA= jsonget(condition2arrVal, "SLAReq_BRFixArr_SA" );
+									burdenRate = get(CostDictService,skillType);
+									SLAVal = get(GenericDataDict,SLA)/100;
+									SLAFinalVal = SLAVal * burdenRate;
+									//resAlloc = atoi(jsonget(condition2arrVal,"resourceAllocation_BRFixArr_SA"));
+									keyFormatValue = "SLA Required-"+string(SLAFinalVal);
+								    
+									if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+									
+									if(jsonget(json(intoCategory), "thirdPartyCoverage_SA") == "Third Party Coverage"){
+										if(NOT(ISNULL(jsonget(json(intoCategory),"units_SA")))){
+											DCunitsKey= jsonget(json(intoCategory),"units_SA");
+											DCunitsVal = get(GenericDataDict,DCunitsKey)/100;
+											DCFinalVal= (DCunitsVal * burdenRate);
+											keyFormatValue = "Third Party Coverage Units-"+string(DCunitsVal);
+											//put(otherAttribiutesDict,"SA-FS-BREAKFIX##DCFinalVal",keyFormatValue);
+										 if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+
+											
+										}
+									}
+					
+									if(jsonget(json(intoCategory), "afterHrsCoverage_SA") == "After-Hours Coverage"){
+										if(NOT(ISNULL(jsonget(json(intoCategory),"pctOfUnitsCovered_SA")))){
+											ACunitsKey= jsonget(json(intoCategory),"pctOfUnitsCovered_SA");
+											ACunitsVal = get(GenericDataDict,ACunitsKey)/100;
+											ACFinalVal= (ACunitsVal * burdenRate);
+											keyFormatValue = "Percentage of units covered-"+string(ACunitsVal);
+
+										 if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+
+										}
+										
+										
+										if(NOT(ISNULL(jsonget(json(intoCategory),"weekendsInclInCovrg_SA"))) AND jsonget(json(intoCategory),"weekendsInclInCovrg_SA") <> ""){
+											
+											WFunitsVal =  get(MultiplierDict,"Weekends Included in Coverage");
+											//WFunitsVal = 0.33;
+											WFFinalVal= WFunitsVal * burdenRate;
+											keyFormatValue = "Weekends Included in Coverage-"+string(WFunitsVal);
+
+										 if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+										}
+									}
+									
+									if(jsonget(json(intoCategory), "extTravelTime_SA") == "Extended Travel Time")
+									{
+										if(NOT(ISNULL(jsonget(json(intoCategory),"minutes_SA"))))
+										{
+											ETTunitsKey= jsonget(json(intoCategory),"minutes_SA");
+											ETTunitsVal = get(GenericDataDict,ETTunitsKey)/100;
+											ETTFinalVal= (ETTunitsVal * burdenRate);
+											keyFormatValue = "Extended Travel Time Minutes-"+string(ETTunitsVal);
+
+										 if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+											}
+									}
+						
+								
+									if(jsonget(json(intoCategory), "sharedServiceDeskCost_SA") == "Shared Service Desk Cost"){
+																					
+											HrsAannual =  get(MultiplierDict,"Annual Hrs Avail");  //2080
+											PMcost= get(CostDict,"Program Mgmt Cost");   //110000
+											AvgEvent = 0;
+											proj13 = 0.0;
+											mif = 0.0;
+											bal12 =0.0;
+											AvgEvent = 0.0;
+											Workeffort= 0.0;
+											avgCost = 0.0;
+											
+											if(NOT(ISNULL(jsonget(json(intoCategory),"estCoordMins_SA"))) AND jsonget(json(intoCategory),"estCoordMins_SA") <> "" )
+											{
+												estMin = atof(jsonget(json(intoCategory),"estCoordMins_SA"));
+												
+											}
+											
+											if(NOT(ISNULL(jsonget(json(intoCategory),""))) AND jsonget(json(intoCategory),"mIFInstalled_SA") <> "" )
+											{
+												mif = atof(jsonget(json(intoCategory),"mIFInstalled_SA")); 
+											}
+											
+											if(NOT(ISNULL(jsonget(json(intoCategory),"balOfYr12MonthInstall_SA"))) AND jsonget(json(intoCategory),"balOfYr12MonthInstall_SA") <> "" )
+											{
+											bal12 = atof(jsonget(json(intoCategory),"balOfYr12MonthInstall_SA")); 
+											}
+										
+											if(NOT(ISNULL(jsonget(json(intoCategory),"proj1318MthInstalls_SA"))) AND jsonget(json(intoCategory),"proj1318MthInstalls_SA") <> "" )
+											{
+											proj13 = atof(jsonget(json(intoCategory),"proj1318MthInstalls_SA"));
+											}
+											
+											
+											TotalEvents =  (get(MultiplierDict,"1st 6 months planned") * mif) + bal12 + proj13;
+											
+											
+											if(estMin > 0)
+											{	
+											AvgEvent = HrsAannual*60/estMin;
+											}
+											
+											if(AvgEvent > 0)
+											{	
+											Workeffort = TotalEvents /AvgEvent ;
+											}
+											if(HrsAannual > 0)
+											{
+											avgCost = PMcost / HrsAannual;
+											}
+											
+											CostAnnual = (HrsAannual * Workeffort) * avgCost;	
+											
+											if(TotalEvents >0)
+											{
+											SSDFinalVal= (CostAnnual / TotalEvents) * get(MultiplierDict,"Shared Service Desk Multiplier");  //hdc
+											
+											}	
+											keyFormatValue = "MIF Installed-"+string(mif)+",Balance of year(12 months install)-"+string(bal12)+",Projected 13 - 18 Months Installs-"+string(proj13);
+
+										 if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+									}
+									
+									
+									if(jsonget(json(intoCategory), "fullTimeProjMgmtHrs_SA") == "Full time project management hours" AND (NOT(ISNULL(jsonget(json(intoCategory),"estHours_SA"))) AND jsonget(json(intoCategory),"estHours_SA" )<> "")){				
+											estHrs= atof(jsonget(json(intoCategory),"estHours_SA"));
+											BPMCost = get(CostDict,"Breakfix Project Mgmt Cost");
+											FPMFinalVal= (BPMCost * estHrs)/baseUnits;
+											keyFormatValue = "Full time project management Est Hours-"+string(estHrs)+",No of Base Units-"+string(baseUnits);
+
+
+										 if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+											
+									}
+									
+									
+									if(jsonget(json(intoCategory), "trainingCentre_SA") == "Training Centre"){
+										
+										estClass = 0.0;
+										cbtTraining= 0.0;
+										timeOut= 0.0;
+										travelExp= 0.0;
+										Bunits = 0.0;
+										Bunits = baseUnits/termMonth;   
+										
+										
+										if(NOT(ISNULL(jsonget(json(intoCategory),"estClassesReq_SA"))) AND jsonget(json(intoCategory),"estClassesReq_SA") <>"")
+										{
+											estClass = atof(jsonget(json(intoCategory),"estClassesReq_SA"));
+											estclass = (Bunits/estClass) ;
+										}
+										
+										if(NOT(ISNULL(jsonget(json(intoCategory),"CBTTrainHours_SA"))) AND jsonget(json(intoCategory),"CBTTrainHours_SA") <>"")
+										{
+											cbtTraining = atof(jsonget(json(intoCategory),"CBTTrainHours_SA")); 
+										}
+										
+										if(NOT(ISNULL(jsonget(json(intoCategory),"timeOutFields_SA"))) AND jsonget(json(intoCategory),"timeOutFields_SA") <>"")
+										{
+											timeOut = atof(jsonget(json(intoCategory),"timeOutFields_SA")); 
+										}
+										
+										if(NOT(ISNULL(jsonget(json(intoCategory),"travelExpTimeOutField_SA"))) AND jsonget(json(intoCategory),"travelExpTimeOutField_SA") <>"")
+										{
+											travelExp = atof(jsonget(json(intoCategory),"travelExpTimeOutField_SA"));
+										}
+										
+										perClassCost =  get(CostDict,"Training Center Per Class Cost");  //720
+										laborRate= get(CostDict,"Training Center Hourly Labor Rate");   //30
+										
+										
+										techVal1 = estclass * perClassCost;
+										techVal2 = laborRate*  cbtTraining * Bunits;
+										techVal3 = (timeOut* laborRate + travelExp) * Bunits ; 
+									
+										//TCFinalVal= (((Bunits/estClass) * perClassCost) + (laborRate*  cbtTraining * Bunits) + (timeOut* laborRate + travelExp)) / (baseUnits*3);
+										
+										TCFinalVal =  (techVal1 + techVal2 + techVal3 ) /(baseUnits*3);
+                                        keyFormatValue = "Travel Expense Time out field-"+string(travelExp)+",CBT Training Hours-"+string(cbtTraining)+",Time Out Field-"+string(timeOut)+",Est Classes Required-"+string(estClass);
+										 if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+									} 
+									
+									if(jsonget(json(intoCategory), "techSkillsMaintenance_SA") == "Technical skills maintenance" AND jsonget(json(intoCategory),"hour_SA") <> "" AND NOT(ISNULL(jsonget(json(intoCategory),"hour_SA")))){	
+									hRate = get(CostDict,"Technical Skills Maintenance Hourly Rate");
+									tHours = atof(jsonget(json(intoCategory),"hour_SA"));
+									Bunits = (baseUnits/termMonth) * get(MultiplierDict,"HC Turn-over");
+									TMFinalVal = (hRate * tHours * Bunits) / baseUnits;
+									keyFormatValue = "Technical skills maintenance Hours-"+string(tHours);
+                                    if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+									}
+									
+					
+									if(jsonget(json(intoCategory), "eBonding_SA") == "eBonding"){				
+										eInvest= atof(jsonget(json(intoCategory),"eBondingInvestment_SA"));
+										eTerm = get(MultiplierDict,"eBonding Investments Year Term");
+										if(eTerm <> 0 AND baseUnits <> 0){
+										EBFinalVal= eInvest/ (baseUnits * eTerm); //hdc
+										}										
+										keyFormatValue = "eBondeBonding Investments-"+string(eInvest);
+
+								      if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+									}
+									
+										
+									//Calculate Breakfix SALES COST HERE
+									SalesCost = burdenRate + DCFinalVal + ACFinalVal + WFFinalVal + ETTFinalVal + SLAFinalVal+ SSDFinalVal +FPMFinalVal + TCFinalVal +EBFinalVal +TMFinalVal  + ((burdenRate * 0.5)/ Hrs);
+																																				                
+									tempStringSC = string(SalesCost)+"/(1-"+string(scmrg)+")";
+
+									SalesCost = round(SalesCost/ (1-scmrg),2);
+									
+									//Added as a part of CR#76
+									if(serCharge == "Fixed Labor" OR serCharge == "Min+"){
+										
+									tempStringSC = string(SalesCost)+"*"+string(Hrs)+"*"+string(resAlloc)+"/(1-"+string(scmrg)+")";
+									SalesCost = round(SalesCost * Hrs * resAlloc/ (1-scmrg),2);
+									}
+									
+									
+									elif(serCharge == "Base"){
+									
+									tempStringSC = "(("+ string(SalesCost)+"*"+string(Hrs)+"*"+string(resAlloc)+"*"+string(events)+")/12)"+"/(1-"+string(scmrg)+")";
+									SalesCost = round(((SalesCost * Hrs * resAlloc * events)/12)/ (1-scmrg),2);
+															 
+	                                }
+									//added for SA Pricing
+									
+
+								     								
+									//Calculate Contract/Target Price and extended cost  
+									TargetPrice = round(SalesCost/ (1-minmrg),2);
+									//added for SA Pricing
+								    tempStringTP = string(SalesCost)+"/(1-"+string(minmrg)+")";
+									
+									/*if(serCharge == "Base"){
+										TargetPrice = SalesCost * (events/ termMonth);
+										//added for SA Pricing
+									    tempStringTP = string(SalesCost)+"*("+string(events)+"/"+string(termMonth);
+									}*/
+									jsonput(saCalculationFormula,partNum+"SC_calc",tempStringSC);
+									jsonput(saCalculationFormula,partNum+"TP_calc",tempStringTP);					
+								}
+							}
+						}
+						BRindex = BRindex+1;
+						jsonput(saCalculationFormula,partNum,saPricingTextAreaString);
+					}//Break Fix ends here
+			
+			
+					//PM ARRAY STARTS 
+					elif(partNum == "SA-FS-PREMAINT" AND NOT(ISNULL(jsonget(json(intoCategory),"PMArray")))){
+						saPricingTextAreaString = "";
+					
+						//Uplift calculation starts from here
+						burdenRate = get(CostDictService,"Field Service Technician (FST)");
+						
+						if(jsonget(json(intoCategory), "thirdPartyCoveragePM_SA") == "Third Party Coverage"){
+							if(NOT(ISNULL(jsonget(json(intoCategory),"unitsPM_SA")))){
+								DCunitsKey= jsonget(json(intoCategory),"unitsPM_SA");
+								DCunitsVal = get(GenericDataDict,DCunitsKey)/100;
+								DCFinalVal= DCunitsVal * burdenRate;
+								keyFormatValue = "Skill Type-"+string(burdenRate)+",Third Party Coverage Units-"+string(DCunitsVal);
+								if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+
+							}
+						}
+						
+						if(jsonget(json(intoCategory), "afterHrsCoveragePM_SA") == "After Hours Coverage"){
+							if(NOT(ISNULL(jsonget(json(intoCategory),"pctOfUnitsCoveredPM_SA")))){
+								ACunitsKey= jsonget(json(intoCategory),"pctOfUnitsCoveredPM_SA");
+								ACunitsVal = get(GenericDataDict,ACunitsKey)/100;
+								ACFinalVal= ACunitsVal * burdenRate;
+								keyFormatValue = "Skill Type-"+string(burdenRate)+",Percentage of units covered-"+string(ACunitsVal);
+								if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+
+							}
+							
+							if(NOT(ISNULL(jsonget(json(intoCategory),"weekendsInclInCovrgPM_SA")))){
+								WFunitsVal = get(MultiplierDict,jsonget(json(intoCategory),"weekendsInclInCovrgPM_SA"));
+								WFFinalVal= WFunitsVal * burdenRate;
+								keyFormatValue = "Skill Type-"+string(burdenRate)+",Weekends Included in Coverage-"+string(WFunitsVal);
+								if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+							}
+						}
+						if(jsonget(json(intoCategory), "extTravelTimePM_SA") == "Extended Travel Time"){
+							if(NOT(ISNULL(jsonget(json(intoCategory),"minutesPM_SA")))){
+								ETTunitsKey= jsonget(json(intoCategory),"minutesPM_SA");
+								ETTunitsVal = get(GenericDataDict,ETTunitsKey)/100;
+								ETTFinalVal= ETTunitsVal * burdenRate;
+								keyFormatValue = "Skill Type-"+string(burdenRate)+",Extended Travel Time Minutes-"+string(ETTunitsVal);
+								if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+
+							}
+						}
+							
+						if(jsonget(json(intoCategory), "sharedServiceDeskCostPM_SA") == "Shared Service Desk Cost"){
+							//if(NOT(ISNULL(jsonget(json(intoCategory),"estCoordMinsPM_SA")))){
+								
+								estMin = 0.0;
+								mif= 0.0;
+								bal12= 0.0;
+								proj13= 0.0;
+								AvgEvent = 0.0;
+								Workeffort= 0.0;
+								avgCost = 0.0;
+								
+								HrsAannual =  get(MultiplierDict,"Annual Hrs Avail");  //2080
+								PMcost= get(CostDict,"Program Mgmt Cost");   //110000
+								
+								if(NOT(ISNULL(jsonget(json(intoCategory),"estCoordMinsPM_SA"))) AND jsonget(json(intoCategory),"estCoordMinsPM_SA") <> "")
+								{
+									estMin = atof(jsonget(json(intoCategory),"estCoordMinsPM_SA"));
+									AvgEvent = HrsAannual*60/estMin;
+								}
+								
+								if(NOT(ISNULL(jsonget(json(intoCategory),"mIFInstalledPM_SA"))) AND jsonget(json(intoCategory),"mIFInstalledPM_SA") <> "")
+								{
+									mif = atof(jsonget(json(intoCategory),"mIFInstalledPM_SA")); 
+								}
+								
+								if(NOT(ISNULL(jsonget(json(intoCategory),"balOfYr12MonthInstallPM_SA"))) AND jsonget(json(intoCategory),"balOfYr12MonthInstallPM_SA") <> "")
+								{
+									bal12 = atof(jsonget(json(intoCategory),"balOfYr12MonthInstallPM_SA")); 
+								}
+								
+								if(NOT(ISNULL(jsonget(json(intoCategory),"proj1318MthInstallsPM_SA"))) AND jsonget(json(intoCategory),"proj1318MthInstallsPM_SA") <> "")
+								{
+									proj13 = atof(jsonget(json(intoCategory),"proj1318MthInstallsPM_SA"));
+								}
+								
+								
+								
+								TotalEvents =  (get(MultiplierDict,"1st 6 months planned") * mif) + bal12 + proj13;
+								
+								if(AvgEvent > 0)
+								{	
+								Workeffort = TotalEvents /AvgEvent ;
+								}
+								if(HrsAannual > 0)
+								{
+								avgCost = PMcost / HrsAannual;
+								}
+								
+								CostAnnual = (HrsAannual * Workeffort) * avgCost;	
+								
+								if(TotalEvents >0)
+								{
+								SSDFinalVal= (CostAnnual / TotalEvents) * get(MultiplierDict,"Shared Service Desk Multiplier");   //hdc
+								}
+								keyFormatValue = "MIF Installed-"+string(mif)+",Balance of year(12 months install)-"+string(bal12)+",Projected 13 - 18 Months Installs-"+string(proj13);
+								if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+							//}
+						}
+						
+						//Below code is to fetch PM arrayset values
+						condition1arrVal= jsonget(json(intoCategory), "PMArray" );
+						arraySize = jsonarraysize(jsonarray(condition1arrVal));
+						arrayIndices = range(arraySize);
+						
+						for arr in arrayIndices {
+							condition2arrVal= jsonarrayget(jsonarray(condition1arrVal), arr, "json");
+							if(PMindex == atof(jsonget(condition2arrVal,"Service Index"))){
+								if(NOT(ISNULL(condition2arrVal))){
+									serCharge= jsonget(condition2arrVal, "serviceCharge_PMArr_SA" );
+									noUnits= jsonget(condition2arrVal, "noOfUnits_PMArr_SA","integer",0);
+									pmCycle= jsonget(condition2arrVal, "pMEvents_PMArr_SA","float",0.0);
+									pmHrs= jsonget(condition2arrVal, "avgPMHours_PMArr_SA" ,"float",0.0);
+									PMresAlloc = jsonget(condition2arrVal, "resourceAllocation_PMArr_SA","float",0.0);
+									pmSLA= jsonget(condition2arrVal, "SLAReq_PMArr_SA" );
+									pmSLAVal = get(GenericDataDict,pmSLA)/100;
+									pmSLAFinalVal = pmSLAVal * burdenRate;
+									keyFormatValue = "SLA Required-"+string(pmSLAFinalVal);
+
+									if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+							
+									//Calculate PM SALES COST HERE
+									//SalesCost = burdenRate + DCFinalVal + ACFinalVal + WFFinalVal + ETTFinalVal + pmSLAFinalVal+ SSDFinalVal * pmCycle * noUnits;
+									SalesCost = burdenRate + DCFinalVal + ACFinalVal + WFFinalVal + ETTFinalVal + pmSLAFinalVal+ SSDFinalVal + ((burdenRate * 0.5)/ pmHrs);
+									
+									tempStringSC = string(SalesCost)+"/(1-"+string(scmrg)+")";
+																        								
+									SalesCost = round(SalesCost/ (1-scmrg),2);
+									//Added as a part of CR#76
+									if(serCharge == "Fixed Labor" OR serCharge == "Min+"){
+										
+									tempStringSC = string(SalesCost)+"*"+string(pmHrs)+"*"+string(PMresAlloc)+"/(1-"+string(scmrg)+")";
+									
+									SalesCost = round(SalesCost * pmHrs * PMresAlloc/ (1-scmrg),2);
+																								
+									}
+									elif(serCharge == "Base"){
+										
+									tempStringSC = "(("+string(SalesCost)+"*"+string(pmHrs)+"*"+string(PMresAlloc)+"*"+string(pmCycle)+")/12)"+"/(1-"+string(scmrg)+")";
+									
+									SalesCost = round(((SalesCost * pmHrs * PMresAlloc * pmCycle)/12)/ (1-scmrg),2);
+																		
+	                                }
+
+									//Calculate PM Contract/Target Price and extended cost  here
+									TargetPrice = round(SalesCost/ (1-minmrg),2);
+									tempStringTP = string(SalesCost)+"/(1-"+string(minmrg)+")";
+
+									/*if(serCharge == "Base"){
+										TargetPrice = SalesCost * pmHrs * (noUnits/ termMonth);
+										tempStringTP = string(SalesCost)+"*"+string(pmHrs)+"*("+string(noUnits)+"/"+string(termMonth);
+
+									}*/
+									jsonput(saCalculationFormula,partNum+"SC_calc",tempStringSC);
+						            jsonput(saCalculationFormula,partNum+"TP_calc",tempStringTP);
+								}
+							}
+						}
+						PMindex =PMindex+1;
+					jsonput(saCalculationFormula,partNum,saPricingTextAreaString);
+
+					}//PMArray ends here
+					
+					//IDT ARRAY STARTS
+					//calculate sales cost,extended cost, contract/target price for IDT item number
+					elif(partNum == "SA-FS-INS-DEP-TR" OR partNum == "SA-FS-INS-DEP" OR partNum == "SA-FS-TRAINING" AND NOT(ISNULL(jsonget(json(intoCategory),"IDTArray")))){
+												saPricingTextAreaString = "";
+
+						//Uplift calculation starts from here
+						burdenRate = get(CostDictService,"Field Service Technician (FST)");
+						
+						if(jsonget(json(intoCategory), "thirdPartyCoverageIDT_SA") == "Third Party Coverage"){
+							if(NOT(ISNULL(jsonget(json(intoCategory),"unitsIDT_SA")))){
+								DCunitsKey= jsonget(json(intoCategory),"unitsIDT_SA");
+								DCunitsVal = get(GenericDataDict,DCunitsKey)/100;
+								DCFinalVal= DCunitsVal * burdenRate;
+								keyFormatValue = "Skill Type-"+string(burdenRate)+",Third Party Coverage Units-"+string(DCunitsVal);
+								if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+							}
+						}
+						
+						if(jsonget(json(intoCategory), "afterHrsCoverageIDT_SA") == "After Hours Coverage"){
+							if(NOT(ISNULL(jsonget(json(intoCategory),"pctOfUnitsCoveredIDT_SA")))){
+								ACunitsKey= jsonget(json(intoCategory),"pctOfUnitsCoveredIDT_SA");
+								ACunitsVal = get(GenericDataDict,ACunitsKey)/100;
+								ACFinalVal= ACunitsVal * burdenRate;
+								keyFormatValue = "Skill Type-"+string(burdenRate)+",Percentage of units covered-"+string(ACunitsVal);
+								if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+							}
+							
+							if(NOT(ISNULL(jsonget(json(intoCategory),"weekendsInclInCovrgIDT_SA")))){
+								WFunitsVal = get(MultiplierDict,jsonget(json(intoCategory),"weekendsInclInCovrgIDT_SA"));
+								WFFinalVal= WFunitsVal * burdenRate;
+								keyFormatValue = "Skill Type-"+string(burdenRate)+",Weekends Included in Coverage-"+string(WFunitsVal);
+                                if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+							}
+						}
+						
+						if(jsonget(json(intoCategory), "extTravelTimeIDT_SA") == "Extended Travel Time"){
+							if(NOT(ISNULL(jsonget(json(intoCategory),"minutesIDT_SA")))){
+								ETTunitsKey= jsonget(json(intoCategory),"minutesIDT_SA");
+								ETTunitsVal = get(GenericDataDict,ETTunitsKey)/100;
+								ETTFinalVal= ETTunitsVal * burdenRate;
+								keyFormatValue = "Skill Type-"+string(burdenRate)+",Extended Travel Time Minutes-"+string(ETTunitsVal);
+								if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+							}
+						}
+							
+							
+						if(jsonget(json(intoCategory), "sharedServiceDeskCostIDT_SA") == "Shared Service Desk Cost"){
+								
+								estMin = 0.0;
+								mif = 0.0;
+								bal12 = 0.0;
+								proj13 = 0.0;
+								AvgEvent = 0.0;
+								Workeffort= 0.0;
+								avgCost = 0.0;
+								
+								if(NOT(ISNULL(jsonget(json(intoCategory),"estCoordMinsIDT_SA"))) AND jsonget(json(intoCategory),"estCoordMinsIDT_SA") <> "")
+								{
+									estMin = atof(jsonget(json(intoCategory),"estCoordMinsIDT_SA"));
+								}
+								
+								if(NOT(ISNULL(jsonget(json(intoCategory),"MIFInstalledIDT_SA"))) AND jsonget(json(intoCategory),"MIFInstalledIDT_SA") <> "")
+								{
+									mif = atof(jsonget(json(intoCategory),"MIFInstalledIDT_SA")); 
+								}
+								
+								if(NOT(ISNULL(jsonget(json(intoCategory),"balOfYr12MonthInstallIDT_SA"))) AND jsonget(json(intoCategory),"balOfYr12MonthInstallIDT_SA") <> "")
+								{
+									bal12 = atof(jsonget(json(intoCategory),"balOfYr12MonthInstallIDT_SA")); 
+								}
+								
+								if(NOT(ISNULL(jsonget(json(intoCategory),"proj1318MthInstallsIDT_SA"))) AND jsonget(json(intoCategory),"proj1318MthInstallsIDT_SA") <> "")
+								{
+									proj13 = atof(jsonget(json(intoCategory),"proj1318MthInstallsIDT_SA"));
+								}
+								
+								HrsAannual =  get(MultiplierDict,"Annual Hrs Avail");  //2080
+								PMcost= get(CostDict,"Program Mgmt Cost");   //110000
+								
+								TotalEvents =  (get(MultiplierDict,"1st 6 months planned") * mif) + bal12 + proj13;
+								
+								
+								if(estMin > 0)
+								{	
+								AvgEvent = HrsAannual*60/estMin;
+								}
+								
+								if(AvgEvent > 0)
+								{	
+								Workeffort = TotalEvents /AvgEvent ;
+								}
+								if(HrsAannual > 0)
+								{
+								avgCost = PMcost / HrsAannual;
+								}
+								
+								CostAnnual = (HrsAannual * Workeffort) * avgCost;	
+								
+								if(TotalEvents >0)
+								{
+								SSDFinalVal= (CostAnnual / TotalEvents) * get(MultiplierDict,"Shared Service Desk Multiplier");   //hdc
+								}
+								keyFormatValue = "MIF Installed-"+string(mif)+",Balance of year(12 months install)-"+string(bal12)+",Projected 13 - 18 Months Installs-"+string(proj13);
+								if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+							}
+						
+						//Below code is to fetch IDT arrayset values
+						condition1arrVal= jsonget(json(intoCategory), "IDTArray" );
+						arraySize = jsonarraysize(jsonarray(condition1arrVal));
+						arrayIndices = range(arraySize);
+					
+						for arr in arrayIndices {
+						condition2arrVal= jsonarrayget(jsonarray(condition1arrVal), arr, "json");
+							if(IDTindex == atof(jsonget(condition2arrVal,"Service Index"))){
+						
+								if(NOT(ISNULL(condition2arrVal))){
+									serCharge= jsonget(condition2arrVal, "serviceCharge_IDTArr_SA" );
+									noUnits= jsonget(condition2arrVal, "noOfUnits_IDTArr_SA" ,"integer",0);
+									Cycle= jsonget(condition2arrVal, "PMCycle_IDTArr_SA" ,"integer",0);
+									Hrs= jsonget(condition2arrVal, "avgPMHours_IDTArr_SA" ,"float",0.0);
+									IDTresAlloc = jsonget(condition2arrVal, "resourceAllocation_IDTArr_SA" ,"float",0.0);
+
+									SLA= jsonget(condition2arrVal, "SLARequired_IDTArr_SA" );
+								
+									SLAVal = get(GenericDataDict,SLA)/100;
+									
+									SLAFinalVal = SLAVal * burdenRate;
+								    keyFormatValue = "SLA Required-"+string(SLAFinalVal);
+									if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+									//Calculate PM SALES COST HERE
+									//SalesCost = DCFinalVal + ACFinalVal + WFFinalVal + ETTFinalVal + SLAFinalVal+ SSDFinalVal * Cycle * noUnits+ burdenRate;
+									
+									SalesCost = burdenRate + DCFinalVal + ACFinalVal + WFFinalVal + ETTFinalVal + SLAFinalVal+ SSDFinalVal + ((burdenRate * 0.5)/ Hrs);
+									
+									
+									tempStringSC = string(SalesCost)+"/ (1-"+string(scmrg)+")";
+									
+									SalesCost = round(SalesCost/ (1-scmrg),2);	
+									
+									//Added as a part of CR#76
+									if(serCharge == "Fixed Labor" OR serCharge == "Min+"){
+									
+									tempStringSC = string(SalesCost)+"*"+string(Hrs)+"*"+string(IDTresAlloc)+"/(1-"+string(scmrg)+")";
+									
+									SalesCost = round(SalesCost * Hrs * IDTresAlloc/ (1-scmrg),2);
+									
+									}
+									/*elif(serCharge == "Base"){
+										
+									SalesCost = round(((SalesCost * pmHrs * PMresAlloc * pmCycle)/12)/ (1-scmrg),2);
+	                                }*/
+
+									//Calculate IDT Contract/Target Price and extended cost  here
+									TargetPrice = round(SalesCost/ (1-minmrg),2);
+									
+						           tempStringTP = string(SalesCost)+"/ (1-"+string(minmrg)+")";
+									/*if(serCharge == "Base"){
+										TargetPrice = SalesCost * Hrs * (noUnits/ termMonth); 
+										tempStringTP = string(SalesCost)+" * "+string(Hrs)+" * ("+string(noUnits)+"/ "+string(termMonth)+")"; 
+									}*/
+									jsonput(saCalculationFormula,partNum+"SC_calc",tempStringSC);
+						            jsonput(saCalculationFormula,partNum+"TP_calc",tempStringTP);
+									
+								}
+							}
+						}	
+						IDTindex =IDTindex +1;
+						jsonput(saCalculationFormula,partNum,saPricingTextAreaString);
+
+						
+	
+					}//IDT ends here
+					
+					//Change in formula as per CR#40
+					//Calcualte sales cost of Onboarding
+					/*elif(partNum == "SA-FS-ONBOARDING-HR" AND jsonget(json(intoCategory), "meetingsPerWeek_SA") <> "" AND (ISNULL(jsonget(json(intoCategory), "meetingsPerWeek_SA"))==false)){
+						//minmrg=get(minMrgDict,partNum)/100;
+						meetings=jsonget(json(intoCategory), "meetingsPerWeek_SA");
+						meetingMlp = get(MultiplierDict,"Onboarding Meetings per Week " + meetings);
+						OBworkefforts = get(MultiplierDict,"Onboarding Work Effort Multiplier 1") * get(MultiplierDict,"Onboarding Work Effort Multiplier 2") * meetingMlp;   //hardcoded check  3 * 4.2
+						
+						OBhrs= get(MultiplierDict,"OB Hours/Event"); 
+						OBHrsEfforts = OBworkefforts * OBhrs;
+						loadRate = get(CostDict,"OB Load Rate"); 
+						
+						OBSalesCost = loadRate * OBHrsEfforts;
+						SalesCost = round(OBSalesCost/ (1-scmrg),2);
+						TargetPrice = round(SalesCost/(1-minmrg),2);
+						
+						}*/
+						
+					
+					//Calcualte sales cost of special tool
+					elif(partNum == "SA-FS-SPECIAL-TOOL"){
+												saPricingTextAreaString = "";
+
+						//minmrg=get(minMrgDict,partNum)/100;
+						STSalesCost=0.0;
+						IF(NOT(ISNULL(jsonget(json(intoCategory), "netCostSpecialTool_SA"))) AND jsonget(json(intoCategory), "netCostSpecialTool_SA") <> "")
+						{
+							STSalesCost=atof(jsonget(json(intoCategory), "netCostSpecialTool_SA"));
+							
+							keyFormatValue = "Net Cost Special Tool-"+string(STSalesCost);
+							if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+                            
+							tempStringSC = string(STSalesCost)+"/(1-"+string(scmrg)+")";
+							SalesCost = round(STSalesCost/ (1-scmrg),2);
+							
+							
+							TargetPrice = round(SalesCost/(1-minmrg),2);
+							tempStringTP = string(SalesCost)+"/(1-"+string(minmrg)+")";
+							jsonput(saCalculationFormula,partNum+"SC_calc",tempStringSC);
+						    jsonput(saCalculationFormula,partNum+"TP_calc",tempStringTP);
+
+							
+						}
+						//usersessionset("SA-FS-SPECIAL-TOOL_SC_calc",tempStringSC);
+                        //usersessionset("SA-F-SPECIAL-TOOL_TP_calc",tempStringFormat);
+							jsonput(saCalculationFormula,partNum,saPricingTextAreaString);
+
+					}
+			
+					elif(partNum == "SA-FS-PROG-SUPPORT-SVC"){
+												saPricingTextAreaString = "";
+
+						FTE =0.0;
+						//minmrg=get(minMrgDict,partNum)/100;
+						if(NOT(ISNULL(jsonget(json(intoCategory),"pctOfFTE_SA"))) AND jsonget(json(intoCategory),"pctOfFTE_SA") <> "")	
+						{
+							FTE=atof(jsonget(json(intoCategory),"pctOfFTE_SA"));
+						}
+						
+						resourceCost = get(CostDict,"Shared Resource"); 
+						
+						//Below multipier is removed as per CR#40
+						//PSSalesCost = resourceCost * get(MultiplierDict,"Shared Program Resource") * (FTE/100);   //hdc
+						oldStdCost = partSalesCost;
+						//PSSalesCost = resourceCost * (FTE/100);
+						partSalesCost = oldStdCost * (FTE/100);
+
+						//SalesCost = round(PSSalesCost/ (1-scmrg),2);
+						
+						tempStringSC = string(partSalesCost)+"/(1-"+string(scmrg)+")";
+						SalesCost = round(partSalesCost/ (1-scmrg),2);
+						
+
+						
+						TargetPrice = round(SalesCost/(1-minmrg),2);
+						tempStringTP = string(SalesCost)+"/(1-"+string(minmrg)+")";
+						jsonput(saCalculationFormula,partNum+"SC_calc",tempStringSC);
+						jsonput(saCalculationFormula,partNum+"TP_calc",tempStringTP);
+						jsonput(saCalculationFormula,partNum+"SP_calc",partSalesCost);
+
+
+                        //usersessionset("SA-FS-PROG-SUPPORT-SVC_SC_calc",tempStringSC);
+                        //usersessionset("SA-FS-PROG-SUPPORT-SVC_TP_calc",tempStringFormat);
+					}
+					
+
+
+
+					elif(partNum == "SA-FS-PROJECT-MGMT-HR" AND NOT(ISNULL(jsonget(json(intoCategory),"estHoursPS_SA"))) AND jsonget(json(intoCategory),"estHoursPS_SA") <> ""){
+												saPricingTextAreaString = "";
+
+						if(atof(jsonget(json(intoCategory),"estHoursPS_SA")) > 0)	{
+							//minmrg=get(minMrgDict,partNum)/100;
+							
+							tempStringSC = string(partSalesCost)+"/(1-"+string(scmrg)+")";
+							SalesCost = round(partSalesCost/ (1-scmrg),2);
+							
+							
+							TargetPrice = round(SalesCost/(1-minmrg),2);
+							tempStringTP = string(SalesCost)+"/(1-"+string(minmrg)+")";
+							jsonput(saCalculationFormula,partNum+"SC_calc",tempStringSC);
+						jsonput(saCalculationFormula,partNum+"TP_calc",tempStringTP);	
+
+							}
+						//usersessionset("SA-FS-PROJECT-MGMT-HR_SC_calc",tempStringSC);
+                        //usersessionset("SA-FS-PROJECT-MGMT-HR_TP_calc",tempStringFormat);
+					}
+					
+					elif(partNum == "SA-FS-EBONDING-ONE-TIME"){
+												saPricingTextAreaString = "";
+
+						if(NOT(ISNULL(jsonget(json(intoCategory),"eBondingRequired_SA"))) AND  jsonget(json(intoCategory),"eBondingRequired_SA")  == "eBonding Is Required?")	{
+							//ebondSalesCost=atof(jsonget(json(intoCategory),"cost_SA")); 
+							//ebondSalesCost = partSalesCost;
+							
+							tempStringSC = string(partSRP)+"/(1-"+string(scmrg)+")";
+							SalesCost = round(partSRP/ (1-scmrg),2);
+							
+
+							
+							TargetPrice = round(SalesCost/(1-minmrg),2);
+							tempStringTP = string(SalesCost)+"/(1-"+string(minmrg)+")";
+
+							partSalesCost = partSRP;
+							jsonput(saCalculationFormula,partNum+"SC_calc",tempStringSC);
+						    jsonput(saCalculationFormula,partNum+"TP_calc",tempStringTP);	
+							jsonput(saCalculationFormula,partNum+"SP_calc",partSalesCost);
+
+						
+						}
+						//usersessionset("SA-FS-EBONDING-ONE-TIME_SC_calc",tempStringSC);
+                        //usersessionset("SA-FS-EBONDING-ONE-TIME_TP_calc",tempStringFormat);
+					}
+										
+					else
+					{ 		
+				        tempStringSC = string(partSalesCost)+"/(1 - "+string(scmrg)+")";
+						SalesCost = round(partSalesCost/ (1-scmrg),2);
+						TargetPrice = round(SalesCost/(1-minmrg),2);
+
+						tempStringTP = string(SalesCost)+"/(1 - "+string(minmrg)+")";
+						jsonput(saCalculationFormula,partNum+"SC_calc",tempStringSC);
+						jsonput(saCalculationFormula,partNum+"TP_calc",tempStringTP);
+						/* jsonput(saCalculationFormula,"PartNOTFOUND"+"SC_calc",tempStringSC);
+						jsonput(saCalculationFormula,"PartNOTFOUND"+"TP_calc",tempStringTP); */
+						
+						
+					}
+					
+				}//=======================Field Service Pricing Calculation END======================================
+	
+				// Added by: Priyanka
+				//=======================Help Desk Pricing Calculation Start======================================
+				elif(line.itemCategory_l == "Help Desk" and intoCategory <> ""){
+				
+					
+					
+					
+				if(partNum =="SA-HD-LEVEL1" OR partNum =="SA-HD-LEVEL2" OR partNum =="SA-HD-BOTH-LEVEL" )
+					{
+						saPricingTextAreaString="";
+						HelpDeskCost = partSalesCost; 
+						hrsOfDailyCvrg_SA = 0.0;
+						daysPerMonth_SA = 0;
+						dailyCalls_SA = 0;
+						ShiftsReqPerDay = 0;
+						trainingReq_SA = "";
+						travelReq_SA = "";
+						travelDays_SA = 0;
+						AvgShiftEvents = 0 ;
+										
+						if(jsonget(json(intoCategory), "hrsOfDailyCvrg_SA") <> "" AND  NOT(ISNULL(jsonget(json(intoCategory), "hrsOfDailyCvrg_SA")))){
+							hrsOfDailyCvrg_SA = atof(jsonget(json(intoCategory),"hrsOfDailyCvrg_SA"));
+						}
+						
+						if(jsonget(json(intoCategory), "daysPerMonth_SA") <> "" AND NOT(ISNULL(jsonget(json(intoCategory), "daysPerMonth_SA")))   ){
+							daysPerMonth_SA = atof(jsonget(json(intoCategory),"daysPerMonth_SA"));
+						}
+						
+						if(jsonget(json(intoCategory), "dailyCalls_SA") <> "" AND NOT(ISNULL(jsonget(json(intoCategory), "dailyCalls_SA")))){
+							dailyCalls_SA = atoi(jsonget(json(intoCategory),"dailyCalls_SA"));
+						}
+						
+						if(jsonget(json(intoCategory), "avgWorkEffortPerEvent_SA") <> "" AND NOT(ISNULL(jsonget(json(intoCategory), "avgWorkEffortPerEvent_SA")))){
+							ShiftsReqPerDay = atof(jsonget(json(intoCategory),"avgWorkEffortPerEvent_SA")) ;
+						}
+						
+						if(jsonget(json(intoCategory), "daysOfService_SA") <> "" AND NOT(ISNULL(jsonget(json(intoCategory), "daysOfService_SA")))){
+							daysOfService_SA = atoi(jsonget(json(intoCategory),"daysOfService_SA"));
+						}
+						
+						
+						//Number of  hours of coverage percentage
+						if(hrsOfDailyCvrg_SA <> 0){
+							NumOfHrsCovPct =  get(MultiplierDict,"Hours of daily coverage " + jsonget(json(intoCategory),"hrsOfDailyCvrg_SA")); 
+						}
+						
+						/*//CCC Sprt Cost / min
+						CCCSprtCostPerMin = HelpDeskCost * (1 + NumOfHrsCovPct);
+						
+						//Selling $/Min.
+						SellingCostPerMin = CCCSprtCostPerMin / (1 - scmrg);
+						
+						//Selling $/Hour
+						SellingCostPerHour = SellingCostPerMin * 60;
+											
+						SalesCost = round(SellingCostPerHour/ (1-scmrg),2);*/
+						
+						//Current or Exp. Event Volume 
+						CurrExpEventVol = daysPerMonth_SA*dailyCalls_SA;
+						
+						//Avg Shift Events
+						//AvgShiftEvents = (CurrExpEventVol/daysPerMonth_SA) / ShiftsReqPerDay;  WRONG FORMULA
+						if(get(MultiplierDict,"Shifts required per day") > 0)
+						{
+						AvgShiftEvents = (CurrExpEventVol/daysPerMonth_SA) / get(MultiplierDict,"Shifts required per day");   //hdc 1.2
+						}
+						
+						
+						//Event/day Incl
+						EventDayIncl = AvgShiftEvents * get(MultiplierDict,"Event/day");  //hardcoded 1.1
+						
+						//Avg. Request work-effort time: (+ 25%)
+						//AvgReqWorkEffTime = ShiftsReqPerDay / (EventDayIncl * 1.25); WRONG FORMULA
+						AvgReqWorkEffTime = ShiftsReqPerDay * get(MultiplierDict,"Avg Request work-effort time");  //hdc 1.25
+						
+						
+						//Total Shift time
+						TtlShiftTime = EventDayIncl * AvgReqWorkEffTime;
+						
+						//Hours / Shift
+						HrsPerShift = TtlShiftTime / 60;
+						
+						
+						//Total Hours / Day
+						//TtlHrsDay = HrsPerShift * daysOfService_SA; WRONG FORMUL WRITTEN
+						TtlHrsDay = HrsPerShift * get(MultiplierDict,"Shifts required per day");  //hdc 1.2
+						
+						
+						//Total Support Time
+						TotalSuppTime = daysPerMonth_SA * TtlHrsDay;
+						
+						//CCC Sprt Cost / hour
+						keyFormatValue = "Hours of daily coverage -"+string(NumOfHrsCovPct);
+						if(find(saPricingTextAreaString,keyFormatValue) == -1){saPricingTextAreaString = saPricingTextAreaString+keyFormatValue+",";}
+
+						CCCSprtCost = HelpDeskCost * (1 + NumOfHrsCovPct);
+						
+						//SalesCost
+						tempStringSC = string(CCCSprtCost)+"/(1-"+string(scmrg)+")";
+						SalesCost = CCCSprtCost / (1 - scmrg);
+						
+						
+						//Selling $/Min.
+						SellingCostPerMin = SalesCost / 60;
+					
+						//Contract / Target Price
+						TargetPrice = round(SalesCost/(1-minmrg),2);
+						tempStringTP = string(SalesCost)+"/(1-"+string(minmrg)+")";
+						
+						jsonput(saCalculationFormula,partNum+"SC_calc",tempStringSC);
+						jsonput(saCalculationFormula,partNum+"TP_calc",tempStringTP);
+						//Revenue / Day
+						RevPerDay = TargetPrice * TtlHrsDay ;
+						
+						
+						//Revenue / mth
+						RevPerMth = RevPerDay * daysPerMonth_SA;
+						
+						//Fixed Svcs Fee Monthly
+						//FixedSvcsFeeMonthly = RevPerMth;
+						
+					
+						ret = ret   +line._document_number + "~unitSalesCostPerMin_l~" + string(SellingCostPerMin) + "|"
+									+ line._document_number + "~unitSalesCostperEvent_l~" + string(RevPerMth) + "|"
+									;
+							jsonput(saCalculationFormula,partNum,saPricingTextAreaString);
+					}
+				
+					//Training Section
+					//As per defect 13283: avg(level1 : leve2 cost) will not be used. Training item standard cost must be used.
+					/*elif(partNum == "SA-HD-TRAINING"){
+						
+						//days of services 
+						WorkDaysPerYr = 0;
+						ManpowerUtiRate = 0.0;
+						hrsOfCBT_SA= 0;
+						classroomHrs_SA=0;
+						trainingReq_SA="";
+						travelDays_SA = 0;
+						travelReq_SA = "";
+						travelDays = 0;
+						CostPerHrL1 = 0;
+						CostPerHrL2 = 0;
+						//scmrg = get(salesCostMrgDict,partNum)/100;
+						
+	
+						//As per defect 13283: Quantity will be calculated in config hence below code is not needed
+						/*if(NOT(ISNULL(jsonget(json(intoCategory), "hoursOfCBT_SA"))) AND jsonget(json(intoCategory), "hoursOfCBT_SA") <> "" ){
+							hrsOfCBT_SA = atof(jsonget(json(intoCategory),"hoursOfCBT_SA"));
+						}
+						
+						if(NOT(ISNULL(jsonget(json(intoCategory),"classroomHours_SA"))) AND jsonget(json(intoCategory), "classroomHours_SA") <> ""){
+							classroomHrs_SA = atof(jsonget(json(intoCategory),"classroomHours_SA"));
+						}
+						
+						if(jsonget(json(intoCategory), "trainingReq_SA") <> ""){
+							trainingReq_SA = jsonget(json(intoCategory),"trainingReq_SA"); 
+						}
+						if(jsonget(json(intoCategory), "travelDays_SA") <> "" AND NOT(ISNULL(jsonget(json(intoCategory), "travelDays_SA")))){
+							travelDays_SA = atoi(jsonget(json(intoCategory),"travelDays_SA"));
+						}
+						
+						if(jsonget(json(intoCategory), "travelReq_SA") <> ""){
+							travelReq_SA = jsonget(json(intoCategory),"travelReq_SA");
+						}
+						//Number of  hours of coverage percentage
+						if(hrsOfDailyCvrg_SA <> 0){
+							NumOfHrsCovPct =  get(MultiplierDict,"Hours of daily coverage " + jsonget(json(intoCategory),"hrsOfDailyCvrg_SA")); 
+						}
+						
+						//Total Support Time
+						//TtlSuppTime = daysPerMonth_SA * hrsOfDailyCvrg_SA;  WRONG FORMULA
+						
+						TtlSuppTime = daysPerMonth_SA * TtlHrsDay;
+						
+						
+						//Days Available for Duties
+						if(trainingReq_SA == "Training required?"){
+							if(NOT(ISNULL(get(GenericValueDict,"Work Days /Yr"))) AND get(GenericValueDict,"Work Days /Yr") <> "")
+							{
+								WorkDaysPerYr = atoi(get(GenericValueDict,"Work Days /Yr"));
+							}
+							
+							if(NOT(ISNULL(get(GenericValueDict,"Manpower Utilization Rate"))) AND get(GenericValueDict,"Manpower Utilization Rate") <> "")
+							{
+								ManpowerUtiRate = atof(get(GenericValueDict,"Manpower Utilization Rate"));
+							}
+						}
+						
+						DaysAvailForDuties = WorkDaysPerYr * ManpowerUtiRate;
+						
+						//No of Resources (x-trg) to cover shifts
+						if(travelReq_SA == "Travel Required"){
+							//NoOfResToCoverShifts = (TtlSuppTime/DaysAvailForDuties) + travelDays_SA; 
+							travelDays = travelDays_SA;
+							
+						}
+						
+						//As per defect 13283: removing rounding off
+						//NoOfResToCoverShifts = round((TotalSuppTime/DaysAvailForDuties) + travelDays,0); 
+						NoOfResToCoverShifts = (TtlSuppTime/DaysAvailForDuties) + travelDays; 
+						
+						//Estimated total training time
+						EstTtlTrainTime = hrsOfCBT_SA + classroomHrs_SA;
+						
+						
+						//Total - All Resource Trg time (Hours)
+						TtlAllResTrgTime = round((NoOfResToCoverShifts * EstTtlTrainTime),0);
+						
+						
+						//As per defect 13283: avg(level1 : leve2 cost) will not be used. Training item standard cost must be used.
+						//CostPerHrL1 = util.getPartPrice("custom_field7","SA-HD-LEVEL1");
+						//CostPerHrL2 = util.getPartPrice("custom_field7","SA-HD-LEVEL2");
+							
+						
+						CostPerHrL1 = CostPerHrL1 * (1 + NumOfHrsCovPct) ; //* 60;  
+						CostPerHrL2 = CostPerHrL2 * (1 + NumOfHrsCovPct) ; //* 60;
+						TrainRateRicohCostPerHr = (CostPerHrL1 + CostPerHrL2 )/2;  
+						
+						//As per defect 13283: TtlAllResTrgTime is quantity ans calculated in config
+						//Total Charges @ Hourly Rate
+						//SalesCost = TtlAllResTrgTime * (TrainRateRicohCostPerHr / (1 - scmrg));
+						
+						
+						SalesCost =  partSalesCost / (1 - scmrg);
+						
+						//Unit Contract / Target Price
+						TargetPrice = round(SalesCost/(1-minmrg),2);
+					
+						}
+					}*/
+				
+					//Web & API E-Bonding Section
+					else
+					{ 
+						if(partNum == "SA-HD-EBONDING-ONE-TIME"){ 
+							partSalesCost=partSRP;
+						}
+
+						jsonput(saCalculationFormula,partNum+"SP_calc",partSalesCost);
+
+						tempStringSC = string(partSalesCost)+"/(1-"+string(scmrg)+")";
+						SalesCost = round(partSalesCost/ (1-scmrg),2);
+						
+						TargetPrice = round(SalesCost/(1-minmrg),2);
+						tempStringTP = string(SalesCost)+"/(1-"+string(minmrg)+")";
+						jsonput(saCalculationFormula,partNum+"SC_calc",tempStringSC);
+						jsonput(saCalculationFormula,partNum+"TP_calc",tempStringTP);
+					
+					}
+				
+				} //=======================Help Desk Pricing Calculation End======================================
+				
+				
+			
+				elif(line.itemCategory_l == "Asset Part Mgmt" OR line.itemCategory_l == "Consulting" OR line.itemCategory_l == "Curriculum Dev")
+				{	
+			        tempStringSC = string(partSalesCost)+"/(1-"+string(scmrg)+")";
+					SalesCost=round(partSalesCost/(1-scmrg),2);
+					
+					TargetPrice= round(SalesCost/ (1-minmrg),2);
+					tempStringTP = string(SalesCost)+"/(1-"+string(minmrg)+")";
+					
+					jsonput(saCalculationFormula,partNum+"SC_calc",tempStringSC);
+					jsonput(saCalculationFormula,partNum+"TP_calc",tempStringTP);
+				}
+				
+				ret = ret 	+ line._document_number + "~unitSalesCost_l~" + string(SalesCost) + "|"   
+					+ line._document_number + "~contractedUnitPrice_l~" + string(TargetPrice) + "|" 
+					+ line._document_number + "~unitCost_l~" + string(round(partSalesCost,2)) + "|" 
+					+ line._document_number + "~unitSRP_l~" + string(partSRP) + "|"  
+					;
+				offeringName = "";
+				if(containskey(saOfferingNameDict,partNum) AND get(saOfferingNameDict, partNum) <> ""){
+					offeringName = get(saOfferingNameDict, partNum);
+				}
+				if(find(offeringString, offeringName) == -1){
+					offeringString = offeringString + "$*$" + offeringName + "$*$";
+				}
+				ret = ret + line._document_number + "~offeringNameForSA_l~" + offeringName + "|" ;  
+			}
+		}
+	}
+}
+
+ret = ret + "1~sAOfferingGridString_t~" + offeringString + "|";
+
+jsonput(saPricingExtractJson,"SAPricing",saCalculationFormula);
+usersessionset("SAPricingExtractData",jsontostr(saPricingExtractJson));
+return ret;

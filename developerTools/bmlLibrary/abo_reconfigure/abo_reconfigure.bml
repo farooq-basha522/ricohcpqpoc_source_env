@@ -1,0 +1,70 @@
+//Function Name: abo_reconfigure
+//    input: lineBomId(String), lineTrx_Date(String), bs_Id(String), line_Num(String). 
+//    output:dummyString
+// Description:
+//    This is the entry BML for ABO reconfig operation.This BML captures logic specific to ABO reconfig flow, 
+//    This is invoked from the reconfig action of both main doc and sub doc.
+// Details:
+//     This will calculate PAC BOM and config BOM and set them in user session map to be picked up by configurator.
+
+abocontext = util.abo_getContext();
+bDiagnosisOff=jsonget(abocontext, "AboDiagnosticDisabled", "boolean", true);  
+callContext="reconfig";
+
+if(not bDiagnosisOff){
+  inputJson=json();
+  jsonput(inputJson,"assetkey", lineBomId);
+  jsonput(inputJson,"lineTxnDate", lineTrx_date);
+  jsonput(inputJson, "bs_id", bs_id);
+  jsonput(inputJson, "line_num", line_Num);
+  dummy=util.abo_addDiagnosticInfo(callContext+"_input", inputJson,"addToSummary");
+}
+
+bsId = atoi(bs_Id);
+lineNum = atoi(line_Num);
+lineTrxDate =  getDate(false);
+if(lineTrx_Date<>""){
+    lineTrxDate = strtojavadate(lineTrx_Date, "MM/dd/yyyy");
+}
+strTransDate = datetostr(lineTrxDate, "yyyy-MM-dd HH:mm:ss"); 
+
+pacBomflat = util.abo_generatePAC(lineBomId, lineTrxDate, bsId, lineNum, "reconfigure");
+if(not bDiagnosisOff){
+  dummy=util.abo_addDiagnosticInfo(callContext+"_afterGenPacBom", pacBomflat,"");
+}
+
+
+//PLACEHOLDER to retrieve additional fields in BOM
+lineField =  string[3];
+lineField[0]="oRCL_ABO_ActionCode_l";
+lineField[1] = "itemInstanceName_l";
+lineField[2] = "requestDate_l";
+currentQuoteBom =   getbom(bsId, lineNum, lineField, 
+                 false,  //validate
+                 true,  //flatten
+                 true); //isSalesBom
+
+configBomFlat = jsoncopy(pacBomflat);
+arrToApply =  jsonarray();
+jsonarrayappend(arrToApply, currentQuoteBom);
+
+configBomFlat =util.abo_apply(configBomFlat, arrToApply);
+configBom = convertbomtohier(configBomFlat);
+
+//Include instruction to preseve inputBom for config launch
+jsonput(configBom, "instruction", "preserveInputBom");
+
+usersessionremove ("bm_abo_pac_root_json");
+usersessionremove (BM_SALES_ROOT_BOM_ITEM);
+
+//Store pacBom in global map
+usersessionset("bm_abo_pac_root_json", pacBomflat);
+//set configBom in session scope from where ConfigUI reads BOM
+usersessionset(BM_SALES_ROOT_BOM_ITEM,configBom);
+
+if(not bDiagnosisOff){
+   dummy=util.abo_addDiagnosticInfo(callContext+"_output_pacBom", pacBomflat,"addToSummary");
+   dummy=util.abo_addDiagnosticInfo(callContext+"_output_configBom", configBom,"addToSummary");
+}
+
+return "success";

@@ -1,0 +1,429 @@
+//*****************************************************************************************************
+//** Function:    Pricing Main Function
+//** Type:        Main pricing function
+//**
+//** Description: Pricing Formulas. Line Item Grid will be used by formulas for auto calculations
+//**                                                                                               
+//** History:	Date		Author     	Comment
+//**				HHo		Initial Implementation
+//*****************************************************************************************************
+
+//----Declaration
+//MC-95, Pricing
+ret			= "";
+customerId 		= customerID_t;
+partNum 		= ""; 
+lastPricedDate 		= ""; //Blank = empty (optional). YYYY-MM-DD format
+contractedPriceString 	= "";
+delim1			= "|&|";
+delim2			= "|^|";
+lineCommentNameValDelim = "@@";
+lineCommentPairDelim = "##";
+contractedDict	 	= dict("string");
+
+//MC-97, Total MRR/NRR Fields
+totalQuoteNetMRR	= 0; //Quote total net MRR
+totalQuoteUnitMRR	= 0;
+totalQuoteNetNRR	= 0; //Quote total net NRR
+totalQuoteUnitNRR	= 0;
+totalMRR_MRR		= 0; //total monthly recurring component for parts in the "MRR" category
+totalMRR_NRR		= 0; //total NRR component for parts in the "MRR" category
+totalInstall_MRR	= 0; //total monthly recurring component for parts in the "INSTALL" category
+totalInstall_NRR	= 0; //total NRR component for parts in the "INSTALL" category
+totalHWSW_MRR		= 0; //total monthly recurring component for parts in the "EQUIP" category
+totalHWSW_NRR		= 0; //total NRR component for parts in the "EQUIP" category
+totalProServ_MRR	= 0; //total monthly recurring component for parts in the "PROSERV" category
+totalProServ_NRR	= 0; //total NRR component for parts in the "PROSERV" category
+totalOther_MRR		= 0; //total monthly recurring component for parts in the "MRR" category
+totalOther_NRR 		= 0; //total NRR component for parts not in one of the specified categories
+
+//MC-318, Installation
+installDict	 	= dict("float"); //hold table bmql
+install_rate		= 0.0;
+installPriceDict 	= dict("float"); //installation fees
+installPrice		= 0.0;
+
+//Discounts Total
+quoteMRRDiscountPct = 0.0;
+quoteNRRDiscountPct = 0.0;
+
+//Doc Designer pritntout
+modelLocationDict = dict("string"); //Dictionary of key = location ID and value = highest document number found for that location.
+modelDocNumList = string[]; //Array of model document numbers
+modelHasMRRPartsDict = dict("boolean"); //boolean dict with key of model doc num and value of true/false
+modelHasINSTALLPartsDict = dict("boolean"); //boolean dict with key of model doc num and value of true/false
+modelHasEQUIPPartsDict = dict("boolean"); //boolean dict with key of model doc num and value of true/false
+modelHasPROSERVPartsDict = dict("boolean"); //boolean dict with key of model doc num and value of true/false
+modelHasOTHERPartsDict = dict("boolean"); //boolean dict with key of model doc num and value of true/false
+firstModelWithMRRDict = dict("string"); //string dict with key of location id and value of model doc number
+firstModelWithINSTALLDict = dict("string"); //string dict with key of location id and value of model doc number
+firstModelWithEQUIPDict = dict("string"); //string dict with key of location id and value of model doc number
+firstModelWithPROSERVDict = dict("string"); //string dict with key of location id and value of model doc number
+firstModelWithOTHERDict = dict("string"); //string dict with key of location id and value of model doc number
+
+mrrModelDocNumList 	= string[]; //Array of models that have at least one part
+lastSequenceNumDict	= dict("string"); //Identify last sequence number
+sequenceNumInc		= 0;
+sequenceNumArr		= string[];
+
+extraInputsDict = dict("string"); //Dictionary passed into decodeNameValuePairs util.
+	put(extraInputsDict, "nameValDelim", lineCommentNameValDelim);
+	put(extraInputsDict, "pairDelim", lineCommentPairDelim);
+//----End of Declaration
+
+//TABLE CALLS - Installation Fees
+installation = bmql("SELECT Product_Group, Install_Multiplier FROM Install_Multipliers");
+
+for rates in installation {
+	prodGroup = get(rates, "Product_Group");
+	installRate = getFloat(rates, "Install_Multiplier");
+	put(installDict,prodGroup,installRate);
+}
+	
+//Loop 1 rewrite
+//In loop 1, we will build dictionaries for later line-level outputs, as well as writing to quote-level variables.
+for line in transactionLine{
+	docNum = line._document_number;
+	parentDocNum = line._parent_doc_number;
+	currentSeqNum = line._sequence_number;
+	locId = line.locationID_l;
+	parentId = "";
+	lineId = "";
+	
+	//Assign category totals
+	partType = line._part_custom_field9;
+	partGroup = line._part_custom_field18;
+	partNum = line._part_number; 
+
+	if(partType == "MRR"){
+		totalMRR_MRR = totalMRR_MRR + line.netAmount_l;
+		totalMRR_NRR = totalMRR_NRR + line.netAmountNRR_l;
+		put(modelHasMRRPartsDict, parentDocNum, true); //Flag model as having this category
+		if(NOT containskey(firstModelWithMRRDict, locId)){ //check if a model has already been seen for this location-category combo
+			put(firstModelWithMRRDict, locId, parentDocNum);
+		}
+	}
+	elif(partType == "INSTALL"){
+		totalInstall_MRR = totalInstall_MRR + line.netAmount_l;
+		totalInstall_NRR = totalInstall_NRR + line.netAmountNRR_l;
+		put(modelHasINSTALLPartsDict, parentDocNum, true); //Flag model as having this category
+		if(NOT containskey(firstModelWithINSTALLDict, locId)){ //check if a model has already been seen for this location-category combo
+			put(firstModelWithINSTALLDict, locId, parentDocNum);
+		}
+	}
+	elif(partType == "EQUIP"){
+		totalHWSW_MRR = totalHWSW_MRR + line.netAmount_l;
+		totalHWSW_NRR = totalHWSW_NRR + line.netAmountNRR_l;
+		put(modelHasEQUIPPartsDict, parentDocNum, true); //Flag model as having this category
+		if(NOT containskey(firstModelWithEQUIPDict, locId)){ //check if a model has already been seen for this location-category combo
+			put(firstModelWithEQUIPDict, locId, parentDocNum);
+		}
+	}
+	elif(partType == "PROSERV"){
+		totalProServ_MRR = totalProServ_MRR + line.netAmount_l;
+		totalProServ_NRR = totalProServ_NRR + line.netAmountNRR_l;
+		put(modelHasPROSERVPartsDict, parentDocNum, true); //Flag model as having this category
+		if(NOT containskey(firstModelWithPROSERVDict, locId)){ //check if a model has already been seen for this location-category combo
+			put(firstModelWithPROSERVDict, locId, parentDocNum);
+		}
+	}
+	else{ //"Other" part categories
+		partType = "OTHER";
+		totalOther_MRR = totalOther_MRR + line.netAmount_l;
+		totalOther_NRR = totalOther_NRR + line.netAmountNRR_l;
+		put(modelHasOTHERPartsDict, parentDocNum, true); //Flag model as having this category
+		if(NOT containskey(firstModelWithOTHERDict, locId)){ //check if a model has already been seen for this location-category combo
+			put(firstModelWithOTHERDict, locId, parentDocNum);
+		}
+		
+		//Perform Installation Calculation on for the model
+	}
+		
+	if(line._parent_doc_number == ""){ //model or free-standing part
+		append(modelDocNumList, docNum);
+		
+		//Logic to assign to check if this is the 'first' model found for a location
+		lowestDocNumFoundForLoc = util.safeGetString(modelLocationDict, locId);
+		if(lowestDocNumFoundForLoc == "" OR atoi(docNum) < atoi(lowestDocNumFoundForLoc)){ //TODO: check if this comparison is actually necessary or if we can just put the first one in.
+			put(modelLocationDict, locId, docNum);
+		}
+		
+		//Sequence Number
+		sequenceNumArr[sequenceNumInc] = line._document_number + "-000--" + line._document_number; //doc-000--doc#
+	}
+	else{ //part
+		
+		
+		//Logic done regardless of category
+			//Installation Fees
+		if(line.finalListUnitPrice_l <> 0){ //if part's MRR unit price is non-zero
+			modelInstallPrice = util.safeGetFloat(installPriceDict, parentDocNum);
+			install_rate = util.safeGetFloat(installDict, partGroup);
+
+			//modelInstallPrice = modelInstallPrice + (line.finalListUnitPrice_l * install_rate);
+			modelInstallPrice = modelInstallPrice + (line.finalListUnitPriceExt_l * install_rate);
+			put(installPriceDict, parentDocNum, modelInstallPrice);
+		}
+		
+			//Assign Line Number and Parent Line Number fields
+		if(line._line_item_comment <> "" AND line._line_item_comment <> "System recommended item") {
+			commentDict = util.decodeNameValuePairs(line._line_item_comment, extraInputsDict);
+			parentId = util.safeGetString(commentDict, "ParentId"); //IDs for all lines will be parent document number + 000 + id from LIC
+			if(parentId <> ""){
+				parentId = parentDocNum + "000" + docNum + parentId;
+			}
+			lineIdFromCfg = util.safeGetString(commentDict, "ID");
+			lineId = parentDocNum + "000" + docNum + lineIdFromCfg;
+			
+			//Sequence - for part Parent/Child relationship
+			sequenceNumArr[sequenceNumInc] = line._parent_doc_number + "-A"+get(commentDict,"ParentId")+"-"+ get(commentDict,"ID") + "-" + line._document_number;
+				
+		} else {
+			//Sequence - for remainding part
+			if(line._part_custom_field9 == "MRR") {
+				sequenceNumArr[sequenceNumInc] = line._parent_doc_number + "-001MRR--" + line._document_number;
+			} else {
+				sequenceNumArr[sequenceNumInc] = line._parent_doc_number + "-"+ line._part_custom_field9 + "--" + line._document_number;
+			}
+		}
+		
+			//Totals Pricing
+		totalQuoteNetMRR = totalQuoteNetMRR + line.netAmount_l;
+		totalQuoteUnitMRR = totalQuoteUnitMRR + line.finalListUnitPriceExt_l;
+		totalQuoteNetNRR = totalQuoteNetNRR + line.netAmountNRR_l;
+		totalQuoteUnitNRR = totalQuoteUnitNRR + line.finalListUnitPriceNRRExt_l;
+		
+			//Contracted Pricing
+		contractedPricing = "";
+		contractedPricing = commerce.contractedPricing(customerId, partNum, lastPricedDate); //Why commmerce library vs BML util?
+		if (contractedPricing <> "") {
+			contractedPriceString = contractedPriceString + line._document_number + delim1 + line.locationName_l + delim1 + contractedPricing;
+		}
+		
+	}
+	
+	//Write to output where possible
+	ret = ret
+		+ docNum + "~lineNumber_l~" + lineId + "|"
+		+ docNum + "~parentLineNumber_l~" + parentId + "|"
+		;
+		
+	//reset lastsequence on part
+	if(line.lastSequenceModel_l == true) {
+		ret = ret + line._document_number + "~lastSequenceModel_l~" + string(false) + "|";
+	}
+	sequenceNumInc = sequenceNumInc + 1;	
+}
+
+//----Loop through Contracted Price string and build logic
+if(contractedPriceString <> "") {
+	contractedPriceList = split(contractedPriceString,delim2);
+	
+	for each in contractedPriceList {
+		contractedPrice = split(each,delim1);
+		docNum = contractedPrice[0];
+		lineLocation = contractedPrice[1];
+		contractLocation = contractedPrice[2];
+		lineComment = contractedPrice[3];
+		soldNetPrice = contractedPrice[4];
+		soldNetPriceNRR = contractedPrice[5];
+		soldCurrency = contractedPrice[6];
+		soldUnitPrice = contractedPrice[7];
+		soldUnitPriceNRR = contractedPrice[8];
+		ret = ret + docNum +"~contractedPriceFound_l~true|";
+		ret = ret + docNum +"~contractedPriceFoundNRR_l~true|";
+	
+		locFlag = docNum + "loc"; //Flag used for identifying same location
+		docNumNRR = docNum + "NRR"; //Used for obtaining NRR values
+		
+		//Obtaining the leastDiscount value
+		leastDiscounted = get(contractedDict,docNum);
+		leastDiscountedNRR = get(contractedDict,docNumNRR);
+		
+		if(isnull(leastDiscounted)) {
+			leastDiscounted = "0";
+		}
+		if(isnull(leastDiscountedNRR)) {
+			leastDiscountedNRR = "0";
+		}
+		
+		if(lineLocation == contractLocation) {
+			if(leastDiscounted == "0" OR atof(leastDiscounted) < atof(soldNetPrice)) {
+				put(contractedDict,docNum,soldNetPrice);
+			}
+			if(leastDiscountedNRR == "0" OR atof(leastDiscountedNRR) < atof(soldNetPriceNRR)) {
+				put(contractedDict,docNumNRR,soldNetPriceNRR);
+			}
+			put(contractedDict,locFlag,"true");
+		} else {
+			if(isnull(get(contractedDict, locFlag))) {
+				if(leastDiscounted == "0" OR atof(leastDiscounted) < atof(soldNetPrice)) {
+					put(contractedDict,docNum,soldNetPrice);
+				}
+				if(leastDiscountedNRR == "0" OR atof(leastDiscountedNRR) < atof(soldNetPriceNRR)) {
+					put(contractedDict,docNumNRR,soldNetPriceNRR);
+				}
+			}
+		}
+	}
+}
+//----End of Loop through Contracted Price string and build logic
+
+//----Loop through update Sequence Number
+sort(sequenceNumArr);
+sequenceNumInc = 1;
+for each in sequenceNumArr {
+	sequItem= split(each,"-");
+	
+	ret = ret + sequItem[3] + "~sequenceNumberLine_l~"+string(sequenceNumInc) +"|";
+	
+	if(containskey(lastSequenceNumDict,sequItem[0])) { //Save model last sequence - MRR
+		if(sequenceNumInc> atoi(get(lastSequenceNumDict,sequItem[0])) AND sequItem[1] <> "EQUIP" AND sequItem[1] <> "INSTALL" AND sequItem[1] <> "PROSERV") {
+			put(lastSequenceNumDict,sequItem[0],string(sequenceNumInc));
+		} 
+	} else {
+		put(lastSequenceNumDict,sequItem[0],string(sequenceNumInc));
+	}
+	/* temp last sequence model for Install,equip, proserv */
+	if(containskey(lastSequenceNumDict,sequItem[0]+"INSTALL")) { //Save model last sequence - INSTALL
+		if(sequenceNumInc> atoi(get(lastSequenceNumDict,sequItem[0]+"INSTALL")) AND sequItem[1] == "INSTALL") {
+			put(lastSequenceNumDict,sequItem[0]+"INSTALL",string(sequenceNumInc));
+		} 
+	} else {
+		put(lastSequenceNumDict,sequItem[0]+"INSTALL",string(sequenceNumInc));
+	}
+	if(containskey(lastSequenceNumDict,sequItem[0]+"EQUIP")) { //Save model last sequence - EQUIP
+		if(sequenceNumInc> atoi(get(lastSequenceNumDict,sequItem[0]+"EQUIP")) AND sequItem[1] == "EQUIP") {
+			put(lastSequenceNumDict,sequItem[0]+"EQUIP",string(sequenceNumInc));
+		} 
+	} else {
+		put(lastSequenceNumDict,sequItem[0]+"EQUIP",string(sequenceNumInc));
+	}
+	if(containskey(lastSequenceNumDict,sequItem[0]+"PROSERV")) { //Save model last sequence - PROSERV
+		if(sequenceNumInc> atoi(get(lastSequenceNumDict,sequItem[0]+"PROSERV")) AND sequItem[1] == "PROSERV") {
+			put(lastSequenceNumDict,sequItem[0]+"PROSERV",string(sequenceNumInc));
+		} 
+	} else {
+		put(lastSequenceNumDict,sequItem[0]+"PROSERV",string(sequenceNumInc));
+	}
+
+	sequenceNumInc = sequenceNumInc + 1;
+}	
+//----End of Loop through update Sequence Number
+
+//----Loop through line #2 to build return string
+for line in transactionLine {
+	docNum = line._document_number;
+	docNumNRR = docNum + "NRR";
+	contractUnitPriceMRR = get(contractedDict, docNum);
+	contractUnitPriceNRR = get(contractedDict, docNumNRR);
+	locationId = line.locationID_l;
+	
+	if(NOT isnull(contractUnitPriceMRR)){
+		ret = ret + line._document_number + "~contractedUnitPrice_l~"+contractUnitPriceMRR+"|";
+	}
+	if(NOT isnull(contractUnitPriceNRR)){
+		ret = ret + line._document_number + "~contractedUnitPriceNRR_l~"+contractUnitPriceNRR+"|";
+	}
+	
+	//Installation Fees
+	if(line._part_custom_field9 == "INSTALL") {
+		installPrice = util.safeGetFloat(installPriceDict, line._parent_doc_number);
+		installNetAmt = installPrice;
+				
+		ret = ret 
+			+ line._document_number + "~finalListUnitPriceNRR_l~" + string(installPrice) + "|"
+			+ line._document_number + "~listPriceNRR_l~" + string(installPrice) + "|"
+			;
+		
+		if(line.customDiscountType_l == "Percent Off") {
+			installNetAmt = installNetAmt * (100 - line.customDiscountValue_l) / 100;
+		} elif (line.customDiscountType_l == "Amount Off") {
+			installNetAmt = installNetAmt - line.customDiscountValue_l;
+		} elif (line.customDiscountType_l == "Price Override") {
+			installNetAmt = line.customDiscountValue_l;
+		} 
+		
+		ret = ret 
+			+ line._document_number + "~netPriceNRR_l~" + string(installPrice) + "|"
+			+ line._document_number + "~netAmountNRR_l~" + string(installPrice) + "|"
+			+ line._document_number + "~customDiscountAppliedTo_l~NRR|"
+			;
+	}
+	
+	//Output Doc	
+	if(line._parent_doc_number == "") { //Loop through parent
+		sequLastDoc = split(sequenceNumArr[atoi(get(lastSequenceNumDict,line._document_number))-1],"-");
+		
+		ret = ret + sequLastDoc[3] + "~lastSequenceModel_l~" + string(true) + "|";
+		
+		/* temp last sequence model for install,equip,proserv 
+		NOTE: output doc will ignore parent output
+		*/
+		sequLastDocINSTALL = split(sequenceNumArr[atoi(get(lastSequenceNumDict,line._document_number+"INSTALL"))-1],"-");
+		sequLastDocEQUIP = split(sequenceNumArr[atoi(get(lastSequenceNumDict,line._document_number+"EQUIP"))-1],"-");
+		sequLastDocPROSERV = split(sequenceNumArr[atoi(get(lastSequenceNumDict,line._document_number+"PROSERV"))-1],"-");
+		
+		ret = ret + sequLastDocINSTALL[3] + "~lastSequenceModel_l~" + string(true) + "|";
+		ret = ret + sequLastDocEQUIP[3] + "~lastSequenceModel_l~" + string(true) + "|";
+		ret = ret + sequLastDocPROSERV[3] + "~lastSequenceModel_l~" + string(true) + "|";
+	}
+	
+	//Doc Output Flags: Model level
+	if(line._parent_doc_number == ""){ //model or free-standing part)
+		modelHasMRRPart = containskey(modelHasMRRPartsDict, docNum); //will always be true if it exists
+		modelHasINSTALLPart = containskey(modelHasINSTALLPartsDict, docNum); //will always be true if it exists
+		modelHasEQUIPPart = containskey(modelHasEQUIPPartsDict, docNum); //will always be true if it exists
+		modelHasPROSERVPart = containskey(modelHasPROSERVPartsDict, docNum); //will always be true if it exists
+		modelHasOTHERPart = containskey(modelHasOTHERPartsDict, docNum); //will always be true if it exists
+		firstModelMRRLocation = (util.safeGetString(firstModelWithMRRDict, locationId) == docNum);
+		firstModelINSTALLLocation = (util.safeGetString(firstModelWithINSTALLDict, locationId) == docNum);
+		firstModelEQUIPLocation = (util.safeGetString(firstModelWithEQUIPDict, locationId) == docNum);
+		firstModelPROSERVLocation = (util.safeGetString(firstModelWithPROSERVDict, locationId) == docNum);
+		firstModelOTHERLocation = (util.safeGetString(firstModelWithOTHERDict, locationId) == docNum);
+		
+		ret = ret 
+				+ docNum + "~modelHasMRRCategoryParts_l~" + string(modelHasMRRPart) + "|"
+				+ docNum + "~modelHasINSTALLCategoryParts_l~" + string(modelHasINSTALLPart) + "|"
+				+ docNum + "~modelHasEQUIPCategoryParts_l~" + string(modelHasEQUIPPart) + "|"
+				+ docNum + "~modelHasPROSERVCategoryParts_l~" + string(modelHasPROSERVPart) + "|"
+				+ docNum + "~modelHasUncategorizedParts_l~" + string(modelHasOTHERPart) + "|"
+				+ docNum + "~firstModelWithMRRCategory_l~" + string(firstModelINSTALLLocation) + "|"
+				+ docNum + "~firstModelWithINSTALLCategory_l~" + string(firstModelINSTALLLocation) + "|"
+				+ docNum + "~firstModelWithEQUIPCategory_l~" + string(firstModelEQUIPLocation) + "|"
+				+ docNum + "~firstModelWithPROSERVCategory_l~" + string(firstModelPROSERVLocation) + "|"
+				+ docNum + "~firstModelWithUncategorizedParts_l~" + string(firstModelOTHERLocation) + "|"
+				;
+	}
+		
+}
+//----End of loop through line#2 to build return string
+
+//----Final Quote-level calculations
+if(totalQuoteUnitNRR <> 0) {
+	quoteNRRDiscountPct = (100 * (1 - totalQuoteNetNRR/totalQuoteUnitNRR));
+}
+if(totalQuoteUnitMRR <> 0) {
+	quoteMRRDiscountPct = (100 * (1 - totalQuoteNetMRR/totalQuoteUnitMRR));
+}
+
+//----Non-loop return string (Commerce Quote level)
+ret = ret
+		+ "1~totalPriceMRR_t~" + string(totalMRR_MRR) + "|"
+		+ "1~totalPriceMRRNRR_t~" + string(totalMRR_NRR) + "|"
+		+ "1~totalPriceInstall_t~" + string(totalInstall_MRR) + "|"
+		+ "1~totalPriceInstallNRR_t~" + string(totalInstall_NRR) + "|"
+		+ "1~totalPriceHWSW_t~" + string(totalHWSW_MRR) + "|"
+		+ "1~totalPriceHWSWNRR_t~" + string(totalHWSW_NRR) + "|"
+		+ "1~totalPriceProServ_t~" + string(totalProServ_MRR) + "|"
+		+ "1~totalPriceProServNRR_t~" + string(totalProServ_NRR) + "|"
+		+ "1~totalPriceOtherMRR_t~" + string(totalOther_MRR) + "|"
+		+ "1~totalPriceOtherNRR_t~" + string(totalOther_NRR) + "|"
+		+ "1~totalOneTimeUnitAmount_t~" + string(totalQuoteUnitNRR) + "|"
+		+ "1~totalMonthlyUnitAmount_t~" + string(totalQuoteUnitMRR) + "|"
+		+ "1~totalOneTimeDiscountPct_t~" + string(quoteNRRDiscountPct) + "|"
+		+ "1~totalMonthlyDiscountPct_t~" + string(quoteMRRDiscountPct) + "|"
+		;
+//----End of Non-loop return string
+	
+return ret;

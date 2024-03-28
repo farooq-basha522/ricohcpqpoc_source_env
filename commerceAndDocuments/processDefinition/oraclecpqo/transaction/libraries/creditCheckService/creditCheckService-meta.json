@@ -1,0 +1,11 @@
+{
+  "name" : "Credit Check Service",
+  "variableName" : "creditCheckService",
+  "description" : "This function will calculate if a a credit check is required, make the web service call if required, parse the response, and populate the three attributes. This function only runs on \"Create Order\" action.  Latest logic: MRR+NRR+Install(Not HWSW)>5K or aging >60 days.",
+  "libraryFunctions" : [ "util.creditCheckWebServiceCallout" ],
+  "returnType" : "String",
+  "parameters" : [ ],
+  "subDocAttributes" : [ ],
+  "mainDocAttributes" : [ "creditCheckApproved_t", "totalPriceMRR_t", "customerIDGP_t", "creditCheckServiceMessages_t", "totalPriceProServNRR_t", "totalPriceInstallNRR_t", "billingAuthority_t" ],
+  "systemAttributes" : [ ]
+}

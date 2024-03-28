@@ -1,0 +1,539 @@
+modelsStr = "";
+modelDocNum = "1";
+ligModels =string[];
+modelName = "Zebra"; //Default to Zebra
+parentMPSDocNum = ""; //Saved for reconfiguration Scenario
+fileUploadMsg = "";
+
+//return array initialization
+retStr = "";
+zebraArrJson = jsonarray();
+thirdPartyArrJson = jsonarray();
+micrArrJson = jsonarray();
+
+//error log file
+errorLogContentStr = "";
+errorLogCurrentLineStr = "";
+hasErrors = false;
+
+//TO-DO: Likely Remove
+errorLogErrorsDict = dict("string");
+errorLogArr = string[];
+
+inputData = getattachmentdata(uploadMPSConfigurationFile_t);
+fileContentStr = "";
+if (containskey(inputData, "filecontent")) {
+    fileContentStr = decodebase64(get(inputData, "filecontent", "string"));
+
+}
+else{
+	throwerror("No file attached. Please attach a file to upload");
+}
+fileContentArr = split(fileContentStr, "\n");
+index = -1;
+
+for line in transactionLine {
+    if (line._model_name <> "") {
+        modelsStr = modelsStr + "~" + line._model_name + "-" + line._group_sequence_number;
+        append(ligModels,line._model_name);
+    }
+}
+
+
+micrLineCount =0 ;
+lineCount = 0;
+zebraLineCount = 0;
+modelIndex  = 0; //First modelIndex is 0 since sys_0onfig_model_path starts with 0
+micrModelIndex =0;
+
+delete3rdParty = false;
+deleteZebra = false; 
+/**********************Process Each Row of CSV file to validate rows*********************/
+for each in fileContentArr {
+    index = index + 1;
+    eachRow = json();
+
+    errorStr = stringbuilder();
+    
+    columns = split(each, ",");
+    //Skip the first row of the CSV since it is headers
+    if (index == 0) {
+    	// Identify Model based on the template headers for new lines -3rdParty or Zebra
+        if(columns[3]=="MICR"){
+        	modelName = "3rd Party/MICR";
+        	//errorLogContentStr = replace(each, ",,,,,,,", ",Error(s),,,,,,\r\n");
+        	errorLogContentStr = each + ",Error(s),,,,,,\r\n";
+        }
+        else{
+            //ZEBRA
+           // errorLogContentStr = replace(each, ",,,,,,,,,,,", ",Error(s),,,,,,,,,,\r\n");
+           errorLogContentStr = each + ",Error(s),,,,,,\r\n";
+            modelName = "Zebra";
+        }
+        if(findinarray(ligModels,modelName)==-1){
+        	throwerror("Please Configure Header Configuration Before Uploading Fleet lines for the Model");
+        }
+	
+        continue;       
+    }
+    elif(startswith(each, ",,,,,,,,,,,,,,")) {
+        errorLogContentStr = errorLogContentStr + ",,,,,,,,,," + each + "\r\n";
+        continue;
+    }
+
+	//Break the loop if end of file has been reached.
+    if ((columns[0] == ""
+            OR isnull(columns[0])) AND(columns[3] == ""
+            OR isnull(columns[3])) AND(columns[4] == ""
+            OR isnull(columns[4])) AND(columns[5] == ""
+            OR isnull(columns[5])) AND(columns[1] == ""
+            OR isnull(columns[1])) AND(columns[2] == ""
+            OR isnull(columns[2]))) {
+            //If all lines were deleted i.e blank file uploaded then set DeleteLinesFlag to true
+            if(index == 1 ){
+            	if(modelName == "3rd Party/MICR"){
+            	delete3rdParty = true;
+            	}
+            	if(modelName == "Zebra"){
+            	deleteZebra = true;
+            	}
+            }
+        break;
+    }
+    lineId = columns[0];
+	/*Commenting since this logic is no longer required. Line ID not required to identify model, user can upload new config*/
+    //Check to ensure that child part lines are tied to existing child model with matching MPS model type if lineId<>"".
+    /*if (trim(lineId) <> ""
+        AND find(modelsStr, "~" + substring(lineId, 0, len(lineId) - 2)) == -1) {
+        sbappend(errorStr, "- Model Line does not exist for given Line ID. Please enter valid data and re-upload.\n");
+    }
+
+    if (trim(lineId) <> ""
+        AND NOT startswith(lineId, modelName)) {
+        sbappend(errorStr, "Line is not part of the Specified MPS Configuration Type. Please enter valid data and re-upload.\n");
+    }*/
+
+    printerManufacturer = columns[1];
+    printerModel = columns[2];
+    //Check if printer Manufacturer and Model exist in MakeModelMap table ,else add validation message and skip row
+    if (printerManufacturer == "") {
+        sbappend(errorStr, " - Printer Manufacturer Cannot be Empty. Please enter valid data and re-upload.\n");
+    }
+    if (printerModel == "") {
+        sbappend(errorStr, " - Printer Model Cannot be Empty. Please enter valid data and re-upload.\n");
+    }
+     if(printerManufacturer == "Other"){
+    	        sbappend(errorStr, " MPS-FLEET-OTHER Cannot be configured through file Upload. Add these lines manually in configuration.\n");
+    }
+    if (lower(modelName) == "zebra") {
+    
+    	zebraLineCount = zebraLineCount  +1;
+	if(zebraLineCount >200){
+    		modelIndex = modelIndex +1;
+    		zebraLineCount =1;
+    	}
+        qty = columns[3];
+        zipCode = columns[4];
+        breakFixResponse = columns[5];
+        //Check if printer Manufacturer and Model exist in MakeModelMap table ,else add validation message and skip row
+    	makeModelQry = bmql("SELECT Manufacturer,ModelName, ServiceStatus FROM RAC_MPS_ZebraPricing where Manufacturer=$printerManufacturer AND ModelName=$printerModel");
+    	countMakeModel = 0;	
+    	zebraServiceStatus = "";
+    	for rec in makeModelQry {
+   		 countMakeModel = countMakeModel + 1;
+   		 zebraServiceStatus = get(rec, "ServiceStatus");
+   		 break;
+	}
+	if (countMakeModel == 0) {
+        	sbappend(errorStr, " - This Combination of Printer Manufacturer and Printer Model is not available. Please enter valid data and re-upload.\n");
+    	}
+    	if(zebraServiceStatus == "Unsupported"){
+    		sbappend(errorStr, " - This Combination of Printer Manufacturer and Printer Model is not supported. Please modify or remove this line and re-upload.\n");
+    	}
+    	if(zebraServiceStatus == "Obsolete"){
+    	    	sbappend(errorStr, " - This Combination of Printer Manufacturer and Printer Model is obsolete. Please modify or remove this line and re-upload.\n");
+    	}
+        //Check if Qty, ZIP and break fix response are valid
+        if (qty == ""
+            OR NOT(isnumber(qty))) {
+            sbappend(errorStr, " - Quantity Cannot be Empty and Should be a positive integer value. Please enter valid data and re-upload.\n");
+        }
+        if(isnumber(qty)){
+        	if(find(qty,".")<>-1){
+			sbappend(errorStr, " - Quantity Should be a positive integer value. Please enter valid data and re-upload.\n");
+        	}elif(atoi(qty)<1){
+			sbappend(errorStr, " - Quantity Should be a positive integer value. Please enter valid data and re-upload.\n");
+        	}
+        }	
+        if (zipCode == ""
+            OR len(zipCode) <> 5) {
+            sbappend(errorStr, " - Zip Code Cannot be Empty and Should be a five digit value. Please enter valid data and re-upload.\n");
+        }
+        //CHECK ZIPCODE Validity if above check passes.
+        else{
+        zipService = "";
+    	zipCodeQry = bmql("Select ServiceProvider FROM RAC_ZipCode WHERE ZipCode=$zipCode");
+    	for recc in zipCodeQry{
+    		zipService = get(recc, "ServiceProvider");
+    	}
+	if(zipService=="" OR zipService=="NO SERVICE"){
+        	sbappend(errorStr, " - This Zipcode has no available service provider.Please enter Valid Zip Code.\n");
+        }
+        }
+        if (breakFixResponse == ""
+            OR(breakFixResponse <> "NBD"
+                AND breakFixResponse <> "4 Hrs")) {
+            sbappend(errorStr, " - Breakfix Response Time Cannot be Empty and Should be one of NBD or 4 Hrs. Please enter valid data and re-upload.\n");
+
+        }
+
+
+        //TO-DO: Need to split original string so Error Log column is added in 11th column + then add remainder of row string.
+        errorMsg = sbtoString(errorStr);
+        if (errorMsg <> "") {
+            currentLineArr = split(each + "\r\n", ",");
+            currentLineArr[6] = "\"" + errorMsg + "\",,,,,,,,,,";
+            errorLogContentStr = errorLogContentStr + join(currentLineArr, ",");
+            hasErrors = true;
+        } else {
+            currentLineArr = split(each + "\r\n", ",");
+            currentLineArr[6] = "No Errors Found,,,,,,,,,,";
+            errorLogContentStr = errorLogContentStr + join(currentLineArr, ",");
+
+            //Add row-data to json for zebra array
+            errorLogContentStr = errorLogContentStr + ",No Errors Found\r\n";
+            jsonput(eachRow,"modelIndexZebra_c",modelIndex);
+            jsonput(eachRow, "printerManufacturerZebra_c", printerManufacturer);
+            jsonput(eachRow, "printerModelZebra_c", printerModel);
+            jsonput(eachRow, "quantityZebra_c", atoi(qty));
+            jsonput(eachRow, "zipCodeZebra_c", zipCode);
+            jsonput(eachRow, "breakFixResponseTimeZebra_c", breakFixResponse);
+            jsonarrayappend(zebraArrJson, eachRow);
+        }
+    }
+    elif(lower(modelName) == "3rd party/micr") {
+        micrLine = columns[3];
+        qty = columns[4];
+        zipCode = columns[5];
+        breakFixResponse = columns[6];
+        customerBWVolume = columns[7];
+        customerColorVolume = columns[8];
+        qtyNonNetworked = columns[9];
+        
+	//Check if printer Manufacturer and Model exist in MakeModelMap table ,else add validation message and skip row
+	makeModelQry = bmql("SELECT Manufacturer, Category, Model,MICR,ThirdParty FROM RAC_MakeModelMap where Manufacturer=$printerManufacturer AND Model=$printerModel");
+	countMakeModel = 0;
+	micrModel="";
+	thirdPartyCategory = "";
+	thirdPartyModel="";
+	for rec in makeModelQry {
+      		countMakeModel = countMakeModel + 1;
+      		thirdPartyCategory = get(rec, "Category");
+      		micrModel=get(rec,"MICR");
+      		thirdPartyModel = get(rec,"ThirdParty");
+  	  	break;
+	}
+	if (countMakeModel == 0) {
+ 	   sbappend(errorStr, " - This Combination of Printer Manufacturer and Printer Model is not available. Please enter valid data and re-upload.\n");
+	}
+	if(micrLine == "Y" AND upper(micrModel)=="NO"){
+	   sbappend(errorStr, " - This Combination of Printer Manufacturer and Printer Model is not A MICR Make and Model. Please enter valid data and re-upload.\n");
+	}
+	if(micrLine == "N" AND upper(thirdPartyModel)=="NO"){
+	   sbappend(errorStr, " - This Combination of Printer Manufacturer and Printer Model is not A Third Party Make and Model. Please enter valid data and re-upload.\n");
+	}
+	if(thirdPartyCategory == "NOT SUPPORTED"){
+		sbappend(errorStr, " - This Combination of Printer Manufacturer and Printer Model is not supported. Please modify or remove this line and re-upload.\n");
+	}
+        //Check if Qty, ZIP and break fix response,qty non-networked are valid
+        if (qty == ""
+            OR NOT(isnumber(qty))) {
+            sbappend(errorStr, " - Quantity Cannot be Empty and Should be a positive integer value. Please enter valid data and re-upload.\n");
+        }
+        if(isnumber(qty)){
+        	if(find(qty,".")<>-1){
+			sbappend(errorStr, " - Quantity Should be a positive integer value. Please enter valid data and re-upload.\n");
+        	}elif(atoi(qty)<1){
+			sbappend(errorStr, " - Quantity Should be a positive integer value. Please enter valid data and re-upload.\n");
+        	}
+        }	
+        if (zipCode == ""
+            OR len(zipCode) <> 5) {
+            sbappend(errorStr, " - Zip Code Cannot be Empty and Should be a five digit value. Please enter valid data and re-upload.\n");
+        }
+        //CHECK ZIPCODE Validity if above check passes.
+        else{
+        zipService = "";
+    	zipCodeQry = bmql("Select ServiceProvider FROM RAC_ZipCode WHERE ZipCode=$zipCode");
+    	for recc in zipCodeQry{
+    		zipService = get(recc, "ServiceProvider");
+    	}
+	if(zipService=="" OR zipService=="NO SERVICE"){
+        	sbappend(errorStr, " - This Zipcode has no available service provider.Please enter Valid Zip Code.\n");
+        }
+        }
+        if (breakFixResponse == ""
+            OR(breakFixResponse <> "NBD"
+                AND breakFixResponse <> "4 Hrs")) {
+            sbappend(errorStr, " - Breakfix Response Time Cannot be Empty and Should be one of NBD or 4Hrs. Please enter valid data and re-upload.\n");
+        }
+        if(NOT isnumber(customerBWVolume) AND trim(customerBWVolume)<>""){
+        	sbappend(errorStr, " - Customer B&W Volume should be an numerical value or left blank to have the prorated value applied. Please enter valid data and re-upload.\n");
+        }
+        if(NOT isnumber(customerColorVolume) AND trim(customerColorVolume)<>""){
+        	sbappend(errorStr, " - Customer Color Volume should be an numerical value or left blank to have the prorated value applied. Please enter valid data and re-upload.\n");
+        }
+        // DEFECT #20433 : THIS WAS PART OF INITIAL DESIGN BUT VALIDATION IS NOT REQUIRED - i.e BLANK Value is allowed.
+       //Entered fields Need to be int values.
+       	if(qtyNonNetworked == ""){
+        	qtyNonNetworked ="0";
+        }
+        elif(NOT(isnumber(qtyNonNetworked))) {
+            sbappend(errorStr, " - Quantity Non-Networked Should be an integer value. Please enter valid data and re-upload.\n");
+        }
+	elif(isnumber(qtyNonNetworked )){
+        	if(find(qtyNonNetworked,".")<>-1){
+			sbappend(errorStr, " - Quantity Non-Networked Should be an integer value. Please enter valid data and re-upload.\n");
+        	}/*elif(atoi(qtyNonNetworked )<0){
+			sbappend(errorStr, " - Quantity Non-Networked Should be a value greater than 0. Please enter valid data and re-upload.\n");
+        	}*/
+        }
+        //TO-DO: Need to split original string so Error Log column is added in 11th column + then add remainder of row string.
+        errorMsg = sbtoString(errorStr);
+        if (errorMsg <> "") {
+            currentLineArr = split(each, ",");
+            currentLineArr[10] = "\"" + errorMsg + "\",,,,,,,,,,";
+            errorLogContentStr = errorLogContentStr + join(currentLineArr, ",") + "\r\n";
+            hasErrors = true;
+        } else {
+            //Add row-data to json for 3rd party/micr array
+            currentLineArr = split(each, ",");
+            currentLineArr[10] = "No Errors Found,,,,,,,,,,";
+            errorLogContentStr = errorLogContentStr + join(currentLineArr, ",") +"\r\n";
+            //Add row-data to json for 3rd-Party
+            if (micrLine == "N") {
+            	lineCount = lineCount +1;
+        	if(lineCount >200){
+        		modelIndex =modelIndex +1;
+        		lineCount = 1;
+        	}
+        	jsonput(eachRow,"modelIndex_c",modelIndex);
+                jsonput(eachRow, "printerManufacturer_c", printerManufacturer);
+                jsonput(eachRow, "printerModel_c", printerModel);
+                jsonput(eachRow, "quantity_c", atoi(qty));
+                jsonput(eachRow, "zipCode_c", zipCode);
+                jsonput(eachRow, "breakFixResponseTime_c", breakFixResponse);
+                jsonput(eachRow, "customerBWVolume_c", customerBWVolume);
+                jsonput(eachRow, "customerColorVolume_c", customerColorVolume);
+                jsonput(eachRow, "quantityNonNetworked_c", atoi(qtyNonNetworked));
+                jsonarrayappend(thirdPartyArrJson, eachRow);
+            } else {
+            	micrLineCount = micrLineCount +1;
+       		if(micrLineCount >200){
+        		micrModelIndex =micrModelIndex +1;
+        		micrLineCount = 1;
+        	}
+        	jsonput(eachRow,"modelIndexMICR_c",micrModelIndex);
+                jsonput(eachRow, "printerManufacturerMICR_c", printerManufacturer);
+                jsonput(eachRow, "printerModelMICR_c", printerModel);
+                jsonput(eachRow, "quantityMICR_c", qty);
+                jsonput(eachRow, "zipCodeMICR_c", zipCode);
+                jsonput(eachRow, "breakFixResponseTimeMICR_c", breakFixResponse);
+                jsonput(eachRow, "customerBWVolumeMICR_c", customerBWVolume);
+                jsonput(eachRow, "customerColorVolumeMICR_c", customerColorVolume);
+                jsonput(eachRow, "quantityNonNetworkedMICR_c", qtyNonNetworked);
+                jsonarrayappend(micrArrJson, eachRow);
+            }
+        }
+    }
+}
+
+numberOf3rdPartyModels = "0";
+numberOfZebraModels = "0";
+unprocessedFile = "false";
+unprocessedFileZebra = "false";
+processedModelList = "";
+mPSRootConfigFromFile ="false";   
+if (NOT hasErrors) {
+    
+    if (jsonarraysize(thirdPartyArrJson) > 0 OR jsonarraysize(micrArrJson) > 0 OR delete3rdParty == true) {
+    	//To Indicate that the uploaded file is not added  to configuration.This flag is turned off at reconfigure and transaction save.
+       	unprocessedFile = "true";
+       	if(delete3rdParty ==true){
+    	 	numberOf3rdPartyModels = "0";
+    	 }
+    	elif(modelIndex >= micrModelIndex){
+    		numberOf3rdPartyModels = string(modelIndex+1);
+    	}
+       else{
+       		numberOf3rdPartyModels = string(micrModelIndex+1);
+       	}
+       }
+    if (jsonarraysize(zebraArrJson) > 0 OR deleteZebra ==true) {
+    	 unprocessedFileZebra ="true";
+    	 if(deleteZebra ==true){
+    	 	numberOfZebraModels ="0";
+    	 }
+    	 else{
+    	 numberOfZebraModels =string(modelIndex+1);
+    	 }
+    }
+    mPSRootConfigFromFile = "true";
+    fileUploadMsg = "<span style=\"font-family: georgia, palatino, serif; color: #2dc26b;\">Upload Successful For MPS Configuration. Please reconfigure/Add MPS and save configuration changes.</span>";
+    
+    retStr = retStr + "1~a3rdPartyArray_c~" + jsonarrayrefid(thirdPartyArrJson) + "|";
+    retStr = retStr + "1~micrArray_c~" + jsonarrayrefid(micrArrJson) + "|";
+    retStr = retStr + "1~zebraArray_c~" + jsonarrayrefid(zebraArrJson) + "|";
+    retStr = retStr + "1~a3rdPartyArrayController_Header_c~" + string(jsonarraysize(thirdPartyArrJson)) + "|";
+    retStr = retStr + "1~mICRArrayController_Header_c~" + string(jsonarraysize(micrArrJson)) + "|";
+    retStr = retStr + "1~zebraArrayController_Header_c~" + string(jsonarraysize(zebraArrJson)) + "|";
+
+    //remove error log attachment via webservice call if previous error log exists and re-upload was successful
+    if(find(errorLogMPSConfigurationFile_t_c,"_delete")==-1){
+    errorLogData = getattachmentdata(errorLogMPSConfigurationFile_t_c);
+    if (containskey(inputData, "filecontent")) {
+        //WS User Credentials
+        username = "";
+        userpwd = "";
+        apiUserRecord = bmql("SELECT Username, Password FROM INT_SYSTEM_DETAILS WHERE API_NAME = 'UserLogin' AND InstancesName = $_system_supplier_company_name");
+        for apiUser in apiUserRecord {
+            username = get(apiUser, "Username");
+            userpwd = get(apiUser, "Password");
+        }
+        userpwd = replace(userpwd, "&", "&amp;");
+        userpwd = replace(userpwd, "<", "&lt;");
+        userpwd = replace(userpwd, ">", "&gt;");
+
+        //Build XML Payload for WS Call to attach .csv file to errorLogMPSConfigurationFile_t_c
+        sitename = _system_supplier_company_name;
+        payload = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">";
+        payload = payload + "     <soapenv:Header>";
+        payload = payload + "    <wsse:Security xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\" xmlns:wsu=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">";
+        payload = payload + "      <wsse:UsernameToken wsu:Id=\"UsernameToken-2\">";
+        payload = payload + "        <wsse:Username>" + username + "</wsse:Username>";
+        payload = payload + "        <wsse:Password Type=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText\">" + userpwd + "</wsse:Password>";
+        payload = payload + "      </wsse:UsernameToken>";
+        payload = payload + "    </wsse:Security>";
+        payload = payload + "    </soapenv:Header>";
+        payload = payload + "    <soapenv:Body>";
+        payload = payload + "      <bm:importFileAttachments xmlns:bm=\"http://xmlns.oracle.com/cpqcloud/commerce/oraclecpqo\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">";
+        payload = payload + "        <bm:mode>delete</bm:mode>";
+        payload = payload + "        <bm:attachments>";
+        payload = payload + "          <bm:attachment>";
+        payload = payload + "            <bm:document_number>1</bm:document_number>";
+        payload = payload + "            <bm:variable_name>errorLogMPSConfigurationFile_t_c</bm:variable_name>";
+        payload = payload + "          </bm:attachment>";
+        payload = payload + "        </bm:attachments>";
+        payload = payload + "        <bm:transaction>";
+        payload = payload + "          <bm:process_var_name>oraclecpqo</bm:process_var_name>";
+        payload = payload + "          <bm:id>" + bs_id + "</bm:id>";
+        payload = payload + "        </bm:transaction>";
+        payload = payload + "      </bm:importFileAttachments>";
+        payload = payload + "    </soapenv:Body>";
+        payload = payload + "  </soapenv:Envelope>";
+
+
+        //Perform WS Call to attach encoded .csv file and check if call was successful
+        soapURL = "https://" + sitename + ".bigmachines.com/v2_0/receiver/commerce/oraclecpqo";
+        header = dict("string");
+        fileAttachResponse = urldata(soapURL, "POST", header, payload);
+        if (get(fileAttachResponse, "Status-Code") <> "200") {
+            errMsgStr = get(fileAttachResponse, "Error-Message");
+            tempMsg = "There was an error processing the configuration upload. Please contact a site administrator. Export failed for the following reason: " + errMsgStr;
+            throwerror(tempMsg);
+
+        }
+    }
+    }
+    //retStr =retStr + "1~mPSFileUploadedMessage_c~" + "<span style=\"font-family: georgia, palatino, serif; color: #2dc26b;\">Upload Successful. Please reconfigure and save configuration changes.</span>" +"|";
+}
+//Update error log file attachment
+else {
+
+    //Encode File
+    file_contentBase64 = encodebase64(errorLogContentStr);
+
+    //WS User Credentials
+    username = "";
+    userpwd = "";
+    apiUserRecord = bmql("SELECT Username, Password FROM INT_SYSTEM_DETAILS WHERE API_NAME = 'UserLogin' AND InstancesName = $_system_supplier_company_name");
+    for apiUser in apiUserRecord {
+        username = get(apiUser, "Username");
+        userpwd = get(apiUser, "Password");
+    }
+    userpwd = replace(userpwd, "&", "&amp;");
+    userpwd = replace(userpwd, "<", "&lt;");
+    userpwd = replace(userpwd, ">", "&gt;");
+
+    //Build XML Payload for WS Call to attach .csv file to errorLogMPSConfigurationFile_t_c
+    sitename = _system_supplier_company_name;
+    payload = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">";
+    payload = payload + "     <soapenv:Header>";
+    payload = payload + "    <wsse:Security xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\" xmlns:wsu=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">";
+    payload = payload + "      <wsse:UsernameToken wsu:Id=\"UsernameToken-2\">";
+    payload = payload + "        <wsse:Username>" + username + "</wsse:Username>";
+    payload = payload + "        <wsse:Password Type=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText\">" + userpwd + "</wsse:Password>";
+    payload = payload + "      </wsse:UsernameToken>";
+    payload = payload + "    </wsse:Security>";
+    payload = payload + "    </soapenv:Header>";
+    payload = payload + "    <soapenv:Body>";
+    payload = payload + "      <bm:importFileAttachments xmlns:bm=\"http://xmlns.oracle.com/cpqcloud/commerce/oraclecpqo\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">";
+    payload = payload + "        <bm:mode>update</bm:mode>";
+    payload = payload + "        <bm:attachments>";
+    payload = payload + "          <bm:attachment>";
+    payload = payload + "            <bm:document_number>1</bm:document_number>";
+    payload = payload + "            <bm:variable_name>errorLogMPSConfigurationFile_t_c</bm:variable_name>";
+    payload = payload + "            <bm:filename>UploadMPSConfigurationFile_ErrorLog.csv</bm:filename>";
+    payload = payload + "            <bm:file_content>" + file_contentBase64 + "</bm:file_content>";
+    payload = payload + "          </bm:attachment>";
+    payload = payload + "        </bm:attachments>";
+    payload = payload + "        <bm:transaction>";
+    payload = payload + "          <bm:process_var_name>oraclecpqo</bm:process_var_name>";
+    payload = payload + "          <bm:id>" + bs_id + "</bm:id>";
+    payload = payload + "        </bm:transaction>";
+    payload = payload + "      </bm:importFileAttachments>";
+    payload = payload + "    </soapenv:Body>";
+    payload = payload + "  </soapenv:Envelope>";
+
+
+    //Perform WS Call to attach encoded .csv file and check if call was successful
+    soapURL = "https://" + sitename + ".bigmachines.com/v2_0/receiver/commerce/oraclecpqo";
+    header = dict("string");
+    fileAttachResponse = urldata(soapURL, "POST", header, payload);
+    if (get(fileAttachResponse, "Status-Code") <> "200") {
+        errMsgStr = get(fileAttachResponse, "Error-Message");
+        tempMsg = "There was an error processing the configuration upload. Please contact a site administrator. Export failed for the following reason: " + errMsgStr;
+        throwerror(tempMsg);
+
+    }
+    /*
+    retStr = retStr + "1~a3rdPartyArray_c~" + json() + "|";
+    retStr = retStr + "1~micrArray_c~" + json() + "|";
+    retStr = retStr + "1~zebraArray_c~" + json() + "|";
+    retStr = retStr + "1~a3rdPartyArrayController_Header_c~0" + "|";
+    retStr = retStr + "1~mICRArrayController_Header_c~0" + "|";
+    retStr = retStr + "1~zebraArrayController_Header_c~0" + "|";*/
+
+    fileUploadMsg = "<span style=\"font-family: georgia, palatino, serif; color: #FF0000;\">Errors were found within the Upload MPS Configuration File. Please review the Error Log MPS Configuration File attached..</span>";
+}
+    //throwerror if errors were found
+    //throwerror("Errors were found within the Upload MPS Configuration File. Please review the Error Log MPS Configuration File attached.");
+    retStr = retStr + "1~mPSRootConfigFromFile_c~"+mPSRootConfigFromFile +"|";
+    
+    retStr = retStr + "1~noOf3rdPartyMicrModels_c~"+ numberOf3rdPartyModels  + "|";
+    retStr = retStr + "1~numberOfZebraModels_c~" + numberOfZebraModels  + "|";
+    
+    //To Indicate that the uploaded file is not added  to configuration.This flag is turned off at reconfigure and transaction save.
+    retStr = retStr + "1~hasUnprocessMPSConfigFile_c~"+ unprocessedFile + "|";
+    //retStr = retStr + "1~hasUnprocessedMPSConfigFileMICR_c~"+ unprocessedFile + "|";
+    retStr = retStr + "1~hasUnprocessedMPSConfigFileZebra_c~"+unprocessedFileZebra + "|";
+    
+    retStr = retStr + "1~processedModelIndexList_c~" + "|"; //Clear any previously processed model indices For 3rd Party Array from older file 
+   // retStr = retStr + "1~processedModelIndexListMICR_c~" + "|"; //Clear any previously processed model indices for MICR Array from older file 
+    retStr = retStr + "1~processedModelIndexListZebra_c~" + "|"; //Clear any previously processed model indices of Zebra from older file 
+    
+setattributevalue(1, "mPSFileUploadedMessageText_c", fileUploadMsg);
+//print errorLogContentStr;
+//print "FILE" + fileUploadMsg;
+
+return retStr;
