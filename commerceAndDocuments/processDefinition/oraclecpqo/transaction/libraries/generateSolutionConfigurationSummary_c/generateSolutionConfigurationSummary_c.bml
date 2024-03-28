@@ -14,7 +14,7 @@
 //Any items associated to an Intelligent Delivery Services Model shall be excluded from the PS Summary Report
 
 /*get All solution summary data from table Solution_Config_Type*/
-/*TESTING Git final update1 update2*/
+/*TESTING Git final update1 update2 code space testing*/
 rs = bmql("select Category,Item_Type from Solution_Config_Type");
 category_Array  = string[];
 itemType_Array = string[];
