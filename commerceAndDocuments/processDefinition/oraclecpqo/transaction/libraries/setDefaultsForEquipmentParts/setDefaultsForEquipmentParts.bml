@@ -1,4 +1,5 @@
-//it has updated version on origin/main
+//it has updated version on origin/main{checking only on main branch}
+//am updating my local repository changes to remote
 //Changes done to introduce string instead of string builder for performance improvement
 retStr="";
 //retSB = stringbuilder();
