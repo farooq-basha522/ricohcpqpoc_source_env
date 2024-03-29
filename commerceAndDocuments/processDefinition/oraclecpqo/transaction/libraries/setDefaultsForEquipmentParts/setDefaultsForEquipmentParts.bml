@@ -51,6 +51,7 @@ for line in transactionLine {
 //commit directly on main branch origin
 =======
 //as part of this RITM RITM1373972 just below line of codes to assign config values to commerce transactionLines...
+//patch faroo1 v2
 >>>>>>> march_release
 >>>>>>> origin
 if(line._config_attr_info <> "" AND line._model_variable_name == "thirdPartyProducts"){
