@@ -2,6 +2,7 @@
 //am updating my local repository changes to remote
 //am creating new branch in my local system and push changed items to main branch(it has updated when i was on main branch)
 //this is updated on branch1
+//updated on main branch to check multiple branches merge and conflicts situition
 //Changes done to introduce string instead of string builder for performance improvement
 retStr="";
 //retSB = stringbuilder();
