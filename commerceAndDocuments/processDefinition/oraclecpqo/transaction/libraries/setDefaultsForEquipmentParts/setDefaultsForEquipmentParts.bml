@@ -43,7 +43,7 @@ else {
 overridePricing_thirdParty = "";
 pointsOverrideFloatEquipPart_thirdParty = "";
 for line in transactionLine {
-//as part of this RITM RITM1373972 just below line of codes to assign config values to commerce transactionLines.. testing1
+//as part of this RITM RITM1373972 just below line of codes to assign config values to commerce transactionLines
 if(line._config_attr_info <> "" AND line._model_variable_name == "thirdPartyProducts"){
 overridePricing_thirdParty =  getconfigattrvalue(line._document_number,"overridePricing_thirdParty");
 pointsOverrideFloatEquipPart_thirdParty =  getconfigattrvalue(line._document_number,"pointsOverrideFloatEquipPart_thirdParty");
