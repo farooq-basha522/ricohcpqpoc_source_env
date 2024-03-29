@@ -2,6 +2,7 @@
 //am updating my local repository changes to remote
 //am creating new branch in my local system and push changed items to main branch(it has updated when i was on main branch)
 //this is updated on branch1
+//this is updated on branch2
 //updated on main branch to check multiple branches merge and conflicts situition
 //updated on this line of code on branch_v1
 //Changes done to introduce string instead of string builder for performance improvement
