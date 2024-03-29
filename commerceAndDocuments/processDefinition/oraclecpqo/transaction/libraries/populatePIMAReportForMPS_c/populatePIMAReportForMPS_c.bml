@@ -56,6 +56,8 @@ ThirdPartyFleetPIMAArray= jsonarray();
 MICRFleetPIMAArray= jsonarray();
 ZebraFleetPIMAArray= jsonarray();PIMAArray= jsonarray();
 ImplememtationCostPIMAArray= jsonarray();
+ImplememtationZebraPIMAArray= jsonarray();
+ConditionalAuditPIMAArray = jsonarray();
 firstMonthBillingJson = json();
 MPSTotalDealJson= json();
 MPSLaborPIMAJson = json();
@@ -65,6 +67,8 @@ ThirdPartyFleetPIMAJson = json();
 MICRFleetPIMAJson = json();
 ZebraFleetPIMAJson = json();	
 ImplementationCostPIMAJson = json();
+ImplementationZebraPIMAJson = json();
+ConditionalAuditPIMAJson = json();
 PSPIMAJson =json();
 OtherSerNTPIMAArray=jsonarray();
 otherServicesNTPIMAJson= json();
@@ -2503,11 +2507,23 @@ for eachData in resultSet{
 			
 			jsonarrayappend(ZebraFleetPIMAArray,ZebraFleetPIMAJson);
 		}
-		if(get(eachData,"SectionName") == "Implementation Cost"){
+		if(get(eachData,"SectionName") == "Third Party Implementation"){
 			
 			ImplementationCostPIMAJson= util.mPSPIMAComponentArrayGeneration(sectionName, ItemName, PricingDict, "", ImplementationCostPIMAJson);
 			
 			jsonarrayappend(ImplememtationCostPIMAArray,ImplementationCostPIMAJson);
+		}
+		if(get(eachData,"SectionName") == "Zebra Implementation"){
+			
+			ImplementationZebraPIMAJson= util.mPSPIMAComponentArrayGeneration(sectionName, ItemName, PricingDict, "", ImplementationZebraPIMAJson);
+			
+			jsonarrayappend(ImplememtationZebraPIMAArray,ImplementationZebraPIMAJson);
+		}
+		if(get(eachData,"SectionName") == "Conditional Audit"){
+			
+			ConditionalAuditPIMAJson= util.mPSPIMAComponentArrayGeneration(sectionName, ItemName, PricingDict, "", ConditionalAuditPIMAJson);
+			
+			jsonarrayappend(ConditionalAuditPIMAArray,ConditionalAuditPIMAJson);
 		}
 		
 		//Rebate Json Array
@@ -2596,6 +2612,8 @@ res = res + "1~thirdPartyFleetPIMAMPSArrayset_c~" + jsonarrayrefid(ThirdPartyFle
 res = res + "1~mICRFleetPIMAMPSArrayset_c~" + jsonarrayrefid(MICRFleetPIMAArray) + "|";
 res = res + "1~zebraFleetMPSPIMAArrayset_c~" + jsonarrayrefid(ZebraFleetPIMAArray) + "|";
 res = res + "1~implementationCostMPSPIMAArrayset_c~" + jsonarrayrefid(ImplememtationCostPIMAArray) + "|";
+res = res + "1~implementationZebraMPSPIMAArrayset_c~" + jsonarrayrefid(ImplememtationZebraPIMAArray) + "|";
+res = res + "1~conditionalAuditMPSPIMAArrayset_c~" + jsonarrayrefid(ConditionalAuditPIMAArray) + "|";
 res = res + "1~rebateArray_MPS_t_c~" + jsonarrayrefid(rebateTotalArray) + "|";
 
 
